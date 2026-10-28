@@ -154,3 +154,20 @@ Baut auf `ConsumptionEvent` und den FOOD-Punkten auf; hier die Ansichten:
 3. Fortschrittsfotos ja/nein im Pilot?
 4. Rechner/Tracker kostenlos, Coach-Anpassung Pro?
 5. Fachperson für Aktivitätsfaktoren, Untergrenzen und Dehnempfehlungen (erweitert O3).
+
+---
+
+## 21.8 Fertige HIIT-Programme (Wunsch vom 28.10.2026)
+
+Bisher gab es nur den HIIT-*Timer* (HEALTH-010). Neu: **fertige Abläufe**, z. B. „Bauch“ und „Ganzkörper“,
+jeweils in Anfänger- und Fortgeschrittenenstufe, plus eigene Abläufe. Ablauf: nächste Übung mit Demo
+ankündigen → Belastung → Pause → nächste Übung → Runden. Nutzt dieselbe Timer-Engine wie Dehnroutinen.
+
+Wichtig für Texte und Werbung: Bauchübungen trainieren die Bauchmuskeln, sie bauen aber nicht gezielt
+Bauchfett ab. Das wird nicht versprochen (HIIT-006). Register: HIIT-001 bis HIIT-007.
+
+## 21.9 Fokus der ersten Version (Luc, 28.10.2026)
+
+Dehnen · Kalorientracker · Kalorienrechner aus Gewicht, Bewegung und Erhaltungskalorien · Trainingspläne,
+fertig und selbst erstellt · Timer zwischen den Sätzen · fertige HIIT-Abläufe (z. B. Bauch).
+Alles andere bleibt im Gesamtumfang und folgt später.

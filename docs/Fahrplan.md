@@ -10,7 +10,7 @@ Jeder Schritt ist ein eigener Git-Commit, damit man immer zurück kann.
 
 Kosten bis Phase 6: **0 €**.
 
-Abdeckung geprüft: alle 187 Registerpunkte (147 + 40) und alle offenen Punkte O1–O7 aus Kap. 19 sind einer Phase zugeordnet. Danach Apple Developer Program 99 $/Jahr.
+Abdeckung geprüft: alle 194 Registerpunkte (147 + 47) und alle offenen Punkte O1–O7 aus Kap. 19 sind einer Phase zugeordnet. Danach Apple Developer Program 99 $/Jahr.
 
 ---
 
@@ -81,13 +81,16 @@ Parallel: 50 eigene Produkte scannen und Trefferquote notieren (FOOD-009, O2).
 
 **Fertig, wenn:** Ziel setzen → Kalorienziel erscheint im Tracker → Gewichtstrend sichtbar.
 
-## Phase 5 – Dehnung & Mobilität
+## Phase 5 – Dehnung, Mobilität & HIIT-Programme
 
 | # | Schritt | Register |
 |---|---|---|
 | 5.1 | Dehnübungen (Bilder/Medien prüfen), Routinen anlegen | STRETCH-003, -007, -009 |
 | 5.2 | Halte-Timer mit Seitenwechsel; Dehnprotokoll; Abbruch bei Schmerz | STRETCH-004, -005, -006 |
 | 5.3 | Aufwärmen/Cool-down an Trainingstage hängen | STRETCH-001, -002 |
+| 5.4 | Fertige HIIT-Programme (Start: Bauch + Ganzkörper) mit Stufen | HIIT-001, -002 |
+| 5.5 | HIIT-Ablauf: Ansage nächste Übung, Timer, Runden, Abbruchknopf | HIIT-003, -007 |
+| 5.6 | Eigene HIIT-Abläufe bauen, Protokoll im Verlauf | HIIT-004, -005 |
 
 ## Phase 6 – MacBook da: native Funktionen
 
@@ -129,7 +132,7 @@ Essenszeiten, Allergien/Vorlieben (COACH-006–009) · 9.5 Freitext/Spracheingab
 10.1 Fachperson prüft Trainingsvorlagen, Progression, Kalorienformeln, Grenzen, Dehnwerte, Planqualität
 (O3, TRAIN-018, -022, STRETCH-008, COACH-010, TRACK-006) · 10.2 Verträge (Medien, KI, Werbung) zusammenführen (O4), Gewerbe, Impressum,
 Datenschutzerklärung als Webseite, rechtliche Prüfung (LAW) · 10.3 Pro-Abo und Werbung einbauen, Free/Pro-Grenze (BUS, CALC-006) ·
-10.4 Store-Texte, Screenshots, App-Name; keine falschen Versprechen wie „Cardio bringt nichts“ (UX-009, COACH-011) · 10.5 Hilfe/FAQ (UX-005) · 10.6 Code aufräumen,
+10.4 Store-Texte, Screenshots, App-Name; keine falschen Versprechen wie „Cardio bringt nichts“ oder „Bauchfett wegtrainieren“ (UX-009, COACH-011, HIIT-006) · 10.5 Hilfe/FAQ (UX-005) · 10.6 Code aufräumen,
 Sicherheits- und Abhängigkeitsprüfung (LAW-017, TECH-017, O6).
 
 **Fertig, wenn:** Freigabematrix (Kap. 18) ohne offene kritische Punkte → Einreichung im App Store.
