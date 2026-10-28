@@ -1,0 +1,94 @@
+{
+  "scope": "Isoliertes Referenzmodell Kapitel 21; keine App-/Gerätetests, keine Fachfreigabe",
+  "passed": 22,
+  "tests": [
+    {
+      "test": "Mifflin 80 kg/180 cm/30 J/+5 = 1780",
+      "passed": true
+    },
+    {
+      "test": "Mifflin 60 kg/165 cm/25 J/-161 = 1345,25",
+      "passed": true
+    },
+    {
+      "test": "Alter 17 außerhalb Population abgelehnt",
+      "passed": true
+    },
+    {
+      "test": "Alter 80 außerhalb Population abgelehnt",
+      "passed": true
+    },
+    {
+      "test": "Gewicht 0 abgelehnt",
+      "passed": true
+    },
+    {
+      "test": "Schätzung 1780 x 1,55 = 2759",
+      "passed": true
+    },
+    {
+      "test": "unbekannte Aktivitätsstufe abgelehnt",
+      "passed": true
+    },
+    {
+      "test": "Ziel abnehmen -500 ergibt Vorschlag 2259",
+      "passed": true
+    },
+    {
+      "test": "unter Untergrenze kein Automatikziel",
+      "passed": true
+    },
+    {
+      "test": "abnehmen mit Überschuss abgelehnt",
+      "passed": true
+    },
+    {
+      "test": "halten mit Delta abgelehnt",
+      "passed": true
+    },
+    {
+      "test": "Tag: bekannte 800 kcal gegessen, 1200 übrig",
+      "passed": true
+    },
+    {
+      "test": "unbekannter Wert markiert Tag unvollständig",
+      "passed": true
+    },
+    {
+      "test": "bekannte Null bleibt vollständig",
+      "passed": true
+    },
+    {
+      "test": "Überschreitung ergibt negativen Rest",
+      "passed": true
+    },
+    {
+      "test": "7-Tage-Mittel aus 7 Messungen",
+      "passed": true
+    },
+    {
+      "test": "zu wenige Messungen ergeben keinen Trend",
+      "passed": true
+    },
+    {
+      "test": "Messungen außerhalb des Fensters ignoriert",
+      "passed": true
+    },
+    {
+      "test": "neue Zielversion ändert alte Einträge nicht",
+      "passed": true
+    },
+    {
+      "test": "beidseitige Dehnung erzeugt links und rechts",
+      "passed": true
+    },
+    {
+      "test": "Routinendauer 30+5+30+10+30 = 105 s",
+      "passed": true
+    },
+    {
+      "test": "Haltezeit 0 abgelehnt",
+      "passed": true
+    }
+  ]
+}
