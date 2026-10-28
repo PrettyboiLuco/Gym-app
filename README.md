@@ -6,6 +6,7 @@ Planungsstand (noch keine App-Implementierung).
 - `docs/Kapitel_21_Ergaenzung_Module.md` – Ergänzung: Dehnung & Mobilität, Körperziele, Kalorienrechner, Kalorientracker
 - `register/Fachregister.csv` – 147 Fachpunkte; `register/Fachregister_Ergaenzung.csv` – 40 neue Punkte (Kap. 21 + Lücken aus Gesamtprüfung)
 - `docs/Gesamtpruefung_Vollstaendig.md` – Prüfprotokoll aller Unterlagen, vollständige Funktionsliste, Lücken, Widersprüche
+- `docs/Fahrplan.md` – **Schritt-für-Schritt-Fahrplan von null bis App Store**
 - `docs/Entscheidungen.md` – getroffene und offene Entscheidungen
 - `register/Originalabdeckung.csv` – 98 Originalblöcke
 - `reference/` – isolierte Python-Referenztests (24 + 22), kein Produktionscode
