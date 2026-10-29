@@ -40,6 +40,11 @@ Abdeckung geprüft: alle 194 Registerpunkte (147 + 47) und alle offenen Punkte O
 **Fertig, wenn:** Die App öffnet sich auf dem iPhone, alle 5 Bereiche sind erreichbar, ein Testeintrag
 überlebt das Schließen der App.
 
+**Stand 29.10.2026:** 1.1–1.6 gebaut im Ordner `mobile/` (Expo SDK 58). Erster echter Eintrag: Körpergewicht
+unter „Fortschritt“. 37 automatische Tests (die 24 + 22 Referenztests als App-Code), Typprüfung und Lint
+bestanden; iOS-Bundle und Web-Vorschau bauen fehlerfrei; im Browser getestet (Speichern, Neuladen,
+Fehleingabe). **Offen:** Test auf dem echten iPhone in Expo Go.
+
 ## Phase 2 – Training (Kern)
 
 | # | Schritt | Register |

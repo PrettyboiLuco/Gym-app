@@ -9,6 +9,7 @@ Planungsstand (noch keine App-Implementierung).
 - `docs/Fahrplan.md` – **Schritt-für-Schritt-Fahrplan von null bis App Store**
 - `docs/Entscheidungen.md` – getroffene und offene Entscheidungen
 - `register/Originalabdeckung.csv` – 98 Originalblöcke
+- `mobile/` – **die App** (Expo / React Native), Start siehe `mobile/README.md`
 - `reference/` – isolierte Python-Referenztests (24 + 22), kein Produktionscode
 
 Tests: `python3 reference/Referenztests.py` und `python3 reference/Referenztests_Ergaenzung.py`
