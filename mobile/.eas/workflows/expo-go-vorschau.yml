@@ -1,0 +1,12 @@
+# Veröffentlicht den aktuellen Stand als Update, das sich direkt in Expo Go öffnen lässt.
+# Ohne runtimeVersion in app.json passt das Update zur Expo-Go-Version des installierten SDK.
+name: Expo-Go-Vorschau
+
+jobs:
+  vorschau:
+    name: Update für Expo Go veröffentlichen
+    type: update
+    environment: preview
+    params:
+      branch: vorschau
+      platform: ios
