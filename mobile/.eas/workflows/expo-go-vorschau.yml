@@ -1,5 +1,5 @@
 # Veröffentlicht den aktuellen Stand als Update, das sich direkt in Expo Go öffnen lässt.
-# Ohne runtimeVersion in app.json passt das Update zur Expo-Go-Version des installierten SDK.
+# runtimeVersion "sdkVersion" (app.json) ergibt exposdk:58.0.0 – nur dann akzeptiert Expo Go das Update.
 name: Expo-Go-Vorschau
 
 jobs:
