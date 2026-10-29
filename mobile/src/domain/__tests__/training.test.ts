@@ -6,10 +6,13 @@ import {
   formatClock,
   intervalState,
   intervalTotalSeconds,
+  moveItem,
   nextDayIndex,
   parseSetInput,
+  isRestVisible,
   restRemainingMs,
   startRest,
+  stopRest,
   validatePlan,
   type PlanDraft,
 } from '../training';
@@ -24,6 +27,8 @@ describe('Plan prüfen', () => {
   test('fehlender Name, leerer Tag', () =>
     expect(validatePlan({ name: ' ', days: [{ name: 'A', items: [] }] })).toEqual(['nameMissing', 'dayEmpty']));
   test('kein Tag', () => expect(validatePlan({ name: 'X', days: [] })).toEqual(['noDays']));
+  test.each([2, 3, 4, 5, 6])('%i Trainingstage sind gültig (TRAIN-004)', (count) =>
+    expect(validatePlan({ ...valid, days: Array(count).fill(valid.days[0]) })).toEqual([]));
   test('mehr als 7 Tage', () =>
     expect(validatePlan({ ...valid, days: Array(8).fill(valid.days[0]) })).toContain('tooManyDays'));
   test('Wiederholungsbereich verkehrt herum', () =>
@@ -37,6 +42,14 @@ describe('Plan prüfen', () => {
         days: [{ name: 'A', items: [{ ...valid.days[0].items[0], sets: 0, restSeconds: 2000 }] }],
       })
     ).toEqual(['invalidSets', 'invalidRest']));
+});
+
+describe('Reihenfolge', () => {
+  test('nach oben und unten verschieben', () => {
+    expect(moveItem(['a', 'b', 'c'], 2, 0)).toEqual(['c', 'a', 'b']);
+    expect(moveItem(['a', 'b', 'c'], 0, 1)).toEqual(['b', 'a', 'c']);
+  });
+  test('ungültige Position ändert nichts', () => expect(moveItem(['a', 'b'], 0, 5)).toEqual(['a', 'b']));
 });
 
 describe('Satz-Eingabe', () => {
@@ -76,6 +89,18 @@ describe('Pausentimer', () => {
     expect(restRemainingMs(extendRest(startRest(null, 30, 0), 30, 100_000), 100_000)).toBe(30_000));
   test('abgelaufen bleibt bei 0', () => expect(restRemainingMs(startRest(null, 30, 0), 60_000)).toBe(0));
   test('kein Timer ergibt 0', () => expect(restRemainingMs(null, 0)).toBe(0));
+  test('nach Überspringen bekommt der nächste Timer eine neue Generation (Vibrationsfehler)', () => {
+    const first = startRest(null, 90, 0);
+    const skipped = stopRest(first);
+    expect(isRestVisible(skipped)).toBe(false);
+    expect(restRemainingMs(skipped, 0)).toBe(0);
+    const next = startRest(skipped, 90, 1000);
+    expect(next?.generation).toBe(2);
+    expect(isRestVisible(next)).toBe(true);
+  });
+  test('Pause 0 s startet keinen sichtbaren Timer', () => expect(isRestVisible(startRest(null, 0, 0))).toBe(false));
+  test('+30 s nach Überspringen startet eine neue 30-s-Pause', () =>
+    expect(restRemainingMs(extendRest(stopRest(startRest(null, 90, 0)), 30, 5000), 5000)).toBe(30_000));
 });
 
 describe('Intervall-Timer (HIIT)', () => {
@@ -88,6 +113,12 @@ describe('Intervall-Timer (HIIT)', () => {
   test('nach 60 s: Arbeit Runde 2', () =>
     expect(intervalState(config, 60_000)).toEqual({ phase: 'arbeit', round: 2, remainingMs: 40_000 }));
   test('nach 160 s: fertig', () => expect(intervalState(config, 160_000).phase).toBe('fertig'));
+  test('ohne Pause folgt Runde auf Runde', () =>
+    expect(intervalState({ workSeconds: 30, restSeconds: 0, rounds: 2 }, 30_000)).toEqual({
+      phase: 'arbeit',
+      round: 2,
+      remainingMs: 30_000,
+    }));
   test('ungültige Einstellung abgelehnt', () =>
     expect(() => intervalState({ workSeconds: 0, restSeconds: 10, rounds: 3 }, 0)).toThrow());
   test('Uhrzeitformat', () => {

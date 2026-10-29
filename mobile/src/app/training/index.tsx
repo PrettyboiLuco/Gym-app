@@ -61,6 +61,11 @@ export default function TrainingScreen() {
             ))
           )}
           <ListRow title={t('training.freeWorkout')} accessory="▶" onPress={() => start(null)} />
+          {plans.length > 0 ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('training.dayChoiceHint')}
+            </ThemedText>
+          ) : null}
         </Card>
       )}
 

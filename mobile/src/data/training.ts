@@ -4,7 +4,7 @@
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
 import type { Equipment, MuscleGroup } from '@/domain/exercises';
-import type { PlanDraft, RestTimer } from '@/domain/training';
+import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { newId, nowUtc, type Db } from './db';
 
@@ -358,20 +358,39 @@ export async function lastPerformance(db: Db, exerciseId: string, excludeSession
   );
 }
 
-// ---------------------------------------------------------------------------- Pausentimer
+/** Entfernt einen noch nicht erledigten Satz (z. B. versehentlich hinzugefügt). Erledigte Sätze bleiben. */
+export async function deleteOpenSet(db: Db, setId: string) {
+  await db.runAsync('DELETE FROM set_log WHERE id = ? AND completed_at_utc IS NULL', setId);
+}
 
-export async function loadRestTimer(db: Db): Promise<RestTimer> {
-  const row = await db.getFirstAsync<{ value: string }>("SELECT value FROM app_state WHERE key = 'rest_timer'");
+// ----------------------------------------------------------------- gespeicherter App-Zustand
+// Timer und Einstellungen überstehen so das Schließen der App (HEALTH-011).
+
+async function readState<T>(db: Db, key: string, fallback: T): Promise<T> {
+  const row = await db.getFirstAsync<{ value: string }>('SELECT value FROM app_state WHERE key = ?', key);
+  if (!row) return fallback;
   try {
-    return row ? (JSON.parse(row.value) as RestTimer) : null;
+    return JSON.parse(row.value) as T;
   } catch {
-    return null;
+    return fallback;
   }
 }
 
-export async function saveRestTimer(db: Db, timer: RestTimer) {
+async function writeState(db: Db, key: string, value: unknown) {
   await db.runAsync(
-    "INSERT INTO app_state (key, value) VALUES ('rest_timer', ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value",
-    JSON.stringify(timer)
+    'INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value',
+    key,
+    JSON.stringify(value)
   );
 }
+
+export const loadRestTimer = (db: Db) => readState<RestTimer>(db, 'rest_timer', null);
+export const saveRestTimer = (db: Db, timer: RestTimer) => writeState(db, 'rest_timer', timer);
+
+/** Pause nach jedem Satz automatisch starten (Standard: an). */
+export const loadRestAuto = (db: Db) => readState<boolean>(db, 'rest_auto', true);
+export const saveRestAuto = (db: Db, on: boolean) => writeState(db, 'rest_auto', on);
+
+export type IntervalRun = { config: IntervalConfig; startedAtMs: number } | null;
+export const loadIntervalRun = (db: Db) => readState<IntervalRun>(db, 'interval_run', null);
+export const saveIntervalRun = (db: Db, run: IntervalRun) => writeState(db, 'interval_run', run);

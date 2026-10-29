@@ -50,6 +50,15 @@ export function validatePlan(plan: PlanDraft): PlanProblem[] {
   return [...problems];
 }
 
+/** Verschiebt ein Element (Reihenfolge von Tagen und Übungen, TRAIN-002). */
+export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
+  if (from < 0 || from >= list.length || to < 0 || to >= list.length) return [...list];
+  const copy = [...list];
+  const [item] = copy.splice(from, 1);
+  copy.splice(to, 0, item);
+  return copy;
+}
+
 /** Liest eine ganze Zahl aus einem Eingabefeld; ungültig ergibt null. */
 export function parseWholeNumber(input: string): number | null {
   const trimmed = input.trim();
@@ -96,19 +105,20 @@ export function nextDayIndex(dayCount: number, lastCompletedIndex: number | null
 
 export const REST_PRESETS = [30, 60, 90, 120, 180, 240, 300] as const;
 
-export type RestTimer = { endAtMs: number; durationMs: number; generation: number } | null;
+/**
+ * `stopped` statt null nach „Überspringen“: so bleibt die Generation erhalten und der nächste
+ * Timer bekommt eine neue Nummer. Sonst würde das Endsignal für ihn als „schon gemeldet“ gelten.
+ */
+export type RestTimer = { endAtMs: number; durationMs: number; generation: number; stopped?: boolean } | null;
 
 export function startRest(previous: RestTimer, seconds: number, nowMs: number): RestTimer {
-  if (seconds <= 0) return null;
-  return {
-    endAtMs: nowMs + seconds * 1000,
-    durationMs: seconds * 1000,
-    generation: (previous?.generation ?? 0) + 1,
-  };
+  const generation = (previous?.generation ?? 0) + 1;
+  if (seconds <= 0) return { endAtMs: nowMs, durationMs: 0, generation, stopped: true };
+  return { endAtMs: nowMs + seconds * 1000, durationMs: seconds * 1000, generation };
 }
 
 export function extendRest(timer: RestTimer, seconds: number, nowMs: number): RestTimer {
-  if (!timer) return startRest(null, seconds, nowMs);
+  if (!timer || timer.stopped) return startRest(timer, seconds, nowMs);
   const base = Math.max(timer.endAtMs, nowMs);
   return {
     endAtMs: base + seconds * 1000,
@@ -117,8 +127,16 @@ export function extendRest(timer: RestTimer, seconds: number, nowMs: number): Re
   };
 }
 
+export function stopRest(timer: RestTimer): RestTimer {
+  return timer ? { ...timer, stopped: true } : null;
+}
+
+export function isRestVisible(timer: RestTimer): boolean {
+  return timer !== null && !timer.stopped;
+}
+
 export function restRemainingMs(timer: RestTimer, nowMs: number): number {
-  return timer ? Math.max(0, timer.endAtMs - nowMs) : 0;
+  return timer && !timer.stopped ? Math.max(0, timer.endAtMs - nowMs) : 0;
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -11,6 +11,7 @@ import {
   activatePlanVersion,
   addSet,
   completeSet,
+  deleteOpenSet,
   finishSession,
   lastCompletedDayPosition,
   lastPerformance,
@@ -19,8 +20,12 @@ import {
   listPlanVersions,
   listSessionSets,
   loadPlanDraft,
+  loadIntervalRun,
+  loadRestAuto,
   loadRestTimer,
   savePlan,
+  saveIntervalRun,
+  saveRestAuto,
   saveRestTimer,
   startSession,
 } from '../training';
@@ -180,6 +185,35 @@ describe('Training und Sätze', () => {
     await addSet(db, session, 'kniebeuge');
     const [set] = await listSessionSets(db, session);
     await expect(completeSet(db, set.id, -5, 5)).rejects.toThrow();
+  });
+});
+
+describe('Satz entfernen', () => {
+  test('nur offene Sätze lassen sich entfernen, erledigte bleiben', async () => {
+    const session = await startSession(db, null);
+    await addSet(db, session, 'dips');
+    await addSet(db, session, 'dips');
+    const [done, open] = await listSessionSets(db, session);
+    await completeSet(db, done.id, 0, 10);
+    await deleteOpenSet(db, done.id);
+    await deleteOpenSet(db, open.id);
+    const rest = await listSessionSets(db, session);
+    expect(rest.map((s) => s.id)).toEqual([done.id]);
+  });
+});
+
+describe('Einstellungen und Intervall-Zustand', () => {
+  test('Automatik-Pause ist standardmäßig an und abschaltbar', async () => {
+    expect(await loadRestAuto(db)).toBe(true);
+    await saveRestAuto(db, false);
+    expect(await loadRestAuto(db)).toBe(false);
+  });
+  test('laufender Intervall-Timer übersteht Neustart', async () => {
+    const run = { config: { workSeconds: 40, restSeconds: 20, rounds: 8 }, startedAtMs: 123 };
+    await saveIntervalRun(db, run);
+    expect(await loadIntervalRun(db)).toEqual(run);
+    await saveIntervalRun(db, null);
+    expect(await loadIntervalRun(db)).toBeNull();
   });
 });
 

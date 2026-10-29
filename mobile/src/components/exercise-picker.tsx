@@ -20,7 +20,14 @@ export function ExercisePicker({
   const [query, setQuery] = useState('');
   const needle = query.trim().toLowerCase();
   const filtered = exercises
-    .filter((e) => !needle || exerciseName(e).toLowerCase().includes(needle))
+    // Suche auch nach Muskelgruppe und Gerät, z. B. „Brust“ oder „Kabel“.
+    .filter(
+      (e) =>
+        !needle ||
+        [exerciseName(e), t(`muscle.${e.muscleGroup}`), t(`equipment.${e.equipment}`)].some((text) =>
+          text.toLowerCase().includes(needle)
+        )
+    )
     .sort(
       (a, b) =>
         MUSCLE_GROUPS.indexOf(a.muscleGroup) - MUSCLE_GROUPS.indexOf(b.muscleGroup) ||

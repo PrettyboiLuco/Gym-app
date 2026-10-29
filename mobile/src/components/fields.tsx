@@ -70,6 +70,43 @@ export function Choice<T extends string>({
   );
 }
 
+/** Kleine Schnellwahl-Knöpfe, z. B. Pausenlängen. */
+export function Presets<T extends string | number>({
+  options,
+  value,
+  onChange,
+  format,
+  label,
+}: {
+  options: readonly T[];
+  value?: T;
+  onChange: (value: T) => void;
+  format: (value: T) => string;
+  label: string;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.chips}>
+      {options.map((option) => {
+        const selected = option === value;
+        return (
+          <Pressable
+            key={String(option)}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            accessibilityLabel={`${label} ${format(option)}`}
+            onPress={() => onChange(option)}
+            style={[styles.smallChip, { backgroundColor: selected ? theme.tint : theme.backgroundSelected }]}>
+            <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+              {format(option)}
+            </ThemedText>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 /** Löschen mit Rückfrage: erster Tipp fragt nach, zweiter Tipp löscht (Schutz vor Datenverlust). */
 export function ConfirmButton({
   label,
@@ -141,6 +178,7 @@ const styles = StyleSheet.create({
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: Spacing.four },
+  smallChip: { paddingVertical: Spacing.one, paddingHorizontal: Spacing.two, borderRadius: Spacing.three, minHeight: 32, justifyContent: 'center' },
   confirm: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
   row: {
     flexDirection: 'row',

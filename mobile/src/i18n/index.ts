@@ -20,7 +20,8 @@ export function t(key: string, options?: Record<string, unknown>): string {
 
 /** Zahl im Format der aktuellen Sprache, z. B. 80,5. */
 export function formatNumber(value: number, maximumFractionDigits = 1): string {
-  return new Intl.NumberFormat(i18n.locale, { maximumFractionDigits }).format(value);
+  // Ohne Tausenderpunkt, damit angezeigte Zahlen wieder eingelesen werden können (z. B. 1000 kg).
+  return new Intl.NumberFormat(i18n.locale, { maximumFractionDigits, useGrouping: false }).format(value);
 }
 
 /** Datum (YYYY-MM-DD) im Format der aktuellen Sprache, z. B. 29.10.2026. */

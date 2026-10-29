@@ -10,7 +10,7 @@ Jeder Schritt ist ein eigener Git-Commit, damit man immer zurück kann.
 
 Kosten bis Phase 6: **0 €**.
 
-Abdeckung geprüft: alle 194 Registerpunkte (147 + 47) und alle offenen Punkte O1–O7 aus Kap. 19 sind einer Phase zugeordnet. Danach Apple Developer Program 99 $/Jahr.
+Abdeckung geprüft: alle 197 Registerpunkte (147 + 50) und alle offenen Punkte O1–O7 aus Kap. 19 sind einer Phase zugeordnet. Danach Apple Developer Program 99 $/Jahr.
 
 ---
 
@@ -69,10 +69,21 @@ dann expo.dev → Updates → oberstes Update → Preview.
 77 automatische Tests, Browser-Test aller Abläufe bestanden. **Offen:** Test im Gym auf dem iPhone.
 Bewusst später: Timer bei gesperrtem Handy (Phase 6), fertige Pläne und Progression (Phase 8).
 
+**Prüfung Phase 2 (29.10.2026), Zeile für Zeile gegen Plan und Register:** 4 Fehler und 10 Lücken gefunden
+und behoben – Vibration nach „Überspringen“ (Timer-Generation), Werte wieder geöffneter Sätze,
+Tausenderpunkt, feste Texte; Pausen-Schnellwahl 0:30–5:00 im Plan und im Training (HEALTH-008), Pause von Hand
+starten und Automatik abschaltbar (HEALTH-009), Übungen und Tage umsortieren (TRAIN-002), offene Sätze
+entfernen, Intervall-Timer übersteht App-Neustart (HEALTH-011), Satz bleibt bei Timerfehler gespeichert,
+Körpergewicht mit 0 kg vorbelegt, Suche nach Muskelgruppe/Gerät (TRAIN-003), Hinweis zu ausgelassenen Tagen
+(TRAIN-015), Test 2–6 Tage (TRAIN-004). 91 automatische Tests, Browser-Test 16/16 + 15/15.
+Verschoben und eingetragen: UX-011 Zeit-Übungen (Phase 5), UX-012 Warnung bei ungespeicherten Änderungen,
+UX-013 eigene Übungen bearbeiten (beide als Schritt 3.0).
+
 ## Phase 3 – Ernährung & Kalorientracker
 
 | # | Schritt | Register |
 |---|---|---|
+| 3.0 | Nachträge aus Phase 2: Warnung bei ungespeicherten Planänderungen, eigene Übungen bearbeiten | UX-012, UX-013 |
 | 3.1 | Lebensmittel manuell anlegen (kcal/Makros pro 100 g/ml) | FOOD-010, -011 |
 | 3.2 | Tagebuch: Frühstück/Mittag/Abend/Snack, Menge, Nachtrag für gestern, Zeitzone/Sommerzeit; Nährwerte als Snapshot gespeichert | TIME-001, -002, -003, FOOD-012 |
 | 3.3 | Barcode-Scanner mit Open Food Facts, Produkt bestätigen; gleichnamige Produkte nicht zusammenwerfen | FOOD-001–006, FOOD-018 |
@@ -101,7 +112,7 @@ Parallel: 50 eigene Produkte scannen und Trefferquote notieren (FOOD-009, O2).
 | # | Schritt | Register |
 |---|---|---|
 | 5.1 | Dehnübungen (Bilder/Medien prüfen), Routinen anlegen | STRETCH-003, -007, -009 |
-| 5.2 | Halte-Timer mit Seitenwechsel; Dehnprotokoll; Abbruch bei Schmerz | STRETCH-004, -005, -006 |
+| 5.2 | Halte-Timer mit Seitenwechsel; Dehnprotokoll; Abbruch bei Schmerz; Satztyp „Zeit“ (Plank) | STRETCH-004, -005, -006, UX-011 |
 | 5.3 | Aufwärmen/Cool-down an Trainingstage hängen | STRETCH-001, -002 |
 | 5.4 | Fertige HIIT-Programme (Start: Bauch + Ganzkörper) mit Stufen | HIIT-001, -002 |
 | 5.5 | HIIT-Ablauf: Ansage nächste Übung, Timer, Runden, Abbruchknopf | HIIT-003, -007 |

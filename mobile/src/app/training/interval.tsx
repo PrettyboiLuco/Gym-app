@@ -8,6 +8,8 @@ import { Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useDb } from '@/data/store-provider';
+import { loadIntervalRun, saveIntervalRun } from '@/data/training';
 import {
   formatClock,
   intervalState,
@@ -39,6 +41,7 @@ function KeepAwake() {
 /** Intervall-Timer (HEALTH-010). Phase und Runde werden aus der Startzeit berechnet. */
 export default function IntervalScreen() {
   const theme = useTheme();
+  const db = useDb();
   const [work, setWork] = useState('40');
   const [rest, setRest] = useState('20');
   const [rounds, setRounds] = useState('8');
@@ -46,6 +49,19 @@ export default function IntervalScreen() {
   const [running, setRunning] = useState<IntervalConfig | null>(null);
   const now = useNow(startedAt !== null);
   const lastSignal = useRef('');
+
+  // Ein laufender Intervall-Timer übersteht das Schließen der App (HEALTH-011).
+  useEffect(() => {
+    let cancelled = false;
+    loadIntervalRun(db).then((run) => {
+      if (cancelled || !run) return;
+      setRunning(run.config);
+      setStartedAt(run.startedAtMs);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [db]);
 
   const config = parseConfig(work, rest, rounds);
   const state = running && startedAt !== null ? intervalState(running, now - startedAt) : null;
@@ -77,11 +93,12 @@ export default function IntervalScreen() {
             {t('interval.round', { round: state.round, rounds: running?.rounds })}
           </ThemedText>
           <Button
-            label={t('interval.stop')}
+            label={state.phase === 'fertig' ? t('common.ok') : t('interval.stop')}
             variant="danger"
             onPress={() => {
               setStartedAt(null);
               setRunning(null);
+              saveIntervalRun(db, null);
             }}
           />
         </Card>
@@ -107,8 +124,10 @@ export default function IntervalScreen() {
             onPress={() => {
               if (!config) return;
               lastSignal.current = '';
+              const startedAtMs = nowMs();
               setRunning(config);
-              setStartedAt(nowMs());
+              setStartedAt(startedAtMs);
+              saveIntervalRun(db, { config, startedAtMs });
             }}
           />
         </Card>

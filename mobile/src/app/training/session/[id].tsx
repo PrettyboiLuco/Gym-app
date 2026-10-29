@@ -6,7 +6,7 @@ import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { ConfirmButton } from '@/components/fields';
+import { Choice, ConfirmButton } from '@/components/fields';
 import { RestTimerBar } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -15,20 +15,23 @@ import { useDb } from '@/data/store-provider';
 import {
   addSet,
   completeSet,
+  deleteOpenSet,
   finishSession,
   getSession,
   lastPerformance,
   listExercises,
   listSessionSets,
+  loadRestAuto,
   loadRestTimer,
   reopenSet,
+  saveRestAuto,
   saveRestTimer,
   type Exercise,
   type LastPerformance,
   type SessionInfo,
   type SetRow,
 } from '@/data/training';
-import { extendRest, parseSetInput, startRest, type RestTimer } from '@/domain/training';
+import { extendRest, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 
@@ -59,15 +62,18 @@ export default function SessionScreen() {
   const [invalid, setInvalid] = useState<string | null>(null);
   const [timer, setTimer] = useState<RestTimer>(null);
   const [picking, setPicking] = useState(false);
+  const [restAuto, setRestAuto] = useState(true);
 
   const load = useCallback(async () => {
-    const [info, rows, all, savedTimer] = await Promise.all([
+    const [info, rows, all, savedTimer, auto] = await Promise.all([
       getSession(db, id),
       listSessionSets(db, id),
       listExercises(db),
       loadRestTimer(db),
+      loadRestAuto(db),
     ]);
     setSession(info);
+    setRestAuto(auto);
     setSets(rows);
     setExercises(all);
     setTimer(info?.status === 'aktiv' ? savedTimer : null);
@@ -89,13 +95,27 @@ export default function SessionScreen() {
     await saveRestTimer(db, next);
   }
 
-  /** Vorschlag fürs Gewicht: voriger Satz in diesem Training, sonst gleicher Satz vom letzten Mal. */
+  /**
+   * Vorschlag fürs Eingabefeld: eigene Werte (wieder geöffneter Satz), sonst voriger Satz in diesem
+   * Training, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg.
+   */
   function suggestion(row: SetRow, indexInExercise: number) {
+    if (row.weightKg != null && row.reps != null) {
+      return { weight: formatNumber(row.weightKg, 2), reps: String(row.reps) };
+    }
+    const bodyweight = exercises.find((e) => e.id === row.exerciseId)?.equipment === 'koerpergewicht';
     const own = sets.filter((s) => s.exerciseId === row.exerciseId && s.completedAt && s.position < row.position);
     const previous = own[own.length - 1];
     const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
     return {
-      weight: previous?.weightKg != null ? formatNumber(previous.weightKg, 2) : lastTime ? formatNumber(lastTime.weightKg, 2) : '',
+      weight:
+        previous?.weightKg != null
+          ? formatNumber(previous.weightKg, 2)
+          : lastTime
+            ? formatNumber(lastTime.weightKg, 2)
+            : bodyweight
+              ? '0'
+              : '',
       reps: previous?.reps != null ? String(previous.reps) : lastTime ? String(lastTime.reps) : '',
     };
   }
@@ -109,13 +129,21 @@ export default function SessionScreen() {
     }
     setInvalid(null);
     await completeSet(db, row.id, parsed.weightKg, parsed.reps);
-    if (row.restSeconds > 0) await updateTimer(startRest(timer, row.restSeconds, nowMs()));
+    // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
+    if (restAuto && row.restSeconds > 0) {
+      try {
+        await updateTimer(startRest(timer, row.restSeconds, nowMs()));
+      } catch {
+        // Timer bleibt aus, das Training geht weiter.
+      }
+    }
+    setInputs(({ [row.id]: _done, ...rest }) => rest);
     await load();
   }
 
   async function finish(status: 'abgeschlossen' | 'abgebrochen') {
     await finishSession(db, id, status, status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined);
-    await updateTimer(null);
+    await updateTimer(stopRest(timer));
     // Zurück zur Trainingsübersicht, auch wenn das Training direkt (z. B. von „Heute“) geöffnet wurde.
     router.dismissTo('/training');
   }
@@ -151,8 +179,9 @@ export default function SessionScreen() {
         active ? (
           <RestTimerBar
             timer={timer}
+            onStart={(seconds) => updateTimer(startRest(timer, seconds, nowMs()))}
             onExtend={() => updateTimer(extendRest(timer, 30, nowMs()))}
-            onSkip={() => updateTimer(null)}
+            onSkip={() => updateTimer(stopRest(timer))}
           />
         ) : null
       }>
@@ -191,7 +220,7 @@ export default function SessionScreen() {
                   {row.completedAt ? (
                     <>
                       <ThemedText style={styles.flex}>
-                        {formatNumber(row.weightKg ?? 0)} kg × {row.reps}
+                        {t('session.setDone', { weight: formatNumber(row.weightKg ?? 0), reps: row.reps })}
                       </ThemedText>
                       {active ? (
                         <Button
@@ -226,6 +255,15 @@ export default function SessionScreen() {
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
                       <Button label="✓" accessibilityLabel={`${t('session.done')} ${index + 1}`} onPress={() => complete(row, index)} />
+                      <Button
+                        label="−"
+                        accessibilityLabel={`${t('session.removeSet')} ${index + 1}`}
+                        variant="danger"
+                        onPress={async () => {
+                          await deleteOpenSet(db, row.id);
+                          await load();
+                        }}
+                      />
                     </>
                   ) : (
                     <ThemedText themeColor="textSecondary" style={styles.flex}>
@@ -255,6 +293,18 @@ export default function SessionScreen() {
       {active ? (
         <>
           <Button label={t('session.addExercise')} onPress={() => setPicking(true)} />
+          <Card>
+            <Choice
+              label={t('session.restAuto')}
+              options={['an', 'aus'] as const}
+              value={restAuto ? 'an' : 'aus'}
+              format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+              onChange={async (v) => {
+                setRestAuto(v === 'an');
+                await saveRestAuto(db, v === 'an');
+              }}
+            />
+          </Card>
           <ConfirmButton
             label={t('session.finish')}
             confirmLabel={t('session.finish')}
