@@ -86,6 +86,86 @@ export const MIGRATIONS: string[] = [
      value TEXT NOT NULL
    );
    ${starterInserts}`,
+
+  // Version 3: Ernährung, Getränke, Rezepte, Vorlagen (Register FOOD, TIME, TRACK)
+  // Nährwerte: NULL = unbekannt, nie stillschweigend 0.
+  `CREATE TABLE food (
+     id TEXT PRIMARY KEY NOT NULL,
+     source TEXT NOT NULL CHECK (source IN ('eigen', 'off')),
+     barcode TEXT,
+     name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+     brand TEXT,
+     basis TEXT NOT NULL CHECK (basis IN ('g', 'ml')),
+     NUTRIENTS,
+     serving_amount REAL CHECK (serving_amount IS NULL OR serving_amount > 0),
+     favorite INTEGER NOT NULL DEFAULT 0 CHECK (favorite IN (0, 1)),
+     fetched_at_utc TEXT,
+     created_at_utc TEXT NOT NULL,
+     updated_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX food_barcode ON food (barcode);
+   CREATE TABLE recipe (
+     id TEXT PRIMARY KEY NOT NULL,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE TABLE recipe_version (
+     id TEXT PRIMARY KEY NOT NULL,
+     recipe_id TEXT NOT NULL REFERENCES recipe (id),
+     version INTEGER NOT NULL CHECK (version > 0),
+     name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+     end_weight_g REAL CHECK (end_weight_g IS NULL OR end_weight_g > 0),
+     portions INTEGER CHECK (portions IS NULL OR portions > 0),
+     active INTEGER NOT NULL CHECK (active IN (0, 1)),
+     created_at_utc TEXT NOT NULL,
+     UNIQUE (recipe_id, version)
+   );
+   CREATE TABLE recipe_ingredient (
+     id TEXT PRIMARY KEY NOT NULL,
+     recipe_version_id TEXT NOT NULL REFERENCES recipe_version (id),
+     position INTEGER NOT NULL,
+     food_id TEXT REFERENCES food (id),
+     name TEXT NOT NULL,
+     amount REAL NOT NULL CHECK (amount > 0),
+     unit TEXT NOT NULL CHECK (unit IN ('g', 'ml')),
+     NUTRIENTS
+   );
+   CREATE TABLE meal_template (
+     id TEXT PRIMARY KEY NOT NULL,
+     name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE TABLE meal_template_item (
+     id TEXT PRIMARY KEY NOT NULL,
+     template_id TEXT NOT NULL REFERENCES meal_template (id) ON DELETE CASCADE,
+     position INTEGER NOT NULL,
+     food_id TEXT NOT NULL REFERENCES food (id),
+     amount REAL NOT NULL CHECK (amount > 0),
+     unit TEXT NOT NULL CHECK (unit IN ('g', 'ml'))
+   );
+   -- Ein Eintrag für Essen und Getränke: kalorienhaltige Getränke zählen genau einmal (TIME-005).
+   -- Name und Nährwerte sind ein Schnappschuss; spätere Produktänderungen ändern ihn nicht (FOOD-012).
+   CREATE TABLE consumption_event (
+     id TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('essen', 'getraenk')),
+     meal TEXT CHECK (meal IS NULL OR meal IN ('fruehstueck', 'mittag', 'abend', 'snack')),
+     drink_type TEXT CHECK (drink_type IS NULL OR drink_type IN ('wasser', 'kaffee_tee', 'milch', 'saft', 'softdrink', 'alkohol', 'sonstiges')),
+     food_id TEXT REFERENCES food (id),
+     recipe_version_id TEXT REFERENCES recipe_version (id),
+     name TEXT NOT NULL,
+     brand TEXT,
+     amount REAL NOT NULL CHECK (amount > 0),
+     unit TEXT NOT NULL CHECK (unit IN ('g', 'ml')),
+     NUTRIENTS,
+     occurred_at_utc TEXT NOT NULL,
+     recorded_at_utc TEXT NOT NULL,
+     time_zone TEXT NOT NULL,
+     utc_offset_min INTEGER NOT NULL,
+     diary_date TEXT NOT NULL
+   );
+   CREATE INDEX consumption_diary ON consumption_event (diary_date);`.replaceAll('NUTRIENTS', `kcal REAL CHECK (kcal IS NULL OR kcal >= 0),
+     protein REAL CHECK (protein IS NULL OR protein >= 0),
+     carbs REAL CHECK (carbs IS NULL OR carbs >= 0),
+     fat REAL CHECK (fat IS NULL OR fat >= 0)`),
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

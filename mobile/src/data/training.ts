@@ -6,6 +6,7 @@
 import type { Equipment, MuscleGroup } from '@/domain/exercises';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
+import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
 
 // ------------------------------------------------------------------------------------ Übungen
@@ -365,24 +366,6 @@ export async function deleteOpenSet(db: Db, setId: string) {
 
 // ----------------------------------------------------------------- gespeicherter App-Zustand
 // Timer und Einstellungen überstehen so das Schließen der App (HEALTH-011).
-
-async function readState<T>(db: Db, key: string, fallback: T): Promise<T> {
-  const row = await db.getFirstAsync<{ value: string }>('SELECT value FROM app_state WHERE key = ?', key);
-  if (!row) return fallback;
-  try {
-    return JSON.parse(row.value) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-async function writeState(db: Db, key: string, value: unknown) {
-  await db.runAsync(
-    'INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value',
-    key,
-    JSON.stringify(value)
-  );
-}
 
 export const loadRestTimer = (db: Db) => readState<RestTimer>(db, 'rest_timer', null);
 export const saveRestTimer = (db: Db, timer: RestTimer) => writeState(db, 'rest_timer', timer);
