@@ -1,0 +1,34 @@
+# Pakete, Lizenzen und Sicherheitsmeldungen
+
+Register TECH-010, TECH-011, O6. Stand: 29.10.2026, Expo SDK 58. Bei jedem SDK-Update neu prüfen.
+
+## Direkte Pakete der App
+
+Alle direkten Abhängigkeiten stehen unter der **MIT-Lizenz** (geprüft aus `node_modules/*/package.json`).
+Versionen sind in `mobile/package-lock.json` festgeschrieben.
+
+| Paket | Version | Lizenz | Zweck |
+|---|---|---|---|
+| expo | 58.0.21 | MIT | Grundgerüst |
+| expo-router | 58.0.28 | MIT | Navigation |
+| expo-sqlite | 58.0.14 | MIT | lokale Datenbank |
+| expo-localization | 58.0.5 | MIT | Sprache und Region |
+| expo-updates | 58.0.19 | MIT | Vorschau-Updates in Expo Go |
+| expo-haptics | 58.0.7 | MIT | Vibration am Pausenende |
+| expo-keep-awake | 58.0.3 | MIT | Bildschirm bleibt im Training an |
+| i18n-js | 4.5.4 | MIT | Übersetzungen |
+| react / react-native | 19.3.0 / 0.88.1 | MIT | UI |
+| weitere expo-* und react-native-* aus der Vorlage | 58.x | MIT | Vorlage |
+
+Übungsdaten: eigene Startliste (nur Namen und Zuordnungen), keine fremden Texte oder Medien.
+
+## `npm audit` (nur Laufzeit-Abhängigkeiten, 29.10.2026)
+
+8 Meldungen (5 niedrig, 3 hoch). Alle betreffen **Expos Build-Werkzeuge** (`@expo/cli`, `@expo/config`,
+`@expo/metro-config`, `@expo/prebuild-config`) über die Pakete `deepmerge` und `zod`. Diese laufen beim
+Bauen auf dem Rechner bzw. in der Expo-Cloud, nicht in der App auf dem Handy.
+
+Der von npm vorgeschlagene „Fix“ wäre ein Rückschritt auf Expo SDK 51 und wird **nicht** angewendet.
+
+**Nächster Schritt:** Bei jedem Expo-Update `npm audit` erneut ausführen; vor der Veröffentlichung (Phase 10)
+vollständige Prüfung inklusive transitiver Pakete und Build-Artefakte.

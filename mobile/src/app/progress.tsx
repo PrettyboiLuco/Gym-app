@@ -2,20 +2,22 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { ConfirmButton } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { addWeight, deleteWeight, listWeights } from '@/data/weights';
 import { localDay } from '@/domain/time';
 import { parseWeight, weightTrend } from '@/domain/weight';
+import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { useWeights } from '@/hooks/use-weights';
 import { formatDay, formatNumber, t } from '@/i18n';
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export default function ProgressScreen() {
   const theme = useTheme();
-  const { weights, reload, store } = useWeights();
+  const { data: weights, reload, db } = useLoad(listWeights, []);
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
 
@@ -29,13 +31,13 @@ export default function ProgressScreen() {
       return;
     }
     setError(false);
-    await store.addWeight(today, kg);
+    await addWeight(db, today, kg);
     setInput('');
     await reload();
   }
 
   async function remove(id: string) {
-    await store.deleteWeight(id);
+    await deleteWeight(db, id);
     await reload();
   }
 
@@ -73,7 +75,7 @@ export default function ProgressScreen() {
               <ThemedText>
                 {formatDay(entry.day)} · {t('common.kg', { value: formatNumber(entry.kg) })}
               </ThemedText>
-              <Button label={t('common.delete')} variant="danger" onPress={() => remove(entry.id)} />
+              <ConfirmButton label={t('common.delete')} onConfirm={() => remove(entry.id)} />
             </View>
           ))
         )}

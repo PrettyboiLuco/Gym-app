@@ -6,18 +6,39 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 
-/** Grundgerüst jedes Bereichs: sicherer Rand, Titel, scrollbarer Inhalt. */
-export function Screen({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+/**
+ * Grundgerüst jedes Bereichs: sicherer Rand, Titel, scrollbarer Inhalt.
+ * Unterseiten mit Navigationsleiste (withHeader) zeigen den Titel oben in der Leiste.
+ */
+export function Screen({
+  title,
+  subtitle,
+  withHeader = false,
+  footer,
+  children,
+}: {
+  title?: string;
+  subtitle?: string;
+  withHeader?: boolean;
+  footer?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <ThemedView style={styles.root}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <ThemedText type="subtitle" accessibilityRole="header">
-            {title}
-          </ThemedText>
+      <SafeAreaView style={styles.safeArea} edges={withHeader ? ['left', 'right'] : ['top', 'left', 'right']}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets>
+          {title && !withHeader ? (
+            <ThemedText type="subtitle" accessibilityRole="header">
+              {title}
+            </ThemedText>
+          ) : null}
           {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
           {children}
         </ScrollView>
+        {footer}
       </SafeAreaView>
     </ThemedView>
   );
@@ -28,7 +49,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   content: {
     padding: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.five,
+    paddingBottom: BottomTabInset + Spacing.six,
     gap: Spacing.three,
     width: '100%',
     maxWidth: MaxContentWidth,

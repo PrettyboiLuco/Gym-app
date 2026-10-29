@@ -43,7 +43,10 @@ Abdeckung geprüft: alle 194 Registerpunkte (147 + 47) und alle offenen Punkte O
 **Stand 29.10.2026:** 1.1–1.6 gebaut im Ordner `mobile/` (Expo SDK 58). Erster echter Eintrag: Körpergewicht
 unter „Fortschritt“. 37 automatische Tests (die 24 + 22 Referenztests als App-Code), Typprüfung und Lint
 bestanden; iOS-Bundle und Web-Vorschau bauen fehlerfrei; im Browser getestet (Speichern, Neuladen,
-Fehleingabe). **Offen:** Test auf dem echten iPhone in Expo Go.
+Fehleingabe). **29.10.2026: auf Lucs iPhone in Expo Go bestätigt** (Gewicht bleibt nach Neustart erhalten).
+Nachgeholt: Löschen mit Rückfrage, Datenbank-Tests mit echten Tabellen, Paket-/Sicherheitsliste
+(`docs/Pakete_und_Sicherheit.md`). Vorschau aufs iPhone: Ablauf `mobile/.eas/workflows/expo-go-vorschau.yml`,
+dann expo.dev → Updates → oberstes Update → Preview.
 
 ## Phase 2 – Training (Kern)
 
@@ -58,6 +61,13 @@ Fehleingabe). **Offen:** Test auf dem echten iPhone in Expo Go.
 | 2.7 | HIIT/Intervall-Timer (Belastung, Pause, Runden) | HEALTH-010 |
 
 **Fertig, wenn:** Du ein echtes Training im Gym komplett mit der App protokollieren kannst.
+
+**Stand 29.10.2026:** 2.1–2.7 gebaut. 25 Startübungen + eigene Übungen; Pläne mit 1–7 Tagen, Versionen und
+„Wieder verwenden“; Training mit geplanten/tatsächlichen Werten, Vorschlag aus vorigem Satz bzw. letztem Mal,
+„Satz hinzufügen“, „Übung hinzufügen“, „Schmerzen / abbrechen“; Pausentimer (Endzeit gespeichert, +30 s,
+Überspringen, Vibration am Ende, nur bei offener App); Verlauf; Intervall-Timer; „Heute“ zeigt nächsten Tag.
+77 automatische Tests, Browser-Test aller Abläufe bestanden. **Offen:** Test im Gym auf dem iPhone.
+Bewusst später: Timer bei gesperrtem Handy (Phase 6), fertige Pläne und Progression (Phase 8).
 
 ## Phase 3 – Ernährung & Kalorientracker
 

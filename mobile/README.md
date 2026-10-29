@@ -30,3 +30,10 @@ npm test            # automatische Tests
 | `src/domain/` | Rechenlogik ohne Oberfläche, mit Tests in `__tests__` |
 | `src/data/` | Lokale Datenbank (SQLite) und Migrationen |
 | `src/i18n/` | Sprachdateien – jeder sichtbare Text steht in `de.ts` |
+
+## Neue Version aufs iPhone (ohne PC)
+
+1. Änderungen auf GitHub pushen.
+2. Ablauf **Expo-Go-Vorschau** (`.eas/workflows/expo-go-vorschau.yml`) auf expo.dev oder per Expo-MCP starten.
+3. Auf dem iPhone: expo.dev → Projekt gym-app → Updates → oberstes Update → **Preview** → Expo Go.
+   Expo Go muss mit dem Expo-Konto angemeldet sein.
