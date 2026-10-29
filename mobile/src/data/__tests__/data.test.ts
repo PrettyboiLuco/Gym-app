@@ -9,6 +9,7 @@ import { MIGRATIONS, migrate } from '../migrations';
 import { createTestDb } from '../testing/node-db';
 import {
   activatePlanVersion,
+  addCustomExercise,
   addSet,
   completeSet,
   deleteOpenSet,
@@ -28,6 +29,7 @@ import {
   saveRestAuto,
   saveRestTimer,
   startSession,
+  updateCustomExercise,
 } from '../training';
 import { addWeight, deleteWeight, listWeights } from '../weights';
 
@@ -224,5 +226,25 @@ describe('Pausentimer-Zustand', () => {
     expect(await loadRestTimer(db)).toEqual({ endAtMs: 1000, durationMs: 90000, generation: 3 });
     await saveRestTimer(db, null);
     expect(await loadRestTimer(db)).toBeNull();
+  });
+});
+
+describe('Eigene Übungen bearbeiten (UX-013)', () => {
+  test('Umbenennen behält die ID, Verlauf bleibt verknüpft; Startübungen bleiben unverändert', async () => {
+    const id = await addCustomExercise(db, 'Kabelziehen', 'kabel', 'brust');
+    const session = await startSession(db, null);
+    await addSet(db, session, id);
+    await updateCustomExercise(db, id, '  Cable Fly ', 'maschine', 'schultern');
+    const all = await listExercises(db);
+    expect(all.find((e) => e.id === id)).toEqual({
+      id,
+      nameKey: null,
+      customName: 'Cable Fly',
+      equipment: 'maschine',
+      muscleGroup: 'schultern',
+    });
+    expect((await listSessionSets(db, session)).map((s) => s.exerciseId)).toEqual([id]);
+    await updateCustomExercise(db, 'kniebeuge', 'Anders', 'kabel', 'brust');
+    expect(all.find((e) => e.id === 'kniebeuge')).toEqual((await listExercises(db)).find((e) => e.id === 'kniebeuge'));
   });
 });

@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import type { ReactNode, Ref } from 'react';
+import { ScrollView, StyleSheet, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -15,18 +15,22 @@ export function Screen({
   subtitle,
   withHeader = false,
   footer,
+  scrollRef,
   children,
 }: {
   title?: string;
   subtitle?: string;
   withHeader?: boolean;
   footer?: ReactNode;
+  /** Für Bildschirme, die selbst nach oben scrollen müssen (z. B. Formular oben, Liste darunter). */
+  scrollRef?: Ref<ScrollViewInstance>;
   children: ReactNode;
 }) {
   return (
     <ThemedView style={styles.root}>
       <SafeAreaView style={styles.safeArea} edges={withHeader ? ['left', 'right'] : ['top', 'left', 'right']}>
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>

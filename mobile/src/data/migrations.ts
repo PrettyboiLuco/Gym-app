@@ -96,9 +96,13 @@ export const MIGRATIONS: string[] = [
      name TEXT NOT NULL CHECK (length(trim(name)) > 0),
      brand TEXT,
      basis TEXT NOT NULL CHECK (basis IN ('g', 'ml')),
+     -- Zubereitung getrennt halten, z. B. Reis roh vs. gekocht (FOOD-011); NULL = keine Angabe.
+     prep TEXT CHECK (prep IS NULL OR prep IN ('roh', 'gekocht')),
      NUTRIENTS,
      serving_amount REAL CHECK (serving_amount IS NULL OR serving_amount > 0),
      favorite INTEGER NOT NULL DEFAULT 0 CHECK (favorite IN (0, 1)),
+     -- Aus der Liste entfernt; bleibt für alte Einträge, Vorlagen und Rezepte erhalten.
+     archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1)),
      fetched_at_utc TEXT,
      created_at_utc TEXT NOT NULL,
      updated_at_utc TEXT NOT NULL
@@ -154,7 +158,8 @@ export const MIGRATIONS: string[] = [
      name TEXT NOT NULL,
      brand TEXT,
      amount REAL NOT NULL CHECK (amount > 0),
-     unit TEXT NOT NULL CHECK (unit IN ('g', 'ml')),
+     -- 'portion' nur für Rezepte ohne Endgewicht (FOOD-017).
+     unit TEXT NOT NULL CHECK (unit IN ('g', 'ml', 'portion')),
      NUTRIENTS,
      occurred_at_utc TEXT NOT NULL,
      recorded_at_utc TEXT NOT NULL,

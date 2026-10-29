@@ -8,10 +8,13 @@ import type { FoodDraft } from '@/domain/nutrition';
 import type { Db } from '../db';
 import { migrate } from '../migrations';
 import {
+  archiveFood,
+  archiveRecipe,
   copyMeal,
   daySums,
   deleteEvent,
   findFoodByBarcode,
+  getFood,
   listDay,
   listFavoriteFoods,
   listRecipes,
@@ -78,10 +81,31 @@ describe('Lebensmittel', () => {
     expect((await searchFoods(db, 'marke'))[0].id).toBe(id);
     expect((await findFoodByBarcode(db, '3017620422003'))?.id).toBe(id);
   });
+  test('roh und gekocht bleiben getrennt (FOOD-011)', async () => {
+    const raw = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'roh', per100: { kcal: 350, protein: 7, carbs: 77, fat: 1 } });
+    const cooked = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'gekocht', per100: { kcal: 130, protein: 2.7, carbs: 28, fat: 0.3 } });
+    expect((await getFood(db, raw))?.prep).toBe('roh');
+    expect((await getFood(db, cooked))?.prep).toBe('gekocht');
+    expect(await searchFoods(db, 'Reis')).toHaveLength(2);
+    expect((await getFood(db, (await saveFood(db, null, bread))))?.prep).toBeNull();
+    await logFood(db, raw, 60, { kind: 'essen', meal: 'mittag' }, when());
+    expect((await listDay(db, '2026-10-29'))[0]).toMatchObject({ name: 'Reis', prep: 'roh', kcal: 210 });
+  });
   test('gleichnamige Produkte werden nicht verschmolzen (FOOD-018)', async () => {
     await saveFood(db, null, bread);
     await saveFood(db, null, { ...bread, brand: 'Bäcker B' });
     expect(await searchFoods(db, 'Vollkornbrot')).toHaveLength(2);
+  });
+  test('entferntes Lebensmittel verschwindet aus Listen, alte Einträge bleiben', async () => {
+    const id = await saveFood(db, null, spread);
+    await setFavorite(db, id, true);
+    await logFood(db, id, 15, { kind: 'essen', meal: 'fruehstueck' }, when());
+    await archiveFood(db, id);
+    expect(await searchFoods(db, 'nougat')).toEqual([]);
+    expect(await listFavoriteFoods(db)).toEqual([]);
+    expect(await recentFoods(db)).toEqual([]);
+    expect(await findFoodByBarcode(db, '3017620422003')).toBeNull();
+    expect((await listDay(db, '2026-10-29'))[0]).toMatchObject({ name: 'Nuss-Nougat-Creme' });
   });
   test('Favoriten', async () => {
     const id = await saveFood(db, null, bread);
@@ -230,6 +254,23 @@ describe('Rezepte', () => {
     await chili(800, null);
     const [recipe] = await listRecipes(db);
     await expect(logRecipe(db, recipe.versionId, { portions: 1 }, 'abend', when())).rejects.toThrow();
+  });
+  test('Portion ohne Endgewicht wird als Portion gespeichert, nicht als Gramm geraten', async () => {
+    await chili(null, 4);
+    const [recipe] = await listRecipes(db);
+    await logRecipe(db, recipe.versionId, { portions: 2 }, 'abend', when());
+    const [entry] = await listDay(db, '2026-10-29');
+    expect(entry).toMatchObject({ kcal: 600, amount: 2, unit: 'portion' });
+    await updateEvent(db, entry.id, { amount: 1, meal: 'abend', diaryDate: '2026-10-29' });
+    expect((await listDay(db, '2026-10-29'))[0]).toMatchObject({ kcal: 300, amount: 1, unit: 'portion' });
+  });
+  test('entferntes Rezept verschwindet aus der Liste, alte Einträge bleiben', async () => {
+    const id = await chili(800, 4);
+    const [recipe] = await listRecipes(db);
+    await logRecipe(db, recipe.versionId, { portions: 1 }, 'abend', when());
+    await archiveRecipe(db, id);
+    expect(await listRecipes(db)).toEqual([]);
+    expect((await listDay(db, '2026-10-29'))[0]).toMatchObject({ name: 'Chili', kcal: 300 });
   });
   test('Endgewicht 0 wird abgelehnt (T-009)', async () => {
     await expect(chili(0, 4)).rejects.toThrow();

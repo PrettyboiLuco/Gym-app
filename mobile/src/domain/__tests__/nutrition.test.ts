@@ -14,6 +14,13 @@ import {
   sumNutrients,
   totalOf,
   weekAverage,
+  foodToForm,
+  parseFoodForm,
+  type FoodForm,
+  parseRecipeForm,
+  type RecipeForm,
+  parseSettingsForm,
+  type SettingsForm,
 } from '../nutrition';
 
 const nutella = { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9 };
@@ -97,7 +104,16 @@ describe('Woche', () => {
         { day: 'b', kcal: 2400, entries: 4 },
         { day: 'c', kcal: 0, entries: 0 },
       ])
-    ).toEqual({ average: 2200, trackedDays: 2, emptyDays: 1 }));
+    ).toEqual({ average: 2200, trackedDays: 2, incompleteDays: 0, emptyDays: 1 }));
+  test('Tage mit unbekannten Werten zählen nicht in den Schnitt (sonst zu niedrig)', () =>
+    expect(
+      weekAverage([
+        { day: 'a', kcal: 2000, entries: 5, unknownKcal: 0 },
+        { day: 'b', kcal: 600, entries: 4, unknownKcal: 2 },
+        { day: 'c', kcal: null, entries: 1, unknownKcal: 1 },
+        { day: 'd', kcal: null, entries: 0, unknownKcal: 0 },
+      ])
+    ).toEqual({ average: 2000, trackedDays: 1, incompleteDays: 2, emptyDays: 1 }));
 });
 
 describe('Open Food Facts einlesen', () => {
@@ -121,6 +137,7 @@ describe('Open Food Facts einlesen', () => {
       brand: 'Marke A',
       barcode: '3017620422003',
       basis: 'g',
+      prep: null,
       per100: nutella,
       servingAmount: 15,
     });
@@ -145,4 +162,72 @@ describe('Open Food Facts einlesen', () => {
     expect(normalizeOffProduct({ status: 0 }, '1')).toBeNull();
     expect(normalizeOffProduct('kaputt', '1')).toBeNull();
   });
+});
+
+describe('Formular Lebensmittel', () => {
+  const base: FoodForm = {
+    name: ' Haferflocken ',
+    brand: '',
+    barcode: '',
+    basis: 'g',
+    prep: 'keine',
+    kcal: '370',
+    protein: '13,5',
+    carbs: '',
+    fat: '7',
+    serving: '',
+  };
+  test('leere Werte bleiben unbekannt, Komma wird gelesen', () =>
+    expect(parseFoodForm(base)).toEqual({
+      draft: {
+        name: 'Haferflocken',
+        brand: null,
+        barcode: null,
+        basis: 'g',
+        prep: null,
+        per100: { kcal: 370, protein: 13.5, carbs: null, fat: 7 },
+        servingAmount: null,
+      },
+      problems: [],
+    }));
+  test('Fehler werden gesammelt', () =>
+    expect(
+      parseFoodForm({ ...base, name: ' ', kcal: 'abc', serving: '0', barcode: '4000000000002' }).problems
+    ).toEqual(['name', 'nutrient', 'serving', 'barcode']));
+  test('mehr als 100 g Makros pro 100 g ist ein Tippfehler', () =>
+    expect(parseFoodForm({ ...base, protein: '60', carbs: '50', fat: '1' }).problems).toEqual(['macros']));
+  test('hin und zurück ergibt dasselbe', () => {
+    const draft = parseFoodForm({ ...base, prep: 'gekocht', barcode: '3017620422003', serving: '40' }).draft!;
+    expect(parseFoodForm(foodToForm(draft)).draft).toEqual(draft);
+  });
+});
+
+describe('Formular Rezept', () => {
+  const base: RecipeForm = { name: 'Chili', endWeight: '800', portions: '', ingredients: [{ foodId: 'a', amount: '400' }] };
+  test('gültig mit Endgewicht', () =>
+    expect(parseRecipeForm(base).draft).toEqual({
+      name: 'Chili',
+      endWeightG: 800,
+      portions: null,
+      ingredients: [{ foodId: 'a', amount: 400 }],
+    }));
+  test('Endgewicht oder Portionen nötig', () =>
+    expect(parseRecipeForm({ ...base, endWeight: '' }).problems).toEqual(['needOne']));
+  test('Fehler werden gesammelt', () =>
+    expect(
+      parseRecipeForm({ name: '', endWeight: '0', portions: '0', ingredients: [{ foodId: 'a', amount: 'x' }] }).problems
+    ).toEqual(['name', 'amount', 'endWeight', 'portions']));
+  test('keine Zutaten', () => expect(parseRecipeForm({ ...base, ingredients: [] }).problems).toEqual(['ingredients']));
+});
+
+describe('Formular Einstellungen', () => {
+  const base: SettingsForm = { kcalGoal: '', drinkGoal: '1500', glassSizes: [250], hideNumbers: false };
+  test('leeres Ziel = kein Ziel', () =>
+    expect(parseSettingsForm(base).settings).toEqual({ kcalGoal: null, drinkGoalMl: 1500, glassSizes: [250], hideNumbers: false }));
+  test('Tippfehler werden abgefangen', () =>
+    expect(parseSettingsForm({ ...base, kcalGoal: '25000', drinkGoal: '1,5', glassSizes: [] }).problems).toEqual([
+      'kcal',
+      'drink',
+      'glasses',
+    ]));
 });

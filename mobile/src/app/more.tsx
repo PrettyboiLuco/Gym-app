@@ -14,6 +14,9 @@ export default function MoreScreen() {
       <Card title={t('more.healthTitle')}>
         <ThemedText themeColor="textSecondary">{t('more.health')}</ThemedText>
       </Card>
+      <Card title={t('more.sourcesTitle')}>
+        <ThemedText themeColor="textSecondary">{t('more.sources')}</ThemedText>
+      </Card>
       <Card title={t('more.languageTitle')}>
         <ThemedText themeColor="textSecondary">{t('more.language')}</ThemedText>
       </Card>

@@ -39,6 +39,26 @@ export async function addCustomExercise(db: Db, name: string, equipment: Equipme
   return id;
 }
 
+/**
+ * Ändert eine eigene Übung (Register UX-013). Die ID bleibt gleich, daher bleiben Pläne und
+ * Verlauf verknüpft. Startübungen (name_key gesetzt) werden nicht verändert.
+ */
+export async function updateCustomExercise(
+  db: Db,
+  id: string,
+  name: string,
+  equipment: Equipment,
+  muscleGroup: MuscleGroup
+) {
+  await db.runAsync(
+    'UPDATE exercise SET custom_name = ?, equipment = ?, muscle_group = ? WHERE id = ? AND name_key IS NULL',
+    name.trim(),
+    equipment,
+    muscleGroup,
+    id
+  );
+}
+
 // --------------------------------------------------------------------------------------- Pläne
 
 export type PlanSummary = {

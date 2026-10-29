@@ -13,6 +13,7 @@ import {
   type Meal,
   type NutrientBasis,
   type Nutrients,
+  type Prep,
 } from '@/domain/nutrition';
 
 import { readState, writeState } from './app-state';
@@ -27,6 +28,7 @@ export type Food = {
   name: string;
   brand: string | null;
   basis: NutrientBasis;
+  prep: Prep | null;
   kcal: number | null;
   protein: number | null;
   carbs: number | null;
@@ -35,7 +37,7 @@ export type Food = {
   favorite: number;
 };
 
-const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, kcal, protein, carbs, fat,
+const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat,
   serving_amount AS servingAmount, favorite`;
 
 export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat'>): Nutrients {
@@ -46,7 +48,7 @@ export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat'>): 
 export function searchFoods(db: Db, query: string, limit = 50) {
   const like = `%${query.trim()}%`;
   return db.getAllAsync<Food>(
-    `SELECT ${FOOD_COLUMNS} FROM food WHERE name LIKE ? OR brand LIKE ? OR barcode = ?
+    `SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND (name LIKE ? OR brand LIKE ? OR barcode = ?)
      ORDER BY favorite DESC, name COLLATE NOCASE LIMIT ?`,
     like,
     like,
@@ -56,7 +58,7 @@ export function searchFoods(db: Db, query: string, limit = 50) {
 }
 
 export function listFavoriteFoods(db: Db) {
-  return db.getAllAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE favorite = 1 ORDER BY name COLLATE NOCASE`);
+  return db.getAllAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE favorite = 1 AND archived = 0 ORDER BY name COLLATE NOCASE`);
 }
 
 /** Zuletzt gebuchte Lebensmittel, jedes nur einmal (TRACK-005). */
@@ -64,7 +66,7 @@ export function recentFoods(db: Db, limit = 15) {
   return db.getAllAsync<Food>(
     `SELECT ${FOOD_COLUMNS} FROM food f JOIN (
        SELECT food_id, MAX(recorded_at_utc) AS last FROM consumption_event WHERE food_id IS NOT NULL GROUP BY food_id
-     ) e ON e.food_id = f.id ORDER BY e.last DESC LIMIT ?`,
+     ) e ON e.food_id = f.id WHERE f.archived = 0 ORDER BY e.last DESC LIMIT ?`,
     limit
   );
 }
@@ -74,7 +76,7 @@ export function getFood(db: Db, id: string) {
 }
 
 export function findFoodByBarcode(db: Db, barcode: string) {
-  return db.getFirstAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE barcode = ? ORDER BY updated_at_utc DESC`, barcode);
+  return db.getFirstAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE barcode = ? AND archived = 0 ORDER BY updated_at_utc DESC`, barcode);
 }
 
 /**
@@ -87,12 +89,13 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   const { kcal, protein, carbs, fat } = draft.per100;
   if (id) {
     await db.runAsync(
-      `UPDATE food SET name = ?, brand = ?, barcode = ?, basis = ?, kcal = ?, protein = ?, carbs = ?, fat = ?,
+      `UPDATE food SET name = ?, brand = ?, barcode = ?, basis = ?, prep = ?, kcal = ?, protein = ?, carbs = ?, fat = ?,
        serving_amount = ?, updated_at_utc = ? WHERE id = ?`,
       draft.name.trim(),
       draft.brand?.trim() || null,
       draft.barcode,
       draft.basis,
+      draft.prep ?? null,
       kcal,
       protein,
       carbs,
@@ -103,14 +106,15 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
     );
   } else {
     await db.runAsync(
-      `INSERT INTO food (id, source, barcode, name, brand, basis, kcal, protein, carbs, fat, serving_amount,
-       favorite, fetched_at_utc, created_at_utc, updated_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+      `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
+       favorite, fetched_at_utc, created_at_utc, updated_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
       foodId,
       source,
       draft.barcode,
       draft.name.trim(),
       draft.brand?.trim() || null,
       draft.basis,
+      draft.prep ?? null,
       kcal,
       protein,
       carbs,
@@ -124,6 +128,11 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   return foodId;
 }
 
+/** Entfernt ein Lebensmittel aus Suche und Listen; alte Einträge, Vorlagen und Rezepte bleiben. */
+export async function archiveFood(db: Db, foodId: string) {
+  await db.runAsync('UPDATE food SET archived = 1, favorite = 0 WHERE id = ?', foodId);
+}
+
 export async function setFavorite(db: Db, foodId: string, favorite: boolean) {
   await db.runAsync('UPDATE food SET favorite = ? WHERE id = ?', favorite ? 1 : 0, foodId);
 }
@@ -131,6 +140,8 @@ export async function setFavorite(db: Db, foodId: string, favorite: boolean) {
 // ------------------------------------------------------------------------------ Tagebuch
 
 export type EventKind = 'essen' | 'getraenk';
+/** g/ml oder Portionen (nur bei Rezepten ohne Endgewicht). */
+export type EventUnit = NutrientBasis | 'portion';
 
 export type ConsumptionEvent = {
   id: string;
@@ -142,17 +153,20 @@ export type ConsumptionEvent = {
   name: string;
   brand: string | null;
   amount: number;
-  unit: NutrientBasis;
+  unit: EventUnit;
   kcal: number | null;
   protein: number | null;
   carbs: number | null;
   fat: number | null;
   diaryDate: string;
   occurredAt: string;
+  prep: Prep | null;
 };
 
+// Die Zubereitung (roh/gekocht) kommt nur zur Anzeige vom Lebensmittel; Nährwerte bleiben Schnappschuss.
 const EVENT_COLUMNS = `id, kind, meal, drink_type AS drinkType, food_id AS foodId, recipe_version_id AS recipeVersionId,
-  name, brand, amount, unit, kcal, protein, carbs, fat, diary_date AS diaryDate, occurred_at_utc AS occurredAt`;
+  name, brand, amount, unit, kcal, protein, carbs, fat, diary_date AS diaryDate, occurred_at_utc AS occurredAt,
+  (SELECT prep FROM food WHERE food.id = consumption_event.food_id) AS prep`;
 
 /** Wann und wo: Tagebuchdatum ist frei wählbar (Nachtrag für gestern), Zeitzone wird mitgespeichert. */
 export type When = { diaryDate: string; at: Date; timeZone: string };
@@ -163,7 +177,7 @@ async function insertEvent(
   db: Db,
   target: Target,
   when: When,
-  data: { foodId: string | null; recipeVersionId: string | null; name: string; brand: string | null; amount: number; unit: NutrientBasis; nutrients: Nutrients }
+  data: { foodId: string | null; recipeVersionId: string | null; name: string; brand: string | null; amount: number; unit: EventUnit; nutrients: Nutrients }
 ) {
   const id = newId();
   await db.runAsync(
@@ -322,7 +336,11 @@ export async function saveTemplateFromMeal(db: Db, name: string, diaryDate: stri
   return id;
 }
 
-export type MealTemplate = { id: string; name: string; items: { foodId: string; name: string; amount: number; unit: NutrientBasis }[] };
+export type MealTemplate = {
+  id: string;
+  name: string;
+  items: { foodId: string; name: string; amount: number; unit: NutrientBasis; kcal: number | null }[];
+};
 
 export async function listTemplates(db: Db): Promise<MealTemplate[]> {
   const templates = await db.getAllAsync<{ id: string; name: string }>(
@@ -330,8 +348,9 @@ export async function listTemplates(db: Db): Promise<MealTemplate[]> {
   );
   const result: MealTemplate[] = [];
   for (const tpl of templates) {
-    const items = await db.getAllAsync<{ foodId: string; name: string; amount: number; unit: NutrientBasis }>(
-      `SELECT i.food_id AS foodId, f.name, i.amount, i.unit FROM meal_template_item i JOIN food f ON f.id = i.food_id
+    const items = await db.getAllAsync<{ foodId: string; name: string; amount: number; unit: NutrientBasis; kcal: number | null }>(
+      `SELECT i.food_id AS foodId, f.name, i.amount, i.unit, f.kcal * i.amount / 100 AS kcal
+       FROM meal_template_item i JOIN food f ON f.id = i.food_id
        WHERE i.template_id = ? ORDER BY i.position`,
       tpl.id
     );
@@ -441,6 +460,15 @@ export async function listRecipes(db: Db): Promise<RecipeSummary[]> {
   return result;
 }
 
+export async function getRecipeVersion(db: Db, versionId: string): Promise<RecipeSummary | null> {
+  const v = await db.getFirstAsync<Omit<RecipeSummary, 'total'>>(
+    `SELECT recipe_id AS recipeId, id AS versionId, name, end_weight_g AS endWeightG, portions
+     FROM recipe_version WHERE id = ?`,
+    versionId
+  );
+  return v ? { ...v, total: await versionTotal(db, versionId) } : null;
+}
+
 export async function loadRecipeDraft(db: Db, recipeId: string): Promise<RecipeDraft | null> {
   const v = await db.getFirstAsync<{ id: string; name: string; endWeightG: number | null; portions: number | null }>(
     'SELECT id, name, end_weight_g AS endWeightG, portions FROM recipe_version WHERE recipe_id = ? AND active = 1',
@@ -473,6 +501,7 @@ export async function logRecipe(
   const total = await versionTotal(db, versionId);
   let nutrients: Nutrients;
   let amount: number;
+  let unit: EventUnit = 'g';
   if ('grams' in part) {
     if (!v.endWeightG) throw new Error('end weight required');
     nutrients = nutrientsForAmount(per100FromTotal(total, v.endWeightG), part.grams, 'g', 'g');
@@ -480,7 +509,12 @@ export async function logRecipe(
   } else {
     if (!v.portions) throw new Error('portions required');
     nutrients = fractionOf(total, part.portions / v.portions);
-    amount = v.endWeightG ? (v.endWeightG * part.portions) / v.portions : part.portions;
+    if (v.endWeightG) amount = (v.endWeightG * part.portions) / v.portions;
+    else {
+      // Ohne Endgewicht ist das Gewicht einer Portion unbekannt: als Portionen speichern, nicht raten.
+      amount = part.portions;
+      unit = 'portion';
+    }
   }
   return insertEvent(db, { kind: 'essen', meal }, when, {
     foodId: null,
@@ -488,9 +522,14 @@ export async function logRecipe(
     name: v.name,
     brand: null,
     amount,
-    unit: 'g',
+    unit,
     nutrients,
   });
+}
+
+/** Entfernt ein Rezept aus der Liste. Versionen bleiben, damit alte Einträge verknüpft bleiben. */
+export async function archiveRecipe(db: Db, recipeId: string) {
+  await db.runAsync('UPDATE recipe_version SET active = 0 WHERE recipe_id = ?', recipeId);
 }
 
 // --------------------------------------------------------------------------- Einstellungen

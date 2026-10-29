@@ -46,7 +46,15 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Die Kamera wird nur zum Scannen von Barcodes auf Lebensmitteln verwendet. Es werden keine Bilder gespeichert oder gesendet.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

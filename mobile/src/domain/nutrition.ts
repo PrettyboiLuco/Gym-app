@@ -142,7 +142,7 @@ export const DRINK_TYPES = ['wasser', 'kaffee_tee', 'milch', 'saft', 'softdrink'
 export type DrinkType = (typeof DRINK_TYPES)[number];
 
 /** Wasser und alle Getränke getrennt (TIME-004). Gesamtwasser aus Essen zählt hier nicht (TIME-009). */
-export function drinkTotals(drinks: { drinkType: DrinkType | null; amount: number; unit: NutrientBasis }[]) {
+export function drinkTotals(drinks: { drinkType: DrinkType | null; amount: number; unit: string }[]) {
   let waterMl = 0;
   let allMl = 0;
   for (const d of drinks) {
@@ -155,20 +155,34 @@ export function drinkTotals(drinks: { drinkType: DrinkType | null; amount: numbe
 
 // -------------------------------------------------------------------------- Wochenansicht
 
-/** Durchschnitt nur über erfasste Tage; leere Tage werden getrennt gezählt (TRACK-004). */
-export function weekAverage(days: { day: string; kcal: number | null; entries: number }[]) {
-  const tracked = days.filter((d) => d.entries > 0 && d.kcal !== null);
+/**
+ * Durchschnitt nur über vollständig erfasste Tage; leere Tage und Tage mit unbekannten Werten
+ * werden getrennt gezählt, damit sie den Schnitt nicht nach unten ziehen (TRACK-002, TRACK-004).
+ */
+export function weekAverage(days: { day: string; kcal: number | null; entries: number; unknownKcal?: number }[]) {
+  const incomplete = days.filter((d) => d.entries > 0 && (d.kcal === null || (d.unknownKcal ?? 0) > 0));
+  const tracked = days.filter((d) => d.entries > 0 && d.kcal !== null && (d.unknownKcal ?? 0) === 0);
   const average = tracked.length ? tracked.reduce((s, d) => s + (d.kcal ?? 0), 0) / tracked.length : null;
-  return { average, trackedDays: tracked.length, emptyDays: days.filter((d) => d.entries === 0).length };
+  return {
+    average,
+    trackedDays: tracked.length,
+    incompleteDays: incomplete.length,
+    emptyDays: days.filter((d) => d.entries === 0).length,
+  };
 }
 
 // ------------------------------------------------------------------- Open Food Facts lesen
+
+export const PREPS = ['roh', 'gekocht'] as const;
+export type Prep = (typeof PREPS)[number];
 
 export type FoodDraft = {
   name: string;
   brand: string | null;
   barcode: string | null;
   basis: NutrientBasis;
+  /** Zubereitung, falls relevant (FOOD-011); fehlt = keine Angabe. */
+  prep?: Prep | null;
   per100: Nutrients;
   servingAmount: number | null;
 };
@@ -209,6 +223,7 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
     brand: brands || null,
     barcode,
     basis,
+    prep: null,
     per100: {
       kcal,
       protein: num(nutriments.proteins_100g),
@@ -216,5 +231,135 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
       fat: num(nutriments.fat_100g),
     },
     servingAmount: num(product.serving_quantity),
+  };
+}
+
+// ------------------------------------------------------------------- Formular Lebensmittel
+
+/** Formularwerte als Text, so wie sie getippt werden. */
+export type FoodForm = {
+  name: string;
+  brand: string;
+  barcode: string;
+  basis: NutrientBasis;
+  prep: Prep | 'keine';
+  kcal: string;
+  protein: string;
+  carbs: string;
+  fat: string;
+  serving: string;
+};
+
+export type FoodProblem = 'name' | 'nutrient' | 'serving' | 'barcode' | 'macros';
+
+export function foodToForm(food: FoodDraft): FoodForm {
+  const text = (v: number | null) => (v === null ? '' : String(v).replace('.', ','));
+  return {
+    name: food.name,
+    brand: food.brand ?? '',
+    barcode: food.barcode ?? '',
+    basis: food.basis,
+    prep: food.prep ?? 'keine',
+    kcal: text(food.per100.kcal),
+    protein: text(food.per100.protein),
+    carbs: text(food.per100.carbs),
+    fat: text(food.per100.fat),
+    serving: text(food.servingAmount),
+  };
+}
+
+/**
+ * Prüft das Formular (FOOD-002, FOOD-010, FOOD-011). Leere Nährwerte bleiben unbekannt.
+ * Mehr als 100 g Makros pro 100 g sind physikalisch unmöglich und deuten auf einen Tippfehler.
+ */
+export function parseFoodForm(form: FoodForm): { draft: FoodDraft | null; problems: FoodProblem[] } {
+  const problems: FoodProblem[] = [];
+  if (!form.name.trim()) problems.push('name');
+  const values = [form.kcal, form.protein, form.carbs, form.fat].map(parseNutrient);
+  if (values.includes('invalid')) problems.push('nutrient');
+  const serving = form.serving.trim() === '' ? null : parseAmount(form.serving);
+  if (form.serving.trim() !== '' && serving === null) problems.push('serving');
+  const barcode = form.barcode.trim();
+  if (barcode && !isValidBarcode(barcode)) problems.push('barcode');
+  const [kcal, protein, carbs, fat] = values as (number | null)[];
+  if (form.basis === 'g' && !values.includes('invalid') && (protein ?? 0) + (carbs ?? 0) + (fat ?? 0) > 100) {
+    problems.push('macros');
+  }
+  if (problems.length > 0) return { draft: null, problems };
+  return {
+    draft: {
+      name: form.name.trim(),
+      brand: form.brand.trim() || null,
+      barcode: barcode || null,
+      basis: form.basis,
+      prep: form.prep === 'keine' ? null : form.prep,
+      per100: { kcal, protein, carbs, fat },
+      servingAmount: serving,
+    },
+    problems,
+  };
+}
+
+// ---------------------------------------------------------------------- Formular Rezept
+
+export type RecipeForm = {
+  name: string;
+  endWeight: string;
+  portions: string;
+  ingredients: { foodId: string; amount: string }[];
+};
+
+export type RecipeProblem = 'name' | 'ingredients' | 'amount' | 'endWeight' | 'portions' | 'needOne';
+
+/** Prüft ein Rezept: Endgewicht und Portionen getrennt, mindestens eins davon (FOOD-017). */
+export function parseRecipeForm(form: RecipeForm) {
+  const problems: RecipeProblem[] = [];
+  if (!form.name.trim()) problems.push('name');
+  if (form.ingredients.length === 0) problems.push('ingredients');
+  const amounts = form.ingredients.map((i) => parseAmount(i.amount));
+  if (amounts.includes(null)) problems.push('amount');
+  const endWeight = form.endWeight.trim() === '' ? null : parseAmount(form.endWeight);
+  if (form.endWeight.trim() !== '' && endWeight === null) problems.push('endWeight');
+  const portionsText = form.portions.trim();
+  const portions = portionsText === '' ? null : /^\d{1,3}$/.test(portionsText) ? Number(portionsText) : NaN;
+  if (portions !== null && (Number.isNaN(portions) || portions < 1 || portions > 100)) problems.push('portions');
+  if (portionsText === '' && form.endWeight.trim() === '') problems.push('needOne');
+  if (problems.length > 0) return { draft: null, problems };
+  return {
+    draft: {
+      name: form.name.trim(),
+      endWeightG: endWeight,
+      portions,
+      ingredients: form.ingredients.map((i, index) => ({ foodId: i.foodId, amount: amounts[index]! })),
+    },
+    problems,
+  };
+}
+
+// ------------------------------------------------------------------ Formular Einstellungen
+
+export type SettingsForm = { kcalGoal: string; drinkGoal: string; glassSizes: number[]; hideNumbers: boolean };
+export type SettingsProblem = 'kcal' | 'drink' | 'glasses' | 'glass';
+
+/**
+ * Prüft die Ernährungs-Einstellungen. Die Grenzen sind nur Tippfehler-Schutz, keine Empfehlung;
+ * eigene Vorgaben werden nie automatisch überschrieben (TIME-008, TIME-010).
+ */
+export function parseSettingsForm(form: SettingsForm) {
+  const problems: SettingsProblem[] = [];
+  const whole = (text: string, min: number, max: number) => {
+    if (text.trim() === '') return null;
+    const n = /^\d{1,5}$/.test(text.trim()) ? Number(text.trim()) : NaN;
+    return n >= min && n <= max ? n : NaN;
+  };
+  const kcalGoal = whole(form.kcalGoal, 500, 10000);
+  const drinkGoalMl = whole(form.drinkGoal, 250, 10000);
+  if (Number.isNaN(kcalGoal)) problems.push('kcal');
+  if (Number.isNaN(drinkGoalMl)) problems.push('drink');
+  if (form.glassSizes.length === 0) problems.push('glasses');
+  if (problems.length > 0) return { settings: null, problems };
+  return {
+    settings: { kcalGoal, drinkGoalMl, glassSizes: form.glassSizes, hideNumbers: form.hideNumbers },
+    problems,
   };
 }

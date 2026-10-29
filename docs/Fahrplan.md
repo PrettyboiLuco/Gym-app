@@ -95,6 +95,37 @@ UX-013 eigene Übungen bearbeiten (beide als Schritt 3.0).
 **Fertig, wenn:** Du eine Woche lang deine Ernährung nur mit der App erfassen kannst.
 Parallel: 50 eigene Produkte scannen und Trefferquote notieren (FOOD-009, O2).
 
+**Stand 29.10.2026:** 3.0–3.7 gebaut. Plan-Editor, Lebensmittel-, Rezept-, Eintrags- und Einstellungsseiten
+fragen vor dem Verlassen mit ungespeicherten Änderungen nach (UX-012); eigene Übungen umbenennbar, Verlauf
+bleibt verknüpft (UX-013). Tagebuch mit Tag vor/zurück (Nachtrag), vier Mahlzeiten (Vorschlag nach Uhrzeit,
+frei wählbar), Einträge ändern/verschieben/löschen, Schnappschuss der Nährwerte. Eigene Lebensmittel pro 100 g
+oder 100 ml, roh/gekocht, Portionsgröße, leere Werte bleiben „unbekannt“; Lebensmittel aus der Liste entfernbar.
+Barcode-Scanner (Kamera auf dem iPhone, Eintippen überall) mit Open Food Facts v3, Bestätigen oder Korrigieren,
+eigene Abfragegrenzen, Fehler für offline/429/503/nicht gefunden; gleicher Barcode = gleiches Produkt.
+Suche lokal + „Online suchen“, Favoriten, „Zuletzt gegessen“, „Wie am Vortag“, Vorlagen aus einer Mahlzeit.
+Rezepte mit Versionen, Endgewicht und Portionen getrennt (ohne Endgewicht nur nach Portionen). Getränke im selben
+Eintrag wie Essen, Wasser-Schnelltasten mit eigenen Glasgrößen, Trinkziel editierbar, Hinweis zur Zielbasis,
+keine Aufforderung nach Zielerreichung. Tagesübersicht gegessen/Ziel/übrig mit Makros, „≥/≤“ bei unbekannten
+Werten, Hinweis „Training nicht dazugerechnet“; Woche/30 Tage mit Schnitt nur über vollständige Tage; Modus ohne
+Zahlen (Tagebuch, Heute, Woche). „Heute“ zeigt Kalorien und Getränke. Quellenhinweis Open Food Facts (ODbL)
+unter „Mehr“. 163 automatische Tests, Browser-Test Ernährung 42/42, Phase-2-Tests 16/16 + 15/15.
+
+**Prüfung Phase 3 (29.10.2026), Zeile für Zeile gegen Register:** 7 Lücken gefunden und behoben – Makrosumme
+zeigte unbekannte Kohlenhydrate als „0 g“, Woche/Übrig ohne „≥/≤“ bei unvollständigen Tagen, negatives „übrig“
+auf „Heute“, Zubereitung fehlte im Tagebuch, gültige UPC-E-Scans wären abgelehnt worden, Tagebuch blieb nach
+Mitternacht auf dem Vortag, Lebensmittel nicht entfernbar; dazu Einzahl/Mehrzahl in Texten.
+**Offen / bewusst verschoben:**
+- FOOD-008 USDA (Grundnahrungsmittel): die Live-API braucht einen Schlüssel, der laut Plan nur über einen
+  eigenen Server laufen darf – den gibt es erst mit Konten/Sync (Phase 11). Alternative ohne Server: eine
+  mitgelieferte Liste häufiger Grundnahrungsmittel aus den USDA-Downloads (CC0); Download ist von dieser
+  Entwicklungsumgebung aus gesperrt, Entscheidung offen. Bis dahin: eigene Lebensmittel und Open Food Facts.
+- TIME-011 Trink-Erinnerungen mit Ruhezeiten: Phase 6.4 (Benachrichtigungen).
+- FOOD-014 Freitext, FOOD-015 Essensfoto: Phase 9 (wie geplant).
+- TRACK-006 Modus ohne Zahlen gilt im Tagebuch, auf „Heute“ und in der Woche; Produktseiten zeigen ihre
+  Nährwerte weiter (Etikettangaben). Fachliche Prüfung steht laut Register noch aus.
+- Live-Test Open Food Facts (FOOD-004/007): von hier aus gesperrt, erster echter Test auf dem iPhone.
+- Von dir: eine Woche Ernährung nur mit der App erfassen; 50 eigene Produkte scannen (FOOD-009).
+
 ## Phase 4 – Körper, Ziele, Kalorienrechner
 
 | # | Schritt | Register |

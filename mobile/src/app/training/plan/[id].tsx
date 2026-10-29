@@ -32,6 +32,7 @@ import {
   type PlanDraft,
 } from '@/domain/training';
 import { useTheme } from '@/hooks/use-theme';
+import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
@@ -40,6 +41,7 @@ type DayForm = { name: string; items: ItemForm[] };
 type PlanForm = { name: string; days: DayForm[] };
 
 const NEW_ITEM = { sets: '3', repsMin: '8', repsMax: '12', rest: '90' };
+const EMPTY_FORM: PlanForm = { name: '', days: [{ name: '', items: [] }] };
 
 function toForm(draft: PlanDraft): PlanForm {
   return {
@@ -86,7 +88,9 @@ export default function PlanEditorScreen() {
   const isNew = id === 'neu';
   const db = useDb();
   const theme = useTheme();
-  const [form, setForm] = useState<PlanForm>({ name: '', days: [{ name: '', items: [] }] });
+  const [form, setForm] = useState<PlanForm>(EMPTY_FORM);
+  // Stand beim Öffnen bzw. letzten Laden; Abweichung heißt „ungespeichert“.
+  const [baseline, setBaseline] = useState(() => JSON.stringify(EMPTY_FORM));
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [versions, setVersions] = useState<PlanVersionInfo[]>([]);
   const [pickingFor, setPickingFor] = useState<number | null>(null);
@@ -94,7 +98,11 @@ export default function PlanEditorScreen() {
 
   function apply(data: Awaited<ReturnType<typeof fetchEditor>>) {
     setExercises(data.exercises);
-    if (data.draft) setForm(toForm(data.draft));
+    if (data.draft) {
+      const loaded = toForm(data.draft);
+      setForm(loaded);
+      setBaseline(JSON.stringify(loaded));
+    }
     setVersions(data.versions);
   }
 
@@ -112,6 +120,7 @@ export default function PlanEditorScreen() {
   const draft = toDraft(form);
   const problems = validatePlan(draft);
   const byId = new Map(exercises.map((e) => [e.id, e]));
+  const allowLeave = useUnsavedGuard(JSON.stringify(form) !== baseline);
 
   function updateDay(index: number, change: Partial<DayForm>) {
     setForm((f) => ({ ...f, days: f.days.map((d, i) => (i === index ? { ...d, ...change } : d)) }));
@@ -129,6 +138,7 @@ export default function PlanEditorScreen() {
       return;
     }
     await savePlan(db, isNew ? null : id, draft);
+    allowLeave();
     router.back();
   }
 
@@ -139,6 +149,7 @@ export default function PlanEditorScreen() {
 
   async function archive() {
     await archivePlan(db, id);
+    allowLeave();
     router.back();
   }
 
