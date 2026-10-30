@@ -7,7 +7,7 @@ import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { Choice, ConfirmButton } from '@/components/fields';
+import { Choice, ConfirmButton, ListRow } from '@/components/fields';
 import { RestTimerBar } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -24,14 +24,18 @@ import {
   completeSet,
   completeTimedSet,
   deleteOpenSet,
+  exerciseHistory,
   finishSession,
   getSession,
   lastPerformance,
   listExercises,
   listSessionSets,
+  loadProgressionOn,
   loadRestAuto,
   loadRestTimer,
   reopenSet,
+  replaceOpenSets,
+  saveProgressionOn,
   saveRestAuto,
   saveRestTimer,
   type Exercise,
@@ -41,6 +45,8 @@ import {
 } from '@/data/training';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import type { MuscleGroup } from '@/domain/exercises';
+import { replacementOptions } from '@/domain/planner';
+import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, type Advice, type PastSession } from '@/domain/progression';
 import { extendRest, formatClock, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, type WeightUnit } from '@/domain/units';
 import { useNow } from '@/hooks/use-now';
@@ -80,6 +86,10 @@ export default function SessionScreen() {
   const [timer, setTimer] = useState<RestTimer>(null);
   const [picking, setPicking] = useState(false);
   const [restAuto, setRestAuto] = useState(true);
+  // Steigerungsvorschläge (TRAIN-018) und Ersatz bei belegtem Gerät (TRAIN-016).
+  const [progressionOn, setProgressionOn] = useState(true);
+  const [history, setHistory] = useState<Record<string, PastSession[]>>({});
+  const [busyFor, setBusyFor] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<TimedSession[]>([]);
   // Tipp, den Hinweis bei gesperrtem Handy einzuschalten (nur solange er aus ist).
   const [alertsOff, setAlertsOff] = useState(false);
@@ -92,14 +102,16 @@ export default function SessionScreen() {
   const holdLeftMs = hold ? Math.max(0, hold.endAtMs - holdNow) : 0;
 
   const load = useCallback(async () => {
-    const [info, rows, all, savedTimer, auto, timed] = await Promise.all([
+    const [info, rows, all, savedTimer, auto, timed, progression] = await Promise.all([
       getSession(db, id),
       listSessionSets(db, id),
       listExercises(db),
       loadRestTimer(db),
       loadRestAuto(db),
       timedSessionsForWorkout(db, id),
+      loadProgressionOn(db),
     ]);
+    setProgressionOn(progression);
     setBlocks(timed);
     setAlertsOff(NOTIFICATIONS_SUPPORTED && !(await loadReminders(db)).timerAlerts);
     setLoadedAtMs(nowMs());
@@ -109,10 +121,13 @@ export default function SessionScreen() {
     setExercises(all);
     setTimer(info?.status === 'aktiv' ? savedTimer : null);
     const lastByExercise: Record<string, LastPerformance> = {};
+    const historyByExercise: Record<string, PastSession[]> = {};
     for (const exerciseId of new Set(rows.map((r) => r.exerciseId))) {
       lastByExercise[exerciseId] = await lastPerformance(db, exerciseId, id);
+      historyByExercise[exerciseId] = await exerciseHistory(db, exerciseId, id, nowMs());
     }
     setLast(lastByExercise);
+    setHistory(historyByExercise);
   }, [db, id]);
 
   useFocusEffect(
@@ -261,6 +276,60 @@ export default function SessionScreen() {
     router.push('/training/run');
   }
 
+  /** Vorschlag nach den Steigerungsregeln für die offenen Sätze einer Übung (nur im laufenden Training). */
+  function adviceFor(exerciseId: string): Advice | null {
+    const open = sets.filter((s) => s.exerciseId === exerciseId && !s.completedAt);
+    const exercise = byIdAll.get(exerciseId);
+    if (!progressionOn || open.length === 0 || !exercise) return null;
+    const planned = sets.filter((s) => s.exerciseId === exerciseId);
+    const first = planned[0];
+    return progressionAdvice(
+      history[exerciseId] ?? [],
+      { sets: planned.length, repsMin: first.plannedRepsMin, repsMax: first.plannedRepsMax, seconds: first.plannedSeconds },
+      exercise.equipment,
+      units.weight
+    );
+  }
+
+  function adviceText(advice: Advice) {
+    const v = adviceValues(advice);
+    const value =
+      v.seconds !== null
+        ? t('session.setDoneSeconds', { seconds: v.seconds })
+        : v.weightKg !== null
+          ? `${formatWeight(v.weightKg, units.weight, 2)} × ${v.reps ?? '–'}`
+          : String(v.reps ?? '');
+    return t(`session.advice.${advice.kind}`, {
+      value,
+      days: advice.kind === 'wiedereinstieg' ? advice.daysAgo : '',
+      percent: advice.kind === 'wiedereinstieg' ? advice.percent : '',
+    });
+  }
+
+  /** Vorschlag in die offenen Sätze eintragen; gespeichert wird erst mit ✓. */
+  function applyAdvice(exerciseId: string, advice: Advice) {
+    const v = adviceValues(advice);
+    const next: Inputs = {};
+    sets
+      .filter((s) => s.exerciseId === exerciseId && !s.completedAt)
+      .forEach((row) => {
+        const index = sets.filter((s) => s.exerciseId === exerciseId).indexOf(row);
+        const base = inputs[row.id] ?? suggestion(row, index);
+        next[row.id] = {
+          weight: v.weightKg !== null ? shown(v.weightKg) : base.weight,
+          reps: v.seconds !== null ? String(v.seconds) : v.reps !== null ? String(v.reps) : base.reps,
+        };
+      });
+    setInputs((i) => ({ ...i, ...next }));
+  }
+
+  async function replaceWith(fromId: string, toId: string) {
+    await replaceOpenSets(db, id, fromId, toId);
+    setBusyFor(null);
+    setInputs({});
+    await load();
+  }
+
   const byIdAll = new Map(exercises.map((e) => [e.id, e]));
   const isTimed = (exerciseId: string) => byIdAll.get(exerciseId)?.measure === 'zeit';
   if (!session) return <Screen withHeader>{null}</Screen>;
@@ -332,11 +401,22 @@ export default function SessionScreen() {
       {order.map((exerciseId) => {
         const rows = sets.filter((s) => s.exerciseId === exerciseId);
         const lastSets = last[exerciseId] ?? [];
+        const advice = active ? adviceFor(exerciseId) : null;
+        const hasOpen = rows.some((r) => !r.completedAt);
+        const exercise = byId.get(exerciseId);
         return (
           <Card key={exerciseId} title={exerciseName(byId.get(exerciseId))}>
             <ThemedText type="small" themeColor="textSecondary">
               {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
             </ThemedText>
+            {advice ? (
+              <>
+                <ThemedText type="small">{adviceText(advice)}</ThemedText>
+                {advice.kind !== 'variante' ? (
+                  <Button label={t('session.adviceApply')} variant="danger" onPress={() => applyAdvice(exerciseId, advice)} />
+                ) : null}
+              </>
+            ) : null}
             {rows[0].plannedSeconds != null ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {t('session.targetSeconds', { seconds: rows[0].plannedSeconds })}
@@ -451,6 +531,31 @@ export default function SessionScreen() {
                 }}
               />
             ) : null}
+            {active && hasOpen && exercise ? (
+              busyFor === exerciseId ? (
+                <View style={styles.busy}>
+                  <ThemedText type="smallBold">{t('session.busyTitle', { name: exerciseName(exercise) })}</ThemedText>
+                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft')).map((alt) => (
+                    <ListRow
+                      key={alt.id}
+                      title={exerciseName(byId.get(alt.id))}
+                      subtitle={t(`equipment.${alt.equipment}`)}
+                      accessory="⇄"
+                      onPress={() => replaceWith(exerciseId, alt.id)}
+                    />
+                  ))}
+                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft')).length === 0 ? (
+                    <ThemedText type="small">{t('session.busyNone')}</ThemedText>
+                  ) : null}
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('session.busyHint')}
+                  </ThemedText>
+                  <Button label={t('common.cancel')} variant="danger" onPress={() => setBusyFor(null)} />
+                </View>
+              ) : (
+                <Button label={t('session.busy')} variant="danger" onPress={() => setBusyFor(exerciseId)} />
+              )
+            ) : null}
           </Card>
         );
       })}
@@ -487,6 +592,21 @@ export default function SessionScreen() {
                 await saveRestAuto(db, v === 'an');
               }}
             />
+            <Choice
+              label={t('session.progressionOn')}
+              options={['an', 'aus'] as const}
+              value={progressionOn ? 'an' : 'aus'}
+              format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+              onChange={async (v) => {
+                setProgressionOn(v === 'an');
+                await saveProgressionOn(db, v === 'an');
+              }}
+            />
+            {progressionOn ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('session.adviceNote', { version: PROGRESSION_RULES_VERSION })}
+              </ThemedText>
+            ) : null}
           </Card>
           <ConfirmButton
             label={t('session.finish')}
@@ -526,4 +646,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   flex: { flex: 1 },
+  busy: { gap: Spacing.two },
 });

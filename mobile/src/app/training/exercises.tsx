@@ -10,13 +10,17 @@ import { addCustomExercise, listExercises, updateCustomExercise, type Exercise }
 import {
   EQUIPMENT,
   EXERCISE_KINDS,
+  EXERCISE_META,
   isStretchKind,
   MEASURES,
+  MOVEMENT_PATTERNS,
   MUSCLE_GROUPS,
+  patternOf,
   SIDES,
   type Equipment,
   type ExerciseKind,
   type Measure,
+  type MovementPattern,
   type MuscleGroup,
   type Sides,
 } from '@/domain/exercises';
@@ -24,6 +28,11 @@ import { parseWholeNumber } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t, tOptional } from '@/i18n';
+
+/** Startübung mit Kurzanleitung oder Planassistent-Daten (Muster, Ersatzübungen). */
+function hasInfo(e: Exercise): boolean {
+  return tOptional(`exerciseHow.${e.id}`) !== null || EXERCISE_META[e.id] !== undefined;
+}
 
 export default function ExercisesScreen() {
   const theme = useTheme();
@@ -35,6 +44,8 @@ export default function ExercisesScreen() {
   const [measure, setMeasure] = useState<Measure>('wdh');
   const [sides, setSides] = useState<Sides>('beidseitig');
   const [hold, setHold] = useState('30');
+  // Bewegungsmuster für den Planassistenten (Phase 8.1); „auto“ = aus der Muskelgruppe.
+  const [pattern, setPattern] = useState<MovementPattern | 'auto'>('auto');
   const [error, setError] = useState<'name' | 'hold' | null>(null);
   // Startübung, deren Kurzanleitung gerade aufgeklappt ist.
   const [openHow, setOpenHow] = useState<string | null>(null);
@@ -49,6 +60,7 @@ export default function ExercisesScreen() {
     setMeasure('wdh');
     setSides('beidseitig');
     setHold('30');
+    setPattern('auto');
     setError(null);
   }
 
@@ -61,6 +73,7 @@ export default function ExercisesScreen() {
     setMeasure(e.measure);
     setSides(e.sides);
     setHold(String(e.holdSeconds ?? 30));
+    setPattern(e.pattern ?? 'auto');
     setError(null);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   }
@@ -77,7 +90,7 @@ export default function ExercisesScreen() {
       return;
     }
     // Dehn- und Mobilitätsübungen laufen immer auf Zeit (STRETCH-007).
-    const fields = { kind, sides, holdSeconds, measure: stretch ? ('zeit' as const) : measure };
+    const fields = { kind, sides, holdSeconds, measure: stretch ? ('zeit' as const) : measure, pattern: pattern === 'auto' ? null : pattern };
     if (editing) await updateCustomExercise(db, editing, name, equipment, muscle, fields);
     else await addCustomExercise(db, name, equipment, muscle, fields);
     reset();
@@ -117,6 +130,13 @@ export default function ExercisesScreen() {
           <>
             <Choice label={t('exercises.measure')} options={MEASURES} value={measure} onChange={setMeasure} format={(v) => t(`exercises.measureOption.${v}`)} />
             <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
+            <Choice
+              label={t('exercises.pattern')}
+              options={['auto', ...MOVEMENT_PATTERNS] as const}
+              value={pattern}
+              onChange={setPattern}
+              format={(v) => (v === 'auto' ? t('exercises.patternAuto') : t(`pattern.${v}`))}
+            />
           </>
         )}
         {error ? (
@@ -145,18 +165,26 @@ export default function ExercisesScreen() {
                 ]
                   .filter(Boolean)
                   .join(' · ')}
-                accessory={e.customName ? t('common.edit') : tOptional(`exerciseHow.${e.id}`) ? (openHow === e.id ? '▴' : 'ⓘ') : undefined}
+                accessory={e.customName ? t('common.edit') : hasInfo(e) ? (openHow === e.id ? '▴' : 'ⓘ') : undefined}
                 onPress={
-                  e.customName
-                    ? () => startEdit(e)
-                    : tOptional(`exerciseHow.${e.id}`)
-                      ? () => setOpenHow((id) => (id === e.id ? null : e.id))
-                      : undefined
+                  e.customName ? () => startEdit(e) : hasInfo(e) ? () => setOpenHow((id) => (id === e.id ? null : e.id)) : undefined
                 }
               />
               {openHow === e.id ? (
                 <ThemedText type="small" themeColor="textSecondary">
-                  {tOptional(`exerciseHow.${e.id}`)}
+                  {[
+                    tOptional(`exerciseHow.${e.id}`),
+                    EXERCISE_META[e.id]
+                      ? `${t(`pattern.${patternOf(e)}`)} · ${t(`exercises.levelOption.${EXERCISE_META[e.id].level}`)}`
+                      : null,
+                    EXERCISE_META[e.id]?.alternatives.length
+                      ? t('exercises.alternatives', {
+                          list: EXERCISE_META[e.id].alternatives.map((id) => exerciseName(exercises.find((x) => x.id === id))).join(', '),
+                        })
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join('\n')}
                 </ThemedText>
               ) : null}
               </Fragment>

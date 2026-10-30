@@ -240,7 +240,9 @@ function parseExercises(text: string, exercises: NamedExercise[]) {
 
 /** Liest einen Wunsch wie „Künftig 4 Tage, je 60 Minuten, Ober/Unter; Lieblingsübungen behalten“. */
 export function parseWish(input: string, exercises: NamedExercise[]): Wish {
-  const text = normalize(input.slice(0, MAX_WISH_LENGTH));
+  const full = normalize(input.slice(0, MAX_WISH_LENGTH));
+  // Beschreibungen des bisherigen Stands („bisher 6 Tage PPL“) sind kein Wunsch.
+  const text = full.replace(/\b(?:bisher|aktuell|momentan|derzeit|zurzeit|im moment)\b[^.;]*/g, ' ');
   const wish: Wish = {};
   const days = parseDays(text);
   if (days !== undefined) wish.days = days;

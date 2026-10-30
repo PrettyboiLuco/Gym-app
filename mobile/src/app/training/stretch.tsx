@@ -10,7 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { routineMinutes, templateName, withMinutes } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useUnits } from '@/data/profile-provider';
+import { useProfile, useUnits } from '@/data/profile-provider';
 import {
   addFlexibilityTest,
   deleteFlexibilityTest,
@@ -37,6 +37,13 @@ async function loadStretch(db: Db) {
 export default function StretchScreen() {
   const theme = useTheme();
   const units = useUnits();
+  // Viel Sitzen im Alltag (Beruf, COACH-001): Büro- und Hüftroutine zuerst vorschlagen.
+  const { activity } = useProfile().profile;
+  const sitting = activity === 'sitzend' || activity === 'sitzend_bewegt';
+  const officeFirst = ['buero_nacken', 'huefte_sitzen'];
+  const templates = sitting
+    ? [...STRETCH_TEMPLATES].sort((a, b) => Number(officeFirst.includes(b.id)) - Number(officeFirst.includes(a.id)))
+    : STRETCH_TEMPLATES;
   const { data, reload, db } = useLoad(loadStretch, {
     routines: [] as (RoutineSummary & { minutes: number })[],
     exercises: [] as Exercise[],
@@ -64,7 +71,8 @@ export default function StretchScreen() {
       </Card>
 
       <Card title={t('stretch.templates')}>
-        {STRETCH_TEMPLATES.map((tpl) => (
+        {sitting ? <ThemedText type="small">{t('stretch.sittingHint')}</ThemedText> : null}
+        {templates.map((tpl) => (
           <ListRow
             key={tpl.id}
             title={templateName(tpl)}

@@ -5,13 +5,17 @@ import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
+import { todayDay } from '@/components/nutrition-format';
 import {
+  expireTemporaryPlans,
   getActiveSession,
   lastCompletedDayPosition,
+  lastFinishedAt,
   listActivePlans,
   startSession,
   type PlanSummary,
 } from '@/data/training';
+import { COMEBACK_DAYS, daysBetween } from '@/domain/progression';
 import { loadTimedRun } from '@/data/routines';
 import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
@@ -19,14 +23,23 @@ import { useLoad } from '@/hooks/use-load';
 import { t } from '@/i18n';
 
 async function loadOverview(db: Db) {
-  const [active, plans, timed] = await Promise.all([getActiveSession(db), listActivePlans(db), loadTimedRun(db)]);
+  // Abgelaufene befristete Fassungen zuerst beenden (TRAIN-008), damit die Liste stimmt.
+  const expired = await expireTemporaryPlans(db, todayDay());
+  const [active, plans, timed, finished] = await Promise.all([
+    getActiveSession(db),
+    listActivePlans(db),
+    loadTimedRun(db),
+    lastFinishedAt(db),
+  ]);
   const suggestions: Record<string, number> = {};
   for (const plan of plans) {
     if (plan.days.length > 0) {
       suggestions[plan.planId] = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
     }
   }
-  return { active, plans, suggestions, timed };
+  // Wiedereinstieg nach längerer Pause (TRAIN-015); Zeitpunkt beim Laden, nicht beim Rendern.
+  const pauseDays = finished ? daysBetween(finished, Date.now()) : 0;
+  return { active, plans, suggestions, timed, expired, pauseDays };
 }
 
 export default function TrainingScreen() {
@@ -35,8 +48,10 @@ export default function TrainingScreen() {
     plans: [] as PlanSummary[],
     suggestions: {} as Record<string, number>,
     timed: null as TimedRun | null,
+    expired: [] as string[],
+    pauseDays: 0,
   });
-  const { active, plans, suggestions, timed } = data;
+  const { active, plans, suggestions, timed, expired, pauseDays } = data;
 
   async function start(planDayId: string | null) {
     const id = await startSession(db, planDayId);
@@ -45,6 +60,16 @@ export default function TrainingScreen() {
 
   return (
     <Screen title={t('training.title')}>
+      {expired.length > 0 ? (
+        <Card>
+          <ThemedText>{t('training.expired', { names: expired.join(', ') })}</ThemedText>
+        </Card>
+      ) : null}
+      {!active && pauseDays >= COMEBACK_DAYS ? (
+        <Card title={t('training.comebackTitle')}>
+          <ThemedText type="small">{t('training.comeback', { days: pauseDays })}</ThemedText>
+        </Card>
+      ) : null}
       {timed ? (
         <Card title={t('training.timedActive', { name: timed.title })}>
           <Button label={t('training.timedContinue')} onPress={() => router.push('/training/run')} />
@@ -89,6 +114,12 @@ export default function TrainingScreen() {
           />
         ))}
         <Button label={t('training.newPlan')} onPress={() => router.push('/training/plan/neu')} />
+        <ListRow
+          title={t('training.assistantTitle')}
+          subtitle={t('training.assistantSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/training/assistant')}
+        />
       </Card>
 
       <Card>
@@ -106,9 +137,6 @@ export default function TrainingScreen() {
         <ListRow title={t('training.exercisesTitle')} accessory="›" onPress={() => router.push('/training/exercises')} />
       </Card>
 
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('training.comingLater')}
-      </ThemedText>
     </Screen>
   );
 }

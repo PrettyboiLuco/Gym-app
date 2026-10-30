@@ -70,6 +70,48 @@ export function Choice<T extends string>({
   );
 }
 
+/** Mehrfachauswahl als Knopfreihe, z. B. vorhandene Geräte. */
+export function MultiChoice<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  format,
+}: {
+  label: string;
+  options: readonly T[];
+  value: readonly T[];
+  onChange: (value: T[]) => void;
+  format: (value: T) => string;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.field}>
+      <ThemedText type="small" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+      <View style={styles.chips}>
+        {options.map((option) => {
+          const selected = value.includes(option);
+          return (
+            <Pressable
+              key={option}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selected }}
+              accessibilityLabel={format(option)}
+              onPress={() => onChange(selected ? value.filter((v) => v !== option) : [...value, option])}
+              style={[styles.chip, { backgroundColor: selected ? theme.tint : theme.backgroundSelected }]}>
+              <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+                {selected ? `✓ ${format(option)}` : format(option)}
+              </ThemedText>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 /** Auswahl mit längeren Beschriftungen untereinander, z. B. Aktivitätsstufen. */
 export function RadioList<T extends string>({
   label,

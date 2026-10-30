@@ -6,7 +6,8 @@ import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
-import { holdLookup, routineMinutes } from '@/components/timed';
+import { todayDay } from '@/components/nutrition-format';
+import { blockSeconds as blockSecondsOf } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -14,6 +15,7 @@ import type { Db } from '@/data/db';
 import { useDb } from '@/data/store-provider';
 import {
   activatePlanVersion,
+  activeVersion,
   archivePlan,
   listExercises,
   listPlanVersions,
@@ -22,8 +24,6 @@ import {
   type Exercise,
   type PlanVersionInfo,
 } from '@/data/training';
-import type { MuscleGroup } from '@/domain/exercises';
-import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import {
   estimateDayMinutes,
   formatClock,
@@ -90,8 +90,8 @@ function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDr
 
 async function fetchEditor(db: Db, id: string, isNew: boolean) {
   const exercises = await listExercises(db);
-  if (isNew) return { exercises, draft: null, versions: [] as PlanVersionInfo[] };
-  return { exercises, draft: await loadPlanDraft(db, id), versions: await listPlanVersions(db, id) };
+  if (isNew) return { exercises, draft: null, versions: [] as PlanVersionInfo[], active: null };
+  return { exercises, draft: await loadPlanDraft(db, id), versions: await listPlanVersions(db, id), active: await activeVersion(db, id) };
 }
 
 export default function PlanEditorScreen() {
@@ -104,6 +104,8 @@ export default function PlanEditorScreen() {
   const [baseline, setBaseline] = useState(() => JSON.stringify(EMPTY_FORM));
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [versions, setVersions] = useState<PlanVersionInfo[]>([]);
+  // Aktive Fassung; ist sie befristet, bleibt sie es auch nach dem Bearbeiten (TRAIN-008).
+  const [active, setActive] = useState<PlanVersionInfo | null>(null);
   const [pickingFor, setPickingFor] = useState<number | null>(null);
   const [showProblems, setShowProblems] = useState(false);
 
@@ -115,6 +117,7 @@ export default function PlanEditorScreen() {
       setBaseline(JSON.stringify(loaded));
     }
     setVersions(data.versions);
+    setActive(data.active);
   }
 
   // Nur beim Öffnen laden; danach gilt der Formularzustand.
@@ -133,12 +136,7 @@ export default function PlanEditorScreen() {
   const draft = toDraft(form, isTimed);
   const problems = validatePlan(draft);
   /** Dauer des vorgeschlagenen Aufwärmens/Cool-downs in Sekunden (STRETCH-001: in der Zeitschätzung). */
-  function blockSeconds(day: DayForm, kind: 'aufwaermen' | 'cooldown') {
-    const groups = [...new Set(day.items.map((i) => byId.get(i.exerciseId)?.muscleGroup).filter((g): g is MuscleGroup => !!g))];
-    const hold = holdLookup(exercises);
-    const items = kind === 'aufwaermen' ? warmupItems(groups, hold) : cooldownItems(groups, hold);
-    return routineMinutes(blockDraft(items), exercises) * 60;
-  }
+  const blockSeconds = (day: DayForm, kind: 'aufwaermen' | 'cooldown') => blockSecondsOf(day.items, exercises, kind);
   const allowLeave = useUnsavedGuard(JSON.stringify(form) !== baseline);
 
   function updateDay(index: number, change: Partial<DayForm>) {
@@ -156,13 +154,18 @@ export default function PlanEditorScreen() {
       setShowProblems(true);
       return;
     }
-    await savePlan(db, isNew ? null : id, draft);
+    await savePlan(
+      db,
+      isNew ? null : id,
+      draft,
+      active?.validUntil ? { validUntil: active.validUntil, returnVersionId: active.returnVersionId, note: active.note } : {}
+    );
     allowLeave();
     router.back();
   }
 
   async function activate(versionId: string) {
-    await activatePlanVersion(db, id, versionId);
+    await activatePlanVersion(db, id, versionId, todayDay());
     apply(await fetchEditor(db, id, isNew));
   }
 
@@ -194,6 +197,15 @@ export default function PlanEditorScreen() {
   return (
     <Screen withHeader>
       <Stack.Screen options={{ title: isNew ? t('plan.titleNew') : t('plan.titleEdit') }} />
+      {active?.validUntil && active.returnVersionId ? (
+        <Card>
+          <ThemedText type="small">{t('plan.temporary', { date: formatDay(active.validUntil) })}</ThemedText>
+          <Button label={t('plan.temporaryEnd')} variant="danger" onPress={() => activate(active.returnVersionId!)} />
+        </Card>
+      ) : null}
+      {!isNew ? (
+        <Button label={t('plan.assistant')} variant="danger" onPress={() => router.push({ pathname: '/training/assistant', params: { plan: id } })} />
+      ) : null}
       <Card>
         <Field
           label={t('plan.name')}
@@ -353,7 +365,13 @@ export default function PlanEditorScreen() {
             <ListRow
               key={v.id}
               title={`${v.name}`}
-              subtitle={t('plan.version', { version: v.version, date: formatDay(v.createdAt.slice(0, 10)) })}
+              subtitle={[
+                t('plan.version', { version: v.version, date: formatDay(v.createdAt.slice(0, 10)) }),
+                v.note,
+                v.validUntil ? t('plan.temporaryUntil', { date: formatDay(v.validUntil) }) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
               accessory={v.active ? t('plan.activeVersion') : t('plan.activate')}
               onPress={v.active ? undefined : () => activate(v.id)}
             />

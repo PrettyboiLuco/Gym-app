@@ -7,10 +7,6 @@ import { EQUIPMENT, type Equipment, type Level } from './exercises';
 import { MINUTES_RANGE, type TrainingGoal } from './planner';
 import { DEFAULT_UNITS, HEIGHT_RANGE, lengthInputText, parseLengthIn, type Units } from './units';
 
-/** Beruf grob (COACH-001): z. B. für Dehnvorschläge bei sitzender Arbeit. */
-export const JOBS = ['sitzend', 'stehend', 'koerperlich'] as const;
-export type Job = (typeof JOBS)[number];
-
 export type Profile = {
   /** Bestätigt „mindestens 18 Jahre“ (Start nur für Erwachsene). */
   adult: boolean;
@@ -30,8 +26,10 @@ export type Profile = {
   units: Units;
   /** Fortschrittsfotos eingeschaltet (Standard aus, GOAL-008). */
   photos: boolean;
-  /** Für den Planassistenten (Phase 8, COACH-001): alles optional. */
-  job: Job | null;
+  /**
+   * Für den Planassistenten (Phase 8, COACH-001): alles optional. Der Beruf steckt in `activity`
+   * (Beispiele dort sind Berufe), daher kein eigenes Feld.
+   */
   experience: Level | null;
   trainingGoal: TrainingGoal | null;
   /** Vorhandene Geräte; null = keine Angabe (dann alle). Körpergewicht geht immer. */
@@ -49,7 +47,6 @@ export const EMPTY_PROFILE: Profile = {
   sensitive: false,
   units: DEFAULT_UNITS,
   photos: false,
-  job: null,
   experience: null,
   trainingGoal: null,
   equipment: null,
@@ -90,7 +87,6 @@ export type ProfileForm = {
   sport: boolean;
   sensitive: boolean;
   units: Units;
-  job: Job | 'keine';
   experience: Level | 'keine';
   trainingGoal: TrainingGoal | 'keine';
   equipment: Equipment[];
@@ -108,7 +104,6 @@ export function profileToForm(p: Profile): ProfileForm {
     sport: p.sport,
     sensitive: p.sensitive,
     units: p.units,
-    job: p.job ?? 'keine',
     experience: p.experience ?? 'keine',
     trainingGoal: p.trainingGoal ?? 'keine',
     equipment: p.equipment ?? [...EQUIPMENT],
@@ -148,7 +143,6 @@ export function parseProfileForm(
       sport: form.sport,
       sensitive: form.sensitive,
       units: form.units,
-      job: form.job === 'keine' ? null : form.job,
       experience: form.experience === 'keine' ? null : form.experience,
       trainingGoal: form.trainingGoal === 'keine' ? null : form.trainingGoal,
       equipment,

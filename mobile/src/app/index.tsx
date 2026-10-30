@@ -10,7 +10,7 @@ import { calorieGoalOn } from '@/data/goals';
 import { loadTimedRun } from '@/data/routines';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { useUnits } from '@/data/profile-provider';
-import { getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
+import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
 import { listWeights } from '@/data/weights';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { nextDayIndex } from '@/domain/training';
@@ -20,6 +20,8 @@ import { formatDay, formatLongDate, formatNumber, formatWeight, t } from '@/i18n
 
 async function loadToday(db: Db) {
   const today = todayDay();
+  // Abgelaufene befristete Planfassungen beenden, damit „Nächstes Training“ stimmt (TRAIN-008).
+  await expireTemporaryPlans(db, today);
   const [weights, active, plans, events, settings, goal] = await Promise.all([
     listWeights(db),
     getActiveSession(db),

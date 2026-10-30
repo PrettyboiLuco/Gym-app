@@ -21,6 +21,7 @@ export default function TrainingLayout() {
       <Stack.Screen name="plan/[id]" options={{ title: t('plan.titleEdit') }} />
       <Stack.Screen name="session/[id]" options={{ title: t('session.title') }} />
       <Stack.Screen name="exercises" options={{ title: t('exercises.title') }} />
+      <Stack.Screen name="assistant" options={{ title: t('assistant.title') }} />
       <Stack.Screen name="history" options={{ title: t('history.title') }} />
       <Stack.Screen name="interval" options={{ title: t('interval.title') }} />
       <Stack.Screen name="stretch" options={{ title: t('stretch.title') }} />
