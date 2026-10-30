@@ -161,6 +161,7 @@ describe('Ziele (GOAL-001–007)', () => {
       kind: 'gewohnheit',
       habit: 'training',
       perWeek: 3,
+      targetSteps: null,
     });
   });
 

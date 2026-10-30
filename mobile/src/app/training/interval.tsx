@@ -3,6 +3,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { cancelRunAlerts, syncIntervalAlerts } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -99,6 +100,7 @@ export default function IntervalScreen() {
               setStartedAt(null);
               setRunning(null);
               saveIntervalRun(db, null);
+              cancelRunAlerts().catch(() => undefined);
             }}
           />
         </Card>
@@ -128,6 +130,7 @@ export default function IntervalScreen() {
               setRunning(config);
               setStartedAt(startedAtMs);
               saveIntervalRun(db, { config, startedAtMs });
+              syncIntervalAlerts(db, config, startedAtMs).catch(() => undefined);
             }}
           />
         </Card>

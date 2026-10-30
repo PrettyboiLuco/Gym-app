@@ -11,3 +11,9 @@ export function photoUri(fileName: string): string {
 }
 
 export function removePhotoFile(_fileName: string) {}
+
+export function removeAllPhotoFiles() {}
+
+export function photoExists(_fileName: string): boolean {
+  return false;
+}

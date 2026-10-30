@@ -75,12 +75,13 @@ export type GoalVersion = {
   habit: Habit | null;
   perWeek: number | null;
   targetCm: number | null;
+  targetSteps: number | null;
   createdAt: string;
 };
 
 const VERSION_COLUMNS = `v.id, v.goal_id AS goalId, g.kind, v.version, v.valid_from AS validFrom, v.status,
   v.direction, v.target_kg AS targetKg, v.start_kg AS startKg, v.exercise_id AS exerciseId,
-  v.target_reps AS targetReps, v.habit, v.per_week AS perWeek, v.target_cm AS targetCm, v.created_at_utc AS createdAt`;
+  v.target_reps AS targetReps, v.habit, v.per_week AS perWeek, v.target_cm AS targetCm, v.target_steps AS targetSteps, v.created_at_utc AS createdAt`;
 
 /** Neueste Version jedes Ziels, das noch aktiv ist. */
 export function listActiveGoals(db: Db) {
@@ -107,7 +108,7 @@ async function insertVersion(db: Db, goalId: string, validFrom: string, status: 
   );
   await db.runAsync(
     `INSERT INTO goal_version (id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
-     target_reps, habit, per_week, target_cm, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     target_reps, habit, per_week, target_cm, target_steps, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     newId(),
     goalId,
     (last?.version ?? 0) + 1,
@@ -121,6 +122,7 @@ async function insertVersion(db: Db, goalId: string, validFrom: string, status: 
     v.habit ?? null,
     v.perWeek ?? null,
     v.targetCm ?? null,
+    v.targetSteps ?? null,
     nowUtc()
   );
 }
@@ -158,7 +160,7 @@ export async function saveGoal(db: Db, goalId: string | null, draft: GoalDraft, 
     } else if (draft.kind === 'beweglichkeit') {
       await insertVersion(db, id, validFrom, 'aktiv', { targetCm: draft.targetCm });
     } else {
-      await insertVersion(db, id, validFrom, 'aktiv', { habit: draft.habit, perWeek: draft.perWeek });
+      await insertVersion(db, id, validFrom, 'aktiv', { habit: draft.habit, perWeek: draft.perWeek, targetSteps: draft.targetSteps ?? null });
     }
   });
   return id!;

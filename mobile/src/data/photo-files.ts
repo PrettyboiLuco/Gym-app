@@ -22,6 +22,21 @@ export function photoUri(fileName: string): string {
   return new File(folder(), fileName).uri;
 }
 
+export function photoExists(fileName: string): boolean {
+  return new File(folder(), fileName).exists;
+}
+
+export function photoFile(fileName: string): File {
+  folder().create({ idempotent: true, intermediates: true });
+  return new File(folder(), fileName);
+}
+
+/** Alle Fotodateien entfernen (z. B. „Alle Daten löschen“). */
+export function removeAllPhotoFiles() {
+  const dir = folder();
+  if (dir.exists) dir.delete();
+}
+
 export function removePhotoFile(fileName: string) {
   const file = new File(folder(), fileName);
   if (file.exists) file.delete();

@@ -237,6 +237,33 @@ vollständig; offen sind nur die unten genannten bewusst verschobenen Punkte und
 | 6.5 | Export/Backup/Wiederherstellung, „alle Daten löschen“, optional verschlüsselte Datenbank | TECH-014, TECH-013, LAW-006 |
 | 6.6 | Gerätetest-Liste abarbeiten (sperren, App killen, neu starten, offline) | O1 |
 
+**Stand 30.10.2026 (vor dem MacBook umgesetzt, soweit in Expo Go möglich):**
+- 6.1 Development Build: Schritt-für-Schritt-Anleitung `docs/Anleitung_Development_Build.md` (kostenlos mit Xcode
+  und eigener Apple-ID oder per EAS mit Developer Program). Bauen selbst braucht MacBook bzw. Apple-Konto.
+- 6.2 Schritte: Datenmodell nach HEALTH-005/006 (pro Tag und Quelle, Abrufzeit/Fenster, Apple Health hat Vorrang,
+  nie addiert), eigene Tageswerte unter Fortschritt → Schritte, Wochenschnitt, Gewohnheit „Schritte“, keine
+  Kalorien-Gutschrift (HEALTH-007). Apple-Health-Anbindung folgt mit dem Development Build (Plan in der Anleitung).
+- 6.3 Timer bei gesperrtem Handy: lokale Mitteilungen zum Pausenende, bei jedem Wechsel in Dehn-/HIIT-Abläufen und
+  im Intervall-Timer (Pause löscht, Überspringen verschiebt); im Vordergrund kein doppelter Banner. Anzeige direkt
+  auf dem Sperrbildschirm (Live Activity) braucht den Development Build.
+- 6.4 Erinnerungen: Training an gewählten Wochentagen zur Uhrzeit, Trinken alle 1–4 h im Zeitfenster (außerhalb
+  Ruhe); alles optional, standardmäßig aus, Erlaubnis erst beim Einschalten.
+- 6.5 Daten: Sicherung als Datei (Teilen-Menü → „Dateien“), Fotos optional; Wiederherstellen mit Prüfung und
+  Zusammenfassung vorab, in einer Transaktion (bei Fehlern bleibt alles), auch auf neues Handy und aus älteren
+  Versionen; „Alle Daten löschen“ inkl. Fotos und Erinnerungen → Erststart; App-Sperre (in Expo Go mit
+  Gerätecode, Face ID ab Build). SQLCipher-Verschlüsselung: vorbereitet in der Anleitung (braucht Build).
+- 6.6 Gerätetest-Liste `docs/Geraetetest.md` (Timer, Erinnerungen, Daten, Sperre, Schritte, offline).
+304 automatische Tests, Browser-Tests Phase 6 11/11, Phase 5 23/23, Phase 4 38/38, iOS-Bundle baut.
+
+**Prüfung Phase 6 (30.10.2026) – 2. Durchlauf:** 4 Lücken geschlossen – Erinnerungen werden nach dem
+Wiederherstellen neu eingeplant, Foto-Einträge ohne Datei (Sicherung ohne Fotos auf neuem Handy) werden entfernt
+statt als leere Bilder zu bleiben, Tipp im Training zum Einschalten der Timer-Hinweise, Datenschutztext nennt
+Sicherungsdateien.
+**Offen (braucht MacBook/Apple-Konto oder Android):** Development Build (6.1), Apple Health lesen (6.2), Live
+Activity/AlarmKit (UX-006, HEALTH-013), Face ID, SQLCipher (TECH-013), Android-Punkte HEALTH-003/004/014 (Phase 11),
+Gerätetest durchführen (6.6, O1). Bekannte Grenzen: Mitteilungen nicht sekundengenau (HEALTH-012), Uhrzeit-Sprünge
+(HEALTH-016), Erinnerungen prüfen nicht, ob schon trainiert/getrunken wurde.
+
 ## Phase 7 – Pilot mit echten Leuten
 
 | # | Schritt | Register |

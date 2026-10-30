@@ -12,6 +12,8 @@ type ProfileState = {
   onboardingDone: boolean;
   updateProfile: (profile: Profile) => Promise<void>;
   finishOnboarding: () => Promise<void>;
+  /** Neu laden, z. B. nach Wiederherstellen einer Sicherung oder „Alle Daten löschen“. */
+  reload: () => Promise<void>;
 };
 
 const ProfileContext = createContext<ProfileState | null>(null);
@@ -31,6 +33,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     };
   }, [db]);
 
+  const reload = useCallback(async () => {
+    const [profile, onboardingDone] = await Promise.all([loadProfile(db), loadOnboardingDone(db)]);
+    setState({ loaded: true, profile, onboardingDone });
+  }, [db]);
+
   const updateProfile = useCallback(
     async (profile: Profile) => {
       await saveProfile(db, profile);
@@ -45,7 +52,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [db]);
 
   return (
-    <ProfileContext.Provider value={{ ...state, updateProfile, finishOnboarding }}>{children}</ProfileContext.Provider>
+    <ProfileContext.Provider value={{ ...state, updateProfile, finishOnboarding, reload }}>{children}</ProfileContext.Provider>
   );
 }
 

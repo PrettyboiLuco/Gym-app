@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { cancelRunAlerts, syncRunAlerts } from '@/components/alerts';
 import { exerciseName } from '@/components/exercise-name';
 import { Choice, ConfirmButton } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -64,6 +65,10 @@ export default function RunScreen() {
     Promise.all([loadTimedRun(db), listExercises(db), loadVoice(db)]).then(([r, all, v]) => {
       if (cancelled) return;
       if (r && timelineState(r.steps, runElapsedMs(r, nowMs())).done) setAskDone(true);
+      else {
+        const names = new Map(all.map((e) => [e.id, exerciseName(e)]));
+        syncRunAlerts(db, r, (id) => names.get(id) ?? '').catch(() => undefined);
+      }
       setRun(r);
       setExercises(all);
       setVoice(v);
@@ -84,8 +89,11 @@ export default function RunScreen() {
     async (next: TimedRun) => {
       setRun(next);
       await saveTimedRun(db, next);
+      // Hinweise bei gesperrtem Handy neu planen (Pause löscht sie, Überspringen verschiebt sie).
+      const names = new Map(exercises.map((e) => [e.id, exerciseName(e)]));
+      syncRunAlerts(db, next, (id) => names.get(id) ?? '').catch(() => undefined);
     },
-    [db]
+    [db, exercises]
   );
 
   const finish = useCallback(
@@ -99,6 +107,7 @@ export default function RunScreen() {
         reason,
       });
       Speech.stop();
+      cancelRunAlerts().catch(() => undefined);
       setOutcome({ status, minutes: Math.max(1, Math.round(runDoneSeconds(run, at) / 60)), kind: run.kind, pain: reason === 'schmerz' });
     },
     [db, run]

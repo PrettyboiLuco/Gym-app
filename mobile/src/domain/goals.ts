@@ -3,6 +3,7 @@
 // angezeigt wird nur, wo man gerade steht (GOAL-006).
 
 import { bmi, underweightLimitKg, UNDERWEIGHT_BMI, type Goal } from './energy';
+import { parseSteps } from './steps';
 import { parseWholeNumber } from './training';
 import { BODY_WEIGHT_RANGE, LIFT_RANGE, parseLengthIn, parseWeightIn, type LengthUnit, type WeightUnit } from './units';
 
@@ -14,14 +15,17 @@ export type GoalKind = (typeof GOAL_KINDS)[number];
 
 export const DIRECTIONS = ['abnehmen', 'halten', 'zunehmen'] as const satisfies readonly Goal[];
 
-/** Gewohnheiten, die die App heute schon messen kann; Schritte folgen mit Apple Health (Phase 6). */
-export const HABITS = ['training', 'trinken', 'dehnen'] as const;
+/** Gewohnheiten, die die App messen kann. Schritte: eigener Eintrag, später Apple Health (HEALTH-005). */
+export const HABITS = ['training', 'trinken', 'dehnen', 'schritte'] as const;
+
+/** Bereich für ein Schrittziel pro Tag (Tippfehler-Schutz, keine Empfehlung). */
+export const STEP_TARGET_RANGE = { min: 1000, max: 50000 } as const;
 export type Habit = (typeof HABITS)[number];
 
 export type GoalDraft =
   | { kind: 'gewicht'; direction: Goal; targetKg: number | null }
   | { kind: 'kraft'; exerciseId: string; targetKg: number; targetReps: number }
-  | { kind: 'gewohnheit'; habit: Habit; perWeek: number }
+  | { kind: 'gewohnheit'; habit: Habit; perWeek: number; targetSteps?: number | null }
   /** Beweglichkeit über den Finger-Boden-Test: Ziel-Abstand in cm (0 = Boden). */
   | { kind: 'beweglichkeit'; targetCm: number };
 
@@ -35,6 +39,7 @@ export type GoalForm = {
   habit: Habit;
   perWeek: string;
   targetCm: string;
+  targetSteps: string;
 };
 
 export const EMPTY_GOAL_FORM: GoalForm = {
@@ -47,6 +52,7 @@ export const EMPTY_GOAL_FORM: GoalForm = {
   habit: 'training',
   perWeek: '3',
   targetCm: '',
+  targetSteps: '8000',
 };
 
 export type GoalProblem =
@@ -59,7 +65,8 @@ export type GoalProblem =
   | 'lift'
   | 'reps'
   | 'perWeek'
-  | 'targetCm';
+  | 'targetCm'
+  | 'targetSteps';
 
 export type GoalContext = { currentKg: number | null; heightCm: number | null; sensitive: boolean };
 
@@ -111,8 +118,14 @@ export function parseGoalForm(
   }
   const perWeek = parseWholeNumber(form.perWeek);
   if (perWeek === null || perWeek < 1 || perWeek > 7) problems.push('perWeek');
+  let targetSteps: number | null = null;
+  if (form.habit === 'schritte') {
+    const steps = parseSteps(form.targetSteps);
+    if (steps === null || steps < STEP_TARGET_RANGE.min || steps > STEP_TARGET_RANGE.max) problems.push('targetSteps');
+    else targetSteps = steps;
+  }
   if (problems.length > 0) return { draft: null, problems };
-  return { draft: { kind: 'gewohnheit', habit: form.habit, perWeek: perWeek! }, problems };
+  return { draft: { kind: 'gewohnheit', habit: form.habit, perWeek: perWeek!, targetSteps }, problems };
 }
 
 // ------------------------------------------------------------------------------- Fortschritt

@@ -44,6 +44,7 @@ function toForm(v: GoalVersion, units: Units): GoalForm {
     habit: v.habit ?? 'training',
     perWeek: v.perWeek === null ? EMPTY_GOAL_FORM.perWeek : String(v.perWeek),
     targetCm: v.targetCm === null ? '' : lengthInputText(v.targetCm, units.length),
+    targetSteps: v.targetSteps === null ? EMPTY_GOAL_FORM.targetSteps : String(v.targetSteps),
   };
 }
 
@@ -255,6 +256,14 @@ export default function GoalScreen() {
                   onChange={(habit) => change({ habit })}
                   format={(h) => t(`goals.habit.${h}`)}
                 />
+                {form.habit === 'schritte' ? (
+                  <Field
+                    label={t('goals.targetSteps')}
+                    value={form.targetSteps}
+                    onChangeText={(targetSteps) => change({ targetSteps })}
+                    keyboardType="number-pad"
+                  />
+                ) : null}
                 <Field
                   label={t('goals.perWeek')}
                   value={form.perWeek}

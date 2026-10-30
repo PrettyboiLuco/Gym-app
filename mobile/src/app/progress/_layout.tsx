@@ -19,6 +19,7 @@ export default function ProgressLayout() {
       <Stack.Screen name="calculator" options={{ title: t('calculator.title') }} />
       <Stack.Screen name="measurements" options={{ title: t('measure.title') }} />
       <Stack.Screen name="photos" options={{ title: t('photos.title') }} />
+      <Stack.Screen name="steps" options={{ title: t('steps.title') }} />
     </Stack>
   );
 }

@@ -62,6 +62,19 @@
           "cameraPermission": "Die Kamera wird zum Scannen von Barcodes verwendet und – nur wenn du sie einschaltest – für Fortschrittsfotos. Fotos bleiben auf deinem Gerät und werden nicht gesendet.",
           "microphonePermission": false
         }
+      ],
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "enableRemoteNotifications": false
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Face ID schützt deine Daten in der App, wenn du die App-Sperre einschaltest."
+        }
       ]
     ],
     "experiments": {

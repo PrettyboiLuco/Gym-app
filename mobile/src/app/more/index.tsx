@@ -10,8 +10,11 @@ import { t } from '@/i18n';
 export default function MoreScreen() {
   return (
     <Screen title={t('more.title')}>
-      <Card title={t('progress.profileTitle')}>
-        <ListRow title={t('progress.profileOpen')} accessory="›" onPress={() => router.push('/progress/profile')} />
+      <Card title={t('more.settingsTitle')}>
+        <ListRow title={t('progress.profileOpen')} subtitle={t('progress.profileTitle')} accessory="›" onPress={() => router.push('/progress/profile')} />
+        <ListRow title={t('reminders.title')} subtitle={t('more.remindersSubtitle')} accessory="›" onPress={() => router.push('/more/notifications')} />
+        <ListRow title={t('dataScreen.title')} subtitle={t('more.dataSubtitle')} accessory="›" onPress={() => router.push('/more/data')} />
+        <ListRow title={t('security.title')} subtitle={t('more.securitySubtitle')} accessory="›" onPress={() => router.push('/more/security')} />
       </Card>
       <Card title={t('more.privacyTitle')}>
         <ThemedText themeColor="textSecondary">{t('more.privacy')}</ThemedText>

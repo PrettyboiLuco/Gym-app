@@ -5,6 +5,8 @@ import { timeZone } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
 import { drinkGoalDays, liftSets, stretchDays, trainingDays, type GoalVersion } from '@/data/goals';
 import { listFlexibilityTests } from '@/data/routines';
+import { listSteps } from '@/data/steps';
+import { stepGoalDays } from '@/domain/steps';
 import { loadNutritionSettings } from '@/data/nutrition';
 import type { Exercise } from '@/data/training';
 import { listWeights } from '@/data/weights';
@@ -31,6 +33,9 @@ export function goalTitle(goal: GoalVersion, units: Units, exercises: Exercise[]
   }
   if (goal.kind === 'beweglichkeit') {
     return t('goals.summary.beweglichkeit', { target: formatLength(goal.targetCm ?? 0, units.length) });
+  }
+  if (goal.habit === 'schritte') {
+    return t('goals.summary.schritte', { steps: goal.targetSteps ?? 0, perWeek: goal.perWeek });
   }
   return t('goals.summary.gewohnheit', { habit: t(`goals.habit.${goal.habit}`), perWeek: goal.perWeek });
 }
@@ -94,6 +99,8 @@ export async function goalProgressLines(
     days = await trainingDays(db, fromUtc, timeZone);
   } else if (goal.habit === 'dehnen') {
     days = await stretchDays(db, fromUtc, timeZone);
+  } else if (goal.habit === 'schritte') {
+    days = stepGoalDays(await listSteps(db, from), goal.targetSteps ?? 0);
   } else {
     const settings = await loadNutritionSettings(db);
     if (!settings.drinkGoalMl) return { lines: [t('goals.progress.noDrinkGoal')], reached: false };

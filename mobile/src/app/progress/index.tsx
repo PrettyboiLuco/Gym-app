@@ -15,15 +15,17 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn, listActiveGoals, listMeasurements, type CalorieGoal, type GoalVersion } from '@/data/goals';
 import { useProfile } from '@/data/profile-provider';
 import { listPhotos } from '@/data/photos';
+import { listSteps } from '@/data/steps';
 import { listExercises } from '@/data/training';
 import { addWeight, deleteWeight, listWeights } from '@/data/weights';
 import { latestBySite, MEASURE_SITES, type Measurement } from '@/domain/body';
 import { shiftDay } from '@/domain/nutrition';
 import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
+import { stepsForDay } from '@/domain/steps';
 import { dailyMeans, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDay, formatLength, formatWeight, t } from '@/i18n';
+import { formatDay, formatLength, formatNumber, formatWeight, t } from '@/i18n';
 
 type GoalCard = { goal: GoalVersion; title: string; lines: string[] };
 
@@ -37,12 +39,13 @@ async function loadProgress(db: Db, units: Units, sensitive: boolean) {
     listExercises(db),
     listPhotos(db),
   ]);
+  const steps = stepsForDay(await listSteps(db, shiftDay(today, -1)), today);
   const cards: GoalCard[] = [];
   for (const goal of goals) {
     const { lines } = await goalProgressLines(db, goal, units, today, sensitive);
     cards.push({ goal, title: goalTitle(goal, units, exercises), lines });
   }
-  return { weights, cards, calorie, measurements, photoCount: photos.length };
+  return { weights, cards, calorie, measurements, photoCount: photos.length, steps: steps?.steps ?? null };
 }
 
 const SHOWN = 10;
@@ -57,8 +60,9 @@ export default function ProgressScreen() {
     calorie: null as CalorieGoal | null,
     measurements: [] as Measurement[],
     photoCount: 0,
+    steps: null as number | null,
   }, `${units.weight}-${units.length}-${profile.sensitive}`);
-  const { weights, cards, calorie, measurements, photoCount } = data;
+  const { weights, cards, calorie, measurements, photoCount, steps } = data;
   const [day, setDay] = useState(todayDay);
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
@@ -163,6 +167,14 @@ export default function ProgressScreen() {
           </ThemedText>
         ))}
         <Button label={t('progress.measureOpen')} variant="danger" onPress={() => router.push('/progress/measurements')} />
+      </Card>
+
+      <Card title={t('steps.title')}>
+        <ListRow
+          title={steps === null ? t('steps.todayNone') : t('steps.today', { steps: formatNumber(steps, 0) })}
+          accessory="›"
+          onPress={() => router.push('/progress/steps')}
+        />
       </Card>
 
       <Card title={t('progress.photosTitle')}>

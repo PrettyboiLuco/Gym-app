@@ -12,8 +12,11 @@ import { RestTimerBar } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
 import { useUnits } from '@/data/profile-provider';
+import { loadReminders } from '@/data/reminders';
 import { timedSessionsForWorkout, type TimedSession } from '@/data/routines';
+import { syncRestAlert } from '@/components/alerts';
 import { holdLookup, routineMinutes, startRoutineRun } from '@/components/timed';
 import { useDb } from '@/data/store-provider';
 import {
@@ -78,6 +81,8 @@ export default function SessionScreen() {
   const [picking, setPicking] = useState(false);
   const [restAuto, setRestAuto] = useState(true);
   const [blocks, setBlocks] = useState<TimedSession[]>([]);
+  // Tipp, den Hinweis bei gesperrtem Handy einzuschalten (nur solange er aus ist).
+  const [alertsOff, setAlertsOff] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   // Zeitpunkt des letzten Ladens; nötig für „Cool-down bis 3 Stunden nach dem Ende anbieten“.
   const [loadedAtMs, setLoadedAtMs] = useState(0);
@@ -96,6 +101,7 @@ export default function SessionScreen() {
       timedSessionsForWorkout(db, id),
     ]);
     setBlocks(timed);
+    setAlertsOff(NOTIFICATIONS_SUPPORTED && !(await loadReminders(db)).timerAlerts);
     setLoadedAtMs(nowMs());
     setSession(info);
     setRestAuto(auto);
@@ -124,6 +130,8 @@ export default function SessionScreen() {
   async function updateTimer(next: RestTimer) {
     setTimer(next);
     await saveRestTimer(db, next);
+    // Hinweis bei gesperrtem Handy (falls eingeschaltet); ein Fehler darf das Training nicht stören.
+    syncRestAlert(db, next).catch(() => undefined);
   }
 
   /**
@@ -457,6 +465,14 @@ export default function SessionScreen() {
       ) : null}
       {cooldownDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.cooldownDone')}</ThemedText> : null}
 
+      {active && alertsOff ? (
+        <Card>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('session.alertsTip')}
+          </ThemedText>
+          <Button label={t('session.alertsOpen')} variant="danger" onPress={() => router.push('/more/notifications')} />
+        </Card>
+      ) : null}
       {active ? (
         <>
           <Button label={t('session.addExercise')} onPress={() => setPicking(true)} />

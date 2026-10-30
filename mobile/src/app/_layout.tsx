@@ -4,11 +4,14 @@ import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
+import { LockGate } from '@/components/lock-gate';
 import { Onboarding } from '@/components/onboarding';
+import { configureNotifications } from '@/data/notifications';
 import { ProfileProvider, useProfile } from '@/data/profile-provider';
 import { StoreProvider } from '@/data/store-provider';
 
 SplashScreen.preventAutoHideAsync();
+configureNotifications();
 
 /** Beim ersten Start kommt der Erststart-Ablauf, danach die App (Register UX-010). */
 function Gate() {
@@ -24,7 +27,9 @@ export default function TabLayout() {
       <StoreProvider>
         <ProfileProvider>
           <AnimatedSplashOverlay />
-          <Gate />
+          <LockGate>
+            <Gate />
+          </LockGate>
         </ProfileProvider>
       </StoreProvider>
     </ThemeProvider>

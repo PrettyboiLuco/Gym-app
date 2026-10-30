@@ -350,6 +350,44 @@ export const MIGRATIONS: string[] = [
      SELECT id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
      target_reps, habit, per_week, NULL, created_at_utc FROM goal_version_backup;
    DROP TABLE goal_version_backup;`,
+
+  // Version 7: Schritte und Gewohnheit „Schritte“ (Register HEALTH-005/006, GOAL-001)
+  // Pro Tag und Quelle; Abrufzeit und Fenster werden gespeichert (HEALTH-006).
+  `CREATE TABLE steps_entry (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     steps INTEGER NOT NULL CHECK (steps BETWEEN 0 AND 100000),
+     source TEXT NOT NULL CHECK (source IN ('manuell', 'apple_health')),
+     window_from_utc TEXT,
+     window_to_utc TEXT,
+     fetched_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX steps_entry_day ON steps_entry (day);
+   -- goal_version wird von keiner Tabelle referenziert und kann direkt neu angelegt werden.
+   CREATE TABLE goal_version_new (
+     id TEXT PRIMARY KEY NOT NULL,
+     goal_id TEXT NOT NULL REFERENCES goal (id),
+     version INTEGER NOT NULL CHECK (version > 0),
+     valid_from TEXT NOT NULL,
+     status TEXT NOT NULL CHECK (status IN ('aktiv', 'beendet')),
+     direction TEXT CHECK (direction IS NULL OR direction IN ('abnehmen', 'halten', 'zunehmen')),
+     target_kg REAL CHECK (target_kg IS NULL OR target_kg >= 0),
+     start_kg REAL CHECK (start_kg IS NULL OR start_kg > 0),
+     exercise_id TEXT REFERENCES exercise (id),
+     target_reps INTEGER CHECK (target_reps IS NULL OR target_reps BETWEEN 1 AND 100),
+     habit TEXT CHECK (habit IS NULL OR habit IN ('training', 'trinken', 'dehnen', 'schritte')),
+     per_week INTEGER CHECK (per_week IS NULL OR per_week BETWEEN 1 AND 7),
+     target_cm REAL CHECK (target_cm IS NULL OR target_cm BETWEEN 0 AND 100),
+     target_steps INTEGER CHECK (target_steps IS NULL OR target_steps BETWEEN 1000 AND 50000),
+     created_at_utc TEXT NOT NULL,
+     UNIQUE (goal_id, version)
+   );
+   INSERT INTO goal_version_new (id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
+     target_reps, habit, per_week, target_cm, target_steps, created_at_utc)
+     SELECT id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
+     target_reps, habit, per_week, target_cm, NULL, created_at_utc FROM goal_version;
+   DROP TABLE goal_version;
+   ALTER TABLE goal_version_new RENAME TO goal_version;`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */
