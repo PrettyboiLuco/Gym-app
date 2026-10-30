@@ -15,8 +15,9 @@ Diese Schritte kann nur Luc selbst machen, weil sie Konto, Zahlung und Identitä
 - **App-Name:** Arbeitstitel „Myhealth“ (Entscheidung Luc 30.10.2026, endgültiger Name offen). Der Name im App Store
   muss dort einmalig sein; ist „Myhealth“ schon vergeben, in App Store Connect z. B. „Myhealth Pilot“ eintragen –
   unter dem Symbol auf dem iPhone steht trotzdem „Myhealth“.
-- **Bundle-ID**, z. B. `de.<dein-name>.gymapp` – nach dem ersten Upload nicht mehr änderbar.
-  Ich trage sie danach in `mobile/app.json` unter `ios.bundleIdentifier` ein.
+- **Bundle-ID:** `myhealth.system` (eingetragen in `mobile/app.json`, Entscheidung Luc 30.10.2026). Nach dem
+  ersten Upload gehört sie fest zu dieser App. Ist sie bei Apple schon vergeben, meldet EAS das beim Build –
+  dann eine andere wählen.
 - **App-Symbol**: Noch ist das Expo-Standardsymbol drin. Ein eigenes Symbol (1024×1024) brauchst du spätestens
   für den App Store, für TestFlight ist es dringend empfohlen.
 

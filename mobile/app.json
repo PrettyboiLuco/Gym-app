@@ -11,7 +11,8 @@
       "icon": "./assets/expo.icon",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "bundleIdentifier": "myhealth.system"
     },
     "android": {
       "adaptiveIcon": {

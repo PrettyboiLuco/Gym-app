@@ -47,8 +47,7 @@ muss beim ersten Versuch geprüft werden; sonst Weg B.
 4. **Sperrbildschirm-Timer:** Live Activity prüfen (HEALTH-013 AlarmKit als Alternative).
 5. Danach Gerätetest-Liste `docs/Geraetetest.md` vollständig durchgehen.
 
-## Bundle-ID (vor dem ersten Build festlegen)
+## Bundle-ID
 
-Die Bundle-ID ist die eindeutige Kennung der App (z. B. `de.<dein-name>.gymapp`) und lässt sich nach dem
-ersten App-Store-Upload nicht mehr ändern. Sie steht dann in `app.json` unter `ios.bundleIdentifier`.
-Vorschlag, sobald der App-Name feststeht (offene Entscheidung).
+Festgelegt: `myhealth.system` (in `app.json` unter `ios.bundleIdentifier`). Nach dem ersten App-Store-Upload
+gehört sie fest zur App.
