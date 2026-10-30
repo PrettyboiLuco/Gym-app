@@ -61,3 +61,11 @@ Vor dem Pilot (Phase 7): **Apple Developer Program (99 $)** – wird abgeschloss
 Endgültiger App-Name · Budget · Zeit pro Woche · Zielalter · Free/Pro-Grenze und Preis ·
 Werbenetzwerk · Pilot-Zieltypen (vorläufig s. o.) · Einheiten (vorläufig s. o.) ·
 Fachperson Training/Ernährung · Rechtsprüfung
+
+Neu aus Phase 10 (30.10.2026, Vorlagen liegen bereit):
+- **Modell zum Start** (kostenlos / Pro-Abo / Werbung / Unterstützen) – `docs/Monetarisierung_Entscheidung.md`,
+  Empfehlung: kostenlos starten, nach dem Pilot entscheiden.
+- **Expo-Updates in der Store-Version** behalten (in Datenschutzerklärung nennen, Expo-Vertrag) oder abschalten –
+  `docs/Rechtspruefung_Mappe.md`, D2.
+- **Anbieterangaben** für Impressum und Datenschutzerklärung (Name, Anschrift, E-Mail oder Impressums-Service).
+- **Veröffentlichungsort** der Datenschutz-Seite (z. B. GitHub Pages) – `website/README.md`.

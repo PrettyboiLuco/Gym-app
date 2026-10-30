@@ -229,17 +229,6 @@ export async function deleteTimedSession(db: Db, id: string) {
   await db.runAsync("DELETE FROM timed_session WHERE id = ? AND status <> 'aktiv'", id);
 }
 
-/** Startzeiten abgeschlossener Einheiten bestimmter Arten (für Gewohnheiten). */
-export async function timedSessionTimes(db: Db, kinds: RunKind[], fromUtc: string): Promise<string[]> {
-  const rows = await db.getAllAsync<{ at: string }>(
-    `SELECT started_at_utc AS at FROM timed_session
-     WHERE status = 'abgeschlossen' AND started_at_utc >= ? AND kind IN (${kinds.map(() => '?').join(', ')})`,
-    fromUtc,
-    ...kinds
-  );
-  return rows.map((r) => r.at);
-}
-
 // ------------------------------------------------------------------------ laufender Ablauf
 
 export const loadTimedRun = (db: Db) => readState<TimedRun | null>(db, 'timed_run', null);

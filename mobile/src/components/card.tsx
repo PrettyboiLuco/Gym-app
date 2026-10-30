@@ -15,19 +15,6 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
   );
 }
 
-/** Liste geplanter Funktionen mit Hinweis „Kommt bald“. */
-export function ComingSoonList({ items, label }: { items: string[]; label: string }) {
-  return (
-    <Card title={label}>
-      {items.map((item) => (
-        <ThemedText key={item} themeColor="textSecondary">
-          • {item}
-        </ThemedText>
-      ))}
-    </Card>
-  );
-}
-
 export function Button({
   label,
   variant = 'primary',

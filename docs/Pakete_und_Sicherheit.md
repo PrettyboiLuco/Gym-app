@@ -44,3 +44,28 @@ Der von npm vorgeschlagene „Fix“ wäre ein Rückschritt auf Expo SDK 51 und 
 
 **Nächster Schritt:** Bei jedem Expo-Update `npm audit` erneut ausführen; vor der Veröffentlichung (Phase 10)
 vollständige Prüfung inklusive transitiver Pakete und Build-Artefakte.
+
+## Prüfung vor der Veröffentlichung (Phase 10.6, 30.10.2026)
+
+Register LAW-017, TECH-017, O6. Commit-Stand: Branch `claude/plan-ergaenzung-module`.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Typprüfung (`npm run typecheck`) | ohne Fehler – jetzt auch direkt nach frischem Klonen (neue Datei `src/expo-types.d.ts`; vorher fehlte die erzeugte `expo-env.d.ts`) |
+| Lint (`npm run lint`) | ohne Befund |
+| Automatische Tests (`npm test`) | 463/463 bestanden (21 Testdateien), neu: Update-Test mit Golden-Dataset (Version 4 → 10, jede Spalte gleich) |
+| Browser-Durchlauf | 34/34 Bildschirme ohne Konsolenfehler; Hilfe-Seite 9/9 |
+| `expo-doctor` | 18/20; die 2 übrigen brauchen Expo-Server (im Container nicht erreichbar) → am PC/MacBook wiederholen |
+| `npm audit` (nur Laufzeit) | unverändert 8 Meldungen (5 niedrig, 3 hoch), alle in Expos Build-Werkzeugen (`deepmerge` über `@expo/config`, `zod` über `@expo/cli`), nicht im App-Code auf dem Handy. Fix nur per Rückschritt auf SDK 51 → nicht angewendet; bei nächstem Expo-Update erneut prüfen |
+| `npm audit` (mit Entwicklung) | zusätzlich 7 niedrige Meldungen über Jest (Testwerkzeug, nicht in der App) |
+| Lizenzen aller 599 Laufzeit-Pakete | MIT 528, ISC 33, BSD 11, Apache-2.0 6, BlueOak 6, sonstige freizügige (0BSD, Unlicense, CC0, Python-2.0, Unicode-DFS). Genauer angesehen: `lightningcss` (MPL-2.0, nur CSS-Werkzeug beim Bauen), `node-forge` (BSD-3-Clause **oder** GPL-2.0 – BSD gewählt; Code-Signierung von Expo-Updates), `make-plural` (Unicode-DFS, freizügig), 1× CC-BY-4.0 (Browserdaten des Build-Werkzeugs). **Kein GPL/AGPL-Zwang.** |
+| Geheimnisse (TECH-017) | Suche in Code **und** gesamter Git-Historie nach Schlüsseln, Tokens, Passwörtern, privaten Schlüsseln: nichts gefunden. Keine `.env`-, `.p8`-, `.p12`-Dateien im Repository. `.gitignore` ergänzt um `.env` und `.env.*` |
+| Netzwerkzugriffe im Code | nur Open Food Facts (`src/data/off.ts`); dazu Expos Update-Abfrage aus `app.json` (siehe `docs/Rechtspruefung_Mappe.md`, D2) |
+| Aufgeräumt | ungenutzter Code entfernt (`ComingSoonList` aus der Vorlage, `timedSessionTimes`) |
+
+**Vor dem Einreichen noch zu tun:**
+- Open-Food-Facts-Kennung (User-Agent in `src/data/off.ts`) von „GymApp/0.1 (Expo; Entwicklung)“ auf endgültigen
+  App-Namen, Version und Kontakt-E-Mail ändern (Bitte von Open Food Facts).
+- Entscheidung Expo-Updates behalten/abschalten (10.2, D2).
+- `npm audit` und `expo-doctor` auf dem MacBook mit Internet wiederholen; Ergebnis hier eintragen.
+- Lizenzhinweise der Pakete in der App anzeigen? (Frage an die Rechtsprüfung)

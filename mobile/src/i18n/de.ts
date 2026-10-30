@@ -1953,9 +1953,214 @@ export const de = {
         '{{hiitSessions}} HIIT-Einheiten, {{activeGoals}} aktive Ziele, {{weightEntries}} Gewichtseinträge, erste Nutzung {{firstUseDay}}',
     },
   },
+  help: {
+    title: 'Hilfe und häufige Fragen',
+    subtitle: 'Antworten direkt auf dem Gerät, ohne Internet',
+    search: 'Suchen',
+    searchPlaceholder: 'z. B. Sicherung, Scan, Check-in',
+    noResults: 'Keine passende Frage gefunden. Unter „Feedback geben“ kannst du deine Frage schicken.',
+    expand: 'Antwort zeigen',
+    collapse: 'Antwort ausblenden',
+    sections: {
+      start: 'Erste Schritte',
+      training: 'Training',
+      ernaehrung: 'Ernährung',
+      ziele: 'Ziele, Coach und Check-in',
+      daten: 'Deine Daten',
+      probleme: 'Wenn etwas nicht klappt',
+    },
+    q: {
+      wasKann: {
+        q: 'Was kann die App?',
+        a:
+          'Trainingspläne anlegen oder vorschlagen lassen, Sätze mit Pausen-Timer erfassen, Dehnen, Mobilität und ' +
+          'HIIT-Abläufe, ein Ernährungstagebuch mit Barcode-Scan, Getränke, ein Kalorienrechner, ein Coach mit ' +
+          'Tagesziel und Makros sowie Gewicht, Maße, Schritte und Ziele unter „Fortschritt“.',
+      },
+      coachStart: {
+        q: 'Wie richte ich den Coach ein?',
+        a:
+          'Direkt nach dem ersten Start oder später über die Karte „Coach einrichten“ auf „Heute“. Der Coach fragt ' +
+          'Ziel, Körperdaten, Schritte, Gym-Tage und Schlaf und schlägt daraus Kalorien, Makros, Trainingstage und ' +
+          'auf Wunsch einen Plan vor. Gespeichert wird erst, wenn du es bestätigst.',
+      },
+      coachAendern: {
+        q: 'Wie ändere ich mein Ziel oder Tempo?',
+        a:
+          'Auf „Heute“ in der Coach-Karte „Ziel oder Angaben ändern“ antippen. Die Einrichtung startet mit deinen ' +
+          'gespeicherten Werten. Das neue Ziel gilt ab heute, frühere Tage bleiben unverändert.',
+      },
+      keinKonto: {
+        q: 'Brauche ich ein Konto?',
+        a: 'Nein. Es gibt kein Konto und keinen Server. Alles wird nur auf deinem Gerät gespeichert.',
+      },
+      planAnlegen: {
+        q: 'Wie lege ich einen Trainingsplan an?',
+        a:
+          'Unter Training → „Neuer Plan“ stellst du Übungen selbst zusammen. Oder du lässt dir im Planassistenten ' +
+          'eine Vorlage aus Ziel, Erfahrung, Geräten, Tagen und Zeit vorschlagen und siehst sie vorher in einer Vorschau.',
+      },
+      planassistent: {
+        q: 'Was macht der Planassistent?',
+        a:
+          'Er baut deinen Plan auf eine andere Zahl von Tagen oder eine andere Trainingszeit um – dauerhaft, nur diese ' +
+          'Woche oder für zwei Wochen. Du siehst vorher, was bleibt, verschoben, gekürzt oder ersetzt wird. Erfasste ' +
+          'Trainings bleiben unverändert, und „Rückgängig“ holt die vorige Fassung zurück.',
+      },
+      geraetBelegt: {
+        q: 'Ein Gerät ist belegt – was nun?',
+        a:
+          'Im laufenden Training bei der Übung „Gerät belegt? Ersatz wählen“ antippen. Nur die offenen Sätze dieses ' +
+          'Trainings werden umgestellt; dein Plan und erledigte Sätze bleiben.',
+      },
+      steigerung: {
+        q: 'Woher kommen die Steigerungsvorschläge?',
+        a:
+          'Aus festen Regeln: Schaffst du in allen Sätzen das obere Ende des Bereichs, schlägt die App etwas mehr ' +
+          'Gewicht vor, sonst eine Wiederholung mehr. Nach längerer Pause wird leichter begonnen. Es ist nur ein ' +
+          'Vorschlag – gespeichert wird, was du einträgst. Abschalten kannst du ihn im Training unter „Steigerungsvorschläge anzeigen“.',
+      },
+      pausenTimer: {
+        q: 'Läuft der Pausen-Timer auch bei gesperrtem Handy?',
+        a:
+          'Ja, über eine Mitteilung zum Pausenende – dafür einmal Mitteilungen erlauben. Die Mitteilung kann ' +
+          'einige Sekunden später kommen; das entscheidet das iPhone.',
+      },
+      dehnenHiit: {
+        q: 'Wo finde ich Dehnen und HIIT?',
+        a:
+          'Unter Training → „Dehnen und Mobilität“ bzw. „HIIT“. Es gibt fertige Abläufe und eigene. Bauchübungen ' +
+          'trainieren die Bauchmuskeln – gezielt Bauchfett abbauen kann keine Übung.',
+      },
+      eintragen: {
+        q: 'Wie trage ich Essen ein?',
+        a:
+          'Unter Ernährung → „Hinzufügen“: suchen, Barcode scannen, eine Vorlage oder ein Rezept wählen oder in ' +
+          'eigenen Worten schreiben. Mit „Wie am Vortag“ übernimmst du eine Mahlzeit vom Vortag.',
+      },
+      eigeneWorte: {
+        q: 'Wie funktioniert „In eigenen Worten“?',
+        a:
+          'Schreib oder diktiere z. B. „2 Scheiben Brot mit Nutella, 1 Banane“. Die App sucht passende Lebensmittel ' +
+          'aus deinen eigenen und Vorlagen und zeigt Vorschläge mit Menge. Gebucht wird erst, wenn du bestätigst. ' +
+          'Alles wird auf dem Gerät gelesen, ohne KI.',
+      },
+      scanFalsch: {
+        q: 'Ein gescanntes Produkt hat falsche Werte.',
+        a:
+          'Die Daten kommen von Open Food Facts und können fehlen oder falsch sein. Vergleiche mit dem Etikett und ' +
+          'bearbeite das Lebensmittel – deine Korrektur bleibt privat auf deinem Gerät. Unbekannte Produkte kannst du ' +
+          'selbst anlegen.',
+      },
+      allergene: {
+        q: 'Warnt die App vor meinen Allergenen?',
+        a:
+          'Wenn du sie unter Ernährung → Einstellungen angibst, zeigt die App Hinweise, sobald ein Produkt sie laut ' +
+          'Angaben enthält. Fehlen Angaben, heißt es „bitte Etikett prüfen“. Die App kann nie zusichern, dass ' +
+          'etwas allergenfrei ist – maßgeblich ist immer das Etikett.',
+      },
+      ohneZahlen: {
+        q: 'Kann ich ohne Kalorienzahlen erfassen?',
+        a:
+          'Ja. Unter Ernährung → Einstellungen „Kalorienzahlen ausblenden“ einschalten. Die Werte werden weiter ' +
+          'gespeichert, aber Tagebuch, Coach und Check-in zeigen keine Kalorien und Makros.',
+      },
+      kalorienSchaetzung: {
+        q: 'Wie genau ist mein Kalorienziel?',
+        a:
+          'Es ist eine Schätzung aus einer anerkannten Formel für Erwachsene von 19 bis 78 Jahren, deinen Schritten und ' +
+          'Gym-Tagen. Der Rechenweg wird angezeigt. Wie dein Gewicht sich wirklich entwickelt, zeigt der Wochen-Check-in – ' +
+          'dann lässt sich das Ziel in kleinen Schritten anpassen. Das Ziel geht nie unter eine feste Untergrenze.',
+      },
+      trainingsRuhetag: {
+        q: 'Warum ist mein Ziel an Trainingstagen höher?',
+        a:
+          'Wenn du die Aufteilung einschaltest, gibt es an Trainingstagen mehr und an Ruhetagen etwas weniger – der ' +
+          'Wochenschnitt bleibt gleich. Der Unterschied geht über die Kohlenhydrate. Abschalten kannst du das in der ' +
+          'Coach-Einrichtung.',
+      },
+      checkin: {
+        q: 'Was ist der Wochen-Check-in?',
+        a:
+          'Einmal pro Woche unter Fortschritt → „Wochen-Check-in“ (auf „Heute“, wenn er fällig ist). Er fasst Gewicht, ' +
+          'Essen, Training, Schritte und Schlaf zusammen. Mit genug Daten – an mindestens 4 Tagen in beiden Wochen ' +
+          'gewogen und mindestens 5 vollständig erfasste Tage – kann er eine kleine Änderung vorschlagen. Geändert wird ' +
+          'nur, wenn du „Übernehmen“ wählst.',
+      },
+      schritte: {
+        q: 'Wie kommen meine Schritte in die App?',
+        a:
+          'Vorerst trägst du sie unter Fortschritt → Schritte selbst ein. Die Übernahme aus Apple Health folgt mit ' +
+          'einer späteren Version. Schritte werden nie als zusätzliche Kalorien gutgeschrieben.',
+      },
+      sensibel: {
+        q: 'Warum zeigt mir die App keine Kalorienzahl?',
+        a:
+          'Das passiert, wenn Angaben fehlen, wenn du außerhalb von 19 bis 78 Jahren bist oder im Profil eine ' +
+          'sensible Situation angegeben hast (z. B. Schwangerschaft, Essstörung, Untergewicht). Die Formeln sind dafür ' +
+          'nicht gemacht – bitte besprich Ziele dann mit einer Ärztin, einem Arzt oder einer Ernährungsfachkraft.',
+      },
+      wasGesendet: {
+        q: 'Welche Daten verlassen mein Handy?',
+        a:
+          'Deine Einträge nur, wenn du es auslöst: beim Scannen oder bei der Online-Suche der Barcode bzw. Suchbegriff an ' +
+          'Open Food Facts, eine Sicherungsdatei, wenn du sie speicherst, und Feedback, wenn du es verschickst. Beim Start ' +
+          'fragt die App außerdem beim Dienst Expo nach Korrekturen – dabei gehen nur technische Angaben wie Version und ' +
+          'IP-Adresse mit, keine Gesundheitsdaten. Keine Werbung, keine Analyse-Dienste.',
+      },
+      sicherung: {
+        q: 'Wie sichere ich meine Daten?',
+        a:
+          'Unter Mehr → Deine Daten → „Sicherung erstellen“ und die Datei z. B. in „Dateien“ oder iCloud Drive ' +
+          'speichern. Fotos kannst du mitnehmen. Die Datei enthält Gesundheitsdaten – bewahre sie sicher auf.',
+      },
+      neuesHandy: {
+        q: 'Wie ziehe ich auf ein neues Handy um?',
+        a:
+          'Auf dem alten Handy eine Sicherung erstellen, auf dem neuen unter Mehr → Deine Daten → „Sicherung ' +
+          'wiederherstellen“ auswählen. Du siehst vorher eine Zusammenfassung; geht etwas schief, bleibt alles wie es war.',
+      },
+      loeschen: {
+        q: 'Wie lösche ich alle meine Daten?',
+        a:
+          'Unter Mehr → Deine Daten → „Alle Daten löschen“ – inklusive Fotos und Erinnerungen. Oder du löschst die App. ' +
+          'Sicherungsdateien, die du selbst gespeichert hast, löschst du dort, wo du sie abgelegt hast.',
+      },
+      appSperre: {
+        q: 'Kann ich die App mit Face ID schützen?',
+        a: 'Ja, unter Mehr → App-Sperre. Beim Öffnen fragt die App dann nach Face ID oder deinem Gerätecode.',
+      },
+      mitteilungen: {
+        q: 'Ich bekomme keine Erinnerungen.',
+        a:
+          'Prüfe unter Mehr → Mitteilungen und Erinnerungen, ob sie eingeschaltet sind, und in den iPhone-Einstellungen ' +
+          'unter Mitteilungen, ob die App Mitteilungen senden darf. Fokus- und Schlafmodus können sie zurückhalten.',
+      },
+      fehler: {
+        q: 'Etwas funktioniert nicht – was tun?',
+        a:
+          'Die App neu öffnen. Bleibt der Fehler, beschreibe ihn unter Mehr → „Feedback geben“: Was hast du ' +
+          'gemacht, was ist passiert? Du siehst den Text vorher und schickst ihn selbst.',
+      },
+      appleHealth: {
+        q: 'Verbindet sich die App mit Apple Health?',
+        a:
+          'Noch nicht. Die Einrichtung ist vorbereitet; Schritte und Schlaf aus Apple Health kommen mit einer ' +
+          'späteren Version. Bis dahin trägst du sie selbst ein.',
+      },
+      fachlichGeprueft: {
+        q: 'Sind die Empfehlungen fachlich geprüft?',
+        a:
+          'Formeln und Regeln stützen sich auf anerkannte Quellen, sind aber Vorschläge und noch nicht von einer ' +
+          'Fachperson freigegeben. Die App ersetzt keine ärztliche oder fachliche Beratung.',
+      },
+    },
+  },
   more: {
     title: 'Mehr',
     settingsTitle: 'Einstellungen',
+    helpTitle: 'Hilfe und Feedback',
+    helpSubtitle: 'Häufige Fragen, ohne Internet',
     remindersSubtitle: 'Timer bei gesperrtem Handy, Training, Trinken',
     dataSubtitle: 'Sicherung, Wiederherstellen, alles löschen',
     securitySubtitle: 'Face ID oder Gerätecode beim Öffnen',
@@ -1964,7 +2169,8 @@ export const de = {
     privacy:
       'Alles bleibt auf deinem Gerät, es gibt kein Konto. Nur beim Scannen oder bei der Online-Suche wird der ' +
       'Barcode bzw. Suchbegriff an Open Food Facts gesendet – nie dein Tagebuch. Fortschrittsfotos verlassen das Gerät nie. ' +
-      'Eine Sicherungsdatei entsteht nur, wenn du sie unter „Deine Daten“ selbst erstellst und speicherst.',
+      'Eine Sicherungsdatei entsteht nur, wenn du sie unter „Deine Daten“ selbst erstellst und speicherst. Beim Start ' +
+      'fragt die App beim Dienst Expo nach Korrekturen (nur technische Angaben wie Version und IP-Adresse).',
     healthTitle: 'Hinweis',
     health:
       'Die App unterstützt allgemeine Fitness für Erwachsene. Sie ersetzt keine ärztliche oder ' +

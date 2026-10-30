@@ -14,12 +14,16 @@ technischen Ist-Stand der App, damit Tester wissen, was mit ihren Daten passiert
   (Gesundheitsdaten, kommen aber mit in deine Sicherungsdatei).
 - Der **Planassistent** rechnet vollständig auf dem Gerät, ohne KI und ohne Internet. Auch dein Wunsch in eigenen
   Worten und „Essen in eigenen Worten“ werden nur lokal gelesen und nicht übertragen.
-- Daten verlassen das Gerät nur, wenn **du** es auslöst:
+- Deine Einträge verlassen das Gerät nur, wenn **du** es auslöst:
   - **Barcode-Scan / Online-Suche:** Der Barcode bzw. Suchbegriff wird an Open Food Facts gesendet
     (openfoodfacts.org, Open Database License). Es wird nichts aus deinem Tagebuch übertragen.
   - **Sicherung:** Eine Sicherungsdatei entsteht nur, wenn du sie erstellst; du entscheidest, wo sie gespeichert
     wird (z. B. „Dateien“, iCloud Drive). Sie enthält Gesundheitsdaten.
   - **Feedback:** Du siehst den Text vorher und verschickst ihn selbst über das Teilen-Menü.
+- Automatisch, ohne Einträge:
+  - **Update-Abfrage (Expo):** Beim App-Start fragt die App bei Expo (650 Industries, USA, `u.expo.dev`) nach
+    Korrekturen ohne neuen Build. Dabei gehen IP-Adresse und technische Angaben (Plattform, Version, Kanal) mit, keine
+    Einträge und keine Gesundheitsdaten. (Ergänzt 30.10.2026; behalten oder abschalten: `docs/Rechtspruefung_Mappe.md`, D2.)
 - **Keine Werbung, keine Analyse-Dienste, keine KI-Auswertung** deiner Daten.
 - **Mitteilungen** sind lokal (vom iPhone selbst geplant), keine Push-Dienste.
 - **Kamera/Fotos:** Kamera für Barcodes und – nur wenn eingeschaltet – Fortschrittsfotos; Fotos bleiben in der App.
@@ -30,7 +34,8 @@ technischen Ist-Stand der App, damit Tester wissen, was mit ihren Daten passiert
 
 - „Data Not Collected“ für den Anbieter, da keine Daten an den Anbieter gehen.
 - Offene Frage für die Rechtsprüfung: Wie ist die Übertragung von Barcode/Suchbegriff an Open Food Facts
-  einzuordnen (Drittanbieter, nicht mit der Person verknüpft)?
+  einzuordnen (Drittanbieter, nicht mit der Person verknüpft)? Und die Update-Abfrage bei Expo?
+- Veröffentlichungsfassung als Webseite: `website/datenschutz.html` (Entwurf, Phase 10.2).
 
 ## Verantwortlich
 

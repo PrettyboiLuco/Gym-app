@@ -500,6 +500,21 @@ Sicherheits- und Abhängigkeitsprüfung (LAW-017, TECH-017, O6).
 
 **Fertig, wenn:** Freigabematrix (Kap. 18) ohne offene kritische Punkte → Einreichung im App Store.
 
+**Stand 30.10.2026 (vorbereitet; Abschluss braucht Luc und externe Fachleute):**
+
+| # | Was jetzt da ist | Was noch fehlt (wer) |
+|---|---|---|
+| 10.1 | Prüfmappe `docs/Fachpruefung_Mappe.md`: alle Regeln mit Wert, Fundstelle, Quelle und Frage (Energie, Makros, Check-in, Vorlagen, Steigerung, Dehnen/HIIT, Schutz sensibler Gruppen), Spalte zum Freigeben/Ändern, vier Beispielpersonen mit dem echten Code nachgerechnet, vier Auffälligkeiten zur Bewertung, Unterschriftsfeld | Fachperson beauftragen und Mappe ausfüllen lassen (Luc); danach Werte umsetzen (Claude) |
+| 10.2 | Rechtsmappe `docs/Rechtspruefung_Mappe.md` (Zweckbestimmung, Datenflüsse aus dem Code, Vertrags-/Lizenzmatrix O4, 11 Fragen, Vorbereitung für Luc); Entwürfe `website/datenschutz.html` und `website/impressum.html`. **Neu gefunden:** Expo-Update-Abfrage beim App-Start fehlte in den Datenschutztexten – in App (Mehr → Datenschutz, Hilfe) und Entwurf ergänzt | Anbieterangaben, Anwalt, Entscheidung Expo-Updates behalten/abschalten, Veröffentlichungsort der Seiten (Luc) |
+| 10.3 | Entscheidungsvorlage `docs/Monetarisierung_Entscheidung.md` (kostenlos / Pro-Abo / Werbung / Unterstützen, Free/Pro-Grenze, Folgen). **Nichts eingebaut**, weil seit 30.10. „kostenfreie Version“ gilt. Empfehlung: kostenlos starten, nach dem Pilot entscheiden | Entscheidung (Luc) |
+| 10.4 | Store-Texte `docs/Store_Texte.md` (Name, Untertitel, Werbetext, Beschreibung, Stichwörter, Kategorie, Screenshot-Liste, App-Review-Hinweise, Prüfliste). Automatische Prüfung `domain/claims.ts`: kein „Bauchfett wegtrainieren“, „Cardio bringt nichts“, Garantien, Heilversprechen, „fachlich geprüft“, „allergenfrei“, Superlative – über alle 1683 App-Texte und die Store-Texte, dazu Apples Längengrenzen | App-Name (Markenrecherche), Screenshots am MacBook (Luc) |
+| 10.5 | Hilfe in der App: Mehr → „Hilfe und häufige Fragen“, 29 Fragen in 6 Bereichen, Suche ohne Umlaut-Probleme, ohne Internet; Antworten am echten Stand geprüft | Gerätetest V1–V2 (Luc) |
+| 10.6 | Typprüfung jetzt auch nach frischem Klonen grün, `.env` von Git ausgeschlossen, toter Code entfernt; Lizenzen aller 599 Laufzeit-Pakete (kein GPL-Zwang), Geheimnis-Suche in Code und Git-Historie (nichts), `npm audit` (nur Build-Werkzeuge), `expo-doctor` 18/20 (Rest braucht Internet); Golden-Dataset-Update-Test (Version 4 → 10, jede Spalte gleich, jede Zwischenversion) für R1. Bericht in `docs/Pakete_und_Sicherheit.md` | `npm audit`/`expo-doctor` mit Internet wiederholen, Open-Food-Facts-Kennung mit Kontakt (nach Anbieterangaben) |
+
+Freigabematrix mit Stand je Risiko: `docs/Freigabematrix.md` – heute **nicht einreichbar**; offen sind nur Punkte für
+Luc und Fachleute (Gerätetests R1/R6, Fachperson R3, Rechtsprüfung R5/R8, Konto/Name R7).
+463 automatische Tests (11 neu), Lint und Typprüfung ohne Befund, Browser: alle 34 Bildschirme ohne Fehler, Hilfe 9/9.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

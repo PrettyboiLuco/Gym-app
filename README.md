@@ -12,6 +12,9 @@ App in Entwicklung (Expo/React Native, Ordner `mobile/`); Stand je Phase in `doc
 - `docs/Anleitung_Development_Build.md`, `docs/Anleitung_TestFlight.md` – Schritte mit MacBook bzw. Apple-Konto
 - `docs/Geraetetest.md` – Gerätetest-Liste zum Abhaken; `docs/Pilot_Leitfaden.md` – Ablauf des Pilots
 - `docs/Wettbewerbsvergleich.md` – Vergleich mit Hevy, Strong, Fitbod, MyFitnessPal; `docs/Datenschutz_Entwurf.md` – Entwurf
+- Phase 10 (vor der Veröffentlichung): `docs/Freigabematrix.md` – was noch blockiert; `docs/Fachpruefung_Mappe.md` – für die Fachperson;
+  `docs/Rechtspruefung_Mappe.md` – für die Rechtsprüfung; `website/` – Datenschutzerklärung und Impressum (Entwürfe);
+  `docs/Monetarisierung_Entscheidung.md` – Pro/Werbung; `docs/Store_Texte.md` – App-Store-Texte
 - `register/Originalabdeckung.csv` – 98 Originalblöcke
 - `mobile/` – **die App** (Expo / React Native), Start siehe `mobile/README.md`
 - `reference/` – isolierte Python-Referenztests (24 + 22), kein Produktionscode

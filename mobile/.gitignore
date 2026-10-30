@@ -41,3 +41,7 @@ example
 # generated native folders
 /ios
 /android
+
+# Geheimnisse nie ins Repository (TECH-017)
+.env
+.env.*

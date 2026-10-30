@@ -97,3 +97,12 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | K3 | Erinnerung an Trainingstagen eingeschaltet | Mitteilung nur an diesen Tagen zur Uhrzeit | Expo Go |
 | K4 | Kalorienziel in den Einstellungen ändern | Makros und Trainings-/Ruhetag passen sich an | Expo Go |
 
+
+## Hilfe und Veröffentlichung (Phase 10)
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| V1 | Mehr → Hilfe und häufige Fragen, eine Frage antippen, „Sicherung“ suchen | Antwort klappt auf; Suche zeigt passende Fragen aufgeklappt | Expo Go |
+| V2 | Hilfe mit großer Schrift und VoiceOver | Fragen vorgelesen als „Taste, eingeklappt/ausgeklappt“, nichts abgeschnitten | Expo Go |
+| V3 | Store-Version (TestFlight) ohne Internet starten | App startet normal, keine Fehlermeldung (Update-Abfrage scheitert still) | Build |
+| V4 | Store-Version: Daten aus der Pilot-Version per Sicherung übernehmen | alles da (Golden-Dataset-Probe auf dem Gerät, R1) | Build |

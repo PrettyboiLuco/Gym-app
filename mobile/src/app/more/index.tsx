@@ -16,7 +16,8 @@ export default function MoreScreen() {
         <ListRow title={t('dataScreen.title')} subtitle={t('more.dataSubtitle')} accessory="›" onPress={() => router.push('/more/data')} />
         <ListRow title={t('security.title')} subtitle={t('more.securitySubtitle')} accessory="›" onPress={() => router.push('/more/security')} />
       </Card>
-      <Card title={t('feedback.title')}>
+      <Card title={t('more.helpTitle')}>
+        <ListRow title={t('help.title')} subtitle={t('more.helpSubtitle')} accessory="›" onPress={() => router.push('/more/help')} />
         <ListRow title={t('feedback.title')} subtitle={t('more.feedbackSubtitle')} accessory="›" onPress={() => router.push('/more/feedback')} />
       </Card>
       <Card title={t('more.privacyTitle')}>
