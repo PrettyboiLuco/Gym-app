@@ -4,6 +4,7 @@ import { weekDays, type CheckinInput, type CheckinResult, type CheckinSuggestion
 import type { Profile } from '@/domain/profile';
 import { stepsAverage } from '@/domain/steps';
 
+import type { MacroChoice } from '@/domain/coach';
 import type { Goal } from '@/domain/energy';
 
 import { readState, writeState } from './app-state';
@@ -27,6 +28,8 @@ export type CoachSetup = {
   trainingWeekdays: number[];
   /** Trainings- und Ruhetage unterschiedlich (C5). */
   split: boolean;
+  /** Makro-Ausrichtung (fehlt bei älteren Einrichtungen = Standard). */
+  macros?: MacroChoice;
 };
 
 export const loadCoachSetup = (db: Db) => readState<CoachSetup | null>(db, 'coach_setup', null);

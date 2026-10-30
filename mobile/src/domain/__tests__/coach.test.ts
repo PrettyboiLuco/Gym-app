@@ -10,6 +10,7 @@ import {
   daySplit,
   gymPal,
   isoWeekday,
+  macroSettings,
   macrosFor,
   needsRecalc,
   palFromSteps,
@@ -75,6 +76,31 @@ describe('Makros (C4)', () => {
     const m = macrosFor(1200, 200);
     expect(m.carbs).toBeGreaterThanOrEqual(0);
     expect(m.fat).toBeGreaterThanOrEqual(Math.round((1200 * 0.2) / 9));
+  });
+});
+
+describe('Makro-Ausrichtung (Lean/Bodybuilding)', () => {
+  const standard = { profile: 'standard' as const, proteinPerKg: 1.6, fatShare: 0.3 };
+  test('Lean: Fett 20 %, mehr Eiweiß und mehr Kohlenhydrate als Standard', () => {
+    const lean = macroSettings({ ...standard, profile: 'lean' }, 80, 'zunehmen', 4);
+    expect(lean).toEqual({ protein: 160, fatShare: 0.2 });
+    const a = buildPlan(3560, 128, [], 1200, false).macros!;
+    const b = buildPlan(3560, lean.protein, [], 1200, false, lean.fatShare).macros!;
+    expect(b.fat).toBe(Math.round((3560 * 0.2) / 9));
+    expect(b.protein).toBeGreaterThan(a.protein);
+    expect(b.carbs).toBeGreaterThan(a.carbs);
+    expect(Math.abs(b.protein * 4 + b.fat * 9 + b.carbs * 4 - 3560)).toBeLessThan(10);
+  });
+  test('Lean im Cut: 2,2 g Eiweiß pro kg', () =>
+    expect(macroSettings({ ...standard, profile: 'lean' }, 80, 'abnehmen', 4).protein).toBe(176));
+  test('Eigene Werte werden in den Rahmen gesetzt (Fett nie unter 20 %)', () => {
+    expect(macroSettings({ profile: 'eigen', proteinPerKg: 3.5, fatShare: 0.1 }, 80, 'zunehmen', 4)).toEqual({ protein: 200, fatShare: 0.2 });
+    expect(macroSettings({ profile: 'eigen', proteinPerKg: 1.8, fatShare: 0.25 }, 80, 'zunehmen', 4)).toEqual({ protein: 144, fatShare: 0.25 });
+  });
+  test('Check-in/Einstellungen behalten die Ausrichtung (Fettanteil)', () => {
+    const plan = rescalePlan(buildPlan(3560, 160, [1, 3, 5], 1200, true, 0.2), 3460);
+    expect(plan.macros!.fat).toBe(Math.round((3460 * 0.2) / 9));
+    expect(plan.macros!.protein).toBe(160);
   });
 });
 

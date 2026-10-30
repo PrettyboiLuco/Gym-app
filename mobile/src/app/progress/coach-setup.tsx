@@ -24,8 +24,12 @@ import {
   coachEnergy,
   COACH_RULES_VERSION,
   DEFAULT_DELTA,
-  proteinTarget,
+  FAT_SHARE,
+  MACRO_PROFILES,
+  macroSettings,
+  PROTEIN_G_PER_KG,
   STEPS_RANGE,
+  type MacroChoice,
   type CoachEnergy,
 } from '@/domain/coach';
 import { DELTA_OPTIONS, type Goal } from '@/domain/energy';
@@ -43,6 +47,8 @@ type PlanChoice = 'vorlage' | 'eigen' | 'vorhanden' | 'spaeter';
 const GOALS: readonly Goal[] = ['zunehmen', 'abnehmen', 'halten'];
 const STEP_PRESETS = [4000, 6000, 8000, 10000, 12000] as const;
 const GYM_DAYS = ['0', '1', '2', '3', '4', '5', '6', '7'] as const;
+const PROTEIN_PRESETS = [1.6, 1.8, 2.0, 2.2, 2.5] as const;
+const FAT_PRESETS = [0.2, 0.25, 0.3, 0.35, 0.4] as const;
 
 /** Wochentage als Vorschlag für eine Anzahl Gym-Tage, mit Pausen dazwischen. */
 function defaultWeekdays(count: number): number[] {
@@ -70,6 +76,8 @@ export default function CoachSetupScreen() {
   const [sleepText, setSleepText] = useState('');
   const [weekdays, setWeekdays] = useState<number[]>(defaultWeekdays(3));
   const [split, setSplit] = useState(true);
+  // Makro-Ausrichtung: Standard, Lean (Bodybuilding) oder eigene Werte.
+  const [macroChoice, setMacroChoice] = useState<MacroChoice>({ profile: 'standard', proteinPerKg: PROTEIN_G_PER_KG.training, fatShare: FAT_SHARE });
   const [planChoice, setPlanChoice] = useState<PlanChoice>('vorlage');
   const [experience, setExperience] = useState<Level>(profile.experience ?? 'einsteiger');
   const [available, setAvailable] = useState<Equipment[]>(profile.equipment ?? [...EQUIPMENT]);
@@ -106,6 +114,7 @@ export default function CoachSetupScreen() {
           setSleepText(setup.sleepHours === null ? '' : formatNumber(setup.sleepHours));
           setWeekdays(setup.trainingWeekdays);
           setSplit(setup.split);
+          if (setup.macros) setMacroChoice(setup.macros);
         } else setDelta(DEFAULT_DELTA[g]);
       }
     );
@@ -132,8 +141,11 @@ export default function CoachSetupScreen() {
     delta: DELTA_OPTIONS[goal].includes(delta) ? delta : DEFAULT_DELTA[goal],
     sensitive: profile.sensitive,
   });
-  const protein = kg !== null ? proteinTarget(kg, goal, gymDays) : null;
-  const plan = energy.status === 'ok' && protein !== null ? buildPlan(energy.kcal, protein, weekdays, energy.floor, split) : null;
+  const macroSet = kg !== null ? macroSettings(macroChoice, kg, goal, gymDays) : null;
+  const plan =
+    energy.status === 'ok' && macroSet !== null
+      ? buildPlan(energy.kcal, macroSet.protein, weekdays, energy.floor, split, macroSet.fatShare)
+      : null;
 
   const template: PlanProposal | null =
     planChoice === 'vorlage' && weekdays.length >= 2 && weekdays.length <= 6
@@ -208,7 +220,7 @@ export default function CoachSetupScreen() {
           plan.kcal,
           today,
           'coach',
-          { rulesVersion: COACH_RULES_VERSION, steps, gymDays, delta, maintenance: energy.maintenance, pal: energy.pal },
+          { rulesVersion: COACH_RULES_VERSION, steps, gymDays, delta, maintenance: energy.maintenance, pal: energy.pal, macros: macroChoice },
           plan
         );
       }
@@ -221,7 +233,17 @@ export default function CoachSetupScreen() {
         await saveReminders(db, next);
         if (NOTIFICATIONS_SUPPORTED && (await notificationPermission(true)) === 'granted') await applyReminders(next);
       }
-      const setup: CoachSetup = { doneAt: today, goal, delta, steps: steps ?? 0, gymDays, sleepHours: sleep, trainingWeekdays: weekdays, split };
+      const setup: CoachSetup = {
+        doneAt: today,
+        goal,
+        delta,
+        steps: steps ?? 0,
+        gymDays,
+        sleepHours: sleep,
+        trainingWeekdays: weekdays,
+        split,
+        macros: macroChoice,
+      };
       await saveCoachSetup(db, setup);
       await saveCoachPending(db, false);
       router.replace(planChoice === 'eigen' ? '/training/plan/neu' : '/');
@@ -309,6 +331,36 @@ export default function CoachSetupScreen() {
               />
               <ThemedText type="subtitle">{t('coach.target', { goal: t(`coach.goal.${goal}`), kcal: energy.kcal })}</ThemedText>
               {energy.floorApplied ? <ThemedText type="small">{t('coach.floor', { kcal: energy.floor })}</ThemedText> : null}
+              <Choice
+                label={t('coach.macroProfile')}
+                options={MACRO_PROFILES}
+                value={macroChoice.profile}
+                onChange={(profile) => setMacroChoice((c) => ({ ...c, profile }))}
+                format={(v) => t(`coach.macroProfileOption.${v}`)}
+              />
+              <ThemedText type="small" themeColor="textSecondary">
+                {t(`coach.macroProfileText.${macroChoice.profile}`)}
+              </ThemedText>
+              {macroChoice.profile === 'eigen' ? (
+                <>
+                  <ThemedText type="small">{t('coach.proteinPerKg')}</ThemedText>
+                  <Presets
+                    label={t('coach.proteinPerKg')}
+                    options={PROTEIN_PRESETS}
+                    value={macroChoice.proteinPerKg}
+                    format={(v) => `${formatNumber(v)} g/kg`}
+                    onChange={(proteinPerKg) => setMacroChoice((c) => ({ ...c, proteinPerKg }))}
+                  />
+                  <ThemedText type="small">{t('coach.fatShare')}</ThemedText>
+                  <Presets
+                    label={t('coach.fatShare')}
+                    options={FAT_PRESETS}
+                    value={macroChoice.fatShare}
+                    format={(v) => `${Math.round(v * 100)} %`}
+                    onChange={(fatShare) => setMacroChoice((c) => ({ ...c, fatShare }))}
+                  />
+                </>
+              ) : null}
               {plan?.macros ? (
                 <ThemedText>{t('coach.macros', { ...plan.macros })}</ThemedText>
               ) : null}

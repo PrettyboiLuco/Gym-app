@@ -1201,6 +1201,18 @@ export const de = {
     hiddenNumbers: 'Du nutzt den Modus „ohne Zahlen“. Der Coach speichert dein Ziel, zeigt aber keine Kalorien oder Makros.',
     calculatorHint: 'Dein Ziel kommt vom Coach. Übernimmst du hier eine Zahl, rechnet der Coach Makros und Trainings-/Ruhetage dafür neu. Einfacher: Coach → Ziel ändern.',
     macros: 'Makros pro Tag: Eiweiß {{protein}} g · Fett {{fat}} g · Kohlenhydrate {{carbs}} g · Ballaststoffe mind. {{fiber}} g',
+    macroProfile: 'Makro-Ausrichtung',
+    macroProfileOption: { standard: 'Standard', lean: 'Lean (Bodybuilding)', eigen: 'Eigene Werte' },
+    macroProfileText: {
+      standard: 'Ausgewogen: Eiweiß 1,6 g pro kg (Cut 2,0), Fett 30 %, Rest Kohlenhydrate.',
+      lean:
+        'Für sauberen Aufbau bzw. Diät mit möglichst wenig Fett: Fett auf 20 % runter, Eiweiß 2,0 g pro kg (Cut 2,2), ' +
+        'dadurch mehr Kohlenhydrate für Training und Regeneration. Weniger als 20 % Fett bietet der Coach nicht an – ' +
+        'Fett wird für Hormone und fettlösliche Vitamine gebraucht.',
+      eigen: 'Stell Eiweiß pro kg und den Fettanteil selbst ein (Eiweiß 0,8–2,5 g/kg, Fett 20–40 %). Kohlenhydrate sind der Rest.',
+    },
+    proteinPerKg: 'Eiweiß pro kg Körpergewicht',
+    fatShare: 'Fettanteil an den Kalorien',
     resultHint:
       'Schätzung nach festen Regeln, keine Messung und noch nicht fachlich geprüft. Der Wochen-Check-in passt das Ziel an ' +
       'dein echtes Gewicht an – nur, wenn du zustimmst.',

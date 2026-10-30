@@ -470,6 +470,9 @@ Vorschläge macht, ohne Makros und Aufteilung zu verlieren – alles ohne Intern
 - Check-in: Eiweiß und Ballaststoffe im Schnitt mit Ziel und Hinweis, „Neu berechnen“ bei deutlich anderen Schritten
   oder Gym-Tagen; Vorschläge, Einstellungen und Rechner rechnen Makros und Aufteilung für den neuen Wert neu.
 - Modus „ohne Zahlen“ und sensible Situation: keine Kalorien/Makros in Einrichtung, „Heute“ und Check-in.
+- Makro-Ausrichtung (Wunsch Luc 30.10.2026): Standard (Eiweiß 1,6 g/kg, Cut 2,0; Fett 30 %), Lean/Bodybuilding (Fett 20 %,
+  Eiweiß 2,0 g/kg, Cut 2,2 → mehr Kohlenhydrate) oder eigene Werte (Eiweiß 0,8–2,5 g/kg, Fett 20–40 %); Fett nie unter
+  20 %. Bleibt bei Check-in, Einstellungen und Rechner erhalten.
 448 automatische Tests (29 neu für den Coach), Browser-Test Coach 26/26, Phase 9 26/26, Phase 8 27/27, alle
 Bildschirme ohne Fehler.
 

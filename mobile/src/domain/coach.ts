@@ -42,6 +42,18 @@ export const PROTEIN_G_PER_KG = { training: 1.6, cutTraining: 2.0, general: 0.8,
 export const TRAINING_DAYS_FOR_SPORT = 2;
 export const FAT_SHARE = 0.3;
 export const FAT_SHARE_MIN = 0.2;
+export const FAT_SHARE_MAX = 0.4;
+
+/**
+ * Makro-Ausrichtung (Wunsch Luc 30.10.2026): „Standard“ wie oben; „Lean“ im Bodybuilding-Sinn mit weniger Fett
+ * (20 %) und mehr Eiweiß (2,0 g/kg, Cut 2,2 g/kg), damit mehr Platz für Kohlenhydrate bleibt; „Eigene“ Werte frei
+ * im Rahmen Eiweiß 0,8–2,5 g/kg und Fett 20–40 %. Fett nie unter 20 % (Hormone, fettlösliche Vitamine).
+ */
+export const MACRO_PROFILES = ['standard', 'lean', 'eigen'] as const;
+export type MacroProfile = (typeof MACRO_PROFILES)[number];
+export const LEAN = { proteinPerKg: 2.0, cutProteinPerKg: 2.2, fatShare: FAT_SHARE_MIN } as const;
+export const PROTEIN_PER_KG_RANGE = { min: 0.8, max: 2.5 } as const;
+export type MacroChoice = { profile: MacroProfile; proteinPerKg: number; fatShare: number };
 export const FIBER_MIN_G = 30;
 
 export const TRAINING_DAY_BONUS = 200;
@@ -139,12 +151,24 @@ export function proteinTarget(kg: number, goal: Goal, gymDays: number): number {
   return Math.round(kg * perKg);
 }
 
+/** Eiweiß (g/Tag) und Fettanteil für die gewählte Ausrichtung; eigene Werte werden in den Rahmen gesetzt. */
+export function macroSettings(choice: MacroChoice, kg: number, goal: Goal, gymDays: number): { protein: number; fatShare: number } {
+  if (choice.profile === 'lean') {
+    return { protein: Math.round(kg * (goal === 'abnehmen' ? LEAN.cutProteinPerKg : LEAN.proteinPerKg)), fatShare: LEAN.fatShare };
+  }
+  if (choice.profile === 'eigen') {
+    const perKg = Math.min(PROTEIN_PER_KG_RANGE.max, Math.max(PROTEIN_PER_KG_RANGE.min, choice.proteinPerKg));
+    return { protein: Math.round(kg * perKg), fatShare: Math.min(FAT_SHARE_MAX, Math.max(FAT_SHARE_MIN, choice.fatShare)) };
+  }
+  return { protein: proteinTarget(kg, goal, gymDays), fatShare: FAT_SHARE };
+}
+
 /**
  * Makros für ein Kalorienziel bei festem Eiweiß und Ballaststoffen: Fett 30 %, Kohlenhydrate der Rest. Reicht der Rest
  * nicht, sinkt Fett bis 20 %; Kohlenhydrate nie negativ.
  */
-export function macrosFor(kcal: number, protein: number, fiber = FIBER_MIN_G): Macros {
-  let fat = (kcal * FAT_SHARE) / 9;
+export function macrosFor(kcal: number, protein: number, fiber = FIBER_MIN_G, fatShare = FAT_SHARE): Macros {
+  let fat = (kcal * Math.min(FAT_SHARE_MAX, Math.max(FAT_SHARE_MIN, fatShare))) / 9;
   let carbs = (kcal - protein * 4 - fat * 9) / 4;
   if (carbs < 0) {
     fat = Math.max((kcal * FAT_SHARE_MIN) / 9, (kcal - protein * 4) / 9);
@@ -199,7 +223,14 @@ export function dayTarget(plan: GoalPlan, day: string): DayTarget {
 }
 
 /** Vollständiges Ziel aus dem Tagesschnitt (C3–C5). Ohne Aufteilung gilt jeder Tag gleich. */
-export function buildPlan(kcal: number, protein: number, trainingWeekdays: number[], floor: number, split: boolean): GoalPlan {
+export function buildPlan(
+  kcal: number,
+  protein: number,
+  trainingWeekdays: number[],
+  floor: number,
+  split: boolean,
+  fatShare = FAT_SHARE
+): GoalPlan {
   const days = [...new Set(trainingWeekdays)].filter((d) => d >= 1 && d <= 7).sort();
   const { training, rest } = daySplit(kcal, days.length, floor);
   const withSplit = split && days.length > 0 && days.length < 7;
@@ -208,14 +239,16 @@ export function buildPlan(kcal: number, protein: number, trainingWeekdays: numbe
     trainingKcal: withSplit ? training : null,
     restKcal: withSplit ? rest : null,
     trainingWeekdays: withSplit ? days : null,
-    macros: macrosFor(kcal, protein),
+    macros: macrosFor(kcal, protein, FIBER_MIN_G, fatShare),
   };
 }
 
 /** Neues Kalorienziel (z. B. aus dem Check-in): Eiweiß, Ballaststoffe und Trainingstage bleiben, der Rest passt sich an. */
 export function rescalePlan(plan: GoalPlan, kcal: number, floor = CALORIE_FLOOR): GoalPlan {
   if (!plan.macros) return { ...plan, kcal, trainingKcal: null, restKcal: null, trainingWeekdays: null };
-  return buildPlan(kcal, plan.macros.protein, plan.trainingWeekdays ?? [], floor, plan.trainingWeekdays !== null);
+  // Fettanteil des bisherigen Ziels übernehmen (z. B. „Lean“ 20 %), damit die Ausrichtung erhalten bleibt.
+  const fatShare = Math.round(((plan.macros.fat * 9) / plan.kcal) * 100) / 100;
+  return buildPlan(kcal, plan.macros.protein, plan.trainingWeekdays ?? [], floor, plan.trainingWeekdays !== null, fatShare);
 }
 
 /** Lohnt eine neue Berechnung? Schritte im Schnitt ±2000 oder Gym-Tage ±2 gegenüber der Einrichtung (C9). */
