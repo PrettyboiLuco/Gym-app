@@ -34,6 +34,7 @@ export type Food = {
   protein: number | null;
   carbs: number | null;
   fat: number | null;
+  fiber: number | null;
   servingAmount: number | null;
   favorite: number;
   /** JSON-Listen bzw. Angabe laut Produkt (COACH-009); null = unbekannt. Lesen mit `foodFacts`. */
@@ -42,7 +43,7 @@ export type Food = {
   diet: FoodDiet | null;
 };
 
-const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat,
+const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, fiber,
   serving_amount AS servingAmount, favorite, allergens AS allergensJson, traces AS tracesJson, diet`;
 
 function parseList(value: string | null): Allergen[] | null {
@@ -81,8 +82,8 @@ export async function recipeFacts(db: Db, versionId: string): Promise<FoodFacts>
 
 const listText = (list: Allergen[] | null | undefined) => (list == null ? null : JSON.stringify(list));
 
-export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat'>): Nutrients {
-  return { kcal: food.kcal, protein: food.protein, carbs: food.carbs, fat: food.fat };
+export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat' | 'fiber'>): Nutrients {
+  return { kcal: food.kcal, protein: food.protein, carbs: food.carbs, fat: food.fat, fiber: food.fiber };
 }
 
 /** Lokale Suche über Name und Marke; Favoriten zuerst. Gleichnamige Produkte bleiben getrennt (FOOD-018). */
@@ -127,7 +128,7 @@ export function findFoodByBarcode(db: Db, barcode: string) {
 export async function saveFood(db: Db, id: string | null, draft: FoodDraft, source: Food['source'] = 'eigen') {
   const now = nowUtc();
   const foodId = id ?? newId();
-  const { kcal, protein, carbs, fat } = draft.per100;
+  const { kcal, protein, carbs, fat, fiber } = draft.per100;
   if (id) {
     // Allergene nur ändern, wenn der Entwurf sie mitbringt (z. B. aus dem Formular); sonst bleiben sie.
     if (draft.allergens !== undefined) await db.runAsync('UPDATE food SET allergens = ? WHERE id = ?', listText(draft.allergens), id);
@@ -135,7 +136,7 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
     if (draft.diet !== undefined) await db.runAsync('UPDATE food SET diet = ? WHERE id = ?', draft.diet, id);
     await db.runAsync(
       `UPDATE food SET name = ?, brand = ?, barcode = ?, basis = ?, prep = ?, kcal = ?, protein = ?, carbs = ?, fat = ?,
-       serving_amount = ?, updated_at_utc = ? WHERE id = ?`,
+       fiber = ?, serving_amount = ?, updated_at_utc = ? WHERE id = ?`,
       draft.name.trim(),
       draft.brand?.trim() || null,
       draft.barcode,
@@ -145,6 +146,7 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       protein,
       carbs,
       fat,
+      fiber,
       draft.servingAmount,
       now,
       id
@@ -152,8 +154,8 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   } else {
     await db.runAsync(
       `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
-       favorite, fetched_at_utc, created_at_utc, updated_at_utc, allergens, traces, diet)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
+       favorite, fetched_at_utc, created_at_utc, updated_at_utc, allergens, traces, diet, fiber)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)`,
       foodId,
       source,
       draft.barcode,
@@ -171,7 +173,8 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       now,
       listText(draft.allergens),
       listText(draft.traces),
-      draft.diet ?? null
+      draft.diet ?? null,
+      fiber
     );
   }
   return foodId;
@@ -207,6 +210,7 @@ export type ConsumptionEvent = {
   protein: number | null;
   carbs: number | null;
   fat: number | null;
+  fiber: number | null;
   diaryDate: string;
   occurredAt: string;
   prep: Prep | null;
@@ -214,7 +218,7 @@ export type ConsumptionEvent = {
 
 // Die Zubereitung (roh/gekocht) kommt nur zur Anzeige vom Lebensmittel; Nährwerte bleiben Schnappschuss.
 const EVENT_COLUMNS = `id, kind, meal, drink_type AS drinkType, food_id AS foodId, recipe_version_id AS recipeVersionId,
-  name, brand, amount, unit, kcal, protein, carbs, fat, diary_date AS diaryDate, occurred_at_utc AS occurredAt,
+  name, brand, amount, unit, kcal, protein, carbs, fat, fiber, diary_date AS diaryDate, occurred_at_utc AS occurredAt,
   (SELECT prep FROM food WHERE food.id = consumption_event.food_id) AS prep`;
 
 /** Wann und wo: Tagebuchdatum ist frei wählbar (Nachtrag für gestern), Zeitzone wird mitgespeichert. */
@@ -231,8 +235,8 @@ async function insertEvent(
   const id = newId();
   await db.runAsync(
     `INSERT INTO consumption_event (id, kind, meal, drink_type, food_id, recipe_version_id, name, brand, amount, unit,
-     kcal, protein, carbs, fat, occurred_at_utc, recorded_at_utc, time_zone, utc_offset_min, diary_date)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     kcal, protein, carbs, fat, fiber, occurred_at_utc, recorded_at_utc, time_zone, utc_offset_min, diary_date)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     target.kind,
     target.kind === 'essen' ? target.meal : null,
@@ -247,6 +251,7 @@ async function insertEvent(
     data.nutrients.protein,
     data.nutrients.carbs,
     data.nutrients.fat,
+    data.nutrients.fiber,
     when.at.toISOString(),
     nowUtc(),
     when.timeZone,
@@ -281,7 +286,7 @@ export async function logWater(db: Db, amountMl: number, when: When, name: strin
     brand: null,
     amount: amountMl,
     unit: 'ml',
-    nutrients: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+    nutrients: { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
   });
 }
 
@@ -306,7 +311,7 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
   const factor = change.amount / event.amount;
   const scale = (v: number | null) => (v === null ? null : v * factor);
   await db.runAsync(
-    `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, kcal = ?, protein = ?, carbs = ?, fat = ? WHERE id = ?`,
+    `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, kcal = ?, protein = ?, carbs = ?, fat = ?, fiber = ? WHERE id = ?`,
     change.amount,
     event.kind === 'essen' ? change.meal : null,
     change.diaryDate,
@@ -314,6 +319,7 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
     scale(event.protein),
     scale(event.carbs),
     scale(event.fat),
+    scale(event.fiber),
     id
   );
 }
@@ -338,7 +344,7 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
         brand: e.brand,
         amount: e.amount,
         unit: e.unit,
-        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat },
+        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber },
       });
     }
   });
@@ -472,8 +478,8 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
       if (!food) throw new Error('food not found');
       const n = nutrientsForAmount(per100(food), ing.amount, food.basis, food.basis);
       await db.runAsync(
-        `INSERT INTO recipe_ingredient (id, recipe_version_id, position, food_id, name, amount, unit, kcal, protein, carbs, fat)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO recipe_ingredient (id, recipe_version_id, position, food_id, name, amount, unit, kcal, protein, carbs, fat, fiber)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         newId(),
         versionId,
         position,
@@ -484,7 +490,8 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
         n.kcal,
         n.protein,
         n.carbs,
-        n.fat
+        n.fat,
+        n.fiber
       );
     }
   });
@@ -493,7 +500,7 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
 
 async function versionTotal(db: Db, versionId: string): Promise<Nutrients> {
   const rows = await db.getAllAsync<Nutrients>(
-    'SELECT kcal, protein, carbs, fat FROM recipe_ingredient WHERE recipe_version_id = ?',
+    'SELECT kcal, protein, carbs, fat, fiber FROM recipe_ingredient WHERE recipe_version_id = ?',
     versionId
   );
   return totalOf(rows);

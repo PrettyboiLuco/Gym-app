@@ -26,11 +26,12 @@ const EMPTY: FoodForm = {
   protein: '',
   carbs: '',
   fat: '',
+  fiber: '',
   serving: '',
   allergens: null,
 };
 
-const NUTRIENT_FIELDS = ['kcal', 'protein', 'carbs', 'fat'] as const;
+const NUTRIENT_FIELDS = ['kcal', 'protein', 'carbs', 'fat', 'fiber'] as const;
 
 export default function FoodEditScreen() {
   const params = useLocalSearchParams<TargetParams & { id: string; name?: string; barcode?: string }>();

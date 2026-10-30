@@ -44,6 +44,8 @@ export function macroLine(n: Nutrients) {
     `${t('nutrition.protein')} ${formatGram(n.protein)}`,
     `${t('nutrition.carbs')} ${formatGram(n.carbs)}`,
     `${t('nutrition.fat')} ${formatGram(n.fat)}`,
+    // Ballaststoffe nur, wenn bekannt – ältere Einträge haben dafür keinen Wert.
+    ...(n.fiber !== null ? [`${t('nutrition.fiber')} ${formatGram(n.fiber)}`] : []),
   ].join(' · ');
 }
 
@@ -70,6 +72,7 @@ export function macroSumLine(totals: NutrientTotals) {
     `${t('nutrition.protein')} ${prefix.protein ?? ''}${formatGram(shown.protein)}`,
     `${t('nutrition.carbs')} ${prefix.carbs ?? ''}${formatGram(shown.carbs)}`,
     `${t('nutrition.fat')} ${prefix.fat ?? ''}${formatGram(shown.fat)}`,
+    `${t('nutrition.fiber')} ${prefix.fiber ?? ''}${formatGram(shown.fiber)}`,
   ].join(' · ');
 }
 

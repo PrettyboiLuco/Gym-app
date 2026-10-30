@@ -426,12 +426,32 @@ vom heute gültigen aus. 417 automatische Tests, Browser-Test Phase 9 27/27, 32/
 Essensfoto (FOOD-015), gekaufte Medien oder 3D (MEDIA-005/-007). Neu zu entscheiden, wenn es Konten/Server gibt
 (Phase 11) oder ein Budget feststeht.
 
-## Coach-Ausbau – eigenes Vorhaben (Planung offen)
+## Coach – geführter Begleiter (vor Phase 10)
 
-Entscheidung Luc 30.10.2026: Der Coach muss sehr umfangreich werden und wird nicht nebenbei gebaut. Der Wochen-Check-in
-(9.2) ist der erste Baustein. Vorgehen: 1. mit Luc sammeln, was der Coach können soll (Kap. 06 Arbeitsgrundlage:
-Planung, Ernährung und Fortschritt verbinden, Check-in, Änderungsvorschau, Schlaf, Essenszeiten, Allergien, später
-freier Chat) · 2. Konzept mit Regeln, Grenzen und Fachprüfung (COACH-001–012, 10.1) · 3. Bau in Schritten.
+Konzept nach Lucs Antworten vom 30.10.2026: ohne KI, kommt vor der Veröffentlichung. Der Coach verbindet, was es
+schon gibt (Erststart, Rechner, Planassistent, Erinnerungen, Check-in), zu einem geführten Ablauf.
+
+| # | Schritt | Register |
+|---|---|---|
+| C1 | Einrichtung direkt nach dem Erststart (überspringbar, jederzeit neu): Ziel (Bulk/Cut/Erhalt) → Körperdaten → durchschnittliche Schritte, Gym-Tage pro Woche, Schlaf | COACH-001, UX-010 |
+| C2 | Bedarf aus Ruheenergie × Aktivität aus **Schritten** (ersetzt „Bewegung im Alltag“) + Gym-Tage; Schlaf nur Erholungskontext; Rechenweg sichtbar, „Schätzung“ | CALC-001–005, HEALTH-007, COACH-006 |
+| C3 | Vorgabe Bulk/Cut/Erhalt: Coach schlägt Tempo vor (Bulk +250, Cut −500, Erhalt ±0), änderbar; nie unter die Untergrenze; sensible Situation: keine Zahlen | COACH-004, -010, GOAL-007 |
+| C4 | Makro-Ziele: Eiweiß, Fett, Kohlenhydrate, **Ballaststoffe** (Ballaststoffe neu erfasst: Lebensmittel, Scan, Tagebuch) | COACH-005 |
+| C5 | Trainingstage mehr, Ruhetage weniger Kalorien bei gleichem Wochenschnitt (Unterschied über Kohlenhydrate) | COACH-002 |
+| C6 | Training: Tage und Wochentage wählen; eigenen Plan eingeben (Übungen selbst aussuchen) oder Plan vorgeben lassen (Vorlage aus Ziel und Tagen, 8.6) | TRAIN-001, -002 |
+| C7 | Anbindungen beim Einrichten: Mitteilungen (Erinnerung an Trainingstagen); Apple Health für Schlaf, Schritte, Kalorien, Wasser, Makros vorbereitet (Daten fließen mit dem Development Build, 6.1/6.2) | HEALTH-001–007, UX-007 |
+| C8 | Tägliche Begleitung auf „Heute“: Trainings- oder Ruhetag, Kalorien und Makros heute (Ziel/gegessen/übrig), Trinken, Schritte; Tipps nur auf Klick | TRACK-001, UX-007 |
+| C9 | Wochen-Check-in ausgebaut: Makros im Wochenschnitt, neue Berechnung, wenn sich Schritte/Gym-Tage deutlich ändern; Vorschläge behalten Makros und Aufteilung | COACH-008 |
+
+Vorläufige Werte (Fachprüfung 10.1), alle in `domain/coach.ts`: Schritte → Aktivität nach Tudor-Locke-Stufen
+(< 5000 → 1,4 · 5000–7499 → 1,5 · 7500–9999 → 1,6 · 10 000–12 499 → 1,7 · ab 12 500 → 1,8), je Gym-Tag pro Woche
++0,065; Eiweiß 1,6 g/kg (Cut 2,0 g/kg, ohne regelmäßiges Training 0,8/1,2 g/kg); Fett 30 % der Kalorien
+(DGE-Orientierung, mind. 20 %); Kohlenhydrate der Rest; Ballaststoffe mindestens 30 g (DGE); Trainingstag +200 kcal,
+Ruhetag höchstens −300 kcal.
+
+**Fertig, wenn:** Ein neuer Nutzer vom Erststart bis zum ersten Training geführt wird (Ziel, Kalorien, Makros, Plan,
+Erinnerung), „Heute“ jeden Tag das passende Tagesziel zeigt, Ziel und Tempo jederzeit änderbar sind und der Check-in
+Vorschläge macht, ohne Makros und Aufteilung zu verlieren – alles ohne Internet und KI.
 
 ## Übungsbilder (nach Phase 9, vor 10.4)
 

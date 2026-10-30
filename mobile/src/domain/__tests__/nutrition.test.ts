@@ -23,7 +23,7 @@ import {
   type SettingsForm,
 } from '../nutrition';
 
-const nutella = { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9 };
+const nutella = { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null };
 
 describe('Nährwerte für eine Menge', () => {
   test('20 g Nuss-Nougat-Creme', () => {
@@ -38,19 +38,20 @@ describe('Nährwerte für eine Menge', () => {
 
 describe('Summen', () => {
   test('unbekannte Werte werden gezählt, nicht als 0 versteckt', () => {
-    const s = sumNutrients([nutella, { kcal: 100, protein: null, carbs: 10, fat: 1 }]);
+    const s = sumNutrients([nutella, { kcal: 100, protein: null, carbs: 10, fat: 1, fiber: null }]);
     expect(s.values.kcal).toBe(639);
     expect(s.unknown.protein).toBe(1);
     expect(s.unknown.kcal).toBe(0);
   });
   test('Gesamtwert eines Rezepts ist unbekannt, wenn eine Zutat unbekannt ist', () =>
-    expect(totalOf([nutella, { kcal: null, protein: 1, carbs: 1, fat: 1 }]).kcal).toBeNull());
+    expect(totalOf([nutella, { kcal: null, protein: 1, carbs: 1, fat: 1, fiber: null }]).kcal).toBeNull());
   test('Rezept 1200 kcal, 800 g Endgewicht → 150 kcal/100 g, 200 g = 300 kcal (FOOD-017)', () => {
-    const per100 = per100FromTotal({ kcal: 1200, protein: 80, carbs: 100, fat: 40 }, 800);
+    const per100 = per100FromTotal({ kcal: 1200, protein: 80, carbs: 100, fat: 40, fiber: null }, 800);
     expect(per100.kcal).toBe(150);
     expect(nutrientsForAmount(per100, 200, 'g', 'g').kcal).toBe(300);
   });
-  test('1 von 4 Portionen', () => expect(fractionOf({ kcal: 1200, protein: null, carbs: 0, fat: 40 }, 0.25)).toEqual({
+  test('1 von 4 Portionen', () => expect(fractionOf({ kcal: 1200, protein: null, carbs: 0, fat: 40, fiber: null }, 0.25)).toEqual({
+    fiber: null,
     kcal: 300,
     protein: null,
     carbs: 0,
@@ -145,6 +146,8 @@ describe('Open Food Facts einlesen', () => {
       diet: null,
     });
   });
+  test('Ballaststoffe aus fiber_100g (C4)', () =>
+    expect(normalizeOffProduct({ status: 1, product: { product_name: 'Vollkornbrot', nutriments: { fiber_100g: 7.5 } } }, '1')?.per100.fiber).toBe(7.5));
   test('Allergene, Spuren und vegan/vegetarisch aus den Tags (COACH-009)', () => {
     const food = normalizeOffProduct(
       {
@@ -173,7 +176,7 @@ describe('Open Food Facts einlesen', () => {
       '4000000000000'
     );
     expect(food?.basis).toBe('ml');
-    expect(food?.per100).toEqual({ kcal: 44, protein: null, carbs: 10.5, fat: 0 });
+    expect(food?.per100).toEqual({ kcal: 44, protein: null, carbs: 10.5, fat: 0, fiber: null });
   });
   test('nicht gefunden ergibt null', () => {
     expect(normalizeOffProduct({ status: 'failure', product: null }, '1')).toBeNull();
@@ -194,6 +197,7 @@ describe('Formular Lebensmittel', () => {
     protein: '13,5',
     carbs: '',
     fat: '7',
+    fiber: '',
     serving: '',
   };
   test('leere Werte bleiben unbekannt, Komma wird gelesen', () =>
@@ -204,7 +208,7 @@ describe('Formular Lebensmittel', () => {
         barcode: null,
         basis: 'g',
         prep: null,
-        per100: { kcal: 370, protein: 13.5, carbs: null, fat: 7 },
+        per100: { kcal: 370, protein: 13.5, carbs: null, fat: 7, fiber: null },
         servingAmount: null,
         allergens: null,
       },

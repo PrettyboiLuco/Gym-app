@@ -54,7 +54,7 @@ const bread: FoodDraft = {
   brand: null,
   barcode: null,
   basis: 'g',
-  per100: { kcal: 250, protein: 8, carbs: 40, fat: 3 },
+  per100: { kcal: 250, protein: 8, carbs: 40, fat: 3, fiber: null },
   servingAmount: 50,
 };
 const spread: FoodDraft = {
@@ -62,7 +62,7 @@ const spread: FoodDraft = {
   brand: 'Marke A',
   barcode: '3017620422003',
   basis: 'g',
-  per100: { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9 },
+  per100: { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null },
   servingAmount: 15,
 };
 const juice: FoodDraft = {
@@ -70,7 +70,7 @@ const juice: FoodDraft = {
   brand: null,
   barcode: null,
   basis: 'ml',
-  per100: { kcal: 40, protein: null, carbs: 10, fat: 0 },
+  per100: { kcal: 40, protein: null, carbs: 10, fat: 0, fiber: null },
   servingAmount: null,
 };
 
@@ -82,8 +82,8 @@ describe('Lebensmittel', () => {
     expect((await findFoodByBarcode(db, '3017620422003'))?.id).toBe(id);
   });
   test('roh und gekocht bleiben getrennt (FOOD-011)', async () => {
-    const raw = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'roh', per100: { kcal: 350, protein: 7, carbs: 77, fat: 1 } });
-    const cooked = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'gekocht', per100: { kcal: 130, protein: 2.7, carbs: 28, fat: 0.3 } });
+    const raw = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'roh', per100: { kcal: 350, protein: 7, carbs: 77, fat: 1, fiber: null } });
+    const cooked = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'gekocht', per100: { kcal: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: null } });
     expect((await getFood(db, raw))?.prep).toBe('roh');
     expect((await getFood(db, cooked))?.prep).toBe('gekocht');
     expect(await searchFoods(db, 'Reis')).toHaveLength(2);
@@ -219,8 +219,8 @@ describe('Vorlagen („Nutella-Brot“)', () => {
 
 describe('Rezepte', () => {
   async function chili(endWeightG: number | null, portions: number | null) {
-    const meat = await saveFood(db, null, { ...bread, name: 'Hackfleisch', per100: { kcal: 250, protein: 20, carbs: 0, fat: 18 } });
-    const beans = await saveFood(db, null, { ...bread, name: 'Bohnen', per100: { kcal: 100, protein: 7, carbs: 15, fat: 1 } });
+    const meat = await saveFood(db, null, { ...bread, name: 'Hackfleisch', per100: { kcal: 250, protein: 20, carbs: 0, fat: 18, fiber: null } });
+    const beans = await saveFood(db, null, { ...bread, name: 'Bohnen', per100: { kcal: 100, protein: 7, carbs: 15, fat: 1, fiber: null } });
     // 400 g × 250 + 200 g × 100 = 1200 kcal
     return saveRecipe(db, null, {
       name: 'Chili',

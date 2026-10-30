@@ -433,6 +433,35 @@ export const MIGRATIONS: string[] = [
      decision TEXT NOT NULL CHECK (decision IN ('angenommen', 'abgelehnt', 'ohne')),
      created_at_utc TEXT NOT NULL
    );`,
+
+  // Version 10: Coach (C4/C5) – Ballaststoffe und Kalorienziel mit Makros und Trainings-/Ruhetagen
+  // Ballaststoffe in g (pro 100 g/ml beim Lebensmittel, Schnappschuss beim Eintrag); NULL = unbekannt.
+  `ALTER TABLE food ADD COLUMN fiber REAL CHECK (fiber IS NULL OR fiber >= 0);
+   ALTER TABLE consumption_event ADD COLUMN fiber REAL CHECK (fiber IS NULL OR fiber >= 0);
+   ALTER TABLE recipe_ingredient ADD COLUMN fiber REAL CHECK (fiber IS NULL OR fiber >= 0);
+   -- Kalorienziel neu angelegt (Herkunft „coach“ erlaubt; SQLite kann CHECK nicht ändern). Kein Verweis auf die Tabelle.
+   -- kcal bleibt der Tagesschnitt. Mit Aufteilung gilt an Trainingstagen training_kcal, sonst rest_kcal;
+   -- training_weekdays als JSON-Liste (1 = Montag … 7 = Sonntag). Makro-Ziele in g pro Tag (Schnitt).
+   CREATE TABLE calorie_goal_new (
+     id TEXT PRIMARY KEY NOT NULL,
+     valid_from TEXT NOT NULL,
+     kcal INTEGER CHECK (kcal IS NULL OR kcal BETWEEN 500 AND 10000),
+     source TEXT NOT NULL CHECK (source IN ('eigen', 'rechner', 'coach')),
+     inputs TEXT,
+     created_at_utc TEXT NOT NULL,
+     training_kcal INTEGER CHECK (training_kcal IS NULL OR training_kcal BETWEEN 500 AND 10000),
+     rest_kcal INTEGER CHECK (rest_kcal IS NULL OR rest_kcal BETWEEN 500 AND 10000),
+     training_weekdays TEXT,
+     protein_g REAL CHECK (protein_g IS NULL OR protein_g >= 0),
+     fat_g REAL CHECK (fat_g IS NULL OR fat_g >= 0),
+     carbs_g REAL CHECK (carbs_g IS NULL OR carbs_g >= 0),
+     fiber_g REAL CHECK (fiber_g IS NULL OR fiber_g >= 0)
+   );
+   INSERT INTO calorie_goal_new (id, valid_from, kcal, source, inputs, created_at_utc)
+     SELECT id, valid_from, kcal, source, inputs, created_at_utc FROM calorie_goal ORDER BY rowid;
+   DROP TABLE calorie_goal;
+   ALTER TABLE calorie_goal_new RENAME TO calorie_goal;
+   CREATE INDEX calorie_goal_from ON calorie_goal (valid_from);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

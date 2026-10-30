@@ -3,6 +3,7 @@
 // das Ziel, das damals galt (GOAL-002).
 
 import type { Measurement, MeasureSite } from '@/domain/body';
+import { dayTarget, rescalePlan, type GoalPlan, type Macros } from '@/domain/coach';
 import type { Goal } from '@/domain/energy';
 import type { GoalDraft, GoalKind, Habit, LiftSet } from '@/domain/goals';
 import { localDay } from '@/domain/time';
@@ -14,48 +15,129 @@ import { newId, nowUtc, type Db } from './db';
 export type CalorieGoal = {
   id: string;
   validFrom: string;
+  /** Ziel dieses Tages: mit Aufteilung Trainings- bzw. Ruhetagswert, sonst der Schnitt. */
   kcal: number | null;
-  source: 'eigen' | 'rechner';
+  /** Tagesschnitt (gespeicherter Wert); für Einstellungen und Check-in. */
+  baseKcal: number | null;
+  /** Trainingstag laut Wochentagen; null = keine Aufteilung. */
+  trainingDay: boolean | null;
+  /** Makro-Ziele dieses Tages in g (Coach, C4); null = keine. */
+  macros: Macros | null;
+  plan: GoalPlan | null;
+  source: 'eigen' | 'rechner' | 'coach';
   inputs: string | null;
   createdAt: string;
 };
 
-const CALORIE_COLUMNS = 'id, valid_from AS validFrom, kcal, source, inputs, created_at_utc AS createdAt';
+type GoalRow = {
+  id: string;
+  validFrom: string;
+  kcal: number | null;
+  source: CalorieGoal['source'];
+  inputs: string | null;
+  createdAt: string;
+  trainingKcal: number | null;
+  restKcal: number | null;
+  trainingWeekdays: string | null;
+  proteinG: number | null;
+  fatG: number | null;
+  carbsG: number | null;
+  fiberG: number | null;
+};
 
-/** Das Kalorienziel, das an einem Tag galt; null = keins. */
+const CALORIE_COLUMNS = `id, valid_from AS validFrom, kcal, source, inputs, created_at_utc AS createdAt,
+  training_kcal AS trainingKcal, rest_kcal AS restKcal, training_weekdays AS trainingWeekdays,
+  protein_g AS proteinG, fat_g AS fatG, carbs_g AS carbsG, fiber_g AS fiberG`;
+
+function planOf(row: GoalRow): GoalPlan | null {
+  if (row.kcal === null) return null;
+  let weekdays: number[] | null = null;
+  try {
+    weekdays = row.trainingWeekdays ? (JSON.parse(row.trainingWeekdays) as number[]) : null;
+  } catch {
+    weekdays = null;
+  }
+  const macros =
+    row.proteinG !== null && row.fatG !== null && row.carbsG !== null && row.fiberG !== null
+      ? { protein: row.proteinG, fat: row.fatG, carbs: row.carbsG, fiber: row.fiberG }
+      : null;
+  return { kcal: row.kcal, trainingKcal: row.trainingKcal, restKcal: row.restKcal, trainingWeekdays: weekdays, macros };
+}
+
+function toGoal(row: GoalRow, day: string): CalorieGoal {
+  const plan = planOf(row);
+  const target = plan ? dayTarget(plan, day) : null;
+  return {
+    id: row.id,
+    validFrom: row.validFrom,
+    kcal: target ? target.kcal : null,
+    baseKcal: row.kcal,
+    trainingDay: target ? target.trainingDay : null,
+    macros: target ? target.macros : null,
+    plan,
+    source: row.source,
+    inputs: row.inputs,
+    createdAt: row.createdAt,
+  };
+}
+
+/** Das Kalorienziel, das an einem Tag galt (mit Trainings-/Ruhetag und Makros, falls vom Coach); null = keins. */
 export async function calorieGoalOn(db: Db, day: string): Promise<CalorieGoal | null> {
-  const row = await db.getFirstAsync<CalorieGoal>(
+  const row = await db.getFirstAsync<GoalRow>(
     `SELECT ${CALORIE_COLUMNS} FROM calorie_goal WHERE valid_from <= ?
      ORDER BY valid_from DESC, created_at_utc DESC, rowid DESC LIMIT 1`,
     day
   );
-  return row && row.kcal !== null ? row : null;
+  return row && row.kcal !== null ? toGoal(row, day) : null;
 }
 
-/** Neues Kalorienziel ab einem Tag (Standard: heute). `kcal = null` beendet das Ziel ab diesem Tag. */
+/**
+ * Neues Kalorienziel ab einem Tag (Standard: heute). `kcal = null` beendet das Ziel ab diesem Tag. Mit `plan`
+ * (Coach) werden Makros und Trainings-/Ruhetage mitgespeichert.
+ */
 export async function setCalorieGoal(
   db: Db,
   kcal: number | null,
   validFrom: string,
   source: CalorieGoal['source'] = 'eigen',
-  inputs: unknown = null
+  inputs: unknown = null,
+  plan: GoalPlan | null = null
 ) {
   await db.runAsync(
-    'INSERT INTO calorie_goal (id, valid_from, kcal, source, inputs, created_at_utc) VALUES (?, ?, ?, ?, ?, ?)',
+    `INSERT INTO calorie_goal (id, valid_from, kcal, source, inputs, created_at_utc, training_kcal, rest_kcal,
+     training_weekdays, protein_g, fat_g, carbs_g, fiber_g) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     newId(),
     validFrom,
     kcal,
     source,
     inputs === null ? null : JSON.stringify(inputs),
-    nowUtc()
+    nowUtc(),
+    plan?.trainingKcal ?? null,
+    plan?.restKcal ?? null,
+    plan?.trainingWeekdays ? JSON.stringify(plan.trainingWeekdays) : null,
+    plan?.macros?.protein ?? null,
+    plan?.macros?.fat ?? null,
+    plan?.macros?.carbs ?? null,
+    plan?.macros?.fiber ?? null
   );
 }
 
-export function listCalorieGoals(db: Db, limit = 20) {
-  return db.getAllAsync<CalorieGoal>(
+/**
+ * Neuer Tagesschnitt, z. B. aus Einstellungen oder Check-in: Hat das bisherige Ziel Makros und Aufteilung (Coach),
+ * werden sie für den neuen Wert neu berechnet statt verloren zu gehen (C9).
+ */
+export async function adjustCalorieGoal(db: Db, kcal: number | null, validFrom: string, source: CalorieGoal['source'], inputs: unknown = null) {
+  const current = await calorieGoalOn(db, validFrom);
+  const plan = kcal !== null && current?.plan?.macros ? rescalePlan(current.plan, kcal) : null;
+  await setCalorieGoal(db, kcal, validFrom, plan ? 'coach' : source, inputs, plan);
+}
+
+export async function listCalorieGoals(db: Db, limit = 20): Promise<CalorieGoal[]> {
+  const rows = await db.getAllAsync<GoalRow>(
     `SELECT ${CALORIE_COLUMNS} FROM calorie_goal ORDER BY valid_from DESC, created_at_utc DESC, rowid DESC LIMIT ?`,
     limit
   );
+  return rows.map((row) => ({ ...toGoal(row, row.validFrom), kcal: row.kcal }));
 }
 
 // --------------------------------------------------------------------------------- Ziele

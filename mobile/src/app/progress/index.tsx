@@ -160,8 +160,16 @@ export default function ProgressScreen() {
 
       <Card title={t('progress.calorieTitle')}>
         <ListRow
-          title={calorie ? t('progress.calorieCurrent', { kcal: formatKcal(calorie.kcal) }) : t('progress.calorieNone')}
-          subtitle={calorie ? (calorie.source === 'rechner' ? t('progress.calorieFromCalc') : t('progress.calorieOwn')) : undefined}
+          title={calorie ? t('progress.calorieCurrent', { kcal: formatKcal(calorie.baseKcal) }) : t('progress.calorieNone')}
+          subtitle={
+            calorie
+              ? calorie.source === 'coach'
+                ? t('progress.calorieFromCoach')
+                : calorie.source === 'rechner'
+                  ? t('progress.calorieFromCalc')
+                  : t('progress.calorieOwn')
+              : undefined
+          }
           accessory="›"
           onPress={() => router.push('/progress/calculator')}
         />

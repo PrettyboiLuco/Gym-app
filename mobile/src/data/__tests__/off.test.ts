@@ -36,7 +36,7 @@ describe('Produkt per Barcode', () => {
     const res = await off.fetchProduct('4000000000001');
     expect(res).toEqual({
       ok: true,
-      value: expect.objectContaining({ name: 'Haferflocken', per100: { kcal: 370, protein: 13, carbs: null, fat: null } }),
+      value: expect.objectContaining({ name: 'Haferflocken', per100: { kcal: 370, protein: 13, carbs: null, fat: null, fiber: null } }),
     });
     const [url, init] = fetchMock.mock.calls[0] as [string, { headers: Record<string, string> }];
     expect(url).toContain('/api/v3/product/4000000000001');

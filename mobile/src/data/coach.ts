@@ -5,7 +5,7 @@ import type { Profile } from '@/domain/profile';
 import { stepsAverage } from '@/domain/steps';
 
 import { newId, nowUtc, type Db } from './db';
-import { activeWeightGoal, calorieGoalOn, setCalorieGoal, trainingDays } from './goals';
+import { activeWeightGoal, adjustCalorieGoal, calorieGoalOn, trainingDays } from './goals';
 import { daySums, loadNutritionSettings } from './nutrition';
 import { listSteps } from './steps';
 import { listActivePlans } from './training';
@@ -79,7 +79,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     sensitive: profile.sensitive,
     hideNumbers: settings.hideNumbers,
     heightCm: profile.heightCm,
-    currentGoal: current?.kcal ?? null,
+    currentGoal: current?.baseKcal ?? null,
   };
 }
 
@@ -130,7 +130,7 @@ export async function saveCheckin(
       nowUtc()
     );
     if (decision === 'angenommen' && suggestion.kind === 'kcal') {
-      await setCalorieGoal(db, suggestion.to, today, 'eigen', { checkin: result.weekEnd, rulesVersion: result.rulesVersion });
+      await adjustCalorieGoal(db, suggestion.to, today, 'eigen', { checkin: result.weekEnd, rulesVersion: result.rulesVersion });
     }
   });
 }

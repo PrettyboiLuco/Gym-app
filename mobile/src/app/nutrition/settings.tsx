@@ -8,7 +8,7 @@ import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { calorieGoalOn, setCalorieGoal } from '@/data/goals';
+import { adjustCalorieGoal, calorieGoalOn } from '@/data/goals';
 import { DEFAULT_SETTINGS, loadNutritionSettings, saveNutritionSettings } from '@/data/nutrition';
 import { useDb } from '@/data/store-provider';
 import { ALLERGENS, DIETS, type Allergen, type Diet, type MealTimes } from '@/domain/diet';
@@ -60,8 +60,9 @@ export default function NutritionSettingsScreen() {
     let cancelled = false;
     Promise.all([loadNutritionSettings(db), calorieGoalOn(db, todayDay())]).then(([s, goal]) => {
       if (cancelled) return;
-      setSavedGoal(goal?.kcal ?? null);
-      const loaded = toForm(s, goal?.kcal ?? null);
+      // Tagesschnitt anzeigen, nicht den Trainings-/Ruhetagswert von heute.
+      setSavedGoal(goal?.baseKcal ?? null);
+      const loaded = toForm(s, goal?.baseKcal ?? null);
       const loadedExtras = toExtras(s);
       setForm(loaded);
       setExtras(loadedExtras);
@@ -100,7 +101,8 @@ export default function NutritionSettingsScreen() {
       mealTimes: { fruehstueck, mittag, abend },
     });
     // Neues Ziel gilt ab heute; frühere Tage behalten ihr Ziel (GOAL-002).
-    if (kcalGoal !== savedGoal) await setCalorieGoal(db, kcalGoal, todayDay());
+    // Makros und Trainings-/Ruhetage des Coaches werden für den neuen Wert neu berechnet.
+    if (kcalGoal !== savedGoal) await adjustCalorieGoal(db, kcalGoal, todayDay(), 'eigen');
     allowLeave();
     router.back();
   }

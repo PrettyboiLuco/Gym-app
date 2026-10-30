@@ -729,6 +729,7 @@ export const de = {
     protein: 'Eiweiß',
     carbs: 'Kohlenhydrate',
     fat: 'Fett',
+    fiber: 'Ballaststoffe',
     summary: {
       title: 'Tagesübersicht',
       eaten: 'Gegessen',
@@ -989,6 +990,7 @@ export const de = {
     calorieTitle: 'Kalorienziel',
     calorieCurrent: '{{kcal}} pro Tag',
     calorieFromCalc: 'aus dem Kalorienrechner – eine Schätzung',
+    calorieFromCoach: 'Vom Coach: Tagesschnitt, an Trainingstagen mehr, an Ruhetagen weniger, mit Makro-Zielen',
     calorieOwn: 'selbst eingetragen',
     calorieNone: 'Noch kein Kalorienziel.',
     calculatorOpen: 'Kalorienrechner',
