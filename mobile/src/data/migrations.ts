@@ -1,7 +1,7 @@
 // Datenbank-Migrationen. Jede Version kommt als neuer Eintrag ans Ende; bestehende Einträge
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
-import { HIIT_EXERCISES, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
+import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
 
 import type { Db } from './db';
 
@@ -22,6 +22,14 @@ const phase5Inserts = [
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-30T00:00:00Z', '${e.kind}', '${e.sides}', ${e.holdSeconds}, 'zeit');`
   ),
 ].join('\n');
+
+// Ab Version 8: weitere Kraftübungen für Vorlagen und Ersatzübungen (Phase 8).
+const phase8Inserts = MORE_STRENGTH_EXERCISES.map(
+  (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-30T00:00:00Z', 'kraft', '${e.sides}', NULL, 'wdh');`
+).join('\n');
+
+const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
 
 export const MIGRATIONS: string[] = [
   // Version 1: Körpergewicht
@@ -388,6 +396,18 @@ export const MIGRATIONS: string[] = [
      target_reps, habit, per_week, target_cm, NULL, created_at_utc FROM goal_version;
    DROP TABLE goal_version;
    ALTER TABLE goal_version_new RENAME TO goal_version;`,
+
+  // Version 8: Planassistent (Register TRAIN-005–011, -016, Phase 8)
+  // Bewegungsmuster für eigene Übungen (NULL = aus der Muskelgruppe abgeleitet). Startübungen haben
+  // ihr Muster im Code (domain/exercises.ts), damit Korrekturen ohne Migration möglich sind.
+  `ALTER TABLE exercise ADD COLUMN pattern TEXT CHECK (pattern IS NULL OR pattern IN (${patternList}));
+   -- Grund der Änderung (z. B. „Planassistent: 6 → 4 Tage“) für die Versionsliste.
+   ALTER TABLE plan_version ADD COLUMN note TEXT;
+   -- Befristete Version „nur diese Woche“ (TRAIN-008): gilt bis einschließlich valid_until, danach wird
+   -- return_version_id wieder aktiv. Die Standardversion bleibt dabei unverändert.
+   ALTER TABLE plan_version ADD COLUMN valid_until TEXT;
+   ALTER TABLE plan_version ADD COLUMN return_version_id TEXT REFERENCES plan_version (id);
+   ${phase8Inserts}`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

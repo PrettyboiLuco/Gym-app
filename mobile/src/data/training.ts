@@ -3,7 +3,8 @@
 // - Geplante und tatsächliche Werte sind getrennt; jeder Satz wird sofort gespeichert (TRAIN-013).
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
-import type { Equipment, ExerciseKind, Measure, MuscleGroup, Sides } from '@/domain/exercises';
+import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
+import type { PastSession } from '@/domain/progression';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
@@ -21,19 +22,21 @@ export type Exercise = {
   sides: Sides;
   holdSeconds: number | null;
   measure: Measure;
+  /** Bewegungsmuster einer eigenen Übung (Phase 8.1); Startübungen: siehe domain/exercises.ts. */
+  pattern: MovementPattern | null;
 };
 
 /** Eigenschaften einer eigenen Übung (UX-013, STRETCH-007, UX-011). */
-export type ExerciseFields = Pick<Exercise, 'equipment' | 'muscleGroup' | 'kind' | 'sides' | 'holdSeconds' | 'measure'>;
+export type ExerciseFields = Pick<Exercise, 'equipment' | 'muscleGroup' | 'kind' | 'sides' | 'holdSeconds' | 'measure' | 'pattern'>;
 
 const EXERCISE_COLUMNS = `id, name_key AS nameKey, custom_name AS customName, equipment, muscle_group AS muscleGroup,
-  kind, sides, hold_seconds AS holdSeconds, measure`;
+  kind, sides, hold_seconds AS holdSeconds, measure, pattern`;
 
 export function listExercises(db: Db) {
   return db.getAllAsync<Exercise>(`SELECT ${EXERCISE_COLUMNS} FROM exercise`);
 }
 
-const KRAFT_DEFAULTS = { kind: 'kraft', sides: 'beidseitig', holdSeconds: null, measure: 'wdh' } as const;
+const KRAFT_DEFAULTS = { kind: 'kraft', sides: 'beidseitig', holdSeconds: null, measure: 'wdh', pattern: null } as const;
 
 export async function addCustomExercise(
   db: Db,
@@ -45,8 +48,8 @@ export async function addCustomExercise(
   const id = newId();
   const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
-    `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
-     VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure, pattern)
+     VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     name.trim(),
     equipment,
@@ -55,7 +58,8 @@ export async function addCustomExercise(
     f.kind,
     f.sides,
     f.holdSeconds,
-    f.measure
+    f.measure,
+    f.kind === 'kraft' ? f.pattern : null
   );
   return id;
 }
@@ -74,8 +78,8 @@ export async function updateCustomExercise(
 ) {
   const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
-    `UPDATE exercise SET custom_name = ?, equipment = ?, muscle_group = ?, kind = ?, sides = ?, hold_seconds = ?, measure = ?
-     WHERE id = ? AND name_key IS NULL`,
+    `UPDATE exercise SET custom_name = ?, equipment = ?, muscle_group = ?, kind = ?, sides = ?, hold_seconds = ?, measure = ?,
+     pattern = ? WHERE id = ? AND name_key IS NULL`,
     name.trim(),
     equipment,
     muscleGroup,
@@ -83,6 +87,7 @@ export async function updateCustomExercise(
     f.sides,
     f.holdSeconds,
     f.measure,
+    f.kind === 'kraft' ? f.pattern : null,
     id
   );
 }
@@ -148,12 +153,15 @@ async function loadVersionDraft(db: Db, versionId: string, name: string): Promis
   return draft;
 }
 
+/** Zusatzangaben einer neuen Version: Grund und Befristung (TRAIN-008). */
+export type VersionOptions = { note?: string | null; validUntil?: string | null; returnVersionId?: string | null };
+
 /**
  * Speichert einen Plan. Ohne planId entsteht ein neuer Plan (Version 1), sonst eine neue
  * Version, die die bisherige ablöst. Alles in einer Transaktion: scheitert etwas, bleibt der
  * alte Stand vollständig erhalten.
  */
-export async function savePlan(db: Db, planId: string | null, draft: PlanDraft): Promise<string> {
+export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, options: VersionOptions = {}): Promise<string> {
   const id = planId ?? newId();
   await db.withTransactionAsync(async () => {
     const now = nowUtc();
@@ -165,12 +173,16 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft):
     await db.runAsync('UPDATE plan_version SET active = 0 WHERE plan_id = ?', id);
     const versionId = newId();
     await db.runAsync(
-      'INSERT INTO plan_version (id, plan_id, version, name, active, created_at_utc) VALUES (?, ?, ?, ?, 1, ?)',
+      `INSERT INTO plan_version (id, plan_id, version, name, active, created_at_utc, note, valid_until, return_version_id)
+       VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)`,
       versionId,
       id,
       (last?.version ?? 0) + 1,
       draft.name.trim(),
-      now
+      now,
+      options.note ?? null,
+      options.validUntil ?? null,
+      options.validUntil ? (options.returnVersionId ?? null) : null
     );
     for (const [dayIndex, day] of draft.days.entries()) {
       const dayId = newId();
@@ -204,22 +216,60 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft):
   return id;
 }
 
-export type PlanVersionInfo = { id: string; version: number; name: string; active: number; createdAt: string };
+export type PlanVersionInfo = {
+  id: string;
+  version: number;
+  name: string;
+  active: number;
+  createdAt: string;
+  note: string | null;
+  /** Befristet bis einschließlich (YYYY-MM-DD), danach gilt returnVersionId wieder. */
+  validUntil: string | null;
+  returnVersionId: string | null;
+};
+
+const VERSION_COLUMNS = `id, version, name, active, created_at_utc AS createdAt, note, valid_until AS validUntil,
+  return_version_id AS returnVersionId`;
 
 export function listPlanVersions(db: Db, planId: string) {
-  return db.getAllAsync<PlanVersionInfo>(
-    `SELECT id, version, name, active, created_at_utc AS createdAt FROM plan_version
-     WHERE plan_id = ? ORDER BY version DESC`,
-    planId
-  );
+  return db.getAllAsync<PlanVersionInfo>(`SELECT ${VERSION_COLUMNS} FROM plan_version WHERE plan_id = ? ORDER BY version DESC`, planId);
 }
 
-/** Macht eine frühere Version wieder aktiv. Trainings aus späteren Versionen bleiben erhalten (TRAIN-011). */
-export async function activatePlanVersion(db: Db, planId: string, versionId: string) {
+export function activeVersion(db: Db, planId: string) {
+  return db.getFirstAsync<PlanVersionInfo>(`SELECT ${VERSION_COLUMNS} FROM plan_version WHERE plan_id = ? AND active = 1`, planId);
+}
+
+/**
+ * Macht eine frühere Version wieder aktiv. Trainings aus späteren Versionen bleiben erhalten (TRAIN-011).
+ * Wird eine abgelaufene befristete Version bewusst wieder gewählt, gilt sie ab jetzt ohne Frist.
+ */
+export async function activatePlanVersion(db: Db, planId: string, versionId: string, today?: string) {
   await db.withTransactionAsync(async () => {
     await db.runAsync('UPDATE plan_version SET active = 0 WHERE plan_id = ?', planId);
     await db.runAsync('UPDATE plan_version SET active = 1 WHERE id = ? AND plan_id = ?', versionId, planId);
+    if (today) {
+      await db.runAsync(
+        'UPDATE plan_version SET valid_until = NULL, return_version_id = NULL WHERE id = ? AND valid_until < ?',
+        versionId,
+        today
+      );
+    }
   });
+}
+
+/**
+ * Beendet abgelaufene befristete Versionen (TRAIN-008): Am Tag nach valid_until gilt wieder die Version,
+ * von der aus geändert wurde. Gibt die Namen der betroffenen Pläne zurück (für einen Hinweis).
+ */
+export async function expireTemporaryPlans(db: Db, today: string): Promise<string[]> {
+  const expired = await db.getAllAsync<{ planId: string; returnVersionId: string; name: string }>(
+    `SELECT v.plan_id AS planId, v.return_version_id AS returnVersionId, r.name FROM plan_version v
+     JOIN plan_version r ON r.id = v.return_version_id
+     WHERE v.active = 1 AND v.valid_until IS NOT NULL AND v.valid_until < ?`,
+    today
+  );
+  for (const row of expired) await activatePlanVersion(db, row.planId, row.returnVersionId);
+  return expired.map((row) => row.name);
 }
 
 /** Entfernt einen Plan aus der Liste. Alte Trainings bleiben im Verlauf. */
@@ -435,6 +485,60 @@ export async function lastPerformance(db: Db, exerciseId: string, excludeSession
   );
 }
 
+/**
+ * Gerät belegt (TRAIN-016): offene Sätze einer Übung in diesem Training auf eine Ersatzübung umstellen.
+ * Erledigte Sätze und der Plan bleiben unverändert; die Ersatzübung hat ihren eigenen Verlauf (TRAIN-014).
+ */
+export async function replaceOpenSets(db: Db, sessionId: string, fromExerciseId: string, toExerciseId: string) {
+  await db.runAsync(
+    'UPDATE set_log SET exercise_id = ? WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NULL',
+    toExerciseId,
+    sessionId,
+    fromExerciseId
+  );
+}
+
+/**
+ * Frühere Einheiten einer Übung (neueste zuerst) mit ihren erledigten Sätzen, für die Steigerungsregeln
+ * (TRAIN-018). Abgebrochene Trainings zählen nicht.
+ */
+export async function exerciseHistory(
+  db: Db,
+  exerciseId: string,
+  excludeSessionId: string,
+  nowMs: number,
+  limit = 3
+): Promise<PastSession[]> {
+  const sessions = await db.getAllAsync<{ sessionId: string; at: string }>(
+    `SELECT l.session_id AS sessionId, MAX(l.completed_at_utc) AS at FROM set_log l
+     JOIN workout_session s ON s.id = l.session_id
+     WHERE l.exercise_id = ? AND l.session_id <> ? AND l.completed_at_utc IS NOT NULL AND s.status <> 'abgebrochen'
+     GROUP BY l.session_id ORDER BY at DESC LIMIT ?`,
+    exerciseId,
+    excludeSessionId,
+    limit
+  );
+  const result: PastSession[] = [];
+  for (const s of sessions) {
+    const sets = await db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null }>(
+      `SELECT weight_kg AS weightKg, reps, seconds FROM set_log
+       WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL ORDER BY position`,
+      s.sessionId,
+      exerciseId
+    );
+    result.push({ daysAgo: Math.floor((nowMs - Date.parse(s.at)) / 86_400_000), sets });
+  }
+  return result;
+}
+
+/** Ende des letzten abgeschlossenen Trainings (für den Hinweis zum Wiedereinstieg, TRAIN-015). */
+export async function lastFinishedAt(db: Db): Promise<string | null> {
+  const row = await db.getFirstAsync<{ at: string | null }>(
+    "SELECT MAX(finished_at_utc) AS at FROM workout_session WHERE status = 'abgeschlossen'"
+  );
+  return row?.at ?? null;
+}
+
 /** Entfernt einen noch nicht erledigten Satz (z. B. versehentlich hinzugefügt). Erledigte Sätze bleiben. */
 export async function deleteOpenSet(db: Db, setId: string) {
   await db.runAsync('DELETE FROM set_log WHERE id = ? AND completed_at_utc IS NULL', setId);
@@ -449,6 +553,10 @@ export const saveRestTimer = (db: Db, timer: RestTimer) => writeState(db, 'rest_
 /** Pause nach jedem Satz automatisch starten (Standard: an). */
 export const loadRestAuto = (db: Db) => readState<boolean>(db, 'rest_auto', true);
 export const saveRestAuto = (db: Db, on: boolean) => writeState(db, 'rest_auto', on);
+
+/** Steigerungsvorschläge im Training anzeigen (Standard: an, TRAIN-018). */
+export const loadProgressionOn = (db: Db) => readState<boolean>(db, 'progression_on', true);
+export const saveProgressionOn = (db: Db, on: boolean) => writeState(db, 'progression_on', on);
 
 export type IntervalRun = { config: IntervalConfig; startedAtMs: number } | null;
 export const loadIntervalRun = (db: Db) => readState<IntervalRun>(db, 'interval_run', null);

@@ -54,6 +54,8 @@ async function clearAll(db: Db) {
  */
 export async function restoreBackup(db: Db, manifest: BackupManifest) {
   await db.withTransactionAsync(async () => {
+    // Verweise innerhalb einer Tabelle (z. B. befristete Planversion → Standardversion) erst am Ende prüfen.
+    await db.execAsync('PRAGMA defer_foreign_keys = ON');
     await clearAll(db);
     for (const table of BACKUP_TABLES) {
       const rows = manifest.tables[table] ?? [];

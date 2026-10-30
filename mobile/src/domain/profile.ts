@@ -3,7 +3,13 @@
 // Alles ist optional außer der Bestätigung „mindestens 18“.
 
 import type { ActivityLevel, FormulaTerm } from './energy';
+import { EQUIPMENT, type Equipment, type Level } from './exercises';
+import { MINUTES_RANGE, type TrainingGoal } from './planner';
 import { DEFAULT_UNITS, HEIGHT_RANGE, lengthInputText, parseLengthIn, type Units } from './units';
+
+/** Beruf grob (COACH-001): z. B. für Dehnvorschläge bei sitzender Arbeit. */
+export const JOBS = ['sitzend', 'stehend', 'koerperlich'] as const;
+export type Job = (typeof JOBS)[number];
 
 export type Profile = {
   /** Bestätigt „mindestens 18 Jahre“ (Start nur für Erwachsene). */
@@ -24,6 +30,13 @@ export type Profile = {
   units: Units;
   /** Fortschrittsfotos eingeschaltet (Standard aus, GOAL-008). */
   photos: boolean;
+  /** Für den Planassistenten (Phase 8, COACH-001): alles optional. */
+  job: Job | null;
+  experience: Level | null;
+  trainingGoal: TrainingGoal | null;
+  /** Vorhandene Geräte; null = keine Angabe (dann alle). Körpergewicht geht immer. */
+  equipment: Equipment[] | null;
+  sessionMinutes: number | null;
 };
 
 export const EMPTY_PROFILE: Profile = {
@@ -36,6 +49,11 @@ export const EMPTY_PROFILE: Profile = {
   sensitive: false,
   units: DEFAULT_UNITS,
   photos: false,
+  job: null,
+  experience: null,
+  trainingGoal: null,
+  equipment: null,
+  sessionMinutes: null,
 };
 
 /** Volle Lebensjahre am Tag `today` (YYYY-MM-DD); Geburtstag wird am Monatsersten angenommen. */
@@ -72,9 +90,14 @@ export type ProfileForm = {
   sport: boolean;
   sensitive: boolean;
   units: Units;
+  job: Job | 'keine';
+  experience: Level | 'keine';
+  trainingGoal: TrainingGoal | 'keine';
+  equipment: Equipment[];
+  minutes: string;
 };
 
-export type ProfileProblem = 'birth' | 'height' | 'minor';
+export type ProfileProblem = 'birth' | 'height' | 'minor' | 'minutes';
 
 export function profileToForm(p: Profile): ProfileForm {
   return {
@@ -85,6 +108,11 @@ export function profileToForm(p: Profile): ProfileForm {
     sport: p.sport,
     sensitive: p.sensitive,
     units: p.units,
+    job: p.job ?? 'keine',
+    experience: p.experience ?? 'keine',
+    trainingGoal: p.trainingGoal ?? 'keine',
+    equipment: p.equipment ?? [...EQUIPMENT],
+    minutes: p.sessionMinutes === null ? '' : String(p.sessionMinutes),
   };
 }
 
@@ -103,7 +131,13 @@ export function parseProfileForm(
   if (birthMonth !== null && ageOn(birthMonth, today) < 18) problems.push('minor');
   const heightCm = form.height.trim() === '' ? null : parseLengthIn(form.height, form.units.length, HEIGHT_RANGE);
   if (form.height.trim() !== '' && heightCm === null) problems.push('height');
+  const minutesText = form.minutes.trim();
+  const minutes = /^\d{1,3}$/.test(minutesText) ? Number(minutesText) : null;
+  const minutesOk = minutes !== null && minutes >= MINUTES_RANGE.min && minutes <= MINUTES_RANGE.max;
+  if (minutesText !== '' && !minutesOk) problems.push('minutes');
   if (problems.length > 0) return { profile: null, problems };
+  // Alle Geräte gewählt = wie keine Angabe; Körpergewicht zählt immer dazu.
+  const equipment = EQUIPMENT.every((e) => e === 'koerpergewicht' || form.equipment.includes(e)) ? null : [...new Set([...form.equipment, 'koerpergewicht' as const])];
   return {
     profile: {
       ...previous,
@@ -114,6 +148,11 @@ export function parseProfileForm(
       sport: form.sport,
       sensitive: form.sensitive,
       units: form.units,
+      job: form.job === 'keine' ? null : form.job,
+      experience: form.experience === 'keine' ? null : form.experience,
+      trainingGoal: form.trainingGoal === 'keine' ? null : form.trainingGoal,
+      equipment,
+      sessionMinutes: minutesText === '' ? null : minutes,
     },
     problems,
   };

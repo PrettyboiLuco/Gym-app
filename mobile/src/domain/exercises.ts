@@ -64,6 +64,194 @@ export const STARTER_EXERCISES: Starter[] = [
   { id: 'crunches', equipment: 'koerpergewicht', muscleGroup: 'bauch' },
 ];
 
+/**
+ * Weitere Kraftübungen für Vorlagen und Ersatzübungen (Phase 8, TRAIN-016): je Bewegungsmuster
+ * mehrere Geräte, damit bei belegtem Gerät oder Training zu Hause eine Alternative da ist.
+ */
+export const MORE_STRENGTH_EXERCISES: (Starter & { sides: Sides })[] = [
+  { id: 'bankdruecken_kh', equipment: 'kurzhantel', muscleGroup: 'brust', sides: 'beidseitig' },
+  { id: 'brustpresse', equipment: 'maschine', muscleGroup: 'brust', sides: 'beidseitig' },
+  { id: 'schulterdruecken_lh', equipment: 'langhantel', muscleGroup: 'schultern', sides: 'beidseitig' },
+  { id: 'schulterpresse_maschine', equipment: 'maschine', muscleGroup: 'schultern', sides: 'beidseitig' },
+  { id: 'pike_liegestuetze', equipment: 'koerpergewicht', muscleGroup: 'schultern', sides: 'beidseitig' },
+  { id: 'seitheben_kabel', equipment: 'kabel', muscleGroup: 'schultern', sides: 'einseitig' },
+  { id: 'goblet_kniebeuge', equipment: 'kurzhantel', muscleGroup: 'beine', sides: 'beidseitig' },
+  { id: 'bulgarische_kniebeuge', equipment: 'kurzhantel', muscleGroup: 'beine', sides: 'einseitig' },
+  { id: 'rumaenisches_kreuzheben_kh', equipment: 'kurzhantel', muscleGroup: 'beine', sides: 'beidseitig' },
+  { id: 'rudern_kh', equipment: 'kurzhantel', muscleGroup: 'ruecken', sides: 'einseitig' },
+  { id: 'rudern_maschine', equipment: 'maschine', muscleGroup: 'ruecken', sides: 'beidseitig' },
+  { id: 'rudern_koerpergewicht', equipment: 'koerpergewicht', muscleGroup: 'ruecken', sides: 'beidseitig' },
+  { id: 'klimmzuege_unterstuetzt', equipment: 'maschine', muscleGroup: 'ruecken', sides: 'beidseitig' },
+  { id: 'bizepscurls_kabel', equipment: 'kabel', muscleGroup: 'arme', sides: 'beidseitig' },
+  { id: 'bizepscurls_lh', equipment: 'langhantel', muscleGroup: 'arme', sides: 'beidseitig' },
+  { id: 'trizeps_ueberkopf_kh', equipment: 'kurzhantel', muscleGroup: 'arme', sides: 'beidseitig' },
+  { id: 'bankdips', equipment: 'koerpergewicht', muscleGroup: 'arme', sides: 'beidseitig' },
+  { id: 'wadenheben_koerpergewicht', equipment: 'koerpergewicht', muscleGroup: 'waden', sides: 'beidseitig' },
+  { id: 'kabelcrunch', equipment: 'kabel', muscleGroup: 'bauch', sides: 'beidseitig' },
+  { id: 'ytw_bauchlage', equipment: 'koerpergewicht', muscleGroup: 'schultern', sides: 'beidseitig' },
+];
+
+// ----------------------------------------------------------------------------------------------
+// Metadaten für den Planassistenten (Phase 8.1, Kap. 4 „Metadaten selbst kuratieren“). Eigene
+// Zuordnung, keine fremde Datenbank (RepDB/wger nur zum Vergleich, Entscheidung 30.10.2026).
+// Alle Zuordnungen und Ersatzübungen sind Vorschläge ohne Fachprüfung (Phase 10.1, TRAIN-016).
+
+/** Bewegungsmuster: bestimmt Aufteilung im Plan, Reihenfolge und passende Ersatzübungen. */
+export const MOVEMENT_PATTERNS = [
+  'kniebeuge',
+  'hueftstreckung',
+  'ausfallschritt',
+  'bein_isolation',
+  'waden',
+  'druecken_horizontal',
+  'druecken_vertikal',
+  'brust_isolation',
+  'schulter_isolation',
+  'trizeps',
+  'ziehen_horizontal',
+  'ziehen_vertikal',
+  'hintere_schulter',
+  'bizeps',
+  'rumpf',
+  'ganzkoerper',
+] as const;
+export type MovementPattern = (typeof MOVEMENT_PATTERNS)[number];
+
+/** Grobe Gruppe für die Aufteilung (Push/Pull/Beine, Ober-/Unterkörper). */
+export type PatternGroup = 'push' | 'pull' | 'beine' | 'rumpf' | 'ganzkoerper';
+
+export const PATTERN_GROUP: Record<MovementPattern, PatternGroup> = {
+  kniebeuge: 'beine',
+  hueftstreckung: 'beine',
+  ausfallschritt: 'beine',
+  bein_isolation: 'beine',
+  waden: 'beine',
+  druecken_horizontal: 'push',
+  druecken_vertikal: 'push',
+  brust_isolation: 'push',
+  schulter_isolation: 'push',
+  trizeps: 'push',
+  ziehen_horizontal: 'pull',
+  ziehen_vertikal: 'pull',
+  hintere_schulter: 'pull',
+  bizeps: 'pull',
+  rumpf: 'rumpf',
+  ganzkoerper: 'ganzkoerper',
+};
+
+/** Mehrgelenkige Grundübungen kommen im Plan zuerst und werden zuletzt gekürzt. */
+export const COMPOUND_PATTERNS: readonly MovementPattern[] = [
+  'kniebeuge',
+  'hueftstreckung',
+  'druecken_horizontal',
+  'ziehen_vertikal',
+  'druecken_vertikal',
+  'ziehen_horizontal',
+  'ausfallschritt',
+];
+
+export function isCompound(pattern: MovementPattern): boolean {
+  return COMPOUND_PATTERNS.includes(pattern);
+}
+
+/** Einsteiger = Technik gut alleine lernbar; Fortgeschritten = eher mit Anleitung/Erfahrung. */
+export type Level = 'einsteiger' | 'fortgeschritten';
+
+type Meta = { pattern: MovementPattern; level: Level; alternatives: string[] };
+
+/**
+ * Bewegungsmuster, Schwierigkeit und Ersatzübungen (in dieser Reihenfolge vorgeschlagen). Ersatz
+ * heißt: ähnliches Muster, andere Geräte. Leistungswerte sind nicht übertragbar (TRAIN-014).
+ */
+export const EXERCISE_META: Record<string, Meta> = {
+  kniebeuge: { pattern: 'kniebeuge', level: 'fortgeschritten', alternatives: ['beinpresse', 'goblet_kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'] },
+  beinpresse: { pattern: 'kniebeuge', level: 'einsteiger', alternatives: ['goblet_kniebeuge', 'kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'] },
+  goblet_kniebeuge: { pattern: 'kniebeuge', level: 'einsteiger', alternatives: ['beinpresse', 'kniebeuge', 'kniebeuge_koerpergewicht'] },
+  kniebeuge_koerpergewicht: { pattern: 'kniebeuge', level: 'einsteiger', alternatives: ['goblet_kniebeuge', 'beinpresse', 'ausfallschritte_wechsel'] },
+  sprungkniebeuge: { pattern: 'kniebeuge', level: 'fortgeschritten', alternatives: ['kniebeuge_koerpergewicht', 'goblet_kniebeuge'] },
+  kreuzheben: { pattern: 'hueftstreckung', level: 'fortgeschritten', alternatives: ['rumaenisches_kreuzheben', 'rumaenisches_kreuzheben_kh', 'hip_thrust', 'beckenheben'] },
+  rumaenisches_kreuzheben: { pattern: 'hueftstreckung', level: 'fortgeschritten', alternatives: ['rumaenisches_kreuzheben_kh', 'beinbeuger', 'hip_thrust', 'beckenheben'] },
+  rumaenisches_kreuzheben_kh: { pattern: 'hueftstreckung', level: 'einsteiger', alternatives: ['rumaenisches_kreuzheben', 'beinbeuger', 'hip_thrust', 'beckenheben'] },
+  hip_thrust: { pattern: 'hueftstreckung', level: 'einsteiger', alternatives: ['beckenheben', 'rumaenisches_kreuzheben_kh', 'rumaenisches_kreuzheben'] },
+  beckenheben: { pattern: 'hueftstreckung', level: 'einsteiger', alternatives: ['hip_thrust', 'rumaenisches_kreuzheben_kh'] },
+  ausfallschritte: { pattern: 'ausfallschritt', level: 'einsteiger', alternatives: ['bulgarische_kniebeuge', 'ausfallschritte_wechsel', 'beinpresse'] },
+  bulgarische_kniebeuge: { pattern: 'ausfallschritt', level: 'fortgeschritten', alternatives: ['ausfallschritte', 'ausfallschritte_wechsel', 'beinpresse'] },
+  ausfallschritte_wechsel: { pattern: 'ausfallschritt', level: 'einsteiger', alternatives: ['ausfallschritte', 'bulgarische_kniebeuge'] },
+  beinstrecker: { pattern: 'bein_isolation', level: 'einsteiger', alternatives: ['goblet_kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'] },
+  beinbeuger: { pattern: 'bein_isolation', level: 'einsteiger', alternatives: ['rumaenisches_kreuzheben_kh', 'beckenheben'] },
+  wadenheben: { pattern: 'waden', level: 'einsteiger', alternatives: ['wadenheben_koerpergewicht'] },
+  wadenheben_koerpergewicht: { pattern: 'waden', level: 'einsteiger', alternatives: ['wadenheben'] },
+
+  bankdruecken: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'brustpresse', 'schraegbankdruecken_kh', 'liegestuetze'] },
+  bankdruecken_kh: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken', 'brustpresse', 'liegestuetze'] },
+  brustpresse: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'bankdruecken', 'liegestuetze'] },
+  schraegbankdruecken_kh: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'brustpresse', 'liegestuetze'] },
+  liegestuetze: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['liegestuetze_knie', 'bankdruecken_kh', 'brustpresse'] },
+  liegestuetze_knie: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['liegestuetze', 'brustpresse'] },
+  schulterdruecken_kh: { pattern: 'druecken_vertikal', level: 'einsteiger', alternatives: ['schulterpresse_maschine', 'schulterdruecken_lh', 'pike_liegestuetze'] },
+  schulterdruecken_lh: { pattern: 'druecken_vertikal', level: 'fortgeschritten', alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine', 'pike_liegestuetze'] },
+  schulterpresse_maschine: { pattern: 'druecken_vertikal', level: 'einsteiger', alternatives: ['schulterdruecken_kh', 'schulterdruecken_lh', 'pike_liegestuetze'] },
+  pike_liegestuetze: { pattern: 'druecken_vertikal', level: 'fortgeschritten', alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine'] },
+  butterfly: { pattern: 'brust_isolation', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'liegestuetze'] },
+  seitheben: { pattern: 'schulter_isolation', level: 'einsteiger', alternatives: ['seitheben_kabel'] },
+  seitheben_kabel: { pattern: 'schulter_isolation', level: 'einsteiger', alternatives: ['seitheben'] },
+  trizepsdruecken_kabel: { pattern: 'trizeps', level: 'einsteiger', alternatives: ['trizeps_ueberkopf_kh', 'bankdips', 'dips'] },
+  trizeps_ueberkopf_kh: { pattern: 'trizeps', level: 'einsteiger', alternatives: ['trizepsdruecken_kabel', 'bankdips'] },
+  dips: { pattern: 'trizeps', level: 'fortgeschritten', alternatives: ['bankdips', 'trizepsdruecken_kabel', 'trizeps_ueberkopf_kh'] },
+  bankdips: { pattern: 'trizeps', level: 'einsteiger', alternatives: ['trizepsdruecken_kabel', 'trizeps_ueberkopf_kh'] },
+
+  latzug: { pattern: 'ziehen_vertikal', level: 'einsteiger', alternatives: ['klimmzuege_unterstuetzt', 'klimmzuege', 'rudern_kh'] },
+  klimmzuege: { pattern: 'ziehen_vertikal', level: 'fortgeschritten', alternatives: ['klimmzuege_unterstuetzt', 'latzug', 'rudern_koerpergewicht'] },
+  klimmzuege_unterstuetzt: { pattern: 'ziehen_vertikal', level: 'einsteiger', alternatives: ['latzug', 'klimmzuege'] },
+  langhantelrudern: { pattern: 'ziehen_horizontal', level: 'fortgeschritten', alternatives: ['rudern_kh', 'rudern_kabel', 'rudern_maschine'] },
+  rudern_kabel: { pattern: 'ziehen_horizontal', level: 'einsteiger', alternatives: ['rudern_maschine', 'rudern_kh', 'langhantelrudern'] },
+  rudern_kh: { pattern: 'ziehen_horizontal', level: 'einsteiger', alternatives: ['rudern_kabel', 'rudern_maschine', 'rudern_koerpergewicht'] },
+  rudern_maschine: { pattern: 'ziehen_horizontal', level: 'einsteiger', alternatives: ['rudern_kabel', 'rudern_kh'] },
+  rudern_koerpergewicht: { pattern: 'ziehen_horizontal', level: 'einsteiger', alternatives: ['rudern_kh', 'rudern_kabel'] },
+  face_pulls: { pattern: 'hintere_schulter', level: 'einsteiger', alternatives: ['ytw_bauchlage', 'rudern_kabel', 'rudern_kh'] },
+  ytw_bauchlage: { pattern: 'hintere_schulter', level: 'einsteiger', alternatives: ['face_pulls', 'rudern_koerpergewicht'] },
+  bizepscurls_kh: { pattern: 'bizeps', level: 'einsteiger', alternatives: ['bizepscurls_kabel', 'bizepscurls_lh'] },
+  bizepscurls_kabel: { pattern: 'bizeps', level: 'einsteiger', alternatives: ['bizepscurls_kh', 'bizepscurls_lh'] },
+  bizepscurls_lh: { pattern: 'bizeps', level: 'einsteiger', alternatives: ['bizepscurls_kh', 'bizepscurls_kabel'] },
+
+  plank: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['seitstuetz'] },
+  seitstuetz: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['plank'] },
+  crunches: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['kabelcrunch', 'beinheben', 'fahrradcrunch'] },
+  kabelcrunch: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['crunches', 'beinheben'] },
+  beinheben: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['crunches', 'kabelcrunch'] },
+  fahrradcrunch: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['crunches', 'russian_twist'] },
+  russian_twist: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['fahrradcrunch', 'crunches'] },
+  mountain_climbers: { pattern: 'rumpf', level: 'einsteiger', alternatives: ['plank', 'beinheben'] },
+
+  hampelmann: { pattern: 'ganzkoerper', level: 'einsteiger', alternatives: ['kniehebelauf'] },
+  kniehebelauf: { pattern: 'ganzkoerper', level: 'einsteiger', alternatives: ['hampelmann'] },
+  burpees: { pattern: 'ganzkoerper', level: 'fortgeschritten', alternatives: ['hampelmann', 'mountain_climbers'] },
+};
+
+/** Muster einer eigenen Übung ohne Angabe: aus der Muskelgruppe abgeleitet (grob). */
+const PATTERN_BY_GROUP: Record<MuscleGroup, MovementPattern> = {
+  brust: 'druecken_horizontal',
+  ruecken: 'ziehen_horizontal',
+  schultern: 'druecken_vertikal',
+  arme: 'bizeps',
+  beine: 'kniebeuge',
+  gesaess: 'hueftstreckung',
+  waden: 'waden',
+  bauch: 'rumpf',
+  huefte: 'hueftstreckung',
+  nacken: 'hintere_schulter',
+  ganzkoerper: 'ganzkoerper',
+};
+
+/** Bewegungsmuster einer Übung: kuratiert, sonst eigene Angabe, sonst aus der Muskelgruppe. */
+export function patternOf(exercise: { id: string; muscleGroup: MuscleGroup; pattern?: MovementPattern | null }): MovementPattern {
+  return EXERCISE_META[exercise.id]?.pattern ?? exercise.pattern ?? PATTERN_BY_GROUP[exercise.muscleGroup];
+}
+
+export function levelOf(exerciseId: string): Level {
+  return EXERCISE_META[exerciseId]?.level ?? 'einsteiger';
+}
+
 /** Übungen, die in Sekunden statt Wiederholungen gemessen werden (UX-011). */
 export const TIMED_EXERCISES = ['plank', 'seitstuetz'];
 
