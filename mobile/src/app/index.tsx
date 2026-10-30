@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { formatKcal, formatKcalSum, todayDay } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
+import { loadTimedRun } from '@/data/routines';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { useUnits } from '@/data/profile-provider';
 import { getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
@@ -27,6 +28,7 @@ async function loadToday(db: Db) {
     loadNutritionSettings(db),
     calorieGoalOn(db, today),
   ]);
+  const timed = await loadTimedRun(db);
   const sums = sumNutrients(events);
   const food = {
     entries: events.length,
@@ -41,18 +43,19 @@ async function loadToday(db: Db) {
     const index = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
     next = { plan: plan.name, day: plan.days[index].name };
   }
-  return { lastWeight: weights[0] ?? null, trend: weightTrend(weights, today), active, next, food };
+  return { lastWeight: weights[0] ?? null, trend: weightTrend(weights, today), active, next, food, timed: timed?.title ?? null };
 }
 
 export default function TodayScreen() {
   const { data } = useLoad(loadToday, {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
+    timed: null as string | null,
     active: null as SessionInfo | null,
     next: null as { plan: string; day: string } | null,
     food: { entries: 0, sums: sumNutrients([]), drinksMl: 0, goal: null as number | null, hide: false },
   });
-  const { lastWeight, trend, active, next, food } = data;
+  const { lastWeight, trend, active, next, food, timed } = data;
   const units = useUnits();
   const eaten = formatKcalSum(food.sums);
   const left = food.goal === null ? 0 : food.goal - food.sums.values.kcal;
@@ -71,6 +74,9 @@ export default function TodayScreen() {
   return (
     <Screen title={t('today.title')} subtitle={formatLongDate(new Date())}>
       <Card title={t('today.training')}>
+        {timed ? (
+          <ListRow title={t('training.timedActive', { name: timed })} accessory="›" onPress={() => router.push('/training/run')} />
+        ) : null}
         {active ? (
           <ListRow
             title={t('today.trainingActive', { name: active.dayName ?? t('session.free') })}

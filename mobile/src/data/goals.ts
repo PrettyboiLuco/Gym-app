@@ -74,12 +74,13 @@ export type GoalVersion = {
   targetReps: number | null;
   habit: Habit | null;
   perWeek: number | null;
+  targetCm: number | null;
   createdAt: string;
 };
 
 const VERSION_COLUMNS = `v.id, v.goal_id AS goalId, g.kind, v.version, v.valid_from AS validFrom, v.status,
   v.direction, v.target_kg AS targetKg, v.start_kg AS startKg, v.exercise_id AS exerciseId,
-  v.target_reps AS targetReps, v.habit, v.per_week AS perWeek, v.created_at_utc AS createdAt`;
+  v.target_reps AS targetReps, v.habit, v.per_week AS perWeek, v.target_cm AS targetCm, v.created_at_utc AS createdAt`;
 
 /** Neueste Version jedes Ziels, das noch aktiv ist. */
 export function listActiveGoals(db: Db) {
@@ -106,7 +107,7 @@ async function insertVersion(db: Db, goalId: string, validFrom: string, status: 
   );
   await db.runAsync(
     `INSERT INTO goal_version (id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
-     target_reps, habit, per_week, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     target_reps, habit, per_week, target_cm, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     newId(),
     goalId,
     (last?.version ?? 0) + 1,
@@ -119,6 +120,7 @@ async function insertVersion(db: Db, goalId: string, validFrom: string, status: 
     v.targetReps ?? null,
     v.habit ?? null,
     v.perWeek ?? null,
+    v.targetCm ?? null,
     nowUtc()
   );
 }
@@ -153,6 +155,8 @@ export async function saveGoal(db: Db, goalId: string | null, draft: GoalDraft, 
         targetKg: draft.targetKg,
         targetReps: draft.targetReps,
       });
+    } else if (draft.kind === 'beweglichkeit') {
+      await insertVersion(db, id, validFrom, 'aktiv', { targetCm: draft.targetCm });
     } else {
       await insertVersion(db, id, validFrom, 'aktiv', { habit: draft.habit, perWeek: draft.perWeek });
     }
@@ -184,10 +188,26 @@ export async function liftSets(db: Db, exerciseId: string, timeZone: string): Pr
   return rows.map((r) => ({ weightKg: r.weightKg, reps: r.reps, day: localDay(new Date(r.at), timeZone) }));
 }
 
-/** Tage mit mindestens einem erledigten Satz, auch bei abgebrochenem Training. */
+/**
+ * Trainingstage: Tage mit mindestens einem erledigten Satz (auch bei abgebrochenem Training) oder
+ * einer abgeschlossenen HIIT-Einheit (HIIT-005 „zählt als Training“).
+ */
 export async function trainingDays(db: Db, fromUtc: string, timeZone: string): Promise<string[]> {
   const rows = await db.getAllAsync<{ at: string }>(
-    'SELECT completed_at_utc AS at FROM set_log WHERE completed_at_utc IS NOT NULL AND completed_at_utc >= ?',
+    `SELECT completed_at_utc AS at FROM set_log WHERE completed_at_utc IS NOT NULL AND completed_at_utc >= ?
+     UNION ALL
+     SELECT started_at_utc AS at FROM timed_session WHERE kind = 'hiit' AND status = 'abgeschlossen' AND started_at_utc >= ?`,
+    fromUtc,
+    fromUtc
+  );
+  return [...new Set(rows.map((r) => localDay(new Date(r.at), timeZone)))];
+}
+
+/** Tage mit abgeschlossener Dehnroutine oder Cool-down (Gewohnheit „dehnen“). */
+export async function stretchDays(db: Db, fromUtc: string, timeZone: string): Promise<string[]> {
+  const rows = await db.getAllAsync<{ at: string }>(
+    `SELECT started_at_utc AS at FROM timed_session
+     WHERE kind IN ('dehnen', 'cooldown') AND status = 'abgeschlossen' AND started_at_utc >= ?`,
     fromUtc
   );
   return [...new Set(rows.map((r) => localDay(new Date(r.at), timeZone)))];

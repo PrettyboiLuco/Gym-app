@@ -1,7 +1,7 @@
 // Datenbank-Migrationen. Jede Version kommt als neuer Eintrag ans Ende; bestehende Einträge
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
-import { STARTER_EXERCISES } from '@/domain/exercises';
+import { HIIT_EXERCISES, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
 
 import type { Db } from './db';
 
@@ -10,6 +10,18 @@ const starterInserts = STARTER_EXERCISES.map(
     `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc)
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-29T00:00:00Z');`
 ).join('\n');
+
+// Ab Version 6: Übungen mit Art, Seiten, Haltezeit und Messung (Register STRETCH-007, UX-011).
+const phase5Inserts = [
+  ...HIIT_EXERCISES.map(
+    (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-30T00:00:00Z', 'kraft', '${e.sides}', NULL, '${e.measure}');`
+  ),
+  ...STRETCH_EXERCISES.map(
+    (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-30T00:00:00Z', '${e.kind}', '${e.sides}', ${e.holdSeconds}, 'zeit');`
+  ),
+].join('\n');
 
 export const MIGRATIONS: string[] = [
   // Version 1: Körpergewicht
@@ -229,6 +241,115 @@ export const MIGRATIONS: string[] = [
      created_at_utc TEXT NOT NULL
    );
    CREATE INDEX progress_photo_day ON progress_photo (day);`,
+
+  // Version 6: Dehnung, Mobilität, HIIT (Register STRETCH-001–007, HIIT-001–005, UX-011, GOAL-001)
+  `ALTER TABLE exercise ADD COLUMN kind TEXT NOT NULL DEFAULT 'kraft'
+     CHECK (kind IN ('kraft', 'dehnung_statisch', 'dehnung_dynamisch', 'mobilitaet'));
+   ALTER TABLE exercise ADD COLUMN sides TEXT NOT NULL DEFAULT 'beidseitig' CHECK (sides IN ('beidseitig', 'einseitig'));
+   ALTER TABLE exercise ADD COLUMN hold_seconds INTEGER CHECK (hold_seconds IS NULL OR hold_seconds BETWEEN 5 AND 300);
+   ALTER TABLE exercise ADD COLUMN measure TEXT NOT NULL DEFAULT 'wdh' CHECK (measure IN ('wdh', 'zeit'));
+   UPDATE exercise SET measure = 'zeit' WHERE id = 'plank';
+   ${phase5Inserts}
+   -- Zeit-Sätze (UX-011): Bei Übungen mit Messung „zeit“ gilt target_seconds; reps_min/reps_max
+   -- bleiben dann 1/1 als Platzhalter, weil die alte Spalte keine NULL-Werte erlaubt.
+   ALTER TABLE plan_item ADD COLUMN target_seconds INTEGER CHECK (target_seconds IS NULL OR target_seconds BETWEEN 5 AND 600);
+   -- Plank wurde bisher in Wiederholungen geplant; der bisherige Höchstwert wird als Sekunden übernommen.
+   UPDATE plan_item SET target_seconds = MIN(600, MAX(5, reps_max)), reps_min = 1, reps_max = 1 WHERE exercise_id = 'plank';
+   ALTER TABLE set_log ADD COLUMN planned_seconds INTEGER CHECK (planned_seconds IS NULL OR planned_seconds > 0);
+   ALTER TABLE set_log ADD COLUMN seconds INTEGER CHECK (seconds IS NULL OR seconds > 0);
+   -- Aufwärmen/Cool-down je Trainingstag vorschlagen (STRETCH-001/002), Standard an.
+   ALTER TABLE plan_day ADD COLUMN warmup INTEGER NOT NULL DEFAULT 1 CHECK (warmup IN (0, 1));
+   ALTER TABLE plan_day ADD COLUMN cooldown INTEGER NOT NULL DEFAULT 1 CHECK (cooldown IN (0, 1));
+   -- Eigene Dehnroutinen und HIIT-Abläufe, versioniert wie Pläne (STRETCH-003, HIIT-004).
+   CREATE TABLE routine (
+     id TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('dehnen', 'hiit')),
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE TABLE routine_version (
+     id TEXT PRIMARY KEY NOT NULL,
+     routine_id TEXT NOT NULL REFERENCES routine (id),
+     version INTEGER NOT NULL CHECK (version > 0),
+     name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+     active INTEGER NOT NULL CHECK (active IN (0, 1)),
+     switch_seconds INTEGER NOT NULL CHECK (switch_seconds BETWEEN 0 AND 30),
+     transition_seconds INTEGER NOT NULL CHECK (transition_seconds BETWEEN 0 AND 60),
+     work_seconds INTEGER NOT NULL CHECK (work_seconds BETWEEN 5 AND 300),
+     rest_seconds INTEGER NOT NULL CHECK (rest_seconds BETWEEN 0 AND 300),
+     rounds INTEGER NOT NULL CHECK (rounds BETWEEN 1 AND 20),
+     round_rest_seconds INTEGER NOT NULL CHECK (round_rest_seconds BETWEEN 0 AND 600),
+     created_at_utc TEXT NOT NULL,
+     UNIQUE (routine_id, version)
+   );
+   CREATE TABLE routine_item (
+     id TEXT PRIMARY KEY NOT NULL,
+     routine_version_id TEXT NOT NULL REFERENCES routine_version (id),
+     position INTEGER NOT NULL,
+     exercise_id TEXT NOT NULL REFERENCES exercise (id),
+     seconds INTEGER NOT NULL CHECK (seconds BETWEEN 5 AND 300)
+   );
+   -- Protokoll absolvierter Einheiten, getrennt von Kraft-Sätzen (STRETCH-005, HIIT-005).
+   CREATE TABLE timed_session (
+     id TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('dehnen', 'hiit', 'aufwaermen', 'cooldown')),
+     name TEXT NOT NULL,
+     source TEXT NOT NULL,
+     routine_version_id TEXT REFERENCES routine_version (id),
+     workout_session_id TEXT REFERENCES workout_session (id),
+     status TEXT NOT NULL CHECK (status IN ('aktiv', 'abgeschlossen', 'abgebrochen')),
+     abort_reason TEXT,
+     planned_seconds INTEGER NOT NULL CHECK (planned_seconds > 0),
+     done_seconds INTEGER CHECK (done_seconds IS NULL OR done_seconds >= 0),
+     rounds_done INTEGER CHECK (rounds_done IS NULL OR rounds_done >= 0),
+     -- Übungsfolge als Schnappschuss (JSON-Liste von Übungs-IDs).
+     items TEXT NOT NULL,
+     started_at_utc TEXT NOT NULL,
+     finished_at_utc TEXT
+   );
+   CREATE INDEX timed_session_started ON timed_session (started_at_utc);
+   -- Beweglichkeits-Selbsttest (Kap. 21.2 Punkt 5): Abstand Fingerspitzen–Boden in cm, 0 = Boden erreicht.
+   CREATE TABLE flexibility_test (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     test TEXT NOT NULL CHECK (test IN ('finger_boden')),
+     cm REAL NOT NULL CHECK (cm BETWEEN 0 AND 100),
+     recorded_at_utc TEXT NOT NULL
+   );
+   -- Ziele: neue Art „beweglichkeit“ und Gewohnheit „dehnen“. SQLite kann CHECK-Regeln nicht ändern,
+   -- daher werden goal und goal_version neu angelegt. Reihenfolge so, dass nie ein Verweis ins Leere zeigt:
+   -- Versionen sichern, Kind- vor Elterntabelle löschen, neu anlegen, zurückkopieren.
+   CREATE TABLE goal_new (
+     id TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('gewicht', 'kraft', 'gewohnheit', 'beweglichkeit')),
+     created_at_utc TEXT NOT NULL
+   );
+   INSERT INTO goal_new (id, kind, created_at_utc) SELECT id, kind, created_at_utc FROM goal;
+   CREATE TABLE goal_version_backup AS SELECT * FROM goal_version;
+   DROP TABLE goal_version;
+   DROP TABLE goal;
+   ALTER TABLE goal_new RENAME TO goal;
+   CREATE TABLE goal_version (
+     id TEXT PRIMARY KEY NOT NULL,
+     goal_id TEXT NOT NULL REFERENCES goal (id),
+     version INTEGER NOT NULL CHECK (version > 0),
+     valid_from TEXT NOT NULL,
+     status TEXT NOT NULL CHECK (status IN ('aktiv', 'beendet')),
+     direction TEXT CHECK (direction IS NULL OR direction IN ('abnehmen', 'halten', 'zunehmen')),
+     target_kg REAL CHECK (target_kg IS NULL OR target_kg >= 0),
+     start_kg REAL CHECK (start_kg IS NULL OR start_kg > 0),
+     exercise_id TEXT REFERENCES exercise (id),
+     target_reps INTEGER CHECK (target_reps IS NULL OR target_reps BETWEEN 1 AND 100),
+     habit TEXT CHECK (habit IS NULL OR habit IN ('training', 'trinken', 'dehnen')),
+     per_week INTEGER CHECK (per_week IS NULL OR per_week BETWEEN 1 AND 7),
+     target_cm REAL CHECK (target_cm IS NULL OR target_cm BETWEEN 0 AND 100),
+     created_at_utc TEXT NOT NULL,
+     UNIQUE (goal_id, version)
+   );
+   INSERT INTO goal_version (id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
+     target_reps, habit, per_week, target_cm, created_at_utc)
+     SELECT id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
+     target_reps, habit, per_week, NULL, created_at_utc FROM goal_version_backup;
+   DROP TABLE goal_version_backup;`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

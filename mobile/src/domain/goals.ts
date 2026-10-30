@@ -4,21 +4,26 @@
 
 import { bmi, underweightLimitKg, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { parseWholeNumber } from './training';
-import { BODY_WEIGHT_RANGE, LIFT_RANGE, parseWeightIn, type WeightUnit } from './units';
+import { BODY_WEIGHT_RANGE, LIFT_RANGE, parseLengthIn, parseWeightIn, type LengthUnit, type WeightUnit } from './units';
 
-export const GOAL_KINDS = ['gewicht', 'kraft', 'gewohnheit'] as const;
+/** Bereich des Finger-Boden-Abstands in cm (0 = Boden erreicht). */
+export const FLEX_RANGE = { min: 0, max: 100 } as const;
+
+export const GOAL_KINDS = ['gewicht', 'kraft', 'gewohnheit', 'beweglichkeit'] as const;
 export type GoalKind = (typeof GOAL_KINDS)[number];
 
 export const DIRECTIONS = ['abnehmen', 'halten', 'zunehmen'] as const satisfies readonly Goal[];
 
-/** Gewohnheiten, die die App heute schon messen kann; Schritte und Dehnen folgen (Phase 5/6). */
-export const HABITS = ['training', 'trinken'] as const;
+/** Gewohnheiten, die die App heute schon messen kann; Schritte folgen mit Apple Health (Phase 6). */
+export const HABITS = ['training', 'trinken', 'dehnen'] as const;
 export type Habit = (typeof HABITS)[number];
 
 export type GoalDraft =
   | { kind: 'gewicht'; direction: Goal; targetKg: number | null }
   | { kind: 'kraft'; exerciseId: string; targetKg: number; targetReps: number }
-  | { kind: 'gewohnheit'; habit: Habit; perWeek: number };
+  | { kind: 'gewohnheit'; habit: Habit; perWeek: number }
+  /** Beweglichkeit über den Finger-Boden-Test: Ziel-Abstand in cm (0 = Boden). */
+  | { kind: 'beweglichkeit'; targetCm: number };
 
 export type GoalForm = {
   kind: GoalKind;
@@ -29,6 +34,7 @@ export type GoalForm = {
   reps: string;
   habit: Habit;
   perWeek: string;
+  targetCm: string;
 };
 
 export const EMPTY_GOAL_FORM: GoalForm = {
@@ -40,6 +46,7 @@ export const EMPTY_GOAL_FORM: GoalForm = {
   reps: '',
   habit: 'training',
   perWeek: '3',
+  targetCm: '',
 };
 
 export type GoalProblem =
@@ -51,7 +58,8 @@ export type GoalProblem =
   | 'exercise'
   | 'lift'
   | 'reps'
-  | 'perWeek';
+  | 'perWeek'
+  | 'targetCm';
 
 export type GoalContext = { currentKg: number | null; heightCm: number | null; sensitive: boolean };
 
@@ -60,8 +68,18 @@ export type GoalContext = { currentKg: number | null; heightCm: number | null; s
  * Person schon dort liegt oder eine sensible Situation angegeben ist – dann Verweis auf Fachleute
  * (GOAL-007, COACH-010). Ein Zielgewicht beim Abnehmen braucht deshalb die Größe.
  */
-export function parseGoalForm(form: GoalForm, unit: WeightUnit, ctx: GoalContext): { draft: GoalDraft | null; problems: GoalProblem[] } {
+export function parseGoalForm(
+  form: GoalForm,
+  unit: WeightUnit,
+  ctx: GoalContext,
+  lengthUnit: LengthUnit = 'cm'
+): { draft: GoalDraft | null; problems: GoalProblem[] } {
   const problems: GoalProblem[] = [];
+  if (form.kind === 'beweglichkeit') {
+    const targetCm = parseLengthIn(form.targetCm, lengthUnit, FLEX_RANGE);
+    if (targetCm === null) return { draft: null, problems: ['targetCm'] };
+    return { draft: { kind: 'beweglichkeit', targetCm: Math.max(0, targetCm) }, problems };
+  }
   if (form.kind === 'gewicht') {
     const text = form.targetWeight.trim();
     const targetKg = form.direction === 'halten' || text === '' ? null : parseWeightIn(text, unit, BODY_WEIGHT_RANGE);
@@ -144,6 +162,17 @@ export function strengthProgress(sets: LiftSet[], target: { targetKg: number; ta
   const best = qualifying.reduce<LiftSet | null>((b, s) => (b === null || s.weightKg > b.weightKg ? s : b), null);
   const last = sets.reduce<LiftSet | null>((l, s) => (l === null || s.day >= l.day ? s : l), null);
   return { best, last, reached: best !== null && best.weightKg >= target.targetKg };
+}
+
+/**
+ * Beweglichkeitsziel aus Finger-Boden-Tests (Liste absteigend nach Tag): erster Test als Start,
+ * neuester als aktueller Wert. Kleiner ist besser.
+ */
+export function flexibilityProgress(tests: { day: string; cm: number }[], targetCm: number) {
+  if (tests.length === 0) return { start: null, current: null, reached: false };
+  const current = tests[0];
+  const start = tests[tests.length - 1];
+  return { start, current, reached: current.cm <= targetCm };
 }
 
 /** Montag der Woche (YYYY-MM-DD), in der `day` liegt. */

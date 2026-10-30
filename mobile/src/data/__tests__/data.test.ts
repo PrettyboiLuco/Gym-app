@@ -85,7 +85,8 @@ describe('Gewicht', () => {
 describe('Pläne und Versionen', () => {
   test('neuer Plan wird als Version 1 gespeichert und wieder geladen', async () => {
     const planId = await savePlan(db, null, pushPull);
-    expect(await loadPlanDraft(db, planId)).toEqual(pushPull);
+    // Neue Felder seit Phase 5 (Aufwärmen/Cool-down je Tag, Zeit-Sätze) haben Standardwerte.
+    expect(await loadPlanDraft(db, planId)).toMatchObject(pushPull);
     const plans = await listActivePlans(db);
     expect(plans[0].version).toBe(1);
     expect(plans[0].days.map((d) => d.name)).toEqual(['Push', 'Pull']);
@@ -166,8 +167,8 @@ describe('Training und Sätze', () => {
     await finishSession(db, first, 'abgeschlossen');
     const second = await startSession(db, plan.days[0].id);
     expect(await lastPerformance(db, 'bankdruecken', second)).toEqual([
-      { weightKg: 60, reps: 10 },
-      { weightKg: 60, reps: 8 },
+      { weightKg: 60, reps: 10, seconds: null },
+      { weightKg: 60, reps: 8, seconds: null },
     ]);
     expect(await lastPerformance(db, 'latzug', second)).toEqual([]);
   });
@@ -236,7 +237,7 @@ describe('Eigene Übungen bearbeiten (UX-013)', () => {
     await addSet(db, session, id);
     await updateCustomExercise(db, id, '  Cable Fly ', 'maschine', 'schultern');
     const all = await listExercises(db);
-    expect(all.find((e) => e.id === id)).toEqual({
+    expect(all.find((e) => e.id === id)).toMatchObject({
       id,
       nameKey: null,
       customName: 'Cable Fly',

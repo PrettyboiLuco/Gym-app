@@ -12,19 +12,21 @@ import {
   startSession,
   type PlanSummary,
 } from '@/data/training';
+import { loadTimedRun } from '@/data/routines';
+import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { t } from '@/i18n';
 
 async function loadOverview(db: Db) {
-  const [active, plans] = await Promise.all([getActiveSession(db), listActivePlans(db)]);
+  const [active, plans, timed] = await Promise.all([getActiveSession(db), listActivePlans(db), loadTimedRun(db)]);
   const suggestions: Record<string, number> = {};
   for (const plan of plans) {
     if (plan.days.length > 0) {
       suggestions[plan.planId] = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
     }
   }
-  return { active, plans, suggestions };
+  return { active, plans, suggestions, timed };
 }
 
 export default function TrainingScreen() {
@@ -32,8 +34,9 @@ export default function TrainingScreen() {
     active: null,
     plans: [] as PlanSummary[],
     suggestions: {} as Record<string, number>,
+    timed: null as TimedRun | null,
   });
-  const { active, plans, suggestions } = data;
+  const { active, plans, suggestions, timed } = data;
 
   async function start(planDayId: string | null) {
     const id = await startSession(db, planDayId);
@@ -42,6 +45,11 @@ export default function TrainingScreen() {
 
   return (
     <Screen title={t('training.title')}>
+      {timed ? (
+        <Card title={t('training.timedActive', { name: timed.title })}>
+          <Button label={t('training.timedContinue')} onPress={() => router.push('/training/run')} />
+        </Card>
+      ) : null}
       {active ? (
         <Card title={t('training.activeTitle')}>
           <ThemedText>{active.dayName ? `${active.planName} – ${active.dayName}` : t('session.free')}</ThemedText>
@@ -84,9 +92,18 @@ export default function TrainingScreen() {
       </Card>
 
       <Card>
+        <ListRow
+          title={t('training.stretchTitle')}
+          subtitle={t('training.stretchSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/training/stretch')}
+        />
+        <ListRow title={t('training.hiitTitle')} subtitle={t('training.hiitSubtitle')} accessory="›" onPress={() => router.push('/training/hiit')} />
+      </Card>
+
+      <Card>
         <ListRow title={t('training.historyTitle')} accessory="›" onPress={() => router.push('/training/history')} />
         <ListRow title={t('training.exercisesTitle')} accessory="›" onPress={() => router.push('/training/exercises')} />
-        <ListRow title={t('training.intervalTitle')} accessory="›" onPress={() => router.push('/training/interval')} />
       </Card>
 
       <ThemedText type="small" themeColor="textSecondary">

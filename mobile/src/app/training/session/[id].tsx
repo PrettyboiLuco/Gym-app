@@ -12,10 +12,13 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useUnits } from '@/data/profile-provider';
+import { timedSessionsForWorkout, type TimedSession } from '@/data/routines';
+import { holdLookup, routineMinutes, startRoutineRun } from '@/components/timed';
 import { useDb } from '@/data/store-provider';
 import {
   addSet,
   completeSet,
+  completeTimedSet,
   deleteOpenSet,
   finishSession,
   getSession,
@@ -32,7 +35,9 @@ import {
   type SessionInfo,
   type SetRow,
 } from '@/data/training';
-import { extendRest, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
+import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
+import type { MuscleGroup } from '@/domain/exercises';
+import { extendRest, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, type WeightUnit } from '@/domain/units';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
@@ -48,8 +53,10 @@ function KeepAwake() {
   return null;
 }
 
-function formatSets(sets: { weightKg: number | null; reps: number | null }[], unit: WeightUnit) {
-  return sets.map((s) => `${formatNumber(kgToUnit(s.weightKg ?? 0, unit))} × ${s.reps}`).join(', ');
+function formatSets(sets: { weightKg: number | null; reps: number | null; seconds: number | null }[], unit: WeightUnit) {
+  return sets
+    .map((s) => (s.seconds != null ? t('session.setDoneSeconds', { seconds: s.seconds }) : `${formatNumber(kgToUnit(s.weightKg ?? 0, unit))} × ${s.reps}`))
+    .join(', ');
 }
 
 export default function SessionScreen() {
@@ -68,15 +75,22 @@ export default function SessionScreen() {
   const [timer, setTimer] = useState<RestTimer>(null);
   const [picking, setPicking] = useState(false);
   const [restAuto, setRestAuto] = useState(true);
+  const [blocks, setBlocks] = useState<TimedSession[]>([]);
+  const [blockMessage, setBlockMessage] = useState<string | null>(null);
+  // Zeitpunkt des letzten Ladens; nötig für „Cool-down bis 3 Stunden nach dem Ende anbieten“.
+  const [loadedAtMs, setLoadedAtMs] = useState(0);
 
   const load = useCallback(async () => {
-    const [info, rows, all, savedTimer, auto] = await Promise.all([
+    const [info, rows, all, savedTimer, auto, timed] = await Promise.all([
       getSession(db, id),
       listSessionSets(db, id),
       listExercises(db),
       loadRestTimer(db),
       loadRestAuto(db),
+      timedSessionsForWorkout(db, id),
     ]);
+    setBlocks(timed);
+    setLoadedAtMs(nowMs());
     setSession(info);
     setRestAuto(auto);
     setSets(rows);
@@ -105,6 +119,12 @@ export default function SessionScreen() {
    * Training, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg.
    */
   function suggestion(row: SetRow, indexInExercise: number) {
+    if (isTimed(row.exerciseId)) {
+      const own = sets.filter((s) => s.exerciseId === row.exerciseId && s.completedAt && s.position < row.position);
+      const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
+      const seconds = row.seconds ?? own.at(-1)?.seconds ?? row.plannedSeconds ?? lastTime?.seconds ?? null;
+      return { weight: '0', reps: seconds === null ? '' : String(seconds) };
+    }
     if (row.weightKg != null && row.reps != null) {
       return { weight: shown(row.weightKg), reps: String(row.reps) };
     }
@@ -121,19 +141,30 @@ export default function SessionScreen() {
             : bodyweight
               ? '0'
               : '',
-      reps: previous?.reps != null ? String(previous.reps) : lastTime ? String(lastTime.reps) : '',
+      reps: previous?.reps != null ? String(previous.reps) : lastTime?.reps != null ? String(lastTime.reps) : '',
     };
   }
 
   async function complete(row: SetRow, indexInExercise: number) {
     const value = inputs[row.id] ?? suggestion(row, indexInExercise);
-    const parsed = parseSetInput(value.weight, value.reps, units.weight);
-    if (!parsed) {
-      setInvalid(row.id);
-      return;
+    if (isTimed(row.exerciseId)) {
+      // Zeit-Satz (UX-011): im Feld stehen die Sekunden.
+      const seconds = parseSecondsInput(value.reps);
+      if (seconds === null) {
+        setInvalid(row.id);
+        return;
+      }
+      setInvalid(null);
+      await completeTimedSet(db, row.id, seconds);
+    } else {
+      const parsed = parseSetInput(value.weight, value.reps, units.weight);
+      if (!parsed) {
+        setInvalid(row.id);
+        return;
+      }
+      setInvalid(null);
+      await completeSet(db, row.id, parsed.weightKg, parsed.reps);
     }
-    setInvalid(null);
-    await completeSet(db, row.id, parsed.weightKg, parsed.reps);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
     if (restAuto && row.restSeconds > 0) {
       try {
@@ -149,13 +180,51 @@ export default function SessionScreen() {
   async function finish(status: 'abgeschlossen' | 'abgebrochen') {
     await finishSession(db, id, status, status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined);
     await updateTimer(stopRest(timer));
+    // Nach einem normalen Ende bleibt die Seite offen, wenn ein Cool-down vorgeschlagen wird (STRETCH-002).
+    if (status === 'abgeschlossen' && session?.cooldown !== 0 && !blocks.some((b) => b.kind === 'cooldown')) {
+      await load();
+      return;
+    }
     // Zurück zur Trainingsübersicht, auch wenn das Training direkt (z. B. von „Heute“) geöffnet wurde.
     router.dismissTo('/training');
   }
 
+  /** Aufwärmen/Cool-down passend zu den Muskelgruppen dieses Trainings (STRETCH-001/002). */
+  function blockFor(kind: 'aufwaermen' | 'cooldown') {
+    const groups = [...new Set(sets.map((s) => byIdAll.get(s.exerciseId)?.muscleGroup).filter((g): g is MuscleGroup => !!g))];
+    const items = kind === 'aufwaermen' ? warmupItems(groups, holdLookup(exercises)) : cooldownItems(groups, holdLookup(exercises));
+    return blockDraft(items);
+  }
+
+  async function startBlock(kind: 'aufwaermen' | 'cooldown') {
+    const draft = blockFor(kind);
+    const result = await startRoutineRun(db, {
+      kind,
+      name: kind === 'aufwaermen' ? t('session.warmupTitle') : t('session.cooldownTitle'),
+      source: 'training',
+      draft,
+      exercises,
+      workoutSessionId: id,
+    });
+    if (result === 'running') {
+      setBlockMessage(t('routine.alreadyRunning'));
+      return;
+    }
+    router.push('/training/run');
+  }
+
+  const byIdAll = new Map(exercises.map((e) => [e.id, e]));
+  const isTimed = (exerciseId: string) => byIdAll.get(exerciseId)?.measure === 'zeit';
   if (!session) return <Screen withHeader>{null}</Screen>;
   const active = session.status === 'aktiv';
-  const byId = new Map(exercises.map((e) => [e.id, e]));
+  const byId = byIdAll;
+  const warmupDone = blocks.some((b) => b.kind === 'aufwaermen' && b.status === 'abgeschlossen');
+  const cooldownDone = blocks.some((b) => b.kind === 'cooldown' && b.status === 'abgeschlossen');
+  // Cool-down noch bis 3 Stunden nach dem Ende anbieten.
+  const recentlyFinished = session.finishedAt !== null && Date.parse(session.finishedAt) > loadedAtMs - 3 * 3600_000;
+  const showWarmup = active && session.warmup !== 0 && !warmupDone && sets.every((s) => !s.completedAt);
+  const showCooldown =
+    session.cooldown !== 0 && !cooldownDone && session.status !== 'abgebrochen' && (active ? doneCountOf(sets) > 0 : recentlyFinished);
   const order = [...new Set(sets.map((s) => s.exerciseId))];
   const doneCount = sets.filter((s) => s.completedAt).length;
 
@@ -164,7 +233,7 @@ export default function SessionScreen() {
       <Screen withHeader>
         <Stack.Screen options={{ title: t('session.addExercise') }} />
         <ExercisePicker
-          exercises={exercises}
+          exercises={exercises.filter((e) => e.kind === 'kraft')}
           onCancel={() => setPicking(false)}
           onPick={async (exercise) => {
             await addSet(db, id, exercise.id);
@@ -201,6 +270,16 @@ export default function SessionScreen() {
           </ThemedText>
         </Card>
       ) : null}
+      {showWarmup ? (
+        <Card title={t('session.warmupTitle')}>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('session.warmupText', { count: blockFor('aufwaermen').items.length, minutes: routineMinutes(blockFor('aufwaermen'), exercises) })}
+          </ThemedText>
+          <Button label={t('session.warmupStart')} onPress={() => startBlock('aufwaermen')} />
+        </Card>
+      ) : null}
+      {warmupDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.warmupDone')}</ThemedText> : null}
+      {blockMessage ? <ThemedText>{blockMessage}</ThemedText> : null}
 
       {order.map((exerciseId) => {
         const rows = sets.filter((s) => s.exerciseId === exerciseId);
@@ -210,7 +289,11 @@ export default function SessionScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
             </ThemedText>
-            {rows[0].plannedRepsMin != null ? (
+            {rows[0].plannedSeconds != null ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('session.targetSeconds', { seconds: rows[0].plannedSeconds })}
+              </ThemedText>
+            ) : rows[0].plannedRepsMin != null ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {t('session.target', { min: rows[0].plannedRepsMin, max: rows[0].plannedRepsMax })}
               </ThemedText>
@@ -225,7 +308,9 @@ export default function SessionScreen() {
                   {row.completedAt ? (
                     <>
                       <ThemedText style={styles.flex}>
-                        {t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
+                        {row.seconds != null
+                          ? t('session.setDoneSeconds', { seconds: row.seconds })
+                          : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
                       </ThemedText>
                       {active ? (
                         <Button
@@ -241,6 +326,7 @@ export default function SessionScreen() {
                     </>
                   ) : active ? (
                     <>
+                      {isTimed(exerciseId) ? null : (
                       <TextInput
                         value={value.weight}
                         onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...value, weight } }))}
@@ -250,13 +336,14 @@ export default function SessionScreen() {
                         accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${index + 1}`}
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
+                      )}
                       <TextInput
                         value={value.reps}
                         onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...value, reps } }))}
-                        placeholder={t('session.reps')}
+                        placeholder={isTimed(exerciseId) ? t('session.seconds') : t('session.reps')}
                         placeholderTextColor={theme.textSecondary}
                         keyboardType="number-pad"
-                        accessibilityLabel={`${t('session.reps')} ${index + 1}`}
+                        accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${index + 1}`}
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
                       <Button label="✓" accessibilityLabel={`${t('session.done')} ${index + 1}`} onPress={() => complete(row, index)} />
@@ -279,7 +366,9 @@ export default function SessionScreen() {
               );
             })}
             {invalid && rows.some((r) => r.id === invalid) ? (
-              <ThemedText style={{ color: theme.danger }}>{t('session.invalidSet')}</ThemedText>
+              <ThemedText style={{ color: theme.danger }}>
+                {isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}
+              </ThemedText>
             ) : null}
             {active ? (
               <Button
@@ -294,6 +383,16 @@ export default function SessionScreen() {
           </Card>
         );
       })}
+
+      {showCooldown ? (
+        <Card title={t('session.cooldownTitle')}>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('session.cooldownText', { count: blockFor('cooldown').items.length, minutes: routineMinutes(blockFor('cooldown'), exercises) })}
+          </ThemedText>
+          <Button label={t('session.cooldownStart')} variant={active ? 'danger' : 'primary'} onPress={() => startBlock('cooldown')} />
+        </Card>
+      ) : null}
+      {cooldownDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.cooldownDone')}</ThemedText> : null}
 
       {active ? (
         <>
@@ -329,6 +428,10 @@ export default function SessionScreen() {
       ) : null}
     </Screen>
   );
+}
+
+function doneCountOf(rows: SetRow[]) {
+  return rows.filter((r) => r.completedAt).length;
 }
 
 const styles = StyleSheet.create({

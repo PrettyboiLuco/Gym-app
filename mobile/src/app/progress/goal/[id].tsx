@@ -26,7 +26,7 @@ import {
   type GoalKind,
   type GoalProblem,
 } from '@/domain/goals';
-import { weightInputText, type Units } from '@/domain/units';
+import { lengthInputText, weightInputText, type Units } from '@/domain/units';
 import { weightTrend } from '@/domain/weight';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
@@ -43,6 +43,7 @@ function toForm(v: GoalVersion, units: Units): GoalForm {
     reps: v.targetReps === null ? '' : String(v.targetReps),
     habit: v.habit ?? 'training',
     perWeek: v.perWeek === null ? EMPTY_GOAL_FORM.perWeek : String(v.perWeek),
+    targetCm: v.targetCm === null ? '' : lengthInputText(v.targetCm, units.length),
   };
 }
 
@@ -123,11 +124,12 @@ export default function GoalScreen() {
       router.back();
       return;
     }
-    const { draft, problems: found } = parseGoalForm(form, units.weight, {
-      currentKg: data.currentKg,
-      heightCm: profile.heightCm,
-      sensitive: profile.sensitive,
-    });
+    const { draft, problems: found } = parseGoalForm(
+      form,
+      units.weight,
+      { currentKg: data.currentKg, heightCm: profile.heightCm, sensitive: profile.sensitive },
+      units.length
+    );
     if (!draft) {
       setProblems(found);
       return;
@@ -151,7 +153,7 @@ export default function GoalScreen() {
     return (
       <Screen withHeader>
         <ExercisePicker
-          exercises={data.exercises}
+          exercises={data.exercises.filter((e) => e.kind === 'kraft' && e.measure === 'wdh')}
           onPick={(e) => {
             change({ exerciseId: e.id });
             setPicking(false);
@@ -229,6 +231,19 @@ export default function GoalScreen() {
                   keyboardType="decimal-pad"
                 />
                 <Field label={t('goals.reps')} value={form.reps} onChangeText={(reps) => change({ reps })} keyboardType="number-pad" />
+              </>
+            ) : null}
+            {form.kind === 'beweglichkeit' ? (
+              <>
+                <Field
+                  label={t('goals.targetCm', { unit: units.length })}
+                  value={form.targetCm}
+                  onChangeText={(targetCm) => change({ targetCm })}
+                  keyboardType="decimal-pad"
+                />
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('goals.flexHint')}
+                </ThemedText>
               </>
             ) : null}
             {form.kind === 'gewohnheit' ? (

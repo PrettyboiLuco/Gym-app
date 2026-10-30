@@ -3,15 +3,16 @@
 import { exerciseName } from '@/components/exercise-name';
 import { timeZone } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
-import { drinkGoalDays, liftSets, trainingDays, type GoalVersion } from '@/data/goals';
+import { drinkGoalDays, liftSets, stretchDays, trainingDays, type GoalVersion } from '@/data/goals';
+import { listFlexibilityTests } from '@/data/routines';
 import { loadNutritionSettings } from '@/data/nutrition';
 import type { Exercise } from '@/data/training';
 import { listWeights } from '@/data/weights';
-import { habitWeeks, strengthProgress, weekStart, weightProgress } from '@/domain/goals';
+import { flexibilityProgress, habitWeeks, strengthProgress, weekStart, weightProgress } from '@/domain/goals';
 import { shiftDay } from '@/domain/nutrition';
 import type { Units } from '@/domain/units';
 import { weightTrend } from '@/domain/weight';
-import { formatDay, formatWeight, t } from '@/i18n';
+import { formatDay, formatLength, formatWeight, t } from '@/i18n';
 
 /** Kurzbeschreibung eines Ziels, z. B. „Abnehmen auf 75 kg“. */
 export function goalTitle(goal: GoalVersion, units: Units, exercises: Exercise[]): string {
@@ -27,6 +28,9 @@ export function goalTitle(goal: GoalVersion, units: Units, exercises: Exercise[]
       weight: formatWeight(goal.targetKg ?? 0, units.weight, 2),
       reps: goal.targetReps,
     });
+  }
+  if (goal.kind === 'beweglichkeit') {
+    return t('goals.summary.beweglichkeit', { target: formatLength(goal.targetCm ?? 0, units.length) });
   }
   return t('goals.summary.gewohnheit', { habit: t(`goals.habit.${goal.habit}`), perWeek: goal.perWeek });
 }
@@ -72,11 +76,24 @@ export async function goalProgressLines(
     if (p.reached) lines.push(t('goals.progress.liftReached'));
     return { lines, reached: p.reached };
   }
+  if (goal.kind === 'beweglichkeit') {
+    const p = flexibilityProgress(await listFlexibilityTests(db), goal.targetCm ?? 0);
+    if (!p.current) return { lines: [t('goals.progress.flexNone')], reached: false };
+    const lines = [t('goals.progress.flexCurrent', { value: formatLength(p.current.cm, units.length), date: formatDay(p.current.day) })];
+    if (p.start && p.start !== p.current) {
+      lines.push(t('goals.progress.flexStart', { value: formatLength(p.start.cm, units.length), date: formatDay(p.start.day) }));
+    }
+    if (p.reached) lines.push(t('goals.progress.reached'));
+    return { lines, reached: p.reached };
+  }
   // Gewohnheit: aktuelle und drei vorherige Wochen.
   const from = shiftDay(weekStart(today), -21);
+  const fromUtc = new Date(`${shiftDay(from, -1)}T00:00:00Z`).toISOString();
   let days: string[];
   if (goal.habit === 'training') {
-    days = await trainingDays(db, new Date(`${shiftDay(from, -1)}T00:00:00Z`).toISOString(), timeZone);
+    days = await trainingDays(db, fromUtc, timeZone);
+  } else if (goal.habit === 'dehnen') {
+    days = await stretchDays(db, fromUtc, timeZone);
   } else {
     const settings = await loadNutritionSettings(db);
     if (!settings.drinkGoalMl) return { lines: [t('goals.progress.noDrinkGoal')], reached: false };

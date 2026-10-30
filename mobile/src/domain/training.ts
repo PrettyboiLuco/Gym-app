@@ -8,8 +8,11 @@ export type PlanItemDraft = {
   repsMin: number;
   repsMax: number;
   restSeconds: number;
+  /** Zeit-Übung (UX-011, z. B. Plank): Sekunden je Satz; Wiederholungen sind dann 1/1 Platzhalter. */
+  targetSeconds?: number | null;
 };
-export type PlanDayDraft = { name: string; items: PlanItemDraft[] };
+/** Aufwärmen/Cool-down für diesen Tag vorschlagen (STRETCH-001/002). */
+export type PlanDayDraft = { name: string; items: PlanItemDraft[]; warmup?: boolean; cooldown?: boolean };
 export type PlanDraft = { name: string; days: PlanDayDraft[] };
 
 export type PlanProblem =
@@ -20,7 +23,8 @@ export type PlanProblem =
   | 'dayEmpty'
   | 'invalidSets'
   | 'invalidReps'
-  | 'invalidRest';
+  | 'invalidRest'
+  | 'invalidSeconds';
 
 export const MAX_DAYS = 7;
 
@@ -35,7 +39,10 @@ export function validatePlan(plan: PlanDraft): PlanProblem[] {
     if (day.items.length === 0) problems.add('dayEmpty');
     for (const item of day.items) {
       if (!Number.isInteger(item.sets) || item.sets < 1 || item.sets > 20) problems.add('invalidSets');
-      if (
+      const seconds = item.targetSeconds;
+      if (seconds != null) {
+        if (!Number.isInteger(seconds) || seconds < 5 || seconds > 600) problems.add('invalidSeconds');
+      } else if (
         !Number.isInteger(item.repsMin) ||
         !Number.isInteger(item.repsMax) ||
         item.repsMin < 1 ||
@@ -59,6 +66,12 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
   const [item] = copy.splice(from, 1);
   copy.splice(to, 0, item);
   return copy;
+}
+
+/** Liest die Sekunden eines Zeit-Satzes (1–3600, UX-011). */
+export function parseSecondsInput(text: string): number | null {
+  const seconds = parseWholeNumber(text);
+  return seconds !== null && seconds >= 1 && seconds <= 3600 ? seconds : null;
 }
 
 /** Liest eine ganze Zahl aus einem Eingabefeld; ungültig ergibt null. */
@@ -87,13 +100,16 @@ export function parseSetInput(
  * je Übung fällt weg, dafür kommt ein Wechsel dazu. Nur Schätzung (TRAIN-007).
  */
 export function estimateDayMinutes(
-  items: Pick<PlanItemDraft, 'sets' | 'restSeconds'>[],
+  items: Pick<PlanItemDraft, 'sets' | 'restSeconds' | 'targetSeconds'>[],
   secondsPerSet = 45,
-  changeSeconds = 60
+  changeSeconds = 60,
+  /** Aufwärmen/Cool-down in Sekunden, falls für den Tag eingeschaltet (STRETCH-001). */
+  extraSeconds = 0
 ): number {
   const seconds = items.reduce(
-    (sum, item) => sum + item.sets * secondsPerSet + (item.sets - 1) * item.restSeconds + changeSeconds,
-    0
+    (sum, item) =>
+      sum + item.sets * (item.targetSeconds ?? secondsPerSet) + (item.sets - 1) * item.restSeconds + changeSeconds,
+    extraSeconds
   );
   return Math.round(seconds / 60);
 }

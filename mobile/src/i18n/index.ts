@@ -54,3 +54,11 @@ export function formatWeight(kg: number, unit: WeightUnit, digits = 1): string {
 export function formatLength(cm: number, unit: LengthUnit): string {
   return t(`units.${unit}`, { value: formatNumber(cmToUnit(cm, unit)) });
 }
+
+const MISSING = '\u0000fehlt';
+
+/** Text, falls vorhanden, sonst null (z. B. Kurzanleitungen, die es nicht für jede Übung gibt). */
+export function tOptional(key: string): string | null {
+  const value = i18n.t(key, { defaultValue: MISSING });
+  return value === MISSING ? null : value;
+}

@@ -8,6 +8,8 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | Erfahrung | Keine klassische Programmiererfahrung; 4–5 Websites und ein angefangenes Spiel mit Claude Code gebaut | 28.10.2026 |
 | Fokus erste Version | Dehnen, Kalorientracker, Kalorienrechner (Gewicht, Bewegung, Erhaltungskalorien), fertige und eigene Trainingspläne, Satzpausen-Timer, fertige HIIT-Abläufe (z. B. Bauch). Weitere Wünsche folgen. | 28.10.2026 |
 | Sprache | Ziel: viele Sprachen. Start nur Deutsch; Übersetzungsstruktur von Anfang an, weitere Sprachen als Folgepunkt | 28.10.2026 |
+| Dehnung | Teil von „Training“, kein eigener Tab | 30.10.2026 |
+| Übungsmedien zum Start | Name und kurze Textanleitung, keine Bilder; Bilder/Animationen nach Lizenzprüfung in Phase 9 | 30.10.2026 |
 | Fortschrittsfotos | Ja. Umsetzung: freiwillig, standardmäßig aus, nur auf dem Gerät, kein Upload/keine Werbung/keine KI, beim Öffnen verdeckt | 30.10.2026 |
 
 ## Vorläufig umgesetzt (Phase 4, 30.10.2026) – bitte bestätigen oder ändern
@@ -37,5 +39,5 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 ## Noch offen
 
 App-Name · Budget · Zeit pro Woche · Zielalter · 3D-Figur oder Clips · Free/Pro-Grenze und Preis ·
-Werbenetzwerk · Dehnung als eigener Tab · Pilot-Zieltypen (vorläufig s. o.) · Einheiten (vorläufig s. o.) ·
+Werbenetzwerk · Pilot-Zieltypen (vorläufig s. o.) · Einheiten (vorläufig s. o.) ·
 Fachperson Training/Ernährung · Rechtsprüfung

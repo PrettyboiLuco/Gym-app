@@ -5,7 +5,8 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
+import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
+import { holdLookup, routineMinutes } from '@/components/timed';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -21,6 +22,8 @@ import {
   type Exercise,
   type PlanVersionInfo,
 } from '@/data/training';
+import type { MuscleGroup } from '@/domain/exercises';
+import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import {
   estimateDayMinutes,
   formatClock,
@@ -36,42 +39,50 @@ import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
-type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string };
-type DayForm = { name: string; items: ItemForm[] };
+type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string; seconds: string };
+type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean };
 type PlanForm = { name: string; days: DayForm[] };
 
-const NEW_ITEM = { sets: '3', repsMin: '8', repsMax: '12', rest: '90' };
-const EMPTY_FORM: PlanForm = { name: '', days: [{ name: '', items: [] }] };
+const NEW_ITEM = { sets: '3', repsMin: '8', repsMax: '12', rest: '90', seconds: '' };
+const NEW_DAY: DayForm = { name: '', items: [], warmup: true, cooldown: true };
+const EMPTY_FORM: PlanForm = { name: '', days: [NEW_DAY] };
 
 function toForm(draft: PlanDraft): PlanForm {
   return {
     name: draft.name,
     days: draft.days.map((day) => ({
       name: day.name,
+      warmup: day.warmup !== false,
+      cooldown: day.cooldown !== false,
       items: day.items.map((i) => ({
         exerciseId: i.exerciseId,
         sets: String(i.sets),
         repsMin: String(i.repsMin),
         repsMax: String(i.repsMax),
         rest: String(i.restSeconds),
+        seconds: i.targetSeconds == null ? '' : String(i.targetSeconds),
       })),
     })),
   };
 }
 
-function toDraft(form: PlanForm): PlanDraft {
+function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDraft {
   // Ungültige Zahlen werden zu -1 und von validatePlan gemeldet.
   const num = (text: string) => parseWholeNumber(text) ?? -1;
   return {
     name: form.name,
     days: form.days.map((day) => ({
       name: day.name,
+      warmup: day.warmup,
+      cooldown: day.cooldown,
       items: day.items.map((i) => ({
         exerciseId: i.exerciseId,
         sets: num(i.sets),
-        repsMin: num(i.repsMin),
-        repsMax: num(i.repsMax),
+        // Zeit-Übungen (UX-011): Sekunden statt Wiederholungen.
+        repsMin: timed(i.exerciseId) ? 1 : num(i.repsMin),
+        repsMax: timed(i.exerciseId) ? 1 : num(i.repsMax),
         restSeconds: num(i.rest),
+        targetSeconds: timed(i.exerciseId) ? num(i.seconds) : null,
       })),
     })),
   };
@@ -117,9 +128,17 @@ export default function PlanEditorScreen() {
     };
   }, [db, id, isNew]);
 
-  const draft = toDraft(form);
-  const problems = validatePlan(draft);
   const byId = new Map(exercises.map((e) => [e.id, e]));
+  const isTimed = (exerciseId: string) => byId.get(exerciseId)?.measure === 'zeit';
+  const draft = toDraft(form, isTimed);
+  const problems = validatePlan(draft);
+  /** Dauer des vorgeschlagenen Aufwärmens/Cool-downs in Sekunden (STRETCH-001: in der Zeitschätzung). */
+  function blockSeconds(day: DayForm, kind: 'aufwaermen' | 'cooldown') {
+    const groups = [...new Set(day.items.map((i) => byId.get(i.exerciseId)?.muscleGroup).filter((g): g is MuscleGroup => !!g))];
+    const hold = holdLookup(exercises);
+    const items = kind === 'aufwaermen' ? warmupItems(groups, hold) : cooldownItems(groups, hold);
+    return routineMinutes(blockDraft(items), exercises) * 60;
+  }
   const allowLeave = useUnsavedGuard(JSON.stringify(form) !== baseline);
 
   function updateDay(index: number, change: Partial<DayForm>) {
@@ -158,11 +177,12 @@ export default function PlanEditorScreen() {
       <Screen withHeader>
         <Stack.Screen options={{ title: t('plan.pickTitle') }} />
         <ExercisePicker
-          exercises={exercises}
+          exercises={exercises.filter((e) => e.kind === 'kraft')}
           onCancel={() => setPickingFor(null)}
           onPick={(exercise) => {
+            const item = exercise.measure === 'zeit' ? { ...NEW_ITEM, repsMin: '1', repsMax: '1', seconds: '30' } : NEW_ITEM;
             updateDay(pickingFor, {
-              items: [...form.days[pickingFor].items, { exerciseId: exercise.id, ...NEW_ITEM }],
+              items: [...form.days[pickingFor].items, { exerciseId: exercise.id, ...item }],
             });
             setPickingFor(null);
           }}
@@ -220,7 +240,7 @@ export default function PlanEditorScreen() {
                 />
               </View>
               <View style={styles.numbers}>
-                {(['sets', 'repsMin', 'repsMax', 'rest'] as const).map((key) => (
+                {(isTimed(item.exerciseId) ? (['sets', 'seconds', 'rest'] as const) : (['sets', 'repsMin', 'repsMax', 'rest'] as const)).map((key) => (
                   <Field
                     key={key}
                     label={t(`plan.${key}`)}
@@ -231,6 +251,11 @@ export default function PlanEditorScreen() {
                   />
                 ))}
               </View>
+              {isTimed(item.exerciseId) ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('plan.timedHint')}
+                </ThemedText>
+              ) : null}
               <Presets
                 label={t('plan.rest')}
                 options={REST_PRESETS}
@@ -240,10 +265,36 @@ export default function PlanEditorScreen() {
               />
             </View>
           ))}
+          <Choice
+            label={t('plan.warmup')}
+            options={['an', 'aus'] as const}
+            value={day.warmup ? 'an' : 'aus'}
+            onChange={(v) => updateDay(dayIndex, { warmup: v === 'an' })}
+            format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+          />
+          <Choice
+            label={t('plan.cooldown')}
+            options={['an', 'aus'] as const}
+            value={day.cooldown ? 'an' : 'aus'}
+            onChange={(v) => updateDay(dayIndex, { cooldown: v === 'an' })}
+            format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+          />
+          {day.items.length > 0 && day.warmup ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('plan.warmupHint', { minutes: Math.round(blockSeconds(day, 'aufwaermen') / 60) })}
+            </ThemedText>
+          ) : null}
           {day.items.length > 0 ? (
             <ThemedText type="small" themeColor="textSecondary">
               {t('plan.duration', {
-                value: t('common.minutes', { value: estimateDayMinutes(draft.days[dayIndex].items.filter((i) => i.sets > 0 && i.restSeconds >= 0)) }),
+                value: t('common.minutes', {
+                  value: estimateDayMinutes(
+                    draft.days[dayIndex].items.filter((i) => i.sets > 0 && i.restSeconds >= 0 && (i.targetSeconds ?? 0) >= 0),
+                    45,
+                    60,
+                    (day.warmup ? blockSeconds(day, 'aufwaermen') : 0) + (day.cooldown ? blockSeconds(day, 'cooldown') : 0)
+                  ),
+                }),
               })}
             </ThemedText>
           ) : null}
@@ -278,7 +329,7 @@ export default function PlanEditorScreen() {
       {form.days.length < MAX_DAYS ? (
         <Button
           label={t('plan.addDay')}
-          onPress={() => setForm((f) => ({ ...f, days: [...f.days, { name: '', items: [] }] }))}
+          onPress={() => setForm((f) => ({ ...f, days: [...f.days, NEW_DAY] }))}
         />
       ) : null}
 

@@ -7,7 +7,20 @@ import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { addCustomExercise, listExercises, updateCustomExercise, type Exercise } from '@/data/training';
-import { EQUIPMENT, MUSCLE_GROUPS, type Equipment, type MuscleGroup } from '@/domain/exercises';
+import {
+  EQUIPMENT,
+  EXERCISE_KINDS,
+  isStretchKind,
+  MEASURES,
+  MUSCLE_GROUPS,
+  SIDES,
+  type Equipment,
+  type ExerciseKind,
+  type Measure,
+  type MuscleGroup,
+  type Sides,
+} from '@/domain/exercises';
+import { parseWholeNumber } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -18,7 +31,11 @@ export default function ExercisesScreen() {
   const [name, setName] = useState('');
   const [equipment, setEquipment] = useState<Equipment>('kurzhantel');
   const [muscle, setMuscle] = useState<MuscleGroup>('brust');
-  const [error, setError] = useState(false);
+  const [kind, setKind] = useState<ExerciseKind>('kraft');
+  const [measure, setMeasure] = useState<Measure>('wdh');
+  const [sides, setSides] = useState<Sides>('beidseitig');
+  const [hold, setHold] = useState('30');
+  const [error, setError] = useState<'name' | 'hold' | null>(null);
   // ID der eigenen Übung, die gerade bearbeitet wird (UX-013); null = neue Übung.
   const [editing, setEditing] = useState<string | null>(null);
   const scrollRef = useRef<ScrollViewInstance>(null);
@@ -26,7 +43,11 @@ export default function ExercisesScreen() {
   function reset() {
     setEditing(null);
     setName('');
-    setError(false);
+    setKind('kraft');
+    setMeasure('wdh');
+    setSides('beidseitig');
+    setHold('30');
+    setError(null);
   }
 
   function startEdit(e: Exercise) {
@@ -34,17 +55,29 @@ export default function ExercisesScreen() {
     setName(e.customName ?? '');
     setEquipment(e.equipment);
     setMuscle(e.muscleGroup);
-    setError(false);
+    setKind(e.kind);
+    setMeasure(e.measure);
+    setSides(e.sides);
+    setHold(String(e.holdSeconds ?? 30));
+    setError(null);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   }
 
   async function save() {
     if (!name.trim()) {
-      setError(true);
+      setError('name');
       return;
     }
-    if (editing) await updateCustomExercise(db, editing, name, equipment, muscle);
-    else await addCustomExercise(db, name, equipment, muscle);
+    const stretch = isStretchKind(kind);
+    const holdSeconds = stretch ? parseWholeNumber(hold) : null;
+    if (stretch && (holdSeconds === null || holdSeconds < 5 || holdSeconds > 300)) {
+      setError('hold');
+      return;
+    }
+    // Dehn- und Mobilitätsübungen laufen immer auf Zeit (STRETCH-007).
+    const fields = { kind, sides, holdSeconds, measure: stretch ? ('zeit' as const) : measure };
+    if (editing) await updateCustomExercise(db, editing, name, equipment, muscle, fields);
+    else await addCustomExercise(db, name, equipment, muscle, fields);
     reset();
     await reload();
   }
@@ -72,7 +105,21 @@ export default function ExercisesScreen() {
           onChange={setMuscle}
           format={(v) => t(`muscle.${v}`)}
         />
-        {error ? <ThemedText style={{ color: theme.danger }}>{t('exercises.nameMissing')}</ThemedText> : null}
+        <Choice label={t('exercises.kind')} options={EXERCISE_KINDS} value={kind} onChange={setKind} format={(v) => t(`exercises.kindOption.${v}`)} />
+        {isStretchKind(kind) ? (
+          <>
+            <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
+            <Field label={t('exercises.hold')} value={hold} onChangeText={setHold} keyboardType="number-pad" />
+          </>
+        ) : (
+          <>
+            <Choice label={t('exercises.measure')} options={MEASURES} value={measure} onChange={setMeasure} format={(v) => t(`exercises.measureOption.${v}`)} />
+            <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
+          </>
+        )}
+        {error ? (
+          <ThemedText style={{ color: theme.danger }}>{error === 'name' ? t('exercises.nameMissing') : t('exercises.holdInvalid')}</ThemedText>
+        ) : null}
         <Button label={editing ? t('common.save') : t('common.add')} onPress={save} />
         {editing ? <Button label={t('common.cancel')} variant="danger" onPress={reset} /> : null}
       </Card>
@@ -88,7 +135,14 @@ export default function ExercisesScreen() {
               <ListRow
                 key={e.id}
                 title={exerciseName(e)}
-                subtitle={t(`equipment.${e.equipment}`)}
+                subtitle={[
+                  t(`equipment.${e.equipment}`),
+                  e.kind !== 'kraft' ? t(`exercises.kindOption.${e.kind}`) : null,
+                  e.measure === 'zeit' && e.kind === 'kraft' ? t('exercises.measureOption.zeit') : null,
+                  e.sides === 'einseitig' ? t('exercises.sidesOption.einseitig') : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
                 accessory={e.customName ? t('common.edit') : undefined}
                 onPress={e.customName ? () => startEdit(e) : undefined}
               />

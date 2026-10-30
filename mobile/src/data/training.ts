@@ -3,7 +3,7 @@
 // - Geplante und tatsächliche Werte sind getrennt; jeder Satz wird sofort gespeichert (TRAIN-013).
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
-import type { Equipment, MuscleGroup } from '@/domain/exercises';
+import type { Equipment, ExerciseKind, Measure, MuscleGroup, Sides } from '@/domain/exercises';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
@@ -17,24 +17,45 @@ export type Exercise = {
   customName: string | null;
   equipment: Equipment;
   muscleGroup: MuscleGroup;
+  kind: ExerciseKind;
+  sides: Sides;
+  holdSeconds: number | null;
+  measure: Measure;
 };
 
-const EXERCISE_COLUMNS =
-  'id, name_key AS nameKey, custom_name AS customName, equipment, muscle_group AS muscleGroup';
+/** Eigenschaften einer eigenen Übung (UX-013, STRETCH-007, UX-011). */
+export type ExerciseFields = Pick<Exercise, 'equipment' | 'muscleGroup' | 'kind' | 'sides' | 'holdSeconds' | 'measure'>;
+
+const EXERCISE_COLUMNS = `id, name_key AS nameKey, custom_name AS customName, equipment, muscle_group AS muscleGroup,
+  kind, sides, hold_seconds AS holdSeconds, measure`;
 
 export function listExercises(db: Db) {
   return db.getAllAsync<Exercise>(`SELECT ${EXERCISE_COLUMNS} FROM exercise`);
 }
 
-export async function addCustomExercise(db: Db, name: string, equipment: Equipment, muscleGroup: MuscleGroup) {
+const KRAFT_DEFAULTS = { kind: 'kraft', sides: 'beidseitig', holdSeconds: null, measure: 'wdh' } as const;
+
+export async function addCustomExercise(
+  db: Db,
+  name: string,
+  equipment: Equipment,
+  muscleGroup: MuscleGroup,
+  more: Partial<ExerciseFields> = {}
+) {
   const id = newId();
+  const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
-    'INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc) VALUES (?, NULL, ?, ?, ?, ?)',
+    `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+     VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     name.trim(),
     equipment,
     muscleGroup,
-    nowUtc()
+    nowUtc(),
+    f.kind,
+    f.sides,
+    f.holdSeconds,
+    f.measure
   );
   return id;
 }
@@ -48,13 +69,20 @@ export async function updateCustomExercise(
   id: string,
   name: string,
   equipment: Equipment,
-  muscleGroup: MuscleGroup
+  muscleGroup: MuscleGroup,
+  more: Partial<ExerciseFields> = {}
 ) {
+  const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
-    'UPDATE exercise SET custom_name = ?, equipment = ?, muscle_group = ? WHERE id = ? AND name_key IS NULL',
+    `UPDATE exercise SET custom_name = ?, equipment = ?, muscle_group = ?, kind = ?, sides = ?, hold_seconds = ?, measure = ?
+     WHERE id = ? AND name_key IS NULL`,
     name.trim(),
     equipment,
     muscleGroup,
+    f.kind,
+    f.sides,
+    f.holdSeconds,
+    f.measure,
     id
   );
 }
@@ -97,8 +125,8 @@ export async function loadPlanDraft(db: Db, planId: string): Promise<PlanDraft |
 }
 
 async function loadVersionDraft(db: Db, versionId: string, name: string): Promise<PlanDraft> {
-  const days = await db.getAllAsync<{ id: string; name: string }>(
-    'SELECT id, name FROM plan_day WHERE plan_version_id = ? ORDER BY position',
+  const days = await db.getAllAsync<{ id: string; name: string; warmup: number; cooldown: number }>(
+    'SELECT id, name, warmup, cooldown FROM plan_day WHERE plan_version_id = ? ORDER BY position',
     versionId
   );
   const draft: PlanDraft = { name, days: [] };
@@ -109,12 +137,13 @@ async function loadVersionDraft(db: Db, versionId: string, name: string): Promis
       repsMin: number;
       repsMax: number;
       restSeconds: number;
+      targetSeconds: number | null;
     }>(
-      `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds
-       FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
+      `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds,
+       target_seconds AS targetSeconds FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
       day.id
     );
-    draft.days.push({ name: day.name, items });
+    draft.days.push({ name: day.name, items, warmup: day.warmup === 1, cooldown: day.cooldown === 1 });
   }
   return draft;
 }
@@ -146,24 +175,28 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft):
     for (const [dayIndex, day] of draft.days.entries()) {
       const dayId = newId();
       await db.runAsync(
-        'INSERT INTO plan_day (id, plan_version_id, position, name) VALUES (?, ?, ?, ?)',
+        'INSERT INTO plan_day (id, plan_version_id, position, name, warmup, cooldown) VALUES (?, ?, ?, ?, ?, ?)',
         dayId,
         versionId,
         dayIndex,
-        day.name.trim()
+        day.name.trim(),
+        day.warmup === false ? 0 : 1,
+        day.cooldown === false ? 0 : 1
       );
       for (const [itemIndex, item] of day.items.entries()) {
+        const timed = item.targetSeconds != null;
         await db.runAsync(
-          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           newId(),
           dayId,
           itemIndex,
           item.exerciseId,
           item.sets,
-          item.repsMin,
-          item.repsMax,
-          item.restSeconds
+          timed ? 1 : item.repsMin,
+          timed ? 1 : item.repsMax,
+          item.restSeconds,
+          item.targetSeconds ?? null
         );
       }
     }
@@ -206,10 +239,14 @@ export type SessionInfo = {
   dayName: string | null;
   dayPosition: number | null;
   planId: string | null;
+  /** Aufwärmen/Cool-down vorschlagen (vom Plantag; freies Training: ja). */
+  warmup: number | null;
+  cooldown: number | null;
 };
 
 const SESSION_SELECT = `SELECT s.id, s.status, s.abort_reason AS abortReason, s.started_at_utc AS startedAt,
-  s.finished_at_utc AS finishedAt, v.name AS planName, d.name AS dayName, d.position AS dayPosition, v.plan_id AS planId
+  s.finished_at_utc AS finishedAt, v.name AS planName, d.name AS dayName, d.position AS dayPosition, v.plan_id AS planId,
+  d.warmup AS warmup, d.cooldown AS cooldown
   FROM workout_session s
   LEFT JOIN plan_day d ON d.id = s.plan_day_id
   LEFT JOIN plan_version v ON v.id = d.plan_version_id`;
@@ -262,24 +299,27 @@ export async function startSession(db: Db, planDayId: string | null): Promise<st
       repsMin: number;
       repsMax: number;
       restSeconds: number;
+      targetSeconds: number | null;
     }>(
-      `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds
-       FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
+      `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds,
+       target_seconds AS targetSeconds FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
       planDayId
     );
     let position = 0;
     for (const item of items) {
+      const timed = item.targetSeconds !== null;
       for (let s = 0; s < item.sets; s++) {
         await db.runAsync(
-          `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds,
+           planned_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           newId(),
           id,
           item.exerciseId,
           position++,
-          item.repsMin,
-          item.repsMax,
-          item.restSeconds
+          timed ? null : item.repsMin,
+          timed ? null : item.repsMax,
+          item.restSeconds,
+          item.targetSeconds
         );
       }
     }
@@ -296,6 +336,9 @@ export type SetRow = {
   restSeconds: number;
   weightKg: number | null;
   reps: number | null;
+  /** Zeit-Satz (UX-011): geplante und tatsächliche Sekunden. */
+  plannedSeconds: number | null;
+  seconds: number | null;
   completedAt: string | null;
 };
 
@@ -303,7 +346,7 @@ export function listSessionSets(db: Db, sessionId: string) {
   return db.getAllAsync<SetRow>(
     `SELECT id, exercise_id AS exerciseId, position, planned_reps_min AS plannedRepsMin,
        planned_reps_max AS plannedRepsMax, rest_seconds AS restSeconds, weight_kg AS weightKg, reps,
-       completed_at_utc AS completedAt
+       planned_seconds AS plannedSeconds, seconds, completed_at_utc AS completedAt
      FROM set_log WHERE session_id = ? ORDER BY position`,
     sessionId
   );
@@ -319,14 +362,26 @@ export async function completeSet(db: Db, setId: string, weightKg: number, reps:
   );
 }
 
+/** Zeit-Satz erledigt (z. B. Plank 45 s); Gewicht optional, Standard 0 (UX-011). */
+export async function completeTimedSet(db: Db, setId: string, seconds: number, weightKg = 0) {
+  await db.runAsync(
+    'UPDATE set_log SET seconds = ?, weight_kg = ?, reps = NULL, completed_at_utc = ? WHERE id = ?',
+    seconds,
+    weightKg,
+    nowUtc(),
+    setId
+  );
+}
+
 export async function reopenSet(db: Db, setId: string) {
   await db.runAsync('UPDATE set_log SET completed_at_utc = NULL WHERE id = ?', setId);
 }
 
 /** Zusätzlicher Satz für eine Übung, übernimmt Pause und Zielbereich des letzten Satzes. */
 export async function addSet(db: Db, sessionId: string, exerciseId: string) {
-  const last = await db.getFirstAsync<{ restSeconds: number; repsMin: number | null; repsMax: number | null }>(
-    `SELECT rest_seconds AS restSeconds, planned_reps_min AS repsMin, planned_reps_max AS repsMax
+  const last = await db.getFirstAsync<{ restSeconds: number; repsMin: number | null; repsMax: number | null; plannedSeconds: number | null }>(
+    `SELECT rest_seconds AS restSeconds, planned_reps_min AS repsMin, planned_reps_max AS repsMax,
+     planned_seconds AS plannedSeconds
      FROM set_log WHERE session_id = ? AND exercise_id = ? ORDER BY position DESC LIMIT 1`,
     sessionId,
     exerciseId
@@ -336,15 +391,16 @@ export async function addSet(db: Db, sessionId: string, exerciseId: string) {
     sessionId
   );
   await db.runAsync(
-    `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds,
+     planned_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     newId(),
     sessionId,
     exerciseId,
     (max?.position ?? -1) + 1,
     last?.repsMin ?? null,
     last?.repsMax ?? null,
-    last?.restSeconds ?? 90
+    last?.restSeconds ?? 90,
+    last?.plannedSeconds ?? null
   );
 }
 
@@ -359,7 +415,7 @@ export async function finishSession(db: Db, sessionId: string, status: 'abgeschl
   );
 }
 
-export type LastPerformance = { weightKg: number; reps: number }[];
+export type LastPerformance = { weightKg: number; reps: number | null; seconds: number | null }[];
 
 /** Erledigte Sätze dieser Übung aus dem letzten anderen Training. */
 export async function lastPerformance(db: Db, exerciseId: string, excludeSessionId: string): Promise<LastPerformance> {
@@ -371,8 +427,8 @@ export async function lastPerformance(db: Db, exerciseId: string, excludeSession
     excludeSessionId
   );
   if (!last) return [];
-  return db.getAllAsync<{ weightKg: number; reps: number }>(
-    `SELECT weight_kg AS weightKg, reps FROM set_log
+  return db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null }>(
+    `SELECT weight_kg AS weightKg, reps, seconds FROM set_log
      WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL ORDER BY position`,
     last.sessionId,
     exerciseId

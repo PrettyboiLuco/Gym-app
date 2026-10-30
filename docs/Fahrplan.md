@@ -191,6 +191,36 @@ erreichbar. Testumgebung: `expo-env.d.ts` fehlte für die Typprüfung (wird von 
 | 5.5 | HIIT-Ablauf: Ansage nächste Übung, Timer, Runden, Abbruchknopf | HIIT-003, -007 |
 | 5.6 | Eigene HIIT-Abläufe bauen, Protokoll im Verlauf | HIIT-004, -005 |
 
+**Stand 30.10.2026:** 5.1–5.6 gebaut, Dehnen und HIIT als Bereiche unter „Training“ (Entscheidung Luc).
+37 Dehn-/Mobilitäts- und HIIT-Übungen mit selbst geschriebenen Kurzanleitungen (ohne Bilder, Entscheidung Luc);
+Übungen haben jetzt Art (Kraft/Dehnen halten/Dehnen dynamisch/Mobilität), Seiten (einseitig = links, dann rechts),
+Haltezeit und Messung (Wiederholungen oder Sekunden). Fertige Dehnroutinen „Morgens“, „Büro: Nacken und Schultern“,
+„Hüfte für Sitzberufe“; eigene Routinen anlegen, ändern, alte Version wieder verwenden. Gemeinsame Timer-Engine für
+Dehnen, Aufwärmen/Cool-down und HIIT: Ansage der Übung (Anzeige + Sprachansage, abschaltbar), Seitenwechsel,
+Pause/Weiter, Überspringen, „Schmerzen / abbrechen“ immer sichtbar, übersteht einen App-Neustart; lief die Zeit bei
+geschlossener App ab, fragt die App nach statt automatisch zu zählen. HIIT „Bauch“ und „Ganzkörper“ je in Anfänger/
+Fortgeschritten (Dauer, Pausen, Runden, schwerere Varianten), eigene Abläufe versioniert, Sicherheitshinweise und
+„kein gezielter Bauchfettabbau“. Protokoll aller Einheiten im Verlauf (Abbruch wegen Schmerzen vermerkt, löschbar);
+HIIT zählt als Trainingstag. Satztyp „Zeit“ (Plank, Seitstütz) in Plan und Training. Aufwärmen passend zu den
+Muskelgruppen des Tages (dynamisch) und Cool-down (statisch), je Plantag abschaltbar und in der Dauer eingerechnet;
+im Training vor dem ersten Satz bzw. danach angeboten. Beweglichkeits-Selbsttest (Finger-Boden-Abstand) mit
+Beweglichkeitsziel und Gewohnheit „Dehnen“. 282 automatische Tests, Browser-Test Phase 5 22/22 und Phase 4 38/38
+ohne Konsolenfehler, iOS-Bundle baut.
+
+**Prüfung Phase 5 (30.10.2026), Zeile für Zeile gegen Fahrplan und Register – 2. Durchlauf:** 3 Lücken gefunden
+und behoben – alte Pläne mit Plank hätten nach der Umstellung auf Sekunden ein leeres Feld gehabt (Migration übernimmt
+den bisherigen Höchstwert als Sekunden), eine bei geschlossener App abgelaufene Einheit wäre ungefragt als absolviert
+gezählt worden (jetzt Nachfrage), Hinweis „Zeit-Übung“ im Plan-Editor fehlte. Beim Bauen behoben: Umbau der
+Ziel-Tabellen verletzte die Fremdschlüssel-Prüfung (Reihenfolge geändert, Test mit vorhandenen Zielen).
+**Offen / bewusst verschoben:**
+- Haltezeiten, Programme, Stufen, Aufwärm-/Cool-down-Zuordnung und Kurzanleitungen sind Vorschläge ohne Fachprüfung
+  (STRETCH-001/002/008, HIIT-001/002, 10.1); ACSM-Primärquellen nicht neu abgerufen.
+- Bilder/Animationen der Übungen (STRETCH-009, MEDIA): Phase 9.
+- Ansage und Vibration nur bei offener App; bei gesperrtem Handy läuft die Zeit korrekt weiter, meldet sich aber
+  nicht (Phase 6.3). Export des Protokolls: Phase 6.5.
+- Von dir: eine Dehnroutine und ein HIIT-Programm auf dem iPhone durchgehen (Sprachansage testen), ein Training mit
+  Aufwärmen und Cool-down.
+
 ## Phase 6 – MacBook da: native Funktionen
 
 | # | Schritt | Register |
