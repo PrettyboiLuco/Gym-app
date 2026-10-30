@@ -92,14 +92,14 @@ describe('Feedback (BUS-002, BUS-016)', () => {
   const usage = { workouts: 3, sets: 40, diaryDays: 5, stretchSessions: 2, hiitSessions: 1, activeGoals: 2, weightEntries: 6, firstUseDay: '2026-10-29' };
   test('leere Antworten werden erkannt', () => expect(isEmptyFeedback(EMPTY_FEEDBACK)).toBe(true));
   test('Text enthält nur Beantwortetes', () => {
-    const text = feedbackText({ ...EMPTY_FEEDBACK, missing: 'Pläne zum Nachmachen', pay: 'bis4' }, null, { version: '1.0.0', date: '2026-10-30' }, labels);
+    const text = feedbackText({ ...EMPTY_FEEDBACK, missing: 'Pläne zum Nachmachen', pay: 'bis4' }, null, { app: 'Myhealth', version: '1.0.0', date: '2026-10-30' }, labels);
     expect(text).toContain('feedback.text.missing: Pläne zum Nachmachen');
     expect(text).toContain('feedback.text.pay: feedback.pay.bis4');
     expect(text).not.toContain('feedback.text.annoying');
     expect(text).not.toContain('usageHeader');
   });
   test('Nutzungsübersicht nur, wenn angehängt', () => {
-    const text = feedbackText({ ...EMPTY_FEEDBACK, recommend: 8 }, usage, { version: '1.0.0', date: '2026-10-30' }, labels);
+    const text = feedbackText({ ...EMPTY_FEEDBACK, recommend: 8 }, usage, { app: 'Myhealth', version: '1.0.0', date: '2026-10-30' }, labels);
     expect(text).toContain('8/10');
     expect(text).toContain('"workouts":3');
   });

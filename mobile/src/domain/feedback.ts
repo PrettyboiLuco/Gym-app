@@ -42,7 +42,7 @@ export function isEmptyFeedback(a: FeedbackAnswers): boolean {
 export function feedbackText(
   a: FeedbackAnswers,
   usage: UsageSummary | null,
-  meta: { version: string; date: string },
+  meta: { app: string; version: string; date: string },
   labels: (key: string, vars?: Record<string, unknown>) => string
 ): string {
   const lines = [labels('feedback.text.header', meta), ''];

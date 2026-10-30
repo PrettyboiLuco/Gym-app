@@ -48,7 +48,7 @@ export default function FeedbackScreen() {
   const text = feedbackText(
     answers,
     withUsage ? usage : null,
-    { version: Constants.expoConfig?.version ?? '–', date: todayDay() },
+    { app: Constants.expoConfig?.name ?? '', version: Constants.expoConfig?.version ?? '–', date: todayDay() },
     (key, vars) => t(key, vars)
   );
 

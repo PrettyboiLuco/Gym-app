@@ -1349,7 +1349,7 @@ export const de = {
     shareFailed: 'Teilen hat nicht geklappt. Du kannst den Text oben auch markieren und kopieren.',
     testflight: 'In TestFlight kannst du außerdem jederzeit einen Bildschirmfoto machen und direkt Feedback dazu schicken.',
     text: {
-      header: 'Feedback Gym-App (Version {{version}}, {{date}})',
+      header: 'Feedback {{app}} (Version {{version}}, {{date}})',
       used: 'Nutze am meisten',
       missing: 'Fehlt mir',
       annoying: 'Nervt/unklar',
