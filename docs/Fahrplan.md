@@ -416,9 +416,28 @@ deinem Allergen zeigt einen Hinweis; ein Bild aus dem Verzeichnis erscheint bei 
 - Von dir: Allergie und Essenszeiten einstellen, ein Produkt scannen, „2 Scheiben Brot mit Nutella“ per Diktat
   eintragen, nach einer Woche den Check-in machen.
 
+**Prüfung Phase 9 (30.10.2026):** 6 Lücken geschlossen – Getränke aus „In eigenen Worten“ wurden als Essen gebucht und
+fehlten in der Trinkübersicht (jetzt Getränk, TIME-005), reines Wasser brauchte ein angelegtes Lebensmittel, Rezepte
+wurden im Freitext nicht gefunden, Rezepte und Vorlagen zeigten keine Allergen-Hinweise (jetzt aus den Zutaten), der
+Check-in zeigte im Modus „ohne Zahlen“ Kalorien (TRACK-006), der Vorschlag ging vom Ziel der vergangenen Woche statt
+vom heute gültigen aus. 417 automatische Tests, Browser-Test Phase 9 27/27, 32/32 Bildschirme.
+
 **Verschoben (kostet Geld oder braucht einen Server):** KI-Erklärungen und KI-Freitext (TECH-018, BUS-004, LAW-011),
 Essensfoto (FOOD-015), gekaufte Medien oder 3D (MEDIA-005/-007). Neu zu entscheiden, wenn es Konten/Server gibt
 (Phase 11) oder ein Budget feststeht.
+
+## Coach-Ausbau – eigenes Vorhaben (Planung offen)
+
+Entscheidung Luc 30.10.2026: Der Coach muss sehr umfangreich werden und wird nicht nebenbei gebaut. Der Wochen-Check-in
+(9.2) ist der erste Baustein. Vorgehen: 1. mit Luc sammeln, was der Coach können soll (Kap. 06 Arbeitsgrundlage:
+Planung, Ernährung und Fortschritt verbinden, Check-in, Änderungsvorschau, Schlaf, Essenszeiten, Allergien, später
+freier Chat) · 2. Konzept mit Regeln, Grenzen und Fachprüfung (COACH-001–012, 10.1) · 3. Bau in Schritten.
+
+## Übungsbilder (nach Phase 9, vor 10.4)
+
+Alle Bilder im selben Stil und für jeden klar verständlich (Entscheidung 30.10.2026). Reihenfolge: eigene Bilder bzw.
+mit Higgsfield neu erstellt (nur aus eigenen Vorgaben, nie aus fremden Bildern; Bewegung fachlich prüfen, MEDIA-010–012)
+→ reicht das nicht, Medien kaufen. RepDB weggelassen. Einfügen nach `docs/Anleitung_Uebungsbilder.md`.
 
 ## Phase 10 – Vor der Veröffentlichung
 

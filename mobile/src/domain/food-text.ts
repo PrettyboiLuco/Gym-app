@@ -2,6 +2,7 @@
 // Ohne KI und ohne Internet: Der Text wird in Teile mit Menge, Einheit und Name zerlegt. Daraus entstehen nur
 // Kandidaten; gebucht wird erst nach Bestätigung, Mengen ohne sichere Umrechnung muss man selbst eintragen.
 
+import type { DrinkType } from './nutrition';
 import { normalize } from './wish';
 
 export const TEXT_UNITS = ['g', 'ml', 'stueck', 'scheibe', 'portion', 'el', 'tl', 'glas', 'tasse'] as const;
@@ -116,4 +117,21 @@ export function matchScore(query: string, candidate: string): number {
   if (c.startsWith(q) || q.startsWith(c)) return 2;
   if (c.includes(q) || q.split(' ').some((w) => w.length >= 4 && c.includes(w))) return 1;
   return 0;
+}
+
+/** Getränkeart aus dem Namen, damit Getränke in der Trinkübersicht zählen (TIME-004/-005). Unklar = „sonstiges“. */
+export function guessDrinkType(name: string): DrinkType {
+  const n = normalize(name);
+  if (/\bwasser\b|sprudel|mineral/.test(n)) return 'wasser';
+  if (/kaffee|espresso|cappuccino|latte|\btee\b/.test(n)) return 'kaffee_tee';
+  if (/milch|kakao|\bshake\b/.test(n)) return 'milch';
+  if (/saft|smoothie|schorle/.test(n)) return 'saft';
+  if (/\bcola\b|limo|limonade|eistee|energy/.test(n)) return 'softdrink';
+  if (/\bbier\b|wein|sekt|schnaps|radler/.test(n)) return 'alkohol';
+  return 'sonstiges';
+}
+
+/** Reines Wasser braucht kein Lebensmittel (0 kcal, wie die Wasser-Schnelltasten). */
+export function isPlainWater(name: string): boolean {
+  return /^(?:stilles |leitungs|mineral)?wasser$/.test(normalize(name));
 }

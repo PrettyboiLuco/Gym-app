@@ -6,9 +6,9 @@ import { describe, expect, test } from '@jest/globals';
 import { EXERCISE_MEDIA } from '@/media/exercise-media';
 
 import { checkinDue, weekDays, weeklyCheckin, type CheckinInput } from '../checkin';
-import { allergensFromOff, dietCheck, dietFromOff, needsAttention, suggestMealAt } from '../diet';
+import { allergensFromOff, combineFacts, dietCheck, dietFromOff, needsAttention, suggestMealAt } from '../diet';
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, STARTER_EXERCISES, STRETCH_EXERCISES } from '../exercises';
-import { matchScore, parseFoodText, resolveAmount } from '../food-text';
+import { guessDrinkType, isPlainWater, matchScore, parseFoodText, resolveAmount } from '../food-text';
 import { validateMedia, type MediaEntry } from '../media';
 
 describe('Allergien und Ernährungsweise (COACH-009)', () => {
@@ -32,6 +32,20 @@ describe('Allergien und Ernährungsweise (COACH-009)', () => {
       unknown: true,
       dietConflict: 'unbekannt',
     });
+  });
+  test('Rezept/Vorlage: Allergene vereinigt, strengste Ernährungsweise, Unbekanntes bleibt unbekannt', () => {
+    expect(
+      combineFacts([
+        { allergens: ['gluten'], traces: [], diet: 'vegan' },
+        { allergens: ['milch'], traces: null, diet: 'vegetarisch' },
+      ])
+    ).toEqual({ allergens: ['gluten', 'milch'], traces: null, diet: 'vegetarisch' });
+    expect(combineFacts([{ allergens: null, traces: null, diet: null }, { allergens: [], traces: [], diet: 'vegan' }])).toEqual({
+      allergens: null,
+      traces: null,
+      diet: null,
+    });
+    expect(combineFacts([{ allergens: null, traces: null, diet: null }, { allergens: [], traces: [], diet: 'nicht_vegetarisch' }]).diet).toBe('nicht_vegetarisch');
   });
   test('ohne eigene Allergien keine Hinweise', () =>
     expect(needsAttention(dietCheck({ allergens: ['milch'], traces: null, diet: null }, { allergies: [], diet: 'alles' }))).toBe(false));
@@ -80,6 +94,15 @@ describe('Essen in eigenen Worten (FOOD-014)', () => {
     expect(matchScore('haferflocken', 'Kernige Haferflocken')).toBe(1);
     expect(matchScore('banane', 'Brot')).toBe(0);
   });
+  test('Getränke erkennen (zählen in der Trinkübersicht, TIME-005) und reines Wasser', () => {
+    expect(guessDrinkType('Vollmilch 3,5 %')).toBe('milch');
+    expect(guessDrinkType('Apfelschorle')).toBe('saft');
+    expect(guessDrinkType('Cola Zero')).toBe('softdrink');
+    expect(guessDrinkType('Haferdrink')).toBe('sonstiges');
+    expect(isPlainWater('Wasser')).toBe(true);
+    expect(isPlainWater('Mineralwasser')).toBe(true);
+    expect(isPlainWater('Wassermelone')).toBe(false);
+  });
   test('Text ohne Essen ergibt nichts', () => expect(parseFoodText(' , und ')).toEqual([]));
 });
 
@@ -100,6 +123,7 @@ function input(over: Partial<CheckinInput> = {}): CheckinInput {
     sleepHours: [7, 7.5, 8],
     direction: 'abnehmen',
     sensitive: false,
+    hideNumbers: false,
     heightCm: 180,
     currentGoal: 2000,
     ...over,
@@ -129,6 +153,8 @@ describe('Wochen-Check-in (COACH-008)', () => {
     expect(r.summary.kcalAvg).toBe(2000);
     expect(r.summary.incompleteDays).toBe(1);
   });
+  test('Modus „ohne Zahlen“ → keine Kalorienvorschläge (TRACK-006)', () =>
+    expect(weeklyCheckin(input({ hideNumbers: true })).suggestion).toEqual({ kind: 'ohneZahlen' }));
   test('sensible Situation → nie Kalorienvorschläge (COACH-010)', () =>
     expect(weeklyCheckin(input({ sensitive: true })).suggestion).toEqual({ kind: 'sensibel' }));
   test('Untergrenze 1200 und kein Senken bei Untergewicht (GOAL-007)', () => {

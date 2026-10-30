@@ -6,7 +6,9 @@ import { Choice, Field } from '@/components/fields';
 import { dayLabel, formatKcal, macroLine, readTarget, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { getRecipeVersion, logRecipe } from '@/data/nutrition';
+import { DietNotice } from '@/components/diet-notice';
+import { DEFAULT_SETTINGS, getRecipeVersion, loadNutritionSettings, logRecipe, recipeFacts } from '@/data/nutrition';
+import type { FoodFacts } from '@/domain/diet';
 import { fractionOf, MEALS, nutrientsForAmount, parseAmount, per100FromTotal, type Meal } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -19,6 +21,12 @@ export default function RecipeLogScreen() {
   const { day, target } = readTarget(params);
   const theme = useTheme();
   const { data: recipe, db } = useLoad((d) => getRecipeVersion(d, params.id), null, params.id);
+  // Allergene aus den Zutaten (COACH-009).
+  const { data: extra } = useLoad(
+    async (d) => ({ facts: await recipeFacts(d, params.id), settings: await loadNutritionSettings(d) }),
+    { facts: null as FoodFacts | null, settings: DEFAULT_SETTINGS },
+    params.id
+  );
   const [meal, setMeal] = useState<Meal>(target.kind === 'essen' ? target.meal : 'snack');
   const [modeChoice, setModeChoice] = useState<Mode | null>(null);
   const [amountText, setAmountText] = useState<string | null>(null);
@@ -56,6 +64,7 @@ export default function RecipeLogScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.recipe.total', { kcal: formatKcal(recipe.total.kcal) })}
         </ThemedText>
+        {extra.facts ? <DietNotice facts={extra.facts} prefs={extra.settings} /> : null}
       </Card>
       <Card>
         {modes.length > 1 ? (

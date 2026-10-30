@@ -114,3 +114,25 @@ export function suggestMealAt(hour: number, times: MealTimes): Meal {
   }
   return best?.meal ?? 'snack';
 }
+
+/**
+ * Angaben eines Rezepts oder einer Vorlage aus den Zutaten: Allergene vereinigt; fehlen bei einer Zutat die Angaben
+ * und ist sonst nichts bekannt, bleibt es „unbekannt“. Ernährungsweise: die strengste Einschränkung entscheidet.
+ */
+export function combineFacts(parts: FoodFacts[]): FoodFacts {
+  const union = (key: 'allergens' | 'traces') => {
+    const known = [...new Set(parts.flatMap((p) => p[key] ?? []))];
+    const someUnknown = parts.length === 0 || parts.some((p) => p[key] === null);
+    return someUnknown && known.length === 0 ? null : known;
+  };
+  let diet: FoodDiet | null = 'vegan';
+  for (const p of parts) {
+    if (p.diet === 'nicht_vegetarisch') {
+      diet = 'nicht_vegetarisch';
+      break;
+    }
+    if (p.diet === null) diet = null;
+    else if (p.diet === 'vegetarisch' && diet === 'vegan') diet = 'vegetarisch';
+  }
+  return { allergens: union('allergens'), traces: union('traces'), diet: parts.length === 0 ? null : diet };
+}

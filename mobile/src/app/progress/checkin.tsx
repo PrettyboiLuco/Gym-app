@@ -102,7 +102,9 @@ export default function CheckinScreen() {
         ) : (
           <ThemedText themeColor="textSecondary">{t('checkin.weightNone')}</ThemedText>
         )}
-        {s.kcalAvg !== null ? (
+        {suggestion.kind === 'ohneZahlen' ? (
+          <ThemedText>{t('checkin.foodDays', { days: s.completeDays })}</ThemedText>
+        ) : s.kcalAvg !== null ? (
           <ThemedText>
             {s.goalAvg !== null
               ? t('checkin.food', { kcal: formatKcal(s.kcalAvg), days: s.completeDays, goal: formatKcal(s.goalAvg) })

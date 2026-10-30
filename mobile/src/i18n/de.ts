@@ -1152,6 +1152,10 @@ export const de = {
     noMatch: 'Nicht gefunden. Lege es an oder suche online.',
     search: 'Suchen oder anlegen',
     template: 'Vorlage: {{name}}',
+    recipe: 'Rezept: {{name}}',
+    water: 'Wasser',
+    portions: 'Portionen',
+    asDrink: 'Wird als Getränk gebucht und zählt auch in der Trinkübersicht.',
     skip: 'weglassen',
     use: 'eintragen',
     confirm: '{{count}} Einträge buchen',
@@ -1171,6 +1175,7 @@ export const de = {
     food: 'Essen: Ø {{kcal}} an {{days}} vollständigen Tagen (Ziel Ø {{goal}})',
     foodNoGoal: 'Essen: Ø {{kcal}} an {{days}} vollständigen Tagen',
     foodNone: 'Essen: keine vollständig erfassten Tage.',
+    foodDays: 'Essen: {{days}} vollständig erfasste Tage',
     foodIncomplete: '{{count}} Tage unvollständig (nicht mitgezählt).',
     training: 'Training: {{done}} von {{planned}} Tagen',
     trainingNoPlan: 'Training: {{done}} Tage',
@@ -1182,6 +1187,7 @@ export const de = {
       zielEinhalten: 'Du lagst im Schnitt {{over}} kcal über deinem Ziel. Versuch zuerst, das Ziel eine Woche einzuhalten; erst dann lohnt eine Anpassung.',
       mehrDaten: 'Für einen Vorschlag fehlt noch: {{list}}.',
       passt: 'Alles im Plan – keine Änderung nötig.',
+      ohneZahlen: 'Du nutzt den Modus „ohne Zahlen“. Der Check-in zeigt deshalb keine Kalorien und schlägt keine vor.',
       sensibel:
         'Du hast eine sensible Situation angegeben. Die App macht deshalb keine Kalorienvorschläge; sprich Änderungen ' +
         'bitte mit einer Fachperson ab.',

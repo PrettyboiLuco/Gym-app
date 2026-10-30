@@ -13,8 +13,10 @@ import type { Db } from '@/data/db';
 import {
   DEFAULT_SETTINGS,
   deleteTemplate,
+  factsForFoods,
   findFoodByBarcode,
   foodFacts,
+  recipeFacts,
   loadNutritionSettings,
   listFavoriteFoods,
   listRecipes,
@@ -28,7 +30,7 @@ import {
   type RecipeSummary,
 } from '@/data/nutrition';
 import { searchProducts, type OffError } from '@/data/off';
-import { dietCheck, needsAttention } from '@/domain/diet';
+import { dietCheck, needsAttention, type FoodFacts } from '@/domain/diet';
 import type { FoodDraft } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -36,7 +38,7 @@ import { t } from '@/i18n';
 
 async function loadAdd(db: Db, query: string) {
   if (query.trim()) {
-    return { results: await searchFoods(db, query), favorites: [], recent: [], templates: [], recipes: [] };
+    return { results: await searchFoods(db, query), favorites: [], recent: [], templates: [], recipes: [], facts: {} };
   }
   const [favorites, recent, templates, recipes] = await Promise.all([
     listFavoriteFoods(db),
@@ -44,7 +46,11 @@ async function loadAdd(db: Db, query: string) {
     listTemplates(db),
     listRecipes(db),
   ]);
-  return { results: [] as Food[], favorites, recent, templates, recipes };
+  // Allergene von Vorlagen und Rezepten aus den Zutaten, für das Warnzeichen (COACH-009).
+  const facts: Record<string, FoodFacts> = {};
+  for (const tpl of templates) facts[tpl.id] = await factsForFoods(db, tpl.items.map((i) => i.foodId));
+  for (const r of recipes) facts[r.versionId] = await recipeFacts(db, r.versionId);
+  return { results: [] as Food[], favorites, recent, templates, recipes, facts };
 }
 
 const EMPTY = {
@@ -53,6 +59,7 @@ const EMPTY = {
   recent: [] as Food[],
   templates: [] as MealTemplate[],
   recipes: [] as RecipeSummary[],
+  facts: {} as Record<string, FoodFacts>,
 };
 
 export default function AddScreen() {
@@ -190,7 +197,7 @@ export default function AddScreen() {
               {data.templates.map((tpl) => (
                 <View key={tpl.id} style={styles.template}>
                   <ListRow
-                    title={tpl.name}
+                    title={`${data.facts[tpl.id] ? warn(data.facts[tpl.id]) : ''}${tpl.name}`}
                     subtitle={tpl.items.map((i) => i.name).join(', ')}
                     accessory={t('nutrition.add')}
                     onPress={() => applyTemplate(tpl.id)}
@@ -205,7 +212,7 @@ export default function AddScreen() {
               {data.recipes.map((r) => (
                 <ListRow
                   key={r.versionId}
-                  title={r.name}
+                  title={`${data.facts[r.versionId] ? warn(data.facts[r.versionId]) : ''}${r.name}`}
                   subtitle={t('nutrition.recipe.summary', { kcal: formatKcal(r.total.kcal) })}
                   accessory="›"
                   onPress={() => router.push({ pathname: '/nutrition/recipe-log/[id]', params: { id: r.versionId, ...passOn } })}

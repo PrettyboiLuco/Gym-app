@@ -6,7 +6,7 @@ import { stepsAverage } from '@/domain/steps';
 
 import { newId, nowUtc, type Db } from './db';
 import { activeWeightGoal, calorieGoalOn, setCalorieGoal, trainingDays } from './goals';
-import { daySums } from './nutrition';
+import { daySums, loadNutritionSettings } from './nutrition';
 import { listSteps } from './steps';
 import { listActivePlans } from './training';
 import { listWeights } from './weights';
@@ -47,7 +47,9 @@ export async function deleteSleep(db: Db, id: string) {
 export async function checkinInput(db: Db, weekEnd: string, profile: Profile, timeZone: string): Promise<CheckinInput> {
   const days = weekDays(weekEnd);
   const from = days[0];
-  const [weights, sums, steps, sleep, plans, weightGoal, trained, current] = await Promise.all([
+  // Der Vorschlag bezieht sich auf das Ziel, das ab heute gilt (der Tag nach der Woche).
+  const today = new Date(Date.parse(`${weekEnd}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+  const [weights, sums, steps, sleep, plans, weightGoal, trained, current, settings] = await Promise.all([
     listWeights(db),
     daySums(db, from, weekEnd),
     listSteps(db, from),
@@ -56,7 +58,8 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     activeWeightGoal(db),
     // Etwas früher anfangen, damit Zeitzonen den ersten Tag nicht abschneiden; gezählt wird nach lokalem Tag.
     trainingDays(db, new Date(Date.parse(`${from}T00:00:00Z`) - 86_400_000).toISOString(), timeZone),
-    calorieGoalOn(db, weekEnd),
+    calorieGoalOn(db, today),
+    loadNutritionSettings(db),
   ]);
   const goals = await Promise.all(days.map((d) => calorieGoalOn(db, d)));
   const byDay = new Map(sums.map((s) => [s.day, s]));
@@ -74,6 +77,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     sleepHours: sleep.filter((s) => s.day <= weekEnd).map((s) => s.hours),
     direction: weightGoal?.direction ?? null,
     sensitive: profile.sensitive,
+    hideNumbers: settings.hideNumbers,
     heightCm: profile.heightCm,
     currentGoal: current?.kcal ?? null,
   };

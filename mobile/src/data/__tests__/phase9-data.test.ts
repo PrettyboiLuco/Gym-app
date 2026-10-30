@@ -10,7 +10,7 @@ import { checkinInput, lastCheckinWeekEnd, listCheckins, listSleep, saveCheckin,
 import type { Db } from '../db';
 import { calorieGoalOn, saveGoal, setCalorieGoal } from '../goals';
 import { migrate } from '../migrations';
-import { foodFacts, getFood, logFood, saveFood } from '../nutrition';
+import { foodFacts, getFood, logFood, recipeFacts, saveFood, saveRecipe, listRecipes } from '../nutrition';
 import { createTestDb } from '../testing/node-db';
 import { addWeight } from '../weights';
 
@@ -95,6 +95,26 @@ describe('Allergene am Lebensmittel (COACH-009)', () => {
   test('eigenes Lebensmittel ohne Angabe = unbekannt', async () => {
     const id = await saveFood(db, null, draft);
     expect(foodFacts((await getFood(db, id))!)).toEqual({ allergens: null, traces: null, diet: null });
+  });
+});
+
+describe('Rezept-Allergene aus den Zutaten (COACH-009)', () => {
+  test('Allergene der Zutaten werden zusammengefasst', async () => {
+    const base = { brand: null, barcode: null, basis: 'g' as const, per100: { kcal: 100, protein: 1, carbs: 1, fat: 1 }, servingAmount: null };
+    const brot = await saveFood(db, null, { ...base, name: 'Brot', allergens: ['gluten'], traces: [] });
+    const creme = await saveFood(db, null, { ...base, name: 'Creme', allergens: ['milch', 'schalenfruechte'], traces: [] });
+    await saveRecipe(db, null, { name: 'Nutella-Brot', endWeightG: null, portions: 1, ingredients: [{ foodId: brot, amount: 40 }, { foodId: creme, amount: 15 }] });
+    const [recipe] = await listRecipes(db);
+    expect((await recipeFacts(db, recipe.versionId)).allergens?.sort()).toEqual(['gluten', 'milch', 'schalenfruechte']);
+  });
+});
+
+describe('Check-in nimmt das heute gültige Ziel', () => {
+  test('Ziel heute geändert → Vorschlag geht von diesem Ziel aus', async () => {
+    await fillTwoWeeks();
+    await setCalorieGoal(db, 2200, day(1));
+    const input = await checkinInput(db, day(0), EMPTY_PROFILE, 'Europe/Berlin');
+    expect(input.currentGoal).toBe(2200);
   });
 });
 

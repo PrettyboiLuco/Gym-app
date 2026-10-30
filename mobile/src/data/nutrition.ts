@@ -3,7 +3,7 @@
 // - Essen und Getränke sind dieselbe Tabelle: ein Ereignis, beide Ansichten (TIME-005/006).
 // - Tagebuchdatum, Verzehrzeit, Erfassungszeit und Zeitzone getrennt (TIME-001/003).
 
-import { ALLERGENS, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
+import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
   fractionOf,
   nutrientsForAmount,
@@ -58,6 +58,25 @@ function parseList(value: string | null): Allergen[] | null {
 /** Allergene, Spuren und Ernährungsweise eines gespeicherten Lebensmittels. */
 export function foodFacts(food: Pick<Food, 'allergensJson' | 'tracesJson' | 'diet'>): FoodFacts {
   return { allergens: parseList(food.allergensJson), traces: parseList(food.tracesJson), diet: food.diet };
+}
+
+/** Zusammengefasste Angaben mehrerer Lebensmittel, z. B. Zutaten eines Rezepts oder einer Vorlage (COACH-009). */
+export async function factsForFoods(db: Db, foodIds: (string | null)[]): Promise<FoodFacts> {
+  const parts: FoodFacts[] = [];
+  for (const id of foodIds) {
+    const food = id ? await getFood(db, id) : null;
+    // Zutat ohne gespeichertes Lebensmittel: Angaben unbekannt.
+    parts.push(food ? foodFacts(food) : { allergens: null, traces: null, diet: null });
+  }
+  return combineFacts(parts);
+}
+
+export async function recipeFacts(db: Db, versionId: string): Promise<FoodFacts> {
+  const rows = await db.getAllAsync<{ foodId: string | null }>(
+    'SELECT food_id AS foodId FROM recipe_ingredient WHERE recipe_version_id = ?',
+    versionId
+  );
+  return factsForFoods(db, rows.map((r) => r.foodId));
 }
 
 const listText = (list: Allergen[] | null | undefined) => (list == null ? null : JSON.stringify(list));

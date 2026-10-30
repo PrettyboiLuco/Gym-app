@@ -35,6 +35,8 @@ export type CheckinInput = {
   sleepHours: number[];
   direction: Goal | null;
   sensitive: boolean;
+  /** Modus „ohne Zahlen“ (TRACK-006): dann weder Kalorien zeigen noch vorschlagen. */
+  hideNumbers: boolean;
   heightCm: number | null;
   /** Aktuelles Kalorienziel; null = keins. */
   currentGoal: number | null;
@@ -62,7 +64,8 @@ export type CheckinSuggestion =
   | { kind: 'zielEinhalten'; over: number }
   | { kind: 'mehrDaten'; missing: Missing[] }
   | { kind: 'passt' }
-  | { kind: 'sensibel' };
+  | { kind: 'sensibel' }
+  | { kind: 'ohneZahlen' };
 
 export type CheckinHint = 'trainingWeniger' | 'trainingOk' | 'schlafKurz';
 
@@ -116,6 +119,7 @@ export function weeklyCheckin(input: CheckinInput): CheckinResult {
 
 function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
   if (input.sensitive) return { kind: 'sensibel' };
+  if (input.hideNumbers) return { kind: 'ohneZahlen' };
   const missing: Missing[] = [];
   if (input.direction === null) missing.push('richtung');
   if (input.currentGoal === null) missing.push('ziel');

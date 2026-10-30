@@ -14,6 +14,8 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | Dehnung | Teil von „Training“, kein eigener Tab | 30.10.2026 |
 | Übungsmedien zum Start | Name und kurze Textanleitung, keine Bilder; Bilder/Animationen später als eigene Bilder (siehe Phase 9) | 30.10.2026 |
 | Fortschrittsfotos | Ja. Umsetzung: freiwillig, standardmäßig aus, nur auf dem Gerät, kein Upload/keine Werbung/keine KI, beim Öffnen verdeckt | 30.10.2026 |
+| Übungsbilder | Später, alle im selben Stil und für jeden klar verständlich. Erst eigene Bilder (auch mit Higgsfield neu erstellt), reicht das nicht: kaufen. RepDB weglassen (kostet bzw. nicht nötig) | 30.10.2026 |
+| Coach | Muss sehr umfangreich werden – eigenes Vorhaben mit eigener Planung, nicht „einfach direkt bauen“. Der Wochen-Check-in aus 9.2 ist nur ein erster Baustein | 30.10.2026 |
 | Phase 9 | Kostenfreie Version: keine gekauften Medien, keine KI, kein Server. Übungsbilder später als eigene Bilder (keine RepDB-/Kaufbilder). Coach nur als Vorschlag mit Bestätigung | 30.10.2026 |
 
 ## Vorläufig umgesetzt (Phase 4, 30.10.2026) – bitte bestätigen oder ändern
