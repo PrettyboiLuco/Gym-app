@@ -261,7 +261,17 @@ export async function activatePlanVersion(db: Db, planId: string, versionId: str
  * Beendet abgelaufene befristete Versionen (TRAIN-008): Am Tag nach valid_until gilt wieder die Version,
  * von der aus geändert wurde. Gibt die Namen der betroffenen Pläne zurück (für einen Hinweis).
  */
-export async function expireTemporaryPlans(db: Db, today: string): Promise<string[]> {
+export function expireTemporaryPlans(db: Db, today: string): Promise<string[]> {
+  // „Heute“ und „Training“ können gleichzeitig laden; nie zwei Transaktionen parallel starten.
+  expiring ??= expireNow(db, today).finally(() => {
+    expiring = null;
+  });
+  return expiring;
+}
+
+let expiring: Promise<string[]> | null = null;
+
+async function expireNow(db: Db, today: string): Promise<string[]> {
   const expired = await db.getAllAsync<{ planId: string; returnVersionId: string; name: string }>(
     `SELECT v.plan_id AS planId, v.return_version_id AS returnVersionId, r.name FROM plan_version v
      JOIN plan_version r ON r.id = v.return_version_id

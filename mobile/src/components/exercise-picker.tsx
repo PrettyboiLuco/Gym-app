@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName, exerciseSynonyms } from '@/components/exercise-name';
 import { Field, ListRow } from '@/components/fields';
 import type { Exercise } from '@/data/training';
 import { MUSCLE_GROUPS } from '@/domain/exercises';
@@ -20,11 +20,11 @@ export function ExercisePicker({
   const [query, setQuery] = useState('');
   const needle = query.trim().toLowerCase();
   const filtered = exercises
-    // Suche auch nach Muskelgruppe und Gerät, z. B. „Brust“ oder „Kabel“.
+    // Suche auch nach anderen Namen, Muskelgruppe und Gerät, z. B. „Squat“, „Brust“ oder „Kabel“.
     .filter(
       (e) =>
         !needle ||
-        [exerciseName(e), t(`muscle.${e.muscleGroup}`), t(`equipment.${e.equipment}`)].some((text) =>
+        [exerciseName(e), ...exerciseSynonyms(e), t(`muscle.${e.muscleGroup}`), t(`equipment.${e.equipment}`)].some((text) =>
           text.toLowerCase().includes(needle)
         )
     )

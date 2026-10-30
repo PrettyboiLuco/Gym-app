@@ -119,6 +119,24 @@ describe('Planumbau (8.2)', () => {
     expect(p.conflicts).toEqual([]);
   });
 
+  test('5 Tage Arnold → 3 Tage Arnold (Beispiel Gesamtprüfung)', () => {
+    const arnold5: PlanDraft = {
+      name: 'Arnold',
+      days: [
+        ['bankdruecken', 'klimmzuege', 'schraegbankdruecken_kh', 'langhantelrudern'],
+        ['schulterdruecken_kh', 'seitheben', 'bizepscurls_kh', 'trizepsdruecken_kabel'],
+        ['kniebeuge', 'rumaenisches_kreuzheben', 'beinpresse', 'wadenheben'],
+        ['bankdruecken', 'latzug', 'butterfly', 'rudern_kabel'],
+        ['schulterdruecken_kh', 'face_pulls', 'bizepscurls_kh', 'trizepsdruecken_kabel'],
+      ].map((ids, i) => ({ name: `Tag ${i + 1}`, items: ids.map((id) => item(id)) })),
+    };
+    const p = rebuildPlan(input({ current: arnold5, days: 3, split: 'arnold', minutes: 75 }));
+    expect(p.decision).toEqual({ split: 'arnold', requested: 'arnold', fits: true });
+    expect(p.dayTypes).toEqual(['brust_ruecken', 'schultern_arme', 'beine']);
+    expect(p.conflicts).toEqual([]);
+    expect(validatePlan(p.draft)).toEqual([]);
+  });
+
   test('gleiche Eingabe → gleiches Ergebnis (deterministisch, TRAIN-021)', () =>
     expect(rebuildPlan(input({ days: 3 }))).toEqual(rebuildPlan(input({ days: 3 }))));
 

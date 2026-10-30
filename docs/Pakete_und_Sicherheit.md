@@ -34,7 +34,7 @@ Produktdaten: Open Food Facts, Abruf zur Laufzeit nur auf Aktion des Nutzers (Sc
 Datenbanklizenz ODbL, Namensnennung unter „Mehr → Datenquellen“. Produktbilder werden nicht verwendet
 (eigene Lizenz CC BY-SA, FOOD-005).
 
-## `npm audit` (nur Laufzeit-Abhängigkeiten, 29.10.2026; erneut 30.10.2026 nach expo-image-picker/expo-file-system/expo-speech und den vier Paketen aus Phase 6: unverändert)
+## `npm audit` (nur Laufzeit-Abhängigkeiten, 29.10.2026; erneut 30.10.2026 nach expo-image-picker/expo-file-system/expo-speech und den vier Paketen aus Phase 6: unverändert; Phase 8 ohne neue Pakete, erneut geprüft: unverändert)
 
 8 Meldungen (5 niedrig, 3 hoch). Alle betreffen **Expos Build-Werkzeuge** (`@expo/cli`, `@expo/config`,
 `@expo/metro-config`, `@expo/prebuild-config`) über die Pakete `deepmerge` und `zod`. Diese laufen beim

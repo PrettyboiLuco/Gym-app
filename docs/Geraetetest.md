@@ -67,3 +67,14 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | A2 | Große Schrift (Einstellungen → Anzeige) | Nichts abgeschnitten |
 | A3 | Dunkelmodus | Alles lesbar |
 | A4 | App-Update über Expo Go | Daten bleiben erhalten |
+
+## Planassistent (Phase 8, TRAIN-008, -016, -018)
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| P1 | Training → Planassistent → Vorlage (3 Tage, Einsteiger, 45 min) → Übernehmen | Plan erscheint in „Meine Pläne“ | Expo Go |
+| P2 | Plan umbauen „nur diese Woche“, App am Montag wieder öffnen | Hinweis „befristete Änderung ist vorbei“, gewohnte Fassung aktiv | Expo Go |
+| P3 | Umbau übernehmen, dann „Rückgängig“ | Vorige Fassung aktiv, Verlauf unverändert | Expo Go |
+| P4 | Im Training „Gerät belegt? Ersatz wählen“ | Offene Sätze wechseln, erledigte bleiben | Expo Go |
+| P5 | Gleiche Übung zweimal mit allen Sätzen am oberen Ende | Beim dritten Mal Vorschlag „mehr Gewicht“ | Expo Go |
+| P6 | Freitext „4 Tage je 60 Minuten, ohne Langhantel“ (auch per Diktat) | Auswahl unten passend gesetzt | Expo Go |

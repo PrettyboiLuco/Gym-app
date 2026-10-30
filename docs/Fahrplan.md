@@ -296,11 +296,80 @@ Absturzdienst ist bewusst nicht eingebaut (Datenschutz).
 
 ## Phase 8 – Adaptiver Planassistent (dein Alleinstellungsmerkmal)
 
-8.1 Übungsdaten mit Muskelgruppen/Bewegungsmustern (RepDB Free prüfen; wger Server/App als Vergleich) ·
-8.2 Plan von X auf Y Tage umbauen mit Regeln, Konfliktanzeige, Vorschau, Rückgängig · 8.3 Lieblingsübungen
-sperren · 8.4 Ersatzübung bei blockiertem Gerät · 8.5 Progressionsregeln (mehr Gewicht/Wdh., Stagnation,
-Wiedereinstieg) · 8.6 Anfängervorlagen · 8.7 Freitext per KI erst danach.
-Register: TRAIN-001, -005–011, -016, -018–021, TECH-005, TECH-006.
+| # | Schritt | Register |
+|---|---|---|
+| 8.1 | Übungsdaten mit Muskelgruppen/Bewegungsmustern (RepDB Free prüfen; wger Server/App als Vergleich) | TRAIN-003, TECH-005, TECH-006 |
+| 8.2 | Plan von X auf Y Tage umbauen mit Regeln, Konfliktanzeige, Vorschau, Rückgängig | TRAIN-004, -005, -007–012, -021 |
+| 8.3 | Lieblingsübungen sperren | TRAIN-006 |
+| 8.4 | Ersatzübung bei blockiertem Gerät | TRAIN-014, TRAIN-016 |
+| 8.5 | Progressionsregeln (mehr Gewicht/Wdh., Stagnation, Wiedereinstieg) | TRAIN-015, TRAIN-018 |
+| 8.6 | Anfängervorlagen | TRAIN-001, TRAIN-019, COACH-001 |
+| 8.7 | Freitext erst danach | TRAIN-020 |
+
+**Fertig, wenn:** Pflichtübungs- und Zeitkonflikte korrekt gemeldet werden, Logs beim Umbau unverändert bleiben
+und die alte Version reaktivierbar ist (P3, Kap. 15).
+
+**Stand 30.10.2026:** 8.1–8.7 gebaut, alles ohne Netz und ohne KI.
+- 8.1 Übungsdaten selbst kuratiert (Kap. 4: „Metadaten selbst kuratieren“): 16 Bewegungsmuster, Stufe
+  Einsteiger/Fortgeschritten und Ersatzübungen für alle 60 Kraftübungen; 20 neue Kraftübungen, damit es je Bewegung
+  Varianten mit Maschine, Kurzhantel, Kabel und ohne Gerät gibt; Kurzanleitungen jetzt für alle Kraftübungen. Eigene
+  Übungen: Bewegung wählbar, sonst aus der Muskelgruppe abgeleitet. RepDB Free/wger nicht importiert (Entscheidung
+  unten); Muster und Ersatzübungen sind ungeprüfte Vorschläge (10.1).
+- 8.2 Planumbau: 2–6 Tage, 20–180 min, Aufteilung automatisch oder gewählt (Ganzkörper, Ober/Unter, Push/Pull/Beine,
+  Arnold, Ober/Unter+PPL). Passt die gewählte Aufteilung nicht zur Tageszahl, schlägt die App begründet eine andere vor.
+  Übungen werden nach Bewegung verteilt, so oft pro Woche wie bisher; bei zu wenig Zeit wird nach festen Regeln
+  gekürzt (Doppeltes, ähnliche Übung am selben Tag, Sätze bis 2, Isolation, dann Grundübungen), Pausen nie. Aufwärmen
+  und Cool-down sind in der Dauer enthalten. Geht es nicht auf, kommt ein Konflikt mit echter Dauer, und Übernehmen ist
+  gesperrt. Vorschau: je Übung „bleibt/verschoben/gekürzt/ersetzt/entfernt“ mit Grund, je Tag Dauer gegen Budget.
+  Übernehmen = neue Planversion mit Grund; „Rückgängig“ aktiviert die vorige. Befristet „nur diese Woche“ (bis Sonntag)
+  oder „2 Wochen“: Danach wird die gewohnte Fassung automatisch wieder aktiv, sie bleibt dabei unverändert (TRAIN-008);
+  im Plan-Editor sichtbar mit „Jetzt zurück“.
+- 8.3 Lieblingsübungen „behalten“: werden nie entfernt oder gekürzt; widerspricht das der Zeit oder einem fehlenden
+  Gerät, zeigt die App den Konflikt statt sie zu entfernen. Wird gemerkt (auch in der Sicherung).
+- 8.4 Geräte oder einzelne Übungen „nicht verfügbar“: Ersatz aus der kuratierten Liste, gleiche Messart. Im Training:
+  „Gerät belegt? Ersatz wählen“ stellt nur die offenen Sätze dieses Trainings um; Plan und erledigte Sätze bleiben,
+  Ersatzübung mit eigenem Verlauf (TRAIN-014).
+- 8.5 Steigerungsregeln Fassung 1 (Entscheidungstabelle in `domain/progression.ts`): oberes Ende in allen Sätzen →
+  kleinster Gewichtsschritt (2,5 kg, Kurzhantel 2 kg, 5 lb), im Bereich → +1 Wdh., meist darunter → halten, drei
+  Einheiten ohne Fortschritt → ca. 10 % leichter neu aufbauen, Pause ≥ 14/28 Tage → −10/−20 %, Zeit-Übung +5 s,
+  Körpergewicht → schwerere Variante. Im Training als Vorschlag mit „eintragen“, abschaltbar. Übersicht zeigt nach
+  ≥ 14 Tagen Pause einen Wiedereinstiegshinweis.
+- 8.6 Vorlagen: Ziel (Muskelaufbau/Kraft/Fitness), Erfahrung, vorhandene Geräte, Tage, Zeit → Plan aus Bausteinen je
+  Tagesart mit Varianten A/B/C; Einsteiger nur Einsteiger-Übungen; Erklärung „So funktioniert dein Plan“ und
+  Kurzanleitungen in der Vorschau. Profil: Erfahrung, Ziel, Geräte, Zeit pro Training (Beruf steckt in „Bewegung im
+  Alltag“; sitzend → Büro-/Hüftroutinen oben unter Dehnen).
+- 8.7 Freitext: „Künftig 4 Tage je 60 Minuten, Ober/Unter, ohne Langhantel, Kniebeuge behalten“ wird lokal gelesen
+  (Tage, Minuten, Aufteilung, Dauer, Geräte, Übungen, „bisher …“ wird ignoriert) und füllt nur die Auswahlfelder.
+  Jeder Wunsch läuft durch eine strenge Prüfung (`validateWish`): unbekannte Felder, Übungs-IDs, Geräte und Werte
+  außerhalb der Grenzen werden abgewiesen – dieselbe Prüfung gilt später für eine KI-Antwort (Phase 9). Schmerzen im
+  Text → Übung ersetzen plus Hinweis, keine Behandlungstipps.
+380 automatische Tests (davon 72 neu für Phase 8, inkl. Prüfsumme der Logs vor/nach Umbau und Rückgängig),
+Browser-Test Phase 8 27/27 ohne Konsolenfehler, iOS-Bundle baut, Referenztests 24 + 22.
+
+**Prüfung Phasen 1–8 (30.10.2026), nach dem Bau von Phase 8:** Fahrplan, Funktionsliste der Gesamtprüfung und
+Register gegen den Code; dazu ein automatischer Abgleich aller Textschlüssel, ein Browser-Durchlauf über alle 30
+Bildschirme (30/30, keine Konsolenfehler) und `npm audit` (unverändert, nur Build-Werkzeuge). 8 Lücken geschlossen:
+- TRAIN-003: Suche kannte keine anderen Namen – jetzt Synonyme (z. B. „Squat“ → Kniebeuge, „Lat Pulldown“ → Latzug),
+  auch im Freitext des Assistenten.
+- TRAIN-015: Bei ausgefallenen Tagen gab es nur „fortsetzen“ – jetzt auch „Woche ausgefallen? Diese Woche neu planen“
+  (befristeter Umbau bis Sonntag).
+- TRAIN-001: Kraftübungen hatten (bis auf drei) keine Kurzanleitung – jetzt alle; ein Test stellt sicher, dass jede
+  Übung Name, Anleitung und Metadaten hat.
+- Freitext las „bisher 6 Tage PPL“ als Wunsch – Beschreibungen des bisherigen Stands werden jetzt ignoriert.
+- „Heute“ und „Training“ konnten befristete Fassungen gleichzeitig beenden (zwei Transaktionen) – jetzt nacheinander.
+- Wiederherstellen einer Sicherung prüft Verweise zwischen Planversionen erst am Ende der Transaktion.
+- Feedback-Bogen (7.3) ohne Bereich „Planassistent“; Datenschutz-Entwurf ohne Trainingsangaben/Planassistent;
+  Gerätetest-Liste um Planassistent (P1–P6) ergänzt; Pilot-Leitfaden aktualisiert.
+- Testumgebung: `expo-env.d.ts` fehlt nach frischem Klonen (wird von `expo start` erzeugt) – bekannt, kein App-Fehler.
+Weiter offen wie in den Phasen 1–7 notiert (Gerätetests auf dem iPhone, Fachprüfung, MacBook-Punkte, USDA).
+
+**Offen / bewusst verschoben:**
+- Fachliche Prüfung von Mustern, Ersatzübungen, Vorlagen-Parametern und Steigerungsregeln (10.1, O3).
+- KI-Anbindung für Freitext und Erklärungen (Phase 9.3, mit Kostenlimit); Schnittstelle und Prüfung stehen.
+- Bevorzugte Wochentage: Pläne laufen als Reihenfolge; feste Wochentage über die Trainings-Erinnerungen (6.4).
+- Zeitschätzung aus eigenen protokollierten Satzzeiten kalibrieren (Kap. 10) – später.
+- Von dir: auf dem iPhone eine Vorlage erstellen, einen Plan umbauen (auch „nur diese Woche“), im Training
+  „Gerät belegt“ und einen Steigerungsvorschlag ausprobieren.
 
 ## Phase 9 – Übungsdemos, Coach, KI
 

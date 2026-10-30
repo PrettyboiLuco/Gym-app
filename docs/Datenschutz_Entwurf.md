@@ -6,7 +6,10 @@ technischen Ist-Stand der App, damit Tester wissen, was mit ihren Daten passiert
 ## Kurzfassung
 
 - Es gibt **kein Konto und keinen Server** des Anbieters. Alle Einträge (Training, Ernährung, Gewicht, Ziele,
-  Fotos, Einstellungen) werden nur **lokal auf deinem iPhone** gespeichert.
+  Fotos, Einstellungen, freiwillige Trainingsangaben im Profil wie Erfahrung, Geräte und Zeit) werden nur
+  **lokal auf deinem iPhone** gespeichert.
+- Der **Planassistent** rechnet vollständig auf dem Gerät, ohne KI und ohne Internet. Auch dein Wunsch in eigenen
+  Worten wird nur lokal gelesen und nicht übertragen.
 - Daten verlassen das Gerät nur, wenn **du** es auslöst:
   - **Barcode-Scan / Online-Suche:** Der Barcode bzw. Suchbegriff wird an Open Food Facts gesendet
     (openfoodfacts.org, Open Database License). Es wird nichts aus deinem Tagebuch übertragen.

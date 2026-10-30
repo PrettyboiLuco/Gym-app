@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName, exerciseSynonyms } from '@/components/exercise-name';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
 import { todayDay } from '@/components/nutrition-format';
 import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
@@ -57,7 +57,8 @@ async function loadBase(db: Db) {
 
 /** Planassistent (Phase 8): Plan umbauen oder Vorlage, Vorschau mit Gründen, erst dann übernehmen. */
 export default function AssistantScreen() {
-  const params = useLocalSearchParams<{ plan?: string }>();
+  // `dauer=woche`: aus „Woche ausgefallen? Neu planen“ (TRAIN-015).
+  const params = useLocalSearchParams<{ plan?: string; dauer?: string }>();
   const db = useDb();
   const theme = useTheme();
   const { profile } = useProfile();
@@ -70,7 +71,7 @@ export default function AssistantScreen() {
   const [days, setDays] = useState('3');
   const [minutes, setMinutes] = useState(String(profile.sessionMinutes ?? 60));
   const [split, setSplit] = useState<SplitChoice>('auto');
-  const [duration, setDuration] = useState<Duration>('dauerhaft');
+  const [duration, setDuration] = useState<Duration>(params.dauer === 'woche' ? 'woche' : 'dauerhaft');
   const [goal, setGoal] = useState<TrainingGoal>(profile.trainingGoal ?? 'muskelaufbau');
   const [experience, setExperience] = useState<Level>(profile.experience ?? 'einsteiger');
   const [available, setAvailable] = useState<Equipment[]>(profile.equipment ?? [...EQUIPMENT]);
@@ -139,7 +140,8 @@ export default function AssistantScreen() {
   }
 
   function applyWish() {
-    const parsed = parseWish(wishText, exercises.map((e) => ({ id: e.id, name: exerciseName(e) })));
+    const names = exercises.flatMap((e) => [exerciseName(e), ...exerciseSynonyms(e)].map((name) => ({ id: e.id, name })));
+    const parsed = parseWish(wishText, names);
     if (isEmptyWish(parsed)) {
       setWishMessages([t('assistant.wishNone')]);
       return;

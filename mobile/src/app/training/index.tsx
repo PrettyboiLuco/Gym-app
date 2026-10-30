@@ -99,6 +99,14 @@ export default function TrainingScreen() {
               {t('training.dayChoiceHint')}
             </ThemedText>
           ) : null}
+          {plans.length > 0 ? (
+            <ListRow
+              title={t('training.rescheduleTitle')}
+              subtitle={t('training.rescheduleSubtitle')}
+              accessory="›"
+              onPress={() => router.push({ pathname: '/training/assistant', params: { plan: plans[0].planId, dauer: 'woche' } })}
+            />
+          ) : null}
         </Card>
       )}
 

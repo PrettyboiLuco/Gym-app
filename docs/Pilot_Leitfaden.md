@@ -31,7 +31,7 @@ Der Pilot ist ein Produktversuch mit 5–10 Leuten, kein Ersatz für die Google-
 1. **Wird sie wiederkehrend genutzt?** (Fertig-Kriterium) – Nutzungsübersicht: Trainings, Tagebuchtage,
    Dehn-/HIIT-Einheiten über 2 Wochen.
 2. **Was wird genutzt, was nicht?** – Frage „Was nutzt du am meisten?“
-3. **Was fehlt?** – Freitext; häufige Wünsche sammeln (z. B. fertige Pläne → Phase 8).
+3. **Was fehlt?** – Freitext; häufige Wünsche sammeln (fertige Pläne und Planumbau gibt es seit Phase 8 – fragen, ob sie genutzt werden).
 4. **Zahlungsbereitschaft** (BUS-002, Hypothesen 4 €/Monat, 30 €/Jahr) – Antwortverteilung zählen; Aussagen sind
    Hinweise, kein Kaufnachweis.
 5. **Vergleich** (BUS-015, O7) – welche Apps nutzen sie sonst, was machen die besser? Siehe `docs/Wettbewerbsvergleich.md`.

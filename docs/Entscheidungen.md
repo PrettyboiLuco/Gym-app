@@ -25,6 +25,17 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | Zielalter | Start nur ab 18 (Ja/Nein beim Erststart); Rechner nur 19–78 Jahre. |
 | Rechner-Werte | DGE-PAL-Stufen, Abstände ±250/±500, Untergrenze max(1200, Ruheenergie), BMI 18,5 – alles bis zur Fachprüfung vorläufig. |
 
+## Vorläufig umgesetzt (Phase 8, 30.10.2026) – bitte bestätigen oder ändern
+
+| Thema | Vorläufige Lösung |
+|---|---|
+| Übungsdaten | Selbst kuratiert (Bewegungsmuster, Stufe, Ersatzübungen, Kurzanleitungen). RepDB Free nicht importiert: Daten wären mit Namensnennung kommerziell nutzbar (MEDIA-002), bringen aber ohne Medien kaum Mehrwert; Entscheidung gemeinsam mit den Medien in Phase 9. wger nur Vergleich (AGPL, TECH-005/006). |
+| Steigerung | Doppelte Progression (Wiederholungen, dann kleinster Gewichtsschritt), Stagnation nach 3 Einheiten, Wiedereinstieg ab 14 Tagen. Nur Vorschlag, abschaltbar. |
+| Vorlagen | Ganzkörper 2–4 Tage, Ober/Unter 4, Ober/Unter+PPL 5, PPL 6 Tage; Sätze/Wdh./Pausen je Ziel (Tabelle in `domain/planner.ts`). |
+| Befristung | „Nur diese Woche“ = bis Sonntag, „2 Wochen“ = 14 Tage; danach automatisch zurück. |
+| Freitext | Lokal, ohne KI und ohne Internet; KI erst mit Phase 9 (Kosten, Datenschutz). |
+| Beruf | Kein eigenes Feld – „Bewegung im Alltag“ im Profil enthält ihn bereits. |
+
 ## Folgen für die Technik (Vorschlag)
 
 - **Expo / React Native (TypeScript)** bleibt der Kandidat (Option B, Kap. 09): Es ist am nächsten an der

@@ -75,6 +75,8 @@ describe('Freitext (8.7)', () => {
     expect(parseWish('kein Schulterdrücken', NAMES).blockedExercises?.sort()).toEqual(['schulterdruecken_kh', 'schulterdruecken_lh']));
   test('Schmerzen: Übung ausschließen, Hinweis statt Therapie (TRAIN-017)', () =>
     expect(parseWish('Kniebeuge tut weh', NAMES)).toMatchObject({ blockedExercises: ['kniebeuge'], pain: true }));
+  test('andere Namen (Synonyme) werden erkannt (TRAIN-003)', () =>
+    expect(parseWish('ohne Squat', [...NAMES, { id: 'kniebeuge', name: 'Squat' }]).blockedExercises).toEqual(['kniebeuge']));
   test('Unverständliches ergibt einen leeren Wunsch', () => expect(parseWish('Hallo, wie geht es dir?', NAMES)).toEqual({}));
 });
 
