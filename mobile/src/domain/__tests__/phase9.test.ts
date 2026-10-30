@@ -172,6 +172,13 @@ describe('Wochen-Check-in (COACH-008)', () => {
     expect(short.hints).toContain('schlafKurz');
     expect(short.suggestion).toEqual({ kind: 'passt' });
   });
+  test('Eiweiß/Ballaststoffe deutlich unter Ziel → Hinweis, keine Kalorienänderung (C9)', () => {
+    const low = days('2026-10-29', 1950).map((d) => ({ ...d, protein: 80, goalProtein: 130, fiber: 15, goalFiber: 30 }));
+    const r = weeklyCheckin(input({ days: low }));
+    expect(r.hints).toEqual(expect.arrayContaining(['eiweissWenig', 'ballaststoffeWenig']));
+    expect(r.summary).toMatchObject({ proteinAvg: 80, proteinGoal: 130, fiberAvg: 15, fiberGoal: 30 });
+    expect(weeklyCheckin(input({ days: low, hideNumbers: true })).hints).not.toContain('eiweissWenig');
+  });
   test('weniger trainiert als geplant → Hinweis', () =>
     expect(weeklyCheckin(input({ workouts: 1 })).hints).toContain('trainingWeniger'));
   test('fällig nach 7 Tagen', () => {

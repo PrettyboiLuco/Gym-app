@@ -6,7 +6,8 @@ import { Choice, Field, ListRow } from '@/components/fields';
 import { formatKcal, timeZone, todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { checkinInput, deleteSleep, listCheckins, listSleep, saveCheckin, saveSleep, type CheckinRecord, type SleepEntry } from '@/data/coach';
+import { checkinInput, deleteSleep, listCheckins, listSleep, loadCoachSetup, saveCheckin, saveSleep, type CheckinRecord, type SleepEntry } from '@/data/coach';
+import { needsRecalc } from '@/domain/coach';
 import type { Db } from '@/data/db';
 import { useProfile } from '@/data/profile-provider';
 import { CHECKIN_RULES_VERSION, weekDays, weeklyCheckin, type CheckinResult } from '@/domain/checkin';
@@ -22,12 +23,16 @@ const QUALITY = ['keine', '1', '2', '3', '4', '5'] as const;
 async function loadCheckin(db: Db, profile: Profile) {
   // Die Woche endet gestern: Heute ist meist noch nicht vollständig erfasst.
   const weekEnd = shiftDay(todayDay(), -1);
-  const [input, sleep, history] = await Promise.all([
+  const [input, sleep, history, setup] = await Promise.all([
     checkinInput(db, weekEnd, profile, timeZone),
     listSleep(db, shiftDay(weekEnd, -13)),
     listCheckins(db),
+    loadCoachSetup(db),
   ]);
-  return { weekEnd, result: weeklyCheckin(input), sleep, history };
+  const result = weeklyCheckin(input);
+  // Schritte oder Gym-Tage deutlich anders als bei der Einrichtung → neu berechnen anbieten (C9).
+  const recalc = setup !== null && needsRecalc(setup.steps, result.summary.stepsAvg, setup.gymDays, result.summary.workouts);
+  return { weekEnd, result, sleep, history, recalc };
 }
 
 /** Wöchentlicher Check-in (Phase 9.2, COACH-006, -008, -010): Überblick, ein Vorschlag, du entscheidest. */
@@ -39,6 +44,7 @@ export default function CheckinScreen() {
     result: null as CheckinResult | null,
     sleep: [] as SleepEntry[],
     history: [] as CheckinRecord[],
+    recalc: false,
   });
   const [message, setMessage] = useState<string | null>(null);
   const [sleepDay, setSleepDay] = useState(todayDay());
@@ -125,6 +131,12 @@ export default function CheckinScreen() {
         </ThemedText>
         {s.stepsAvg !== null ? <ThemedText>{t('checkin.steps', { value: formatNumber(Math.round(s.stepsAvg), 0) })}</ThemedText> : null}
         {s.sleepAvg !== null ? <ThemedText>{t('checkin.sleep', { value: formatNumber(s.sleepAvg), days: s.sleepDays })}</ThemedText> : null}
+        {suggestion.kind !== 'ohneZahlen' && suggestion.kind !== 'sensibel' && s.proteinAvg !== null && s.proteinGoal !== null ? (
+          <ThemedText>{t('checkin.protein', { avg: formatNumber(Math.round(s.proteinAvg), 0), goal: formatNumber(Math.round(s.proteinGoal), 0) })}</ThemedText>
+        ) : null}
+        {suggestion.kind !== 'ohneZahlen' && suggestion.kind !== 'sensibel' && s.fiberAvg !== null && s.fiberGoal !== null ? (
+          <ThemedText>{t('checkin.fiber', { avg: formatNumber(Math.round(s.fiberAvg), 0), goal: formatNumber(Math.round(s.fiberGoal), 0) })}</ThemedText>
+        ) : null}
       </Card>
 
       <Card title={t('checkin.suggestionTitle')}>
@@ -134,6 +146,12 @@ export default function CheckinScreen() {
             {t(`checkin.hint.${hint}`)}
           </ThemedText>
         ))}
+        {data.recalc ? (
+          <>
+            <ThemedText type="small">{t('coach.recalc')}</ThemedText>
+            <Button label={t('coach.recalcOpen')} variant="danger" onPress={() => router.push('/progress/coach-setup')} />
+          </>
+        ) : null}
         {result.hints.includes('trainingWeniger') ? (
           <Button label={t('checkin.openAssistant')} variant="danger" onPress={() => router.push('/training/assistant')} />
         ) : null}

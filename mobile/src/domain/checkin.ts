@@ -20,7 +20,18 @@ const STEP_KCAL = 100;
 const OVER_GOAL_KCAL = 150;
 const SHORT_SLEEP_HOURS = 6;
 
-export type CheckinDay = { day: string; kcal: number | null; entries: number; unknownKcal: number; goal: number | null };
+export type CheckinDay = {
+  day: string;
+  kcal: number | null;
+  entries: number;
+  unknownKcal: number;
+  goal: number | null;
+  /** Eiweiß und Ballaststoffe gegessen (Summe der bekannten Werte) und Ziel des Tages (Coach, C9). */
+  protein?: number | null;
+  fiber?: number | null;
+  goalProtein?: number | null;
+  goalFiber?: number | null;
+};
 
 export type CheckinInput = {
   /** Letzter Tag der Woche (meist gestern, damit heute unvollständig nicht mitzählt). */
@@ -55,6 +66,11 @@ export type CheckinSummary = {
   stepsAvg: number | null;
   sleepAvg: number | null;
   sleepDays: number;
+  /** Schnitt über vollständige Tage; null = keine Ziele oder keine Tage. */
+  proteinAvg: number | null;
+  proteinGoal: number | null;
+  fiberAvg: number | null;
+  fiberGoal: number | null;
 };
 
 export type Missing = 'gewicht' | 'essen' | 'ziel' | 'richtung';
@@ -67,7 +83,7 @@ export type CheckinSuggestion =
   | { kind: 'sensibel' }
   | { kind: 'ohneZahlen' };
 
-export type CheckinHint = 'trainingWeniger' | 'trainingOk' | 'schlafKurz';
+export type CheckinHint = 'trainingWeniger' | 'trainingOk' | 'schlafKurz' | 'eiweissWenig' | 'ballaststoffeWenig';
 
 export type CheckinResult = { summary: CheckinSummary; suggestion: CheckinSuggestion; hints: CheckinHint[] };
 
@@ -108,13 +124,34 @@ export function weeklyCheckin(input: CheckinInput): CheckinResult {
     stepsAvg: input.stepsAvg,
     sleepAvg,
     sleepDays: input.sleepHours.length,
+    ...macroAverages(input.days),
   };
 
   const hints: CheckinHint[] = [];
   if (input.plannedPerWeek !== null) hints.push(input.workouts < input.plannedPerWeek ? 'trainingWeniger' : 'trainingOk');
   if (sleepAvg !== null && input.sleepHours.length >= 3 && sleepAvg < SHORT_SLEEP_HOURS) hints.push('schlafKurz');
+  // Makros nur als Hinweis, nie als Kalorienänderung; ohne Zahlen-Modus nicht.
+  if (!input.hideNumbers && !input.sensitive) {
+    if (summary.proteinAvg !== null && summary.proteinGoal !== null && summary.proteinAvg < summary.proteinGoal * 0.8) hints.push('eiweissWenig');
+    if (summary.fiberAvg !== null && summary.fiberGoal !== null && summary.fiberAvg < summary.fiberGoal * 0.8) hints.push('ballaststoffeWenig');
+  }
 
   return { summary, suggestion: suggest(input, summary), hints };
+}
+
+/** Eiweiß und Ballaststoffe im Schnitt der vollständig erfassten Tage, mit Ziel (C9). */
+function macroAverages(days: CheckinDay[]) {
+  const complete = days.filter((d) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0);
+  const avg = (values: (number | null | undefined)[]) => {
+    const known = values.filter((v): v is number => typeof v === 'number');
+    return known.length ? known.reduce((s, v) => s + v, 0) / known.length : null;
+  };
+  return {
+    proteinAvg: avg(complete.map((d) => d.protein)),
+    proteinGoal: avg(days.map((d) => d.goalProtein)),
+    fiberAvg: avg(complete.map((d) => d.fiber)),
+    fiberGoal: avg(days.map((d) => d.goalFiber)),
+  };
 }
 
 function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {

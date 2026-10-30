@@ -2,31 +2,26 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, RadioList } from '@/components/fields';
+import { Choice } from '@/components/fields';
 import { todayDay } from '@/components/nutrition-format';
-import { CalculatorFields, UnitFields } from '@/components/profile-fields';
+import { UnitFields } from '@/components/profile-fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { saveGoal } from '@/data/goals';
+import { saveCoachPending } from '@/data/coach';
 import { loadNutritionSettings, saveNutritionSettings } from '@/data/nutrition';
 import { useProfile } from '@/data/profile-provider';
 import { useDb } from '@/data/store-provider';
-import { listWeights } from '@/data/weights';
-import type { Goal } from '@/domain/energy';
-import { DIRECTIONS } from '@/domain/goals';
-import { parseProfileForm, profileToForm, type ProfileForm, type ProfileProblem } from '@/domain/profile';
-import { HEIGHT_RANGE } from '@/domain/units';
-import { weightTrend } from '@/domain/weight';
+import { parseProfileForm, profileToForm, type ProfileForm } from '@/domain/profile';
 import { useTheme } from '@/hooks/use-theme';
-import { formatLength, t } from '@/i18n';
+import { t } from '@/i18n';
 
-const STEPS = ['adult', 'sensitive', 'units', 'goal', 'profile'] as const;
+const STEPS = ['adult', 'sensitive', 'units'] as const;
 type Step = (typeof STEPS)[number];
 
 /**
- * Erststart (Register UX-010, COACH-010): Volljährigkeit, sensible Situationen, Einheiten,
- * Gewichtsziel und freiwillige Angaben für den Rechner. Die Health-Freigabe folgt mit Apple Health (Phase 6).
+ * Erststart (Register UX-010, COACH-010): Volljährigkeit, sensible Situationen und Einheiten. Ziel, Körperdaten,
+ * Alltag und Training fragt danach der Coach (Fahrplan „Coach“ C1) – direkt im Anschluss oder später.
  */
 export function Onboarding() {
   const db = useDb();
@@ -36,41 +31,27 @@ export function Onboarding() {
   const [adult, setAdult] = useState<boolean | null>(null);
   const [form, setForm] = useState<ProfileForm>(() => profileToForm(profile));
   const [hideNumbers, setHideNumbers] = useState(false);
-  const [goal, setGoal] = useState<Goal | 'spaeter'>('spaeter');
-  const [problems, setProblems] = useState<ProfileProblem[]>([]);
   const [busy, setBusy] = useState(false);
 
   const index = STEPS.indexOf(step);
   const change = (c: Partial<ProfileForm>) => setForm((f) => ({ ...f, ...c }));
 
-  async function finish(withProfile: boolean) {
-    const today = todayDay();
-    const source = withProfile ? form : { ...profileToForm(profile), sensitive: form.sensitive, units: form.units };
-    const { profile: parsed, problems: found } = parseProfileForm(source, profile, today);
-    if (!parsed) {
-      setProblems(found);
-      return;
-    }
+  async function finish(withCoach: boolean) {
+    const { profile: parsed } = parseProfileForm(form, profile, todayDay());
     setBusy(true);
     try {
       if (hideNumbers) {
         const settings = await loadNutritionSettings(db);
         await saveNutritionSettings(db, { ...settings, hideNumbers: true });
       }
-      // Abnehmen wird bei sensibler Situation nicht angeboten (siehe Auswahl unten).
-      if (goal !== 'spaeter') {
-        const weights = await listWeights(db);
-        const current = weightTrend(weights, today) ?? weights[0]?.kg ?? null;
-        await saveGoal(db, null, { kind: 'gewicht', direction: goal, targetKg: null }, today, current);
-      }
-      await updateProfile({ ...parsed, adult: true });
+      // „Heute“ öffnet die Coach-Einrichtung einmal von selbst.
+      if (withCoach) await saveCoachPending(db, true);
+      await updateProfile({ ...(parsed ?? profile), sensitive: form.sensitive, units: form.units, adult: true });
       await finishOnboarding();
     } finally {
       setBusy(false);
     }
   }
-
-  const directions = form.sensitive ? DIRECTIONS.filter((d) => d !== 'abnehmen') : DIRECTIONS;
 
   return (
     <Screen title={t('onboarding.welcomeTitle')} subtitle={t('onboarding.step', { step: index + 1, total: STEPS.length })}>
@@ -105,10 +86,7 @@ export function Onboarding() {
             label={t('onboarding.sensitiveIntro')}
             options={['nein', 'ja'] as const}
             value={form.sensitive ? 'ja' : 'nein'}
-            onChange={(v) => {
-              change({ sensitive: v === 'ja' });
-              if (v === 'ja' && goal === 'abnehmen') setGoal('spaeter');
-            }}
+            onChange={(v) => change({ sensitive: v === 'ja' })}
             format={(v) => (v === 'ja' ? t('onboarding.yes') : t('onboarding.no'))}
           />
           {form.sensitive ? (
@@ -132,61 +110,22 @@ export function Onboarding() {
         </Card>
       ) : null}
 
-      {step === 'units' ? <UnitFields form={form} onChange={change} /> : null}
-
-      {step === 'goal' ? (
-        <Card title={t('onboarding.goalTitle')}>
-          <RadioList
-            label={t('onboarding.goalTitle')}
-            options={[...directions, 'spaeter'] as readonly (Goal | 'spaeter')[]}
-            value={goal}
-            onChange={setGoal}
-            format={(v) => (v === 'spaeter' ? t('onboarding.goalLater') : t(`goals.direction.${v}`))}
-          />
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('onboarding.goalHint')}
-          </ThemedText>
-          {form.sensitive ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('goals.problems.sensitive')}
-            </ThemedText>
-          ) : null}
-        </Card>
-      ) : null}
-
-      {step === 'profile' ? (
+      {step === 'units' ? (
         <>
-          <Card title={t('onboarding.profileTitle')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('onboarding.profileHint')}
-            </ThemedText>
+          <UnitFields form={form} onChange={change} />
+          <Card>
+            <ThemedText type="small">{t('onboarding.coachHint')}</ThemedText>
           </Card>
-          <CalculatorFields form={form} onChange={change} />
-          {problems.length > 0 ? (
-            <Card>
-              {problems.map((p) => (
-                <ThemedText key={p} style={{ color: theme.danger }}>
-                  {t(`profile.problems.${p}`, {
-                    min: formatLength(HEIGHT_RANGE.min, form.units.length),
-                    max: formatLength(HEIGHT_RANGE.max, form.units.length),
-                  })}
-                </ThemedText>
-              ))}
-            </Card>
-          ) : null}
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('onboarding.doneHint')}
-          </ThemedText>
         </>
       ) : null}
 
       {step !== 'adult' ? (
         <View style={styles.row}>
           <Button label={t('onboarding.back')} variant="danger" onPress={() => setStep(STEPS[index - 1])} />
-          {step === 'profile' ? (
+          {step === 'units' ? (
             <>
               <Button label={t('onboarding.skip')} variant="danger" disabled={busy} onPress={() => finish(false)} />
-              <Button label={t('onboarding.finish')} disabled={busy} onPress={() => finish(true)} />
+              <Button label={t('onboarding.coach')} disabled={busy} onPress={() => finish(true)} />
             </>
           ) : (
             <Button label={t('onboarding.next')} onPress={() => setStep(STEPS[index + 1])} />

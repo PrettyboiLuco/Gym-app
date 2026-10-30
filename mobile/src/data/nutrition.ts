@@ -353,8 +353,8 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
 
 /** Summen pro Tag für die Wochenansicht. */
 export function daySums(db: Db, fromDate: string, toDate: string) {
-  return db.getAllAsync<{ day: string; kcal: number | null; entries: number; unknownKcal: number }>(
-    `SELECT diary_date AS day, SUM(kcal) AS kcal, COUNT(*) AS entries,
+  return db.getAllAsync<{ day: string; kcal: number | null; entries: number; unknownKcal: number; protein: number | null; fiber: number | null }>(
+    `SELECT diary_date AS day, SUM(kcal) AS kcal, COUNT(*) AS entries, SUM(protein) AS protein, SUM(fiber) AS fiber,
        SUM(CASE WHEN kcal IS NULL THEN 1 ELSE 0 END) AS unknownKcal
      FROM consumption_event WHERE diary_date BETWEEN ? AND ? GROUP BY diary_date`,
     fromDate,

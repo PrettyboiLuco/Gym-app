@@ -194,7 +194,7 @@ describe('Tagebuch', () => {
     await logFood(db, a, 100, { kind: 'essen', meal: 'mittag' }, when());
     await logFood(db, b, 200, { kind: 'getraenk', drinkType: 'saft' }, when());
     expect(await daySums(db, '2026-10-23', '2026-10-29')).toEqual([
-      { day: '2026-10-29', kcal: 250, entries: 2, unknownKcal: 1 },
+      expect.objectContaining({ day: '2026-10-29', kcal: 250, entries: 2, unknownKcal: 1 }),
     ]);
   });
 });

@@ -4,12 +4,36 @@ import { weekDays, type CheckinInput, type CheckinResult, type CheckinSuggestion
 import type { Profile } from '@/domain/profile';
 import { stepsAverage } from '@/domain/steps';
 
+import type { Goal } from '@/domain/energy';
+
+import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
 import { activeWeightGoal, adjustCalorieGoal, calorieGoalOn, trainingDays } from './goals';
 import { daySums, loadNutritionSettings } from './nutrition';
 import { listSteps } from './steps';
 import { listActivePlans } from './training';
 import { listWeights } from './weights';
+
+// --------------------------------------------------------------------------- Einrichtung (C1)
+
+/** Angaben aus der Coach-Einrichtung; Grundlage für „Ziel ändern“ und den Check-in (Neu berechnen, C9). */
+export type CoachSetup = {
+  doneAt: string;
+  goal: Goal;
+  delta: number;
+  steps: number;
+  gymDays: number;
+  sleepHours: number | null;
+  trainingWeekdays: number[];
+  /** Trainings- und Ruhetage unterschiedlich (C5). */
+  split: boolean;
+};
+
+export const loadCoachSetup = (db: Db) => readState<CoachSetup | null>(db, 'coach_setup', null);
+export const saveCoachSetup = (db: Db, setup: CoachSetup) => writeState(db, 'coach_setup', setup);
+/** Nach dem Erststart einmal die Einrichtung öffnen. */
+export const loadCoachPending = (db: Db) => readState<boolean>(db, 'coach_pending', false);
+export const saveCoachPending = (db: Db, pending: boolean) => writeState(db, 'coach_pending', pending);
 
 // ------------------------------------------------------------------------------------- Schlaf
 
@@ -69,7 +93,17 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     weights,
     days: days.map((day, i) => {
       const s = byDay.get(day);
-      return { day, kcal: s?.kcal ?? null, entries: s?.entries ?? 0, unknownKcal: s?.unknownKcal ?? 0, goal: goals[i]?.kcal ?? null };
+      return {
+        day,
+        kcal: s?.kcal ?? null,
+        entries: s?.entries ?? 0,
+        unknownKcal: s?.unknownKcal ?? 0,
+        goal: goals[i]?.kcal ?? null,
+        protein: s?.protein ?? null,
+        fiber: s?.fiber ?? null,
+        goalProtein: goals[i]?.macros?.protein ?? null,
+        goalFiber: goals[i]?.macros?.fiber ?? null,
+      };
     }),
     workouts: trained.filter((d) => d >= from && d <= weekEnd).length,
     plannedPerWeek: plan ? Math.min(7, plan.days.length) : null,
