@@ -1,6 +1,7 @@
+import * as Haptics from 'expo-haptics';
 import { useKeepAwake } from 'expo-keep-awake';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
@@ -37,8 +38,9 @@ import {
 } from '@/data/training';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import type { MuscleGroup } from '@/domain/exercises';
-import { extendRest, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
+import { extendRest, formatClock, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, type WeightUnit } from '@/domain/units';
+import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
 
@@ -79,6 +81,10 @@ export default function SessionScreen() {
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
   // Zeitpunkt des letzten Ladens; nötig für „Cool-down bis 3 Stunden nach dem Ende anbieten“.
   const [loadedAtMs, setLoadedAtMs] = useState(0);
+  // Countdown für einen Zeit-Satz (UX-011, z. B. Plank): läuft im Vordergrund, trägt am Ende die Sekunden ein.
+  const [hold, setHold] = useState<{ rowId: string; index: number; seconds: number; endAtMs: number } | null>(null);
+  const holdNow = useNow(hold !== null);
+  const holdLeftMs = hold ? Math.max(0, hold.endAtMs - holdNow) : 0;
 
   const load = useCallback(async () => {
     const [info, rows, all, savedTimer, auto, timed] = await Promise.all([
@@ -108,6 +114,12 @@ export default function SessionScreen() {
       load();
     }, [load])
   );
+
+  // Zeitgeber des Countdowns; beim Verlassen des Bildschirms aufräumen.
+  const holdTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (holdTimeout.current) clearTimeout(holdTimeout.current);
+  }, []);
 
   async function updateTimer(next: RestTimer) {
     setTimer(next);
@@ -145,8 +157,36 @@ export default function SessionScreen() {
     };
   }
 
-  async function complete(row: SetRow, indexInExercise: number) {
-    const value = inputs[row.id] ?? suggestion(row, indexInExercise);
+  function startHold(row: SetRow, index: number, value: { reps: string }) {
+    const seconds = parseSecondsInput(value.reps);
+    if (seconds === null) {
+      setInvalid(row.id);
+      return;
+    }
+    setInvalid(null);
+    setHold({ rowId: row.id, index, seconds, endAtMs: nowMs() + seconds * 1000 });
+    // Am Ende: Signal und Satz mit den geplanten Sekunden erledigen.
+    holdTimeout.current = setTimeout(() => {
+      holdTimeout.current = null;
+      setHold(null);
+      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      complete(row, index, String(seconds));
+    }, seconds * 1000);
+  }
+
+  /** Countdown vorzeitig beenden: die tatsächlich gehaltenen Sekunden werden eingetragen. */
+  function stopHold() {
+    if (!hold) return;
+    const held = Math.max(1, Math.round(hold.seconds - holdLeftMs / 1000));
+    const row = sets.find((r) => r.id === hold.rowId);
+    if (holdTimeout.current) clearTimeout(holdTimeout.current);
+    holdTimeout.current = null;
+    setHold(null);
+    if (row) complete(row, hold.index, String(held));
+  }
+
+  async function complete(row: SetRow, indexInExercise: number, secondsOverride?: string) {
+    const value = secondsOverride ? { weight: '0', reps: secondsOverride } : (inputs[row.id] ?? suggestion(row, indexInExercise));
     if (isTimed(row.exerciseId)) {
       // Zeit-Satz (UX-011): im Feld stehen die Sekunden.
       const seconds = parseSecondsInput(value.reps);
@@ -293,7 +333,13 @@ export default function SessionScreen() {
               <ThemedText type="small" themeColor="textSecondary">
                 {t('session.targetSeconds', { seconds: rows[0].plannedSeconds })}
               </ThemedText>
-            ) : rows[0].plannedRepsMin != null ? (
+            ) : null}
+            {isTimed(exerciseId) && active ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('session.holdHint')}
+              </ThemedText>
+            ) : null}
+            {rows[0].plannedSeconds == null && rows[0].plannedRepsMin != null ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {t('session.target', { min: rows[0].plannedRepsMin, max: rows[0].plannedRepsMax })}
               </ThemedText>
@@ -346,6 +392,23 @@ export default function SessionScreen() {
                         accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${index + 1}`}
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
+                      {isTimed(exerciseId) ? (
+                        hold?.rowId === row.id ? (
+                          <Button
+                            label={`■ ${formatClock(holdLeftMs)}`}
+                            accessibilityLabel={`${t('session.holdStop')} ${index + 1}`}
+                            onPress={stopHold}
+                          />
+                        ) : (
+                          <Button
+                            label="▶"
+                            accessibilityLabel={`${t('session.holdStart')} ${index + 1}`}
+                            variant="danger"
+                            disabled={hold !== null}
+                            onPress={() => startHold(row, index, value)}
+                          />
+                        )
+                      ) : null}
                       <Button label="✓" accessibilityLabel={`${t('session.done')} ${index + 1}`} onPress={() => complete(row, index)} />
                       <Button
                         label="−"

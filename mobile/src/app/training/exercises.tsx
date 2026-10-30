@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import type { ScrollViewInstance } from 'react-native';
 
 import { Button, Card } from '@/components/card';
@@ -23,7 +23,7 @@ import {
 import { parseWholeNumber } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { t, tOptional } from '@/i18n';
 
 export default function ExercisesScreen() {
   const theme = useTheme();
@@ -36,6 +36,8 @@ export default function ExercisesScreen() {
   const [sides, setSides] = useState<Sides>('beidseitig');
   const [hold, setHold] = useState('30');
   const [error, setError] = useState<'name' | 'hold' | null>(null);
+  // Startübung, deren Kurzanleitung gerade aufgeklappt ist.
+  const [openHow, setOpenHow] = useState<string | null>(null);
   // ID der eigenen Übung, die gerade bearbeitet wird (UX-013); null = neue Übung.
   const [editing, setEditing] = useState<string | null>(null);
   const scrollRef = useRef<ScrollViewInstance>(null);
@@ -132,8 +134,8 @@ export default function ExercisesScreen() {
         return (
           <Card key={group} title={t(`muscle.${group}`)}>
             {inGroup.map((e) => (
+              <Fragment key={e.id}>
               <ListRow
-                key={e.id}
                 title={exerciseName(e)}
                 subtitle={[
                   t(`equipment.${e.equipment}`),
@@ -143,9 +145,21 @@ export default function ExercisesScreen() {
                 ]
                   .filter(Boolean)
                   .join(' · ')}
-                accessory={e.customName ? t('common.edit') : undefined}
-                onPress={e.customName ? () => startEdit(e) : undefined}
+                accessory={e.customName ? t('common.edit') : tOptional(`exerciseHow.${e.id}`) ? (openHow === e.id ? '▴' : 'ⓘ') : undefined}
+                onPress={
+                  e.customName
+                    ? () => startEdit(e)
+                    : tOptional(`exerciseHow.${e.id}`)
+                      ? () => setOpenHow((id) => (id === e.id ? null : e.id))
+                      : undefined
+                }
               />
+              {openHow === e.id ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {tOptional(`exerciseHow.${e.id}`)}
+                </ThemedText>
+              ) : null}
+              </Fragment>
             ))}
           </Card>
         );

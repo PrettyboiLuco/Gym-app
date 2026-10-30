@@ -212,6 +212,11 @@ und behoben – alte Pläne mit Plank hätten nach der Umstellung auf Sekunden e
 den bisherigen Höchstwert als Sekunden), eine bei geschlossener App abgelaufene Einheit wäre ungefragt als absolviert
 gezählt worden (jetzt Nachfrage), Hinweis „Zeit-Übung“ im Plan-Editor fehlte. Beim Bauen behoben: Umbau der
 Ziel-Tabellen verletzte die Fremdschlüssel-Prüfung (Reihenfolge geändert, Test mit vorhandenen Zielen).
+**3. Prüfdurchlauf Phase 5 (30.10.2026):** 4 weitere Lücken geschlossen – Countdown für Zeit-Sätze (▶ startet,
+am Ende wird der Satz mit den Sekunden eingetragen, vorzeitig beenden trägt die gehaltene Zeit ein), Kurzanleitungen
+in der Übungsliste aufklappbar, Startansage „Gleich geht’s los mit …“ statt „Pause“, 3-2-1-Vibration vor jedem
+Wechsel. Browser-Test Phase 5 23/23, Phase 4 38/38, 282 automatische Tests. Phase 5 ist damit von meiner Seite
+vollständig; offen sind nur die unten genannten bewusst verschobenen Punkte und dein iPhone-Test.
 **Offen / bewusst verschoben:**
 - Haltezeiten, Programme, Stufen, Aufwärm-/Cool-down-Zuordnung und Kurzanleitungen sind Vorschläge ohne Fachprüfung
   (STRETCH-001/002/008, HIIT-001/002, 10.1); ACSM-Primärquellen nicht neu abgerufen.

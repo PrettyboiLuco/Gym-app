@@ -112,6 +112,18 @@ export default function RunScreen() {
     }
   }, [state?.done, outcome, finish, voice, askDone]);
 
+  // Letzte drei Sekunden vor einem Wechsel: kurzes Tippen als Vorwarnung (3-2-1).
+  const lastTick = useRef('');
+  const secondsLeft = state && !state.done ? Math.ceil(state.remainingMs / 1000) : 0;
+  useEffect(() => {
+    if (!state || state.done || run?.pausedAtMs !== null || outcome || Platform.OS === 'web') return;
+    if (secondsLeft < 1 || secondsLeft > 3 || state.step.seconds <= 5) return;
+    const key = `${state.index}-${secondsLeft}`;
+    if (key === lastTick.current) return;
+    lastTick.current = key;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [state, secondsLeft, run?.pausedAtMs, outcome]);
+
   // Ansage und kurzes Signal bei jedem neuen Schritt.
   useEffect(() => {
     if (!state || state.done || run?.pausedAtMs !== null || outcome) return;
@@ -249,10 +261,11 @@ function announcement(step: Step, nameOf: (id: string) => string): string {
   switch (step.kind) {
     case 'seitenwechsel':
       return t('run.speak.switch');
+    case 'vorbereitung':
+      return t('run.speak.prep', { name });
     case 'pause':
     case 'rundenpause':
     case 'wechsel':
-    case 'vorbereitung':
       return t('run.speak.pause', { name });
     default:
       return step.side ? t('run.speak.side', { name, side: t(`run.side.${step.side}`) }) : t('run.speak.exercise', { name });
