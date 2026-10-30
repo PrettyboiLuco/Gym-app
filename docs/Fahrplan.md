@@ -479,7 +479,10 @@ Bildschirme ohne Fehler.
 **Offen:** Werte in `domain/coach.ts` fachlich prüfen (10.1); Apple Health liefert Schritte/Schlaf/Wasser erst mit dem
 Development Build (6.1/6.2); der Gym-Zuschlag folgt der DGE-Regel (+0,3 bei 4–5× Sport pro Woche) und kann bei
 kurzem Training zu hoch sein – der Check-in gleicht das über das echte Gewicht aus.
-- Von dir: Einrichtung auf dem iPhone durchgehen, eine Woche nach Coach essen und trainieren, dann den Check-in machen.
+**30.10.2026: auf Lucs iPhone in Expo Go getestet – alle Funktionen laufen** (Update `1e45369`, bestehende Daten
+wurden dabei automatisch auf Datenbank-Version 10 gebracht). Gegenprobe: 452 automatische Tests, Referenztests 24 + 22,
+Browser-Tests Coach 28/28, Phase 9 26/26, Phase 8 27/27, alle 33 Bildschirme ohne Fehler.
+- Noch offen von dir: eine Woche nach Coach essen und trainieren, dann den Check-in machen (braucht echte Wochendaten).
 
 ## Übungsbilder (nach Phase 9, vor 10.4)
 
