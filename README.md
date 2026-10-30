@@ -1,6 +1,6 @@
 # Gym-App – Fitness + Ernährung
 
-Planungsstand (noch keine App-Implementierung).
+App in Entwicklung (Expo/React Native, Ordner `mobile/`); Stand je Phase in `docs/Fahrplan.md`.
 
 - `docs/Fitness_Ernaehrung_Arbeitsgrundlage_v2.0.pdf` – Arbeitsgrundlage v2.0 (Kap. 01–20, Anhänge)
 - `docs/Kapitel_21_Ergaenzung_Module.md` – Ergänzung: Dehnung & Mobilität, Körperziele, Kalorienrechner, Kalorientracker
@@ -9,6 +9,9 @@ Planungsstand (noch keine App-Implementierung).
 - `docs/Fahrplan.md` – **Schritt-für-Schritt-Fahrplan von null bis App Store**
 - `docs/Pakete_und_Sicherheit.md` – Lizenzen und Sicherheitsmeldungen der App-Pakete
 - `docs/Entscheidungen.md` – getroffene und offene Entscheidungen
+- `docs/Anleitung_Development_Build.md`, `docs/Anleitung_TestFlight.md` – Schritte mit MacBook bzw. Apple-Konto
+- `docs/Geraetetest.md` – Gerätetest-Liste zum Abhaken; `docs/Pilot_Leitfaden.md` – Ablauf des Pilots
+- `docs/Wettbewerbsvergleich.md` – Vergleich mit Hevy, Strong, Fitbod, MyFitnessPal; `docs/Datenschutz_Entwurf.md` – Entwurf
 - `register/Originalabdeckung.csv` – 98 Originalblöcke
 - `mobile/` – **die App** (Expo / React Native), Start siehe `mobile/README.md`
 - `reference/` – isolierte Python-Referenztests (24 + 22), kein Produktionscode

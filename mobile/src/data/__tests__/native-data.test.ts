@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
 import { writeState } from '../app-state';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '../backup';
+import { usageSummary } from '../feedback';
 import type { Db } from '../db';
 import { listActiveGoals, saveGoal, setCalorieGoal } from '../goals';
 import { MIGRATIONS, migrate } from '../migrations';
@@ -119,5 +120,14 @@ describe('Alle Daten löschen (LAW-006)', () => {
     const exercises = await listExercises(db);
     expect(exercises.some((e) => e.customName)).toBe(false);
     expect(exercises.length).toBeGreaterThan(50);
+  });
+});
+
+describe('Nutzungsübersicht für Feedback (BUS-016)', () => {
+  test('zählt nur Anzahlen', async () => {
+    await fill(db);
+    const u = await usageSummary(db);
+    expect(u).toMatchObject({ workouts: 0, diaryDays: 1, activeGoals: 1, weightEntries: 1 });
+    expect(u.firstUseDay).not.toBeNull();
   });
 });

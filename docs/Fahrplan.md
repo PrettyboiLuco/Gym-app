@@ -274,6 +274,25 @@ Gerätetest durchführen (6.6, O1). Bekannte Grenzen: Mitteilungen nicht sekunde
 
 **Fertig, wenn:** Mehrere Leute nutzen die App 2 Wochen lang wiederkehrend.
 
+**Stand 30.10.2026 (vorbereitet, Ausführung durch Luc):**
+- 7.1 Anleitung Developer Program `docs/Anleitung_TestFlight.md` (Einzelperson, rechtlicher Name sichtbar, BUS-011).
+- 7.2 TestFlight: Build-Profil `production` mit automatischer Build-Nummer, Submit-Profil, Exportkontrolle
+  (`ITSAppUsesNonExemptEncryption = false`), Schritt-für-Schritt-Befehle (EAS, ohne Xcode), interne/externe
+  Tester, Korrekturen per EAS Update ohne neuen Build. Datenschutz-Entwurf `docs/Datenschutz_Entwurf.md`.
+- 7.3 Feedback in der App (Mehr → Feedback geben): was genutzt wird, was fehlt/nervt, Zahlungsbereitschaft
+  (BUS-002), andere Apps (BUS-015), Weiterempfehlung 0–10, optionale Nutzungsübersicht nur mit Anzahlen; die App
+  sendet nichts selbst, Text sichtbar und per Teilen-Menü verschickt; Entwurf bleibt gespeichert.
+  Pilot-Leitfaden `docs/Pilot_Leitfaden.md` (Ablauf, Nachricht an Tester, Auswertungstabelle, Fertig-Kriterium),
+  Wettbewerbsvergleich `docs/Wettbewerbsvergleich.md` (O7, Preise aus Sekundärquellen vom 30.10.2026).
+- Für Tester: freundliche Fehleranzeige statt leerer Seite in allen Bereichen.
+308 automatische Tests, Browser-Tests Phase 7 5/5, Phase 6 11/11, Phase 5 23/23, Phase 4 38/38, iOS-Bundle baut.
+
+**Prüfung Phase 7 (30.10.2026):** 2 Lücken geschlossen – Fehleranzeige für Tester statt leerer Seite,
+Korrekturen ohne neuen Build (EAS Update) in der Anleitung.
+**Offen (nur Luc):** Developer Program abschließen (99 $), App-Name, Bundle-ID und App-Symbol festlegen, Build
+hochladen, Tester einladen, Pilot durchführen und auswerten. Absturzberichte kommen über TestFlight; ein eigener
+Absturzdienst ist bewusst nicht eingebaut (Datenschutz).
+
 ## Phase 8 – Adaptiver Planassistent (dein Alleinstellungsmerkmal)
 
 8.1 Übungsdaten mit Muskelgruppen/Bewegungsmustern (RepDB Free prüfen; wger Server/App als Vergleich) ·

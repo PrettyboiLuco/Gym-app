@@ -9,6 +9,7 @@ import { Onboarding } from '@/components/onboarding';
 import { configureNotifications } from '@/data/notifications';
 import { ProfileProvider, useProfile } from '@/data/profile-provider';
 import { StoreProvider } from '@/data/store-provider';
+import { ErrorView } from '@/components/error-view';
 
 SplashScreen.preventAutoHideAsync();
 configureNotifications();
@@ -19,6 +20,9 @@ function Gate() {
   if (!loaded) return null;
   return onboardingDone ? <AppTabs /> : <Onboarding />;
 }
+
+/** Fehler in einem Bildschirm zeigen statt einer leeren Seite. */
+export const ErrorBoundary = ErrorView;
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();

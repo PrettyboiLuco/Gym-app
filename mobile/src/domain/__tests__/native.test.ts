@@ -3,6 +3,7 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { backupSummary, checkBackup } from '../backup';
+import { EMPTY_FEEDBACK, feedbackText, isEmptyFeedback } from '../feedback';
 import { drinkTimes, formatTime, parseTime, toExpoWeekday, upcomingAlerts, validateReminders, DEFAULT_REMINDERS } from '../reminders';
 import { parseSteps, stepGoalDays, stepsAverage, stepsForDay, type StepEntry } from '../steps';
 import { hiitSteps } from '../timeline';
@@ -83,5 +84,23 @@ describe('Sicherungsdatei prüfen (TECH-014)', () => {
     expect(checkBackup(JSON.stringify({ ...valid, format: 2 }), 7).problem).toBe('format');
     expect(checkBackup(JSON.stringify({ ...valid, schemaVersion: 8 }), 7).problem).toBe('newer');
     expect(checkBackup(JSON.stringify({ ...valid, tables: { x: 5 } }), 7).problem).toBe('broken');
+  });
+});
+
+describe('Feedback (BUS-002, BUS-016)', () => {
+  const labels = (key: string, vars?: Record<string, unknown>) => (vars ? `${key}${JSON.stringify(vars)}` : key);
+  const usage = { workouts: 3, sets: 40, diaryDays: 5, stretchSessions: 2, hiitSessions: 1, activeGoals: 2, weightEntries: 6, firstUseDay: '2026-10-29' };
+  test('leere Antworten werden erkannt', () => expect(isEmptyFeedback(EMPTY_FEEDBACK)).toBe(true));
+  test('Text enthält nur Beantwortetes', () => {
+    const text = feedbackText({ ...EMPTY_FEEDBACK, missing: 'Pläne zum Nachmachen', pay: 'bis4' }, null, { version: '1.0.0', date: '2026-10-30' }, labels);
+    expect(text).toContain('feedback.text.missing: Pläne zum Nachmachen');
+    expect(text).toContain('feedback.text.pay: feedback.pay.bis4');
+    expect(text).not.toContain('feedback.text.annoying');
+    expect(text).not.toContain('usageHeader');
+  });
+  test('Nutzungsübersicht nur, wenn angehängt', () => {
+    const text = feedbackText({ ...EMPTY_FEEDBACK, recommend: 8 }, usage, { version: '1.0.0', date: '2026-10-30' }, labels);
+    expect(text).toContain('8/10');
+    expect(text).toContain('"workouts":3');
   });
 });

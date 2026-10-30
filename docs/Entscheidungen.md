@@ -38,6 +38,9 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 
 ## Noch offen
 
+Vor dem Pilot (Phase 7): **App-Name, Bundle-ID, App-Symbol, Apple Developer Program (99 $).**
+
+
 App-Name · Budget · Zeit pro Woche · Zielalter · 3D-Figur oder Clips · Free/Pro-Grenze und Preis ·
 Werbenetzwerk · Pilot-Zieltypen (vorläufig s. o.) · Einheiten (vorläufig s. o.) ·
 Fachperson Training/Ernährung · Rechtsprüfung

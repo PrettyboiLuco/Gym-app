@@ -1306,12 +1306,69 @@ export const de = {
     lockedText: 'Entsperre mit Face ID oder deinem Gerätecode.',
     unlock: 'Entsperren',
   },
+  errors: {
+    title: 'Da ist etwas schiefgelaufen',
+    text:
+      'Deine Daten sind gespeichert. Versuch es noch einmal. Wenn der Fehler bleibt, schick bitte den Text unten ' +
+      'über „Mehr → Feedback geben“ oder ein Bildschirmfoto in TestFlight.',
+    retry: 'Erneut versuchen',
+  },
+  feedback: {
+    title: 'Feedback geben',
+    intro:
+      'Danke, dass du die App testest! Beantworte, was du magst – alles ist freiwillig. Die App sendet nichts ' +
+      'von selbst: Unten siehst du genau den Text, den du über „Teilen“ z. B. per Mail oder Messenger schickst.',
+    usedTitle: 'Was nutzt du am meisten?',
+    area: {
+      training: 'Krafttraining',
+      dehnen: 'Dehnen',
+      hiit: 'HIIT',
+      ernaehrung: 'Ernährung/Tagebuch',
+      rechner: 'Kalorienrechner',
+      fortschritt: 'Gewicht und Ziele',
+    },
+    missing: 'Was fehlt dir?',
+    annoying: 'Was nervt oder ist unklar?',
+    otherApps: 'Welche Apps nutzt du sonst dafür?',
+    payTitle: 'Was wäre dir eine werbefreie Pro-Version wert?',
+    pay: {
+      nichts: 'Nichts – nur kostenlos',
+      bis2: 'etwa 2 € im Monat',
+      bis4: 'etwa 4 € im Monat',
+      jahr30: 'etwa 30 € im Jahr',
+      mehr: 'mehr',
+    },
+    recommend: 'Wie wahrscheinlich empfiehlst du die App weiter? (0 = gar nicht, 10 = sehr)',
+    usageTitle: 'Nutzungsübersicht (freiwillig)',
+    withUsage: 'Anzahlen anhängen',
+    usageHint: 'Nur Anzahlen wie „12 Trainings“ – keine Gewichte, keine Lebensmittel, keine Namen. Du siehst sie unten im Text.',
+    previewTitle: 'Dieser Text wird geteilt',
+    share: 'Teilen',
+    reset: 'Antworten leeren',
+    empty: 'Bitte beantworte mindestens eine Frage.',
+    shareFailed: 'Teilen hat nicht geklappt. Du kannst den Text oben auch markieren und kopieren.',
+    testflight: 'In TestFlight kannst du außerdem jederzeit einen Bildschirmfoto machen und direkt Feedback dazu schicken.',
+    text: {
+      header: 'Feedback Gym-App (Version {{version}}, {{date}})',
+      used: 'Nutze am meisten',
+      missing: 'Fehlt mir',
+      annoying: 'Nervt/unklar',
+      pay: 'Pro-Version wert',
+      otherApps: 'Andere Apps',
+      recommend: 'Weiterempfehlen',
+      usageHeader: 'Nutzung (nur Anzahlen):',
+      usage:
+        '{{workouts}} Trainings, {{sets}} Sätze, {{diaryDays}} Tage im Tagebuch, {{stretchSessions}} Dehn-Einheiten, ' +
+        '{{hiitSessions}} HIIT-Einheiten, {{activeGoals}} aktive Ziele, {{weightEntries}} Gewichtseinträge, erste Nutzung {{firstUseDay}}',
+    },
+  },
   more: {
     title: 'Mehr',
     settingsTitle: 'Einstellungen',
     remindersSubtitle: 'Timer bei gesperrtem Handy, Training, Trinken',
     dataSubtitle: 'Sicherung, Wiederherstellen, alles löschen',
     securitySubtitle: 'Face ID oder Gerätecode beim Öffnen',
+    feedbackSubtitle: 'Was nutzt du, was fehlt? Du schickst den Text selbst.',
     privacyTitle: 'Datenschutz',
     privacy:
       'Alles bleibt auf deinem Gerät, es gibt kein Konto. Nur beim Scannen oder bei der Online-Suche wird der ' +

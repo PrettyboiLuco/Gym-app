@@ -2,6 +2,10 @@ import { Stack } from 'expo-router';
 
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { ErrorView } from '@/components/error-view';
+
+/** Fehler in einem Bildschirm zeigen statt einer leeren Seite. */
+export const ErrorBoundary = ErrorView;
 
 export default function MoreLayout() {
   const theme = useTheme();
@@ -17,6 +21,7 @@ export default function MoreLayout() {
       <Stack.Screen name="notifications" options={{ title: t('reminders.title') }} />
       <Stack.Screen name="data" options={{ title: t('dataScreen.title') }} />
       <Stack.Screen name="security" options={{ title: t('security.title') }} />
+      <Stack.Screen name="feedback" options={{ title: t('feedback.title') }} />
     </Stack>
   );
 }

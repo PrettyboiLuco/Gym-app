@@ -2,6 +2,10 @@ import { Stack } from 'expo-router';
 
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { ErrorView } from '@/components/error-view';
+
+/** Fehler in einem Bildschirm zeigen statt einer leeren Seite. */
+export const ErrorBoundary = ErrorView;
 
 export default function ProgressLayout() {
   const theme = useTheme();
