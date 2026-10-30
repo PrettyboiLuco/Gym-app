@@ -87,3 +87,13 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | C2 | Allergie „Milch“ einstellen, Schokolade scannen | Hinweis „Enthält laut Angaben: Milch“ | Expo Go |
 | C3 | Essenszeiten ändern, zur jeweiligen Uhrzeit über „Heute“ eintragen | passende Mahlzeit vorgewählt | Expo Go |
 | C4 | Nach 7 Tagen mit Gewicht/Essen: Wochen-Check-in, „Übernehmen“ | neues Kalorienziel ab heute, gestern unverändert | Expo Go |
+
+## Coach (C1–C9)
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| K1 | App neu installieren (oder „Alle Daten löschen“), Erststart → „Weiter zum Coach“ | Einrichtung öffnet sich, am Ende Coach-Karte auf „Heute“ | Expo Go |
+| K2 | An einem Trainingstag und einem Ruhetag „Heute“ ansehen | Unterschiedliches Kalorienziel, Eiweiß gleich | Expo Go |
+| K3 | Erinnerung an Trainingstagen eingeschaltet | Mitteilung nur an diesen Tagen zur Uhrzeit | Expo Go |
+| K4 | Kalorienziel in den Einstellungen ändern | Makros und Trainings-/Ruhetag passen sich an | Expo Go |
+

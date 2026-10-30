@@ -453,6 +453,31 @@ Ruhetag höchstens −300 kcal.
 Erinnerung), „Heute“ jeden Tag das passende Tagesziel zeigt, Ziel und Tempo jederzeit änderbar sind und der Check-in
 Vorschläge macht, ohne Makros und Aufteilung zu verlieren – alles ohne Internet und KI.
 
+**Stand 30.10.2026:** C1–C9 gebaut, ohne Internet und KI.
+- Erststart fragt nur noch Volljährigkeit, sensible Situation und Einheiten und führt dann direkt in die
+  Coach-Einrichtung („Weiter zum Coach“ oder „Überspringen“; „Heute“ öffnet sie dann einmal von selbst, sonst bleibt
+  dort die Karte „Coach einrichten“). Einrichtung: Ziel (Bulk/Cut/Erhalt) → Gewicht, Größe, Geburtsmonat, Formel →
+  Schritte, Gym-Tage, Schlaf → Ergebnis mit Rechenweg, Tempo-Auswahl (Vorschlag markiert), Makros → Trainingstage
+  (Wochentage), Trainings-/Ruhetagskalorien an/aus, Plan behalten / vorschlagen lassen (Vorschau) / selbst eingeben
+  (öffnet danach den Plan-Editor) → Erinnerung an Trainingstagen mit Uhrzeit, Apple Health vorbereitet. Speichert
+  Profil, Gewicht, Gewichtsziel, Kalorienziel mit Makros und Aufteilung (neue Version ab heute), Plan, Erinnerungen.
+  „Ziel oder Angaben ändern“ startet die Einrichtung mit den gespeicherten Werten.
+- Ballaststoffe: neuer Nährwert überall (eigene Lebensmittel, Open Food Facts `fiber_100g`, Einträge, Rezepte,
+  Summen); ältere Einträge „unbekannt“.
+- „Heute“: Coach-Karte mit Trainings- oder Ruhetag (und nächstem Plantag), Kalorien und Makros gegessen/Ziel,
+  Ballaststoffe; „Tipps für heute“ nur auf Klick (Eiweiß/Ballaststoffe offen, Trainings-/Ruhetag, Trinken, kurzer Schlaf,
+  über dem Ziel ohne Druck). Wochen-Check-in frühestens eine Woche nach Einrichtung bzw. letztem Check-in.
+- Check-in: Eiweiß und Ballaststoffe im Schnitt mit Ziel und Hinweis, „Neu berechnen“ bei deutlich anderen Schritten
+  oder Gym-Tagen; Vorschläge, Einstellungen und Rechner rechnen Makros und Aufteilung für den neuen Wert neu.
+- Modus „ohne Zahlen“ und sensible Situation: keine Kalorien/Makros in Einrichtung, „Heute“ und Check-in.
+448 automatische Tests (29 neu für den Coach), Browser-Test Coach 26/26, Phase 9 26/26, Phase 8 27/27, alle
+Bildschirme ohne Fehler.
+
+**Offen:** Werte in `domain/coach.ts` fachlich prüfen (10.1); Apple Health liefert Schritte/Schlaf/Wasser erst mit dem
+Development Build (6.1/6.2); der Gym-Zuschlag folgt der DGE-Regel (+0,3 bei 4–5× Sport pro Woche) und kann bei
+kurzem Training zu hoch sein – der Check-in gleicht das über das echte Gewicht aus.
+- Von dir: Einrichtung auf dem iPhone durchgehen, eine Woche nach Coach essen und trainieren, dann den Check-in machen.
+
 ## Übungsbilder (nach Phase 9, vor 10.4)
 
 Alle Bilder im selben Stil und für jeden klar verständlich (Entscheidung 30.10.2026). Reihenfolge: eigene Bilder bzw.

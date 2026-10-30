@@ -8,6 +8,8 @@ technischen Ist-Stand der App, damit Tester wissen, was mit ihren Daten passiert
 - Es gibt **kein Konto und keinen Server** des Anbieters. Alle Einträge (Training, Ernährung, Gewicht, Ziele,
   Fotos, Einstellungen, freiwillige Trainingsangaben im Profil wie Erfahrung, Geräte und Zeit) werden nur
   **lokal auf deinem iPhone** gespeichert.
+- **Coach-Angaben** (Ziel, Schritte, Gym-Tage, Schlaf, Trainingstage) und das daraus berechnete Ziel bleiben auf dem
+  Gerät; der Coach rechnet ohne Internet und ohne KI.
 - **Schlaf, Allergien, Ernährungsweise und Check-ins** sind freiwillig und bleiben ebenfalls nur auf dem Gerät
   (Gesundheitsdaten, kommen aber mit in deine Sicherungsdatei).
 - Der **Planassistent** rechnet vollständig auf dem Gerät, ohne KI und ohne Internet. Auch dein Wunsch in eigenen

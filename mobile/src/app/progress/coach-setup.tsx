@@ -11,6 +11,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { loadCoachSetup, saveCoachPending, saveCoachSetup, type CoachSetup } from '@/data/coach';
+import { loadNutritionSettings } from '@/data/nutrition';
 import { activeWeightGoal, saveGoal, setCalorieGoal } from '@/data/goals';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
 import { useProfile } from '@/data/profile-provider';
@@ -79,13 +80,16 @@ export default function CoachSetupScreen() {
   const [hasPlans, setHasPlans] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Modus „ohne Zahlen“ (TRACK-006): Ziel wird gespeichert, aber keine Kalorien/Makros angezeigt.
+  const [hideNumbers, setHideNumbers] = useState(false);
 
   // Bisherige Angaben übernehmen (neu einrichten bzw. Ziel ändern).
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadCoachSetup(db), listWeights(db), listExercises(db), listActivePlans(db), loadReminders(db), activeWeightGoal(db)]).then(
-      ([setup, weights, all, plans, reminders, weightGoal]) => {
+    Promise.all([loadCoachSetup(db), listWeights(db), listExercises(db), listActivePlans(db), loadReminders(db), activeWeightGoal(db), loadNutritionSettings(db)]).then(
+      ([setup, weights, all, plans, reminders, weightGoal, settings]) => {
         if (cancelled) return;
+        setHideNumbers(settings.hideNumbers);
         const latest = weights[0] ? weightInputText(weights[0].kg, profile.units.weight) : '';
         setWeightText(latest);
         setWeightStart(latest);
@@ -283,7 +287,9 @@ export default function CoachSetupScreen() {
 
       {step === 'ergebnis' ? (
         <Card title={t('coach.resultTitle')}>
-          {energy.status === 'ok' ? (
+          {energy.status === 'ok' && hideNumbers ? (
+            <ThemedText>{t('coach.hiddenNumbers')}</ThemedText>
+          ) : energy.status === 'ok' ? (
             <>
               <ThemedText>{t('coach.maintenance', { kcal: energy.maintenance })}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
@@ -328,7 +334,7 @@ export default function CoachSetupScreen() {
               onChange={(v) => setWeekdays(v.map(Number).sort((x, y) => x - y))}
               format={(d) => t(`reminders.dayShort.${d}`)}
             />
-            {plan?.trainingKcal ? (
+            {plan?.trainingKcal && !hideNumbers ? (
               <ThemedText type="small">{t('coach.splitText', { training: plan.trainingKcal, rest: plan.restKcal })}</ThemedText>
             ) : null}
             {energy.status === 'ok' ? (

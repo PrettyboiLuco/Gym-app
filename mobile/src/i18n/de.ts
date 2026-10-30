@@ -1198,6 +1198,8 @@ export const de = {
     suggested: 'Vorschlag',
     target: '{{goal}}: {{kcal}} kcal pro Tag im Schnitt',
     floor: 'Nicht weniger als {{kcal}} kcal – darunter geht der Coach nie.',
+    hiddenNumbers: 'Du nutzt den Modus „ohne Zahlen“. Der Coach speichert dein Ziel, zeigt aber keine Kalorien oder Makros.',
+    calculatorHint: 'Dein Ziel kommt vom Coach. Übernimmst du hier eine Zahl, rechnet der Coach Makros und Trainings-/Ruhetage dafür neu. Einfacher: Coach → Ziel ändern.',
     macros: 'Makros pro Tag: Eiweiß {{protein}} g · Fett {{fat}} g · Kohlenhydrate {{carbs}} g · Ballaststoffe mind. {{fiber}} g',
     resultHint:
       'Schätzung nach festen Regeln, keine Messung und noch nicht fachlich geprüft. Der Wochen-Check-in passt das Ziel an ' +
@@ -1896,7 +1898,7 @@ export const de = {
     usedTitle: 'Was nutzt du am meisten?',
     area: {
       planassistent: 'Planassistent (Umbau, Vorlagen, Steigerung)',
-      checkin: 'Wochen-Check-in',
+      checkin: 'Coach und Wochen-Check-in',
       training: 'Krafttraining',
       dehnen: 'Dehnen',
       hiit: 'HIIT',

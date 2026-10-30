@@ -7,7 +7,7 @@ import { formatKcal, todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
-import { activeWeightGoal, listCalorieGoals, setCalorieGoal, type CalorieGoal } from '@/data/goals';
+import { activeWeightGoal, adjustCalorieGoal, listCalorieGoals, type CalorieGoal } from '@/data/goals';
 import { useProfile } from '@/data/profile-provider';
 import { listWeights } from '@/data/weights';
 import { calculate, DELTA_OPTIONS, type CalculatorInput, type Goal } from '@/domain/energy';
@@ -63,7 +63,8 @@ export default function CalculatorScreen() {
 
   async function apply() {
     if (result.status !== 'vorschlag') return;
-    await setCalorieGoal(db, result.kcal, today, 'rechner', {
+    // Hat der Coach Makros und Trainings-/Ruhetage gesetzt, werden sie für den neuen Wert neu berechnet (C9).
+    await adjustCalorieGoal(db, result.kcal, today, 'rechner', {
       ...input,
       resting: result.resting,
       factor: result.factor,
@@ -78,6 +79,11 @@ export default function CalculatorScreen() {
 
   return (
     <Screen withHeader>
+      {data.history[0]?.source === 'coach' ? (
+        <Card>
+          <ThemedText type="small">{t('coach.calculatorHint')}</ThemedText>
+        </Card>
+      ) : null}
       <Card>
         <ThemedText>{t('calculator.intro')}</ThemedText>
       </Card>
