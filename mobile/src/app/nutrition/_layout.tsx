@@ -19,6 +19,7 @@ export default function NutritionLayout() {
       }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="add" options={{ title: t('nutrition.search.title') }} />
+      <Stack.Screen name="text" options={{ title: t('foodText.title') }} />
       <Stack.Screen name="food/[id]" options={{ title: t('nutrition.food.title') }} />
       <Stack.Screen name="food-edit/[id]" options={{ title: t('nutrition.edit.titleEdit') }} />
       <Stack.Screen name="scan" options={{ title: t('nutrition.scan.title') }} />

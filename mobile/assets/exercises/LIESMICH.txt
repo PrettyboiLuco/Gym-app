@@ -1,0 +1,1 @@
+Eigene Übungsbilder, Name = Übungs-ID (z. B. kniebeuge.webp). Eintrag in src/media/exercise-media.ts nicht vergessen.

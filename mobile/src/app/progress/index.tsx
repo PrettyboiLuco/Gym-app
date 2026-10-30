@@ -135,6 +135,15 @@ export default function ProgressScreen() {
         </ThemedText>
       </Card>
 
+      <Card>
+        <ListRow
+          title={t('checkin.open')}
+          subtitle={t('checkin.dueSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/progress/checkin')}
+        />
+      </Card>
+
       <Card title={t('progress.goalsTitle')}>
         {cards.length === 0 ? <ThemedText themeColor="textSecondary">{t('progress.goalsEmpty')}</ThemedText> : null}
         {cards.map((c) => (

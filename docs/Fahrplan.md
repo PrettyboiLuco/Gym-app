@@ -120,7 +120,7 @@ Mitternacht auf dem Vortag, Lebensmittel nicht entfernbar; dazu Einzahl/Mehrzahl
   mitgelieferte Liste häufiger Grundnahrungsmittel aus den USDA-Downloads (CC0); Download ist von dieser
   Entwicklungsumgebung aus gesperrt, Entscheidung offen. Bis dahin: eigene Lebensmittel und Open Food Facts.
 - TIME-011 Trink-Erinnerungen mit Ruhezeiten: Phase 6.4 (Benachrichtigungen).
-- FOOD-014 Freitext, FOOD-015 Essensfoto: Phase 9 (wie geplant).
+- FOOD-014 Freitext, FOOD-015 Essensfoto: Phase 9 (wie geplant). Stand 30.10.: Freitext lokal gebaut (9.5), Essensfoto verschoben (KI/Kosten).
 - TRACK-006 Modus ohne Zahlen gilt im Tagebuch, auf „Heute“ und in der Woche; Produktseiten zeigen ihre
   Nährwerte weiter (Etikettangaben). Fachliche Prüfung steht laut Register noch aus.
 - Live-Test Open Food Facts (FOOD-004/007): von hier aus gesperrt, erster echter Test auf dem iPhone.
@@ -172,7 +172,7 @@ erreichbar. Testumgebung: `expo-env.d.ts` fehlte für die Typprüfung (wird von 
 - GOAL-008 Fotos: Kamera/Mediathek nur auf dem iPhone testbar (im Browser nicht verfügbar); App-Sperre (Face ID)
   und Sicherung der Fotos folgen mit Phase 6.5; Datenschutzprüfung (DSGVO) vor der Veröffentlichung (10.2).
 - GOAL-009 Körperfett: nicht gebaut (Fachfreigabe).
-- GOAL-006 Prognose: bewusst keine. COACH-008 automatische Anpassung nach Gewichtstrend: Phase 9.
+- GOAL-006 Prognose: bewusst keine. COACH-008 Anpassung nach Gewichtstrend: Phase 9.2 als Vorschlag mit Bestätigung gebaut.
 - Zieltypen Maße/Beweglichkeit/Schritte/Dehnroutinen: Phase 5 (Dehnen) bzw. 6 (Schritte); Pilotauswahl offen (GOAL-001).
 - Einheiten ml/oz und ft für Größe: nicht gebaut (Start nur Deutsch); Trinkziel bleibt ml.
 - Health-Freigabe im Erststart: kommt mit Apple Health (6.2). Beruf/Geräte/Zeit im Profil: mit dem Planassistenten (Phase 8).
@@ -220,7 +220,7 @@ vollständig; offen sind nur die unten genannten bewusst verschobenen Punkte und
 **Offen / bewusst verschoben:**
 - Haltezeiten, Programme, Stufen, Aufwärm-/Cool-down-Zuordnung und Kurzanleitungen sind Vorschläge ohne Fachprüfung
   (STRETCH-001/002/008, HIIT-001/002, 10.1); ACSM-Primärquellen nicht neu abgerufen.
-- Bilder/Animationen der Übungen (STRETCH-009, MEDIA): Phase 9.
+- Bilder/Animationen der Übungen (STRETCH-009, MEDIA): Grundlage in Phase 9.1 gebaut, eigene Bilder folgen (Entscheidung 30.10.).
 - Ansage und Vibration nur bei offener App; bei gesperrtem Handy läuft die Zeit korrekt weiter, meldet sich aber
   nicht (Phase 6.3). Export des Protokolls: Phase 6.5.
 - Von dir: eine Dehnroutine und ein HIIT-Programm auf dem iPhone durchgehen (Sprachansage testen), ein Training mit
@@ -341,7 +341,7 @@ und die alte Version reaktivierbar ist (P3, Kap. 15).
 - 8.7 Freitext: „Künftig 4 Tage je 60 Minuten, Ober/Unter, ohne Langhantel, Kniebeuge behalten“ wird lokal gelesen
   (Tage, Minuten, Aufteilung, Dauer, Geräte, Übungen, „bisher …“ wird ignoriert) und füllt nur die Auswahlfelder.
   Jeder Wunsch läuft durch eine strenge Prüfung (`validateWish`): unbekannte Felder, Übungs-IDs, Geräte und Werte
-  außerhalb der Grenzen werden abgewiesen – dieselbe Prüfung gilt später für eine KI-Antwort (Phase 9). Schmerzen im
+  außerhalb der Grenzen werden abgewiesen – dieselbe Prüfung gilt für eine spätere KI-Antwort (KI vorerst nicht, Entscheidung 30.10.2026). Schmerzen im
   Text → Übung ersetzen plus Hinweis, keine Behandlungstipps.
 380 automatische Tests (davon 72 neu für Phase 8, inkl. Prüfsumme der Logs vor/nach Umbau und Rückgängig),
 Browser-Test Phase 8 27/27 ohne Konsolenfehler, iOS-Bundle baut, Referenztests 24 + 22.
@@ -365,17 +365,60 @@ Weiter offen wie in den Phasen 1–7 notiert (Gerätetests auf dem iPhone, Fachp
 
 **Offen / bewusst verschoben:**
 - Fachliche Prüfung von Mustern, Ersatzübungen, Vorlagen-Parametern und Steigerungsregeln (10.1, O3).
-- KI-Anbindung für Freitext und Erklärungen (Phase 9.3, mit Kostenlimit); Schnittstelle und Prüfung stehen.
+- KI-Anbindung für Freitext und Erklärungen: verschoben (kostenfreie Version, Entscheidung 30.10.2026); Schnittstelle und Prüfung stehen.
 - Bevorzugte Wochentage: Pläne laufen als Reihenfolge; feste Wochentage über die Trainings-Erinnerungen (6.4).
 - Zeitschätzung aus eigenen protokollierten Satzzeiten kalibrieren (Kap. 10) – später.
 - Von dir: auf dem iPhone eine Vorlage erstellen, einen Plan umbauen (auch „nur diese Woche“), im Training
   „Gerät belegt“ und einen Steigerungsvorschlag ausprobieren.
 
-## Phase 9 – Übungsdemos, Coach, KI
+## Phase 9 – Coach, Essen in eigenen Worten, Grundlage für Übungsbilder (kostenfrei)
 
-9.1 Entscheidung 3D/Clips, Medienpilot mit 3 Übungen (MEDIA) · 9.2 Coach-Check-in mit Schlaf als Kontext,
-Essenszeiten, Allergien/Vorlieben (COACH-006–009) · 9.5 Freitext/Spracheingabe für Essen (FOOD-014) ·
-9.3 KI-Erklärungen mit Kostenlimit (TECH-018, BUS-004) · 9.4 Essensfoto-Experiment (FOOD-015).
+Entscheidung Luc 30.10.2026: kostenfreie Version – keine gekauften Medien, keine KI, kein Server. Übungsbilder
+später als eigene Bilder. Alles läuft auf dem Gerät; Regeln sind Vorschläge ohne Fachfreigabe (Prüfung in 10.1).
+
+| # | Schritt | Register |
+|---|---|---|
+| 9.1 | Grundlage für eigene Übungsbilder: Verzeichnis je Bild mit Autor, Lizenz, Quelle, Prüfdatum und Prüfstatus; Anzeige, sobald ein Bild da ist; Anleitung zum Einfügen. Keine fremden Medien | MEDIA-001, -012, -013, STRETCH-009 |
+| 9.2 | Wöchentlicher Check-in: Gewichtstrend, Essen (nur vollständige Tage), Training, Schritte, Schlaf als Kontext; Vorschlag erst nach Bestätigung, versioniert | COACH-006, -008, -010 |
+| 9.3 | Essenszeiten an den eigenen Alltag anpassen (Vorschlag der Mahlzeit nach eigenen Zeiten) | COACH-007 |
+| 9.4 | Allergien und Ernährungsweise: Hinweise aus Produktangaben, nie „allergenfrei“ zusichern | COACH-009 |
+| 9.5 | Essen in eigenen Worten (auch per Diktat der Tastatur): Kandidaten mit Menge, erst nach Bestätigung gebucht | FOOD-014 |
+
+**Fertig, wenn:** Der Check-in eine Woche richtig zusammenfasst (unvollständige Tage gekennzeichnet) und erst nach
+Bestätigung etwas ändert; „2 Scheiben Brot mit Nutella, 1 Banane“ ergibt bestätigbare Einträge; ein Produkt mit
+deinem Allergen zeigt einen Hinweis; ein Bild aus dem Verzeichnis erscheint bei der Übung – alles ohne Internet und KI.
+
+**Stand 30.10.2026:** 9.1–9.5 gebaut, ohne Internet, KI oder Kosten.
+- 9.1 Bilder: Verzeichnis `mobile/src/media/exercise-media.ts` (Autor, Lizenz, Herkunft, Prüfdatum, „Bewegung geprüft“),
+  Ordner `mobile/assets/exercises/`, Anzeige in Übungsliste und Training, sobald ein Bild eingetragen ist; Test prüft
+  jeden Eintrag. Anleitung `docs/Anleitung_Uebungsbilder.md`. Noch keine Bilder (kommen von dir).
+- 9.2 Wochen-Check-in (Fortschritt → Wochen-Check-in; auf „Heute“, wenn fällig): Woche bis gestern mit
+  Gewichtsschnitt und Veränderung, Essen nur über vollständige Tage (unvollständige gezählt, nicht gemittelt), Training
+  gegen Plan, Schritte, Schlaf. Höchstens ein Vorschlag (±100 kcal, Regeln Fassung 1 in `domain/checkin.ts`), nur mit
+  genug Daten, nie bei sensibler Situation, nie unter 1200 kcal oder bei Untergewicht senken; lag das Essen deutlich
+  über dem Ziel, wird erst Einhalten empfohlen. „Übernehmen“ = neues Kalorienziel ab heute (alte Tage unverändert),
+  „Nicht jetzt“ ändert nichts; jeder Check-in wird mit Entscheidung gespeichert. Schlaf (Stunden, Erholung 1–5) nur
+  als Hinweis, nie als Kalorienfaktor. Weniger trainiert als geplant → Hinweis mit Weg zum Planassistenten.
+- 9.3 Essenszeiten: eigene Uhrzeiten für Frühstück/Mittag/Abend (leer = lasse ich meist aus); der Mahlzeit-Vorschlag
+  beim Eintragen richtet sich danach.
+- 9.4 Allergien (14 Hauptallergene) und vegetarisch/vegan in den Ernährungs-Einstellungen. Allergene, Spuren und
+  vegan/vegetarisch kommen beim Scan/der Online-Suche von Open Food Facts mit; eigene Lebensmittel: Allergene
+  freiwillig. Hinweise am Lebensmittel und im Freitext, ⚠ in Suchlisten. Nie „allergenfrei“: ohne Angaben heißt es
+  „bitte Etikett prüfen“.
+- 9.5 Essen in eigenen Worten (Eintragen → „In eigenen Worten eintragen“, Diktat über die Tastatur): Teile mit Menge
+  und Einheit (Zahlwörter, kg/l, „1,5 l“, Scheibe/Stück/Portion), Treffer aus eigenen Lebensmitteln und Vorlagen,
+  Menge über die Portionsgröße; Löffel/Glas/Tasse werden nicht geschätzt. Erst „N Einträge buchen“ bucht, ohne Menge
+  wird nichts gebucht; nicht Gefundenes führt zur Suche.
+412 automatische Tests (31 neu), Browser-Test Phase 9 24/24, alle 32 Bildschirme ohne Fehler, Phase 8 weiter 27/27.
+
+**Offen:** Schwellen des Check-ins und Essenszeiten-Logik fachlich prüfen (10.1, COACH-008); Schlaf aus Apple Health
+(braucht Development Build, 6.2); erste eigene Bilder (du); Allergen-Angaben von Open Food Facts live testen (iPhone).
+- Von dir: Allergie und Essenszeiten einstellen, ein Produkt scannen, „2 Scheiben Brot mit Nutella“ per Diktat
+  eintragen, nach einer Woche den Check-in machen.
+
+**Verschoben (kostet Geld oder braucht einen Server):** KI-Erklärungen und KI-Freitext (TECH-018, BUS-004, LAW-011),
+Essensfoto (FOOD-015), gekaufte Medien oder 3D (MEDIA-005/-007). Neu zu entscheiden, wenn es Konten/Server gibt
+(Phase 11) oder ein Budget feststeht.
 
 ## Phase 10 – Vor der Veröffentlichung
 

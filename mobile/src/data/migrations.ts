@@ -408,6 +408,31 @@ export const MIGRATIONS: string[] = [
    ALTER TABLE plan_version ADD COLUMN valid_until TEXT;
    ALTER TABLE plan_version ADD COLUMN return_version_id TEXT REFERENCES plan_version (id);
    ${phase8Inserts}`,
+
+  // Version 9: Coach-Check-in, Schlaf, Allergene (Register COACH-006, -008, -009, Phase 9)
+  // Allergene/Spuren als JSON-Liste laut Produktangabe; NULL = unbekannt, '[]' = keine angegeben.
+  `ALTER TABLE food ADD COLUMN allergens TEXT;
+   ALTER TABLE food ADD COLUMN traces TEXT;
+   ALTER TABLE food ADD COLUMN diet TEXT CHECK (diet IS NULL OR diet IN ('vegan', 'vegetarisch', 'nicht_vegetarisch'));
+   -- Schlaf nur als Erholungskontext, nie als Kalorienfaktor (COACH-006). day = Tag des Aufwachens.
+   CREATE TABLE sleep_entry (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     hours REAL NOT NULL CHECK (hours > 0 AND hours <= 16),
+     quality INTEGER CHECK (quality IS NULL OR quality BETWEEN 1 AND 5),
+     recorded_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX sleep_entry_day ON sleep_entry (day);
+   -- Wöchentlicher Check-in (COACH-008): Zusammenfassung und Vorschlag als Schnappschuss, Entscheidung getrennt.
+   CREATE TABLE checkin (
+     id TEXT PRIMARY KEY NOT NULL,
+     week_end TEXT NOT NULL,
+     rules_version INTEGER NOT NULL,
+     summary TEXT NOT NULL,
+     suggestion TEXT,
+     decision TEXT NOT NULL CHECK (decision IN ('angenommen', 'abgelehnt', 'ohne')),
+     created_at_utc TEXT NOT NULL
+   );`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

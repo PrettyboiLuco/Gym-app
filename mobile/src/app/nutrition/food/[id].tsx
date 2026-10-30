@@ -18,7 +18,8 @@ import {
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { archiveFood, getFood, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
+import { DietNotice } from '@/components/diet-notice';
+import { archiveFood, DEFAULT_SETTINGS, foodFacts, getFood, loadNutritionSettings, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
 import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -29,6 +30,8 @@ export default function FoodScreen() {
   const params = useLocalSearchParams<TargetParams & { id: string }>();
   const { day, target: initialTarget } = readTarget(params);
   const { data: food, reload, db, loaded } = useLoad((d) => getFood(d, params.id), null, params.id);
+  // Allergien/Ernährungsweise für Hinweise (COACH-009).
+  const { data: settings } = useLoad(loadNutritionSettings, DEFAULT_SETTINGS);
   const [target, setTarget] = useState<Target>(initialTarget);
   // null = noch nicht angefasst: dann gilt die Portionsgröße bzw. 100.
   const [amountText, setAmountText] = useState<string | null>(null);
@@ -77,6 +80,7 @@ export default function FoodScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t(`nutrition.food.source.${food.source}`)}
         </ThemedText>
+        <DietNotice facts={foodFacts(food)} prefs={settings} />
         {food.barcode ? (
           <ThemedText type="small" themeColor="textSecondary">
             {food.barcode}

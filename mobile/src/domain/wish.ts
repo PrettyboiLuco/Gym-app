@@ -1,6 +1,6 @@
 // Freitext für den Planassistenten (Phase 8.7, Register TRAIN-020, TRAIN-021). Aus dem Text werden nur
 // feste Werte gelesen (Tage, Minuten, Aufteilung, Dauer, Geräte, bekannte Übungen) – der Text selbst
-// wird nie als Anweisung ausgeführt. Ein späteres Sprachmodell (Phase 9) muss genau dasselbe Schema
+// wird nie als Anweisung ausgeführt. Ein späteres Sprachmodell (vorerst nicht, Entscheidung 30.10.2026) muss genau dasselbe Schema
 // liefern und durchläuft dieselbe Prüfung `validateWish`; unbekannte Felder, unbekannte Übungs-IDs und
 // Werte außerhalb der Grenzen werden zurückgewiesen. Der Regelkern (planner.ts) entscheidet danach.
 

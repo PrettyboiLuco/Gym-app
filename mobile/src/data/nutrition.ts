@@ -3,6 +3,7 @@
 // - Essen und Getränke sind dieselbe Tabelle: ein Ereignis, beide Ansichten (TIME-005/006).
 // - Tagebuchdatum, Verzehrzeit, Erfassungszeit und Zeitzone getrennt (TIME-001/003).
 
+import { ALLERGENS, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
   fractionOf,
   nutrientsForAmount,
@@ -35,10 +36,31 @@ export type Food = {
   fat: number | null;
   servingAmount: number | null;
   favorite: number;
+  /** JSON-Listen bzw. Angabe laut Produkt (COACH-009); null = unbekannt. Lesen mit `foodFacts`. */
+  allergensJson: string | null;
+  tracesJson: string | null;
+  diet: FoodDiet | null;
 };
 
 const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat,
-  serving_amount AS servingAmount, favorite`;
+  serving_amount AS servingAmount, favorite, allergens AS allergensJson, traces AS tracesJson, diet`;
+
+function parseList(value: string | null): Allergen[] | null {
+  if (value === null) return null;
+  try {
+    const list = JSON.parse(value);
+    return Array.isArray(list) ? (list.filter((a) => (ALLERGENS as readonly string[]).includes(a)) as Allergen[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Allergene, Spuren und Ernährungsweise eines gespeicherten Lebensmittels. */
+export function foodFacts(food: Pick<Food, 'allergensJson' | 'tracesJson' | 'diet'>): FoodFacts {
+  return { allergens: parseList(food.allergensJson), traces: parseList(food.tracesJson), diet: food.diet };
+}
+
+const listText = (list: Allergen[] | null | undefined) => (list == null ? null : JSON.stringify(list));
 
 export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat'>): Nutrients {
   return { kcal: food.kcal, protein: food.protein, carbs: food.carbs, fat: food.fat };
@@ -88,6 +110,10 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   const foodId = id ?? newId();
   const { kcal, protein, carbs, fat } = draft.per100;
   if (id) {
+    // Allergene nur ändern, wenn der Entwurf sie mitbringt (z. B. aus dem Formular); sonst bleiben sie.
+    if (draft.allergens !== undefined) await db.runAsync('UPDATE food SET allergens = ? WHERE id = ?', listText(draft.allergens), id);
+    if (draft.traces !== undefined) await db.runAsync('UPDATE food SET traces = ? WHERE id = ?', listText(draft.traces), id);
+    if (draft.diet !== undefined) await db.runAsync('UPDATE food SET diet = ? WHERE id = ?', draft.diet, id);
     await db.runAsync(
       `UPDATE food SET name = ?, brand = ?, barcode = ?, basis = ?, prep = ?, kcal = ?, protein = ?, carbs = ?, fat = ?,
        serving_amount = ?, updated_at_utc = ? WHERE id = ?`,
@@ -107,7 +133,8 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   } else {
     await db.runAsync(
       `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
-       favorite, fetched_at_utc, created_at_utc, updated_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+       favorite, fetched_at_utc, created_at_utc, updated_at_utc, allergens, traces, diet)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
       foodId,
       source,
       draft.barcode,
@@ -122,7 +149,10 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       draft.servingAmount,
       source === 'off' ? now : null,
       now,
-      now
+      now,
+      listText(draft.allergens),
+      listText(draft.traces),
+      draft.diet ?? null
     );
   }
   return foodId;
@@ -542,21 +572,36 @@ export type NutritionSettings = {
   glassSizes: number[];
   /** Ansicht ohne Kalorienzahlen (TRACK-006). */
   hideNumbers: boolean;
+  /** Allergien und Ernährungsweise für Hinweise an Produkten (COACH-009). */
+  allergies: Allergen[];
+  diet: Diet;
+  /** Eigene Essenszeiten für den Mahlzeit-Vorschlag (COACH-007). */
+  mealTimes: MealTimes;
 };
 
 export const DEFAULT_SETTINGS: NutritionSettings = {
   drinkGoalMl: 1500,
   glassSizes: [200, 250, 330, 500],
   hideNumbers: false,
+  allergies: [],
+  diet: 'alles',
+  mealTimes: DEFAULT_MEAL_TIMES,
 };
+
+// Zuletzt geladene Essenszeiten, damit der Mahlzeit-Vorschlag ohne Datenbankzugriff auskommt.
+let lastMealTimes: MealTimes = DEFAULT_MEAL_TIMES;
+export const cachedMealTimes = () => lastMealTimes;
 
 export async function loadNutritionSettings(db: Db): Promise<NutritionSettings> {
   const stored = await readState<Partial<NutritionSettings> & { kcalGoal?: unknown }>(db, 'nutrition_settings', {});
   // Alter Wert aus Phase 3; wurde mit Migration 4 nach calorie_goal übernommen.
   const { kcalGoal: _old, ...rest } = stored;
-  return { ...DEFAULT_SETTINGS, ...rest };
+  const settings = { ...DEFAULT_SETTINGS, ...rest, mealTimes: { ...DEFAULT_MEAL_TIMES, ...rest.mealTimes } };
+  lastMealTimes = settings.mealTimes;
+  return settings;
 }
 
 export async function saveNutritionSettings(db: Db, settings: NutritionSettings) {
   await writeState(db, 'nutrition_settings', settings);
+  lastMealTimes = settings.mealTimes;
 }

@@ -1,13 +1,13 @@
 // Gemeinsame Anzeige- und Navigationshilfen für den Ernährungsbereich.
 
-import type { EventUnit, Target, When } from '@/data/nutrition';
+import { cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
+import { suggestMealAt } from '@/domain/diet';
 import { localDay } from '@/domain/time';
 import {
   DRINK_TYPES,
   MEALS,
   NUTRIENT_KEYS,
   shiftDay,
-  suggestMeal,
   type DrinkType,
   type Meal,
   type NutrientTotals,
@@ -93,7 +93,7 @@ export function readTarget(params: TargetParams): { day: string; target: Target 
   }
   const meal = (MEALS as readonly string[]).includes(params.meal ?? '')
     ? (params.meal as Meal)
-    : suggestMeal(new Date().getHours());
+    : suggestMealAt(new Date().getHours(), cachedMealTimes());
   return { day, target: { kind: 'essen', meal } };
 }
 

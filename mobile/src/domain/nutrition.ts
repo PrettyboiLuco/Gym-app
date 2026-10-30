@@ -2,6 +2,8 @@
 // Grundsätze: Ein fehlender Nährwert bleibt unbekannt (null) und wird nie als 0 behandelt.
 // Gramm und Milliliter werden ohne bekannte Dichte nicht ineinander umgerechnet.
 
+import { allergensFromOff, dietFromOff, type Allergen, type FoodDiet } from './diet';
+
 export type NutrientBasis = 'g' | 'ml';
 
 /** Nährwert für eine Menge aus einem Wert pro 100 g bzw. 100 ml. */
@@ -185,6 +187,13 @@ export type FoodDraft = {
   prep?: Prep | null;
   per100: Nutrients;
   servingAmount: number | null;
+  /**
+   * Allergene und Spuren laut Angabe (COACH-009); null = unbekannt, [] = keine angegeben.
+   * Fehlt das Feld (undefined), bleibt beim Speichern der bisherige Wert.
+   */
+  allergens?: Allergen[] | null;
+  traces?: Allergen[] | null;
+  diet?: FoodDiet | null;
 };
 
 function num(value: unknown): number | null {
@@ -231,6 +240,9 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
       fat: num(nutriments.fat_100g),
     },
     servingAmount: num(product.serving_quantity),
+    allergens: allergensFromOff(product.allergens_tags),
+    traces: allergensFromOff(product.traces_tags),
+    diet: dietFromOff(product.ingredients_analysis_tags),
   };
 }
 
@@ -248,6 +260,8 @@ export type FoodForm = {
   carbs: string;
   fat: string;
   serving: string;
+  /** null = keine Angabe zu Allergenen (COACH-009). */
+  allergens: Allergen[] | null;
 };
 
 export type FoodProblem = 'name' | 'nutrient' | 'serving' | 'barcode' | 'macros';
@@ -265,6 +279,7 @@ export function foodToForm(food: FoodDraft): FoodForm {
     carbs: text(food.per100.carbs),
     fat: text(food.per100.fat),
     serving: text(food.servingAmount),
+    allergens: food.allergens ?? null,
   };
 }
 
@@ -295,6 +310,7 @@ export function parseFoodForm(form: FoodForm): { draft: FoodDraft | null; proble
       prep: form.prep === 'keine' ? null : form.prep,
       per100: { kcal, protein, carbs, fat },
       servingAmount: serving,
+      allergens: form.allergens,
     },
     problems,
   };

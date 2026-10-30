@@ -22,6 +22,10 @@ const FIELDS = [
   'product_quantity_unit',
   'serving_quantity',
   'nutriments',
+  // Allergene, Spuren und vegan/vegetarisch (COACH-009); fehlen sie, bleibt es „unbekannt“.
+  'allergens_tags',
+  'traces_tags',
+  'ingredients_analysis_tags',
 ].join(',');
 
 export type OffError = 'offline' | 'notFound' | 'rateLimited' | 'unavailable' | 'invalid';

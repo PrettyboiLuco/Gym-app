@@ -12,8 +12,9 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | App-Name (Arbeitstitel) | „Myhealth“; endgültiger Name folgt. Interne Kennungen (Expo-Projekt, Datenbank) bleiben unverändert | 30.10.2026 |
 | App-Symbol | Anatomisches menschliches Herz (rot, Gefäße rot/blau) auf dunkelblauem Verlauf; Startbildschirm in derselben Farbe (#13213A). Selbst gezeichnet (SVG-Quelle `mobile/assets/heart-icon.svg`), keine fremden Bildrechte | 30.10.2026 |
 | Dehnung | Teil von „Training“, kein eigener Tab | 30.10.2026 |
-| Übungsmedien zum Start | Name und kurze Textanleitung, keine Bilder; Bilder/Animationen nach Lizenzprüfung in Phase 9 | 30.10.2026 |
+| Übungsmedien zum Start | Name und kurze Textanleitung, keine Bilder; Bilder/Animationen später als eigene Bilder (siehe Phase 9) | 30.10.2026 |
 | Fortschrittsfotos | Ja. Umsetzung: freiwillig, standardmäßig aus, nur auf dem Gerät, kein Upload/keine Werbung/keine KI, beim Öffnen verdeckt | 30.10.2026 |
+| Phase 9 | Kostenfreie Version: keine gekauften Medien, keine KI, kein Server. Übungsbilder später als eigene Bilder (keine RepDB-/Kaufbilder). Coach nur als Vorschlag mit Bestätigung | 30.10.2026 |
 
 ## Vorläufig umgesetzt (Phase 4, 30.10.2026) – bitte bestätigen oder ändern
 
@@ -33,7 +34,7 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | Steigerung | Doppelte Progression (Wiederholungen, dann kleinster Gewichtsschritt), Stagnation nach 3 Einheiten, Wiedereinstieg ab 14 Tagen. Nur Vorschlag, abschaltbar. |
 | Vorlagen | Ganzkörper 2–4 Tage, Ober/Unter 4, Ober/Unter+PPL 5, PPL 6 Tage; Sätze/Wdh./Pausen je Ziel (Tabelle in `domain/planner.ts`). |
 | Befristung | „Nur diese Woche“ = bis Sonntag, „2 Wochen“ = 14 Tage; danach automatisch zurück. |
-| Freitext | Lokal, ohne KI und ohne Internet; KI erst mit Phase 9 (Kosten, Datenschutz). |
+| Freitext | Lokal, ohne KI und ohne Internet; KI vorerst nicht (kostenfreie Version, Entscheidung 30.10.2026). |
 | Beruf | Kein eigenes Feld – „Bewegung im Alltag“ im Profil enthält ihn bereits. |
 
 ## Folgen für die Technik (Vorschlag)
@@ -55,6 +56,6 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 Vor dem Pilot (Phase 7): **Apple Developer Program (99 $)** – wird abgeschlossen, sobald Luc am MacBook ist.
 
 
-Endgültiger App-Name · Budget · Zeit pro Woche · Zielalter · 3D-Figur oder Clips · Free/Pro-Grenze und Preis ·
+Endgültiger App-Name · Budget · Zeit pro Woche · Zielalter · Free/Pro-Grenze und Preis ·
 Werbenetzwerk · Pilot-Zieltypen (vorläufig s. o.) · Einheiten (vorläufig s. o.) ·
 Fachperson Training/Ernährung · Rechtsprüfung

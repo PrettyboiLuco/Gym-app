@@ -140,7 +140,25 @@ describe('Open Food Facts einlesen', () => {
       prep: null,
       per100: nutella,
       servingAmount: 15,
+      allergens: null,
+      traces: null,
+      diet: null,
     });
+  });
+  test('Allergene, Spuren und vegan/vegetarisch aus den Tags (COACH-009)', () => {
+    const food = normalizeOffProduct(
+      {
+        status: 1,
+        product: {
+          product_name: 'Keks',
+          allergens_tags: ['en:gluten', 'en:milk', 'en:unbekannt'],
+          traces_tags: [],
+          ingredients_analysis_tags: ['en:non-vegan', 'en:vegetarian'],
+        },
+      },
+      '1'
+    );
+    expect(food).toMatchObject({ allergens: ['gluten', 'milch'], traces: [], diet: 'vegetarisch' });
   });
   test('Getränk in ml, kcal aus kJ, fehlendes Eiweiß bleibt unbekannt', () => {
     const food = normalizeOffProduct(
@@ -171,6 +189,7 @@ describe('Formular Lebensmittel', () => {
     barcode: '',
     basis: 'g',
     prep: 'keine',
+    allergens: null,
     kcal: '370',
     protein: '13,5',
     carbs: '',
@@ -187,6 +206,7 @@ describe('Formular Lebensmittel', () => {
         prep: null,
         per100: { kcal: 370, protein: 13.5, carbs: null, fat: 7 },
         servingAmount: null,
+        allergens: null,
       },
       problems: [],
     }));

@@ -3,12 +3,13 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field } from '@/components/fields';
+import { Choice, Field, MultiChoice } from '@/components/fields';
 import { readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { findFoodByBarcode, getFood, per100, saveFood } from '@/data/nutrition';
+import { findFoodByBarcode, foodFacts, getFood, per100, saveFood } from '@/data/nutrition';
+import { ALLERGENS } from '@/domain/diet';
 import { useDb } from '@/data/store-provider';
 import { foodToForm, parseFoodForm, PREPS, type FoodForm, type FoodProblem } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,6 +27,7 @@ const EMPTY: FoodForm = {
   carbs: '',
   fat: '',
   serving: '',
+  allergens: null,
 };
 
 const NUTRIENT_FIELDS = ['kcal', 'protein', 'carbs', 'fat'] as const;
@@ -47,7 +49,7 @@ export default function FoodEditScreen() {
     let cancelled = false;
     getFood(db, params.id).then((food) => {
       if (cancelled || !food) return;
-      const loaded = foodToForm({ ...food, per100: per100(food) });
+      const loaded = foodToForm({ ...food, per100: per100(food), ...foodFacts(food) });
       setForm(loaded);
       setBaseline(JSON.stringify(loaded));
     });
@@ -138,6 +140,25 @@ export default function FoodEditScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.edit.hint')}
         </ThemedText>
+      </Card>
+
+      <Card>
+        <Choice
+          label={t('diet.foodAllergens')}
+          options={['unbekannt', 'angegeben'] as const}
+          value={form.allergens === null ? 'unbekannt' : 'angegeben'}
+          onChange={(v) => set('allergens', v === 'unbekannt' ? null : (form.allergens ?? []))}
+          format={(v) => t(`diet.foodAllergensOption.${v}`)}
+        />
+        {form.allergens !== null ? (
+          <MultiChoice
+            label={t('diet.foodAllergensHint')}
+            options={ALLERGENS}
+            value={form.allergens}
+            onChange={(v) => set('allergens', v)}
+            format={(v) => t(`diet.allergen.${v}`)}
+          />
+        ) : null}
       </Card>
 
       {problems.length > 0 ? (

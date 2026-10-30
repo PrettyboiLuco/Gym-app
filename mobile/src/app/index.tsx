@@ -10,6 +10,8 @@ import { calorieGoalOn } from '@/data/goals';
 import { loadTimedRun } from '@/data/routines';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { useUnits } from '@/data/profile-provider';
+import { lastCheckinWeekEnd } from '@/data/coach';
+import { checkinDue } from '@/domain/checkin';
 import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
 import { listWeights } from '@/data/weights';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
@@ -31,6 +33,8 @@ async function loadToday(db: Db) {
     calorieGoalOn(db, today),
   ]);
   const timed = await loadTimedRun(db);
+  // Wochen-Check-in fällig (COACH-008)? Erst wenn schon etwas erfasst ist, sonst wäre er leer.
+  const checkin = (weights.length > 0 || events.length > 0) && checkinDue(await lastCheckinWeekEnd(db), today);
   const sums = sumNutrients(events);
   const food = {
     entries: events.length,
@@ -45,7 +49,7 @@ async function loadToday(db: Db) {
     const index = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
     next = { plan: plan.name, day: plan.days[index].name };
   }
-  return { lastWeight: weights[0] ?? null, trend: weightTrend(weights, today), active, next, food, timed: timed?.title ?? null };
+  return { lastWeight: weights[0] ?? null, trend: weightTrend(weights, today), active, next, food, timed: timed?.title ?? null, checkin };
 }
 
 export default function TodayScreen() {
@@ -53,11 +57,12 @@ export default function TodayScreen() {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
     timed: null as string | null,
+    checkin: false,
     active: null as SessionInfo | null,
     next: null as { plan: string; day: string } | null,
     food: { entries: 0, sums: sumNutrients([]), drinksMl: 0, goal: null as number | null, hide: false },
   });
-  const { lastWeight, trend, active, next, food, timed } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin } = data;
   const units = useUnits();
   const eaten = formatKcalSum(food.sums);
   const left = food.goal === null ? 0 : food.goal - food.sums.values.kcal;
@@ -75,6 +80,11 @@ export default function TodayScreen() {
 
   return (
     <Screen title={t('today.title')} subtitle={formatLongDate(new Date())}>
+      {checkin ? (
+        <Card>
+          <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
+        </Card>
+      ) : null}
       <Card title={t('today.training')}>
         {timed ? (
           <ListRow title={t('training.timedActive', { name: timed })} accessory="›" onPress={() => router.push('/training/run')} />

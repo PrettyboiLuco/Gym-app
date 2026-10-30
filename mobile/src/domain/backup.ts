@@ -32,6 +32,8 @@ export const BACKUP_TABLES = [
   'timed_session',
   'flexibility_test',
   'steps_entry',
+  'sleep_entry',
+  'checkin',
 ] as const;
 
 /** Laufende Zustände gehören nicht in eine Sicherung. */

@@ -11,8 +11,11 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import {
+  DEFAULT_SETTINGS,
   deleteTemplate,
   findFoodByBarcode,
+  foodFacts,
+  loadNutritionSettings,
   listFavoriteFoods,
   listRecipes,
   listTemplates,
@@ -25,6 +28,7 @@ import {
   type RecipeSummary,
 } from '@/data/nutrition';
 import { searchProducts, type OffError } from '@/data/off';
+import { dietCheck, needsAttention } from '@/domain/diet';
 import type { FoodDraft } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -53,10 +57,14 @@ const EMPTY = {
 
 export default function AddScreen() {
   const theme = useTheme();
-  const params = useLocalSearchParams<TargetParams>();
+  const params = useLocalSearchParams<TargetParams & { q?: string }>();
   const { day, target } = readTarget(params);
   const passOn = targetParams(day, target);
-  const [query, setQuery] = useState('');
+  // Allergien/Ernährungsweise: Warnzeichen in den Listen (COACH-009).
+  const { data: settings } = useLoad(loadNutritionSettings, DEFAULT_SETTINGS);
+  const warn = (facts: Parameters<typeof dietCheck>[0]) => (needsAttention(dietCheck(facts, settings)) ? `${t('diet.attention')} ` : '');
+  // `q`: Suchbegriff aus „In eigenen Worten“, wenn dort nichts gefunden wurde.
+  const [query, setQuery] = useState(params.q ?? '');
   const { data, reload, db, loaded } = useLoad((d) => loadAdd(d, query), EMPTY, query);
 
   // Online-Suche nur auf ausdrücklichen Knopfdruck (FOOD-003, eigene Limits in data/off.ts).
@@ -99,7 +107,7 @@ export default function AddScreen() {
   const foodRow = (f: Food) => (
     <ListRow
       key={f.id}
-      title={foodTitle(f)}
+      title={`${warn(foodFacts(f))}${foodTitle(f)}`}
       subtitle={`${formatKcal(f.kcal)} / 100 ${f.basis}`}
       accessory={f.favorite ? '★' : '›'}
       onPress={() => openFood(f.id)}
@@ -129,6 +137,15 @@ export default function AddScreen() {
         />
       </View>
 
+      {target.kind === 'essen' ? (
+        <ListRow
+          title={t('foodText.open')}
+          subtitle={t('foodText.openHint')}
+          accessory="›"
+          onPress={() => router.push({ pathname: '/nutrition/text', params: passOn })}
+        />
+      ) : null}
+
       {query.trim() ? (
         <>
           <Card title={t('nutrition.search.local')}>
@@ -153,7 +170,7 @@ export default function AddScreen() {
                 online.drafts.map((d, i) => (
                   <ListRow
                     key={`${d.barcode}-${i}`}
-                    title={foodTitle(d)}
+                    title={`${warn({ allergens: d.allergens ?? null, traces: d.traces ?? null, diet: d.diet ?? null })}${foodTitle(d)}`}
                     subtitle={`${formatKcal(d.per100.kcal)} / 100 ${d.basis}`}
                     accessory="›"
                     onPress={() => pickOnline(d)}

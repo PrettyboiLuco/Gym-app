@@ -6,6 +6,7 @@ import { Platform, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
+import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, ListRow } from '@/components/fields';
 import { RestTimerBar } from '@/components/rest-timer-bar';
@@ -406,6 +407,7 @@ export default function SessionScreen() {
         const exercise = byId.get(exerciseId);
         return (
           <Card key={exerciseId} title={exerciseName(byId.get(exerciseId))}>
+            <ExerciseMedia exerciseId={exerciseId} label={exerciseName(byId.get(exerciseId))} />
             <ThemedText type="small" themeColor="textSecondary">
               {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
             </ThemedText>

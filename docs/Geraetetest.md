@@ -78,3 +78,12 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | P4 | Im Training „Gerät belegt? Ersatz wählen“ | Offene Sätze wechseln, erledigte bleiben | Expo Go |
 | P5 | Gleiche Übung zweimal mit allen Sätzen am oberen Ende | Beim dritten Mal Vorschlag „mehr Gewicht“ | Expo Go |
 | P6 | Freitext „4 Tage je 60 Minuten, ohne Langhantel“ (auch per Diktat) | Auswahl unten passend gesetzt | Expo Go |
+
+## Coach, Essen, Allergien (Phase 9, COACH-006–009, FOOD-014)
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| C1 | „In eigenen Worten“ mit dem Mikrofon der Tastatur diktieren | Text erscheint, „Erkennen“ findet die Teile | Expo Go |
+| C2 | Allergie „Milch“ einstellen, Schokolade scannen | Hinweis „Enthält laut Angaben: Milch“ | Expo Go |
+| C3 | Essenszeiten ändern, zur jeweiligen Uhrzeit über „Heute“ eintragen | passende Mahlzeit vorgewählt | Expo Go |
+| C4 | Nach 7 Tagen mit Gewicht/Essen: Wochen-Check-in, „Übernehmen“ | neues Kalorienziel ab heute, gestern unverändert | Expo Go |

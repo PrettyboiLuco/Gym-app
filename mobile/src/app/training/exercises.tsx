@@ -3,6 +3,7 @@ import type { ScrollViewInstance } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
+import { ExerciseMedia } from '@/components/exercise-media';
 import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -24,14 +25,16 @@ import {
   type MuscleGroup,
   type Sides,
 } from '@/domain/exercises';
+import { mediaFor } from '@/domain/media';
 import { parseWholeNumber } from '@/domain/training';
+import { EXERCISE_MEDIA } from '@/media/exercise-media';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t, tOptional } from '@/i18n';
 
 /** Startübung mit Kurzanleitung oder Planassistent-Daten (Muster, Ersatzübungen). */
 function hasInfo(e: Exercise): boolean {
-  return tOptional(`exerciseHow.${e.id}`) !== null || EXERCISE_META[e.id] !== undefined;
+  return tOptional(`exerciseHow.${e.id}`) !== null || EXERCISE_META[e.id] !== undefined || mediaFor(EXERCISE_MEDIA, e.id) !== null;
 }
 
 export default function ExercisesScreen() {
@@ -170,6 +173,7 @@ export default function ExercisesScreen() {
                   e.customName ? () => startEdit(e) : hasInfo(e) ? () => setOpenHow((id) => (id === e.id ? null : e.id)) : undefined
                 }
               />
+              {openHow === e.id ? <ExerciseMedia exerciseId={e.id} label={exerciseName(e)} /> : null}
               {openHow === e.id ? (
                 <ThemedText type="small" themeColor="textSecondary">
                   {[
