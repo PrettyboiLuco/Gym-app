@@ -18,8 +18,8 @@ Diese Schritte kann nur Luc selbst machen, weil sie Konto, Zahlung und Identitä
 - **Bundle-ID:** `myhealth.system` (eingetragen in `mobile/app.json`, Entscheidung Luc 30.10.2026). Nach dem
   ersten Upload gehört sie fest zu dieser App. Ist sie bei Apple schon vergeben, meldet EAS das beim Build –
   dann eine andere wählen.
-- **App-Symbol**: Noch ist das Expo-Standardsymbol drin. Ein eigenes Symbol (1024×1024) brauchst du spätestens
-  für den App Store, für TestFlight ist es dringend empfohlen.
+- **App-Symbol:** Fertig – anatomisches Herz auf Dunkelblau (`mobile/assets/images/icon.png`, 1024×1024, ohne
+  Transparenz, wie Apple es verlangt). Die Quelle zum Ändern ist `mobile/assets/heart-icon.svg`.
 
 ## 7.2 TestFlight-Version bauen und verteilen
 

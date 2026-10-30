@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1D2E4A"/>
+      <stop offset="1" stop-color="#0B1422"/>
+    </linearGradient>
+    <radialGradient id="muscle" cx="0.40" cy="0.36" r="0.78">
+      <stop offset="0" stop-color="#F25B50"/>
+      <stop offset="0.5" stop-color="#CF2E2A"/>
+      <stop offset="1" stop-color="#7C1515"/>
+    </radialGradient>
+    <linearGradient id="arteryV" gradientUnits="userSpaceOnUse" x1="440" y1="0" x2="560" y2="0">
+      <stop offset="0" stop-color="#981B1B"/>
+      <stop offset="0.45" stop-color="#E9524A"/>
+      <stop offset="1" stop-color="#A21E1E"/>
+    </linearGradient>
+    <linearGradient id="arch" gradientUnits="userSpaceOnUse" x1="0" y1="200" x2="0" y2="330">
+      <stop offset="0" stop-color="#E9524A"/>
+      <stop offset="1" stop-color="#A01D1D"/>
+    </linearGradient>
+    <linearGradient id="veinV" gradientUnits="userSpaceOnUse" x1="350" y1="0" x2="430" y2="0">
+      <stop offset="0" stop-color="#22417A"/>
+      <stop offset="0.5" stop-color="#5287D2"/>
+      <stop offset="1" stop-color="#26488A"/>
+    </linearGradient>
+    <linearGradient id="veinH" gradientUnits="userSpaceOnUse" x1="0" y1="350" x2="0" y2="420">
+      <stop offset="0" stop-color="#5A8FDA"/>
+      <stop offset="1" stop-color="#244583"/>
+    </linearGradient>
+    <linearGradient id="trunk" gradientUnits="userSpaceOnUse" x1="550" y1="0" x2="650" y2="0">
+      <stop offset="0" stop-color="#26488A"/>
+      <stop offset="0.5" stop-color="#5A8FDA"/>
+      <stop offset="1" stop-color="#22417A"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="background"><rect width="1024" height="1024" fill="url(#bg)"/></g>
+  <g id="heart" transform="translate(512 535) scale(0.9) translate(-512 -515)">
+    <!-- absteigende Aorta (hinten rechts) -->
+    <path d="M 652 320 C 664 390, 664 450, 655 520" stroke="#8E1A1A" stroke-width="76" stroke-linecap="round" fill="none"/>
+    <!-- obere Hohlvene (links) -->
+    <path d="M 385 530 C 385 430, 382 330, 380 215" stroke="url(#veinV)" stroke-width="76" stroke-linecap="round" fill="none"/>
+    <!-- Abgänge des Aortenbogens -->
+    <path d="M 500 250 C 492 200, 488 160, 480 118" stroke="url(#arteryV)" stroke-width="42" stroke-linecap="round" fill="none"/>
+    <path d="M 562 238 C 564 195, 566 160, 570 118" stroke="url(#arteryV)" stroke-width="36" stroke-linecap="round" fill="none"/>
+    <path d="M 615 254 C 626 210, 636 172, 650 130" stroke="url(#arteryV)" stroke-width="36" stroke-linecap="round" fill="none"/>
+    <!-- aufsteigende Aorta und Bogen -->
+    <path d="M 505 540 C 495 440, 485 330, 515 285 C 545 238, 625 236, 652 300 L 655 335" stroke="url(#arch)" stroke-width="98" stroke-linecap="round" fill="none"/>
+    <!-- Lungenschlagader: rechter Ast (unter dem Bogen nach links), linker Ast nach rechts -->
+    <path d="M 600 404 C 540 398, 480 408, 425 410" stroke="url(#veinH)" stroke-width="42" stroke-linecap="round" fill="none"/>
+    <path d="M 620 398 C 675 380, 735 382, 795 402" stroke="url(#veinH)" stroke-width="48" stroke-linecap="round" fill="none"/>
+    <path d="M 595 575 C 588 500, 590 440, 612 392" stroke="url(#trunk)" stroke-width="88" stroke-linecap="round" fill="none"/>
+    <!-- Herzmuskel -->
+    <path d="M 352 470
+             C 272 500, 236 610, 290 700
+             C 350 800, 480 870, 600 905
+             C 650 918, 690 900, 715 860
+             C 790 740, 810 600, 760 500
+             C 725 432, 650 425, 605 455
+             C 540 438, 420 440, 352 470 Z" fill="url(#muscle)" stroke="#6E1212" stroke-width="4"/>
+    <!-- rechter Vorhof, linkes Herzohr -->
+    <path d="M 352 470 C 296 468, 262 520, 274 585 C 300 562, 340 545, 382 540 C 404 508, 388 478, 352 470 Z" fill="#B52424" stroke="#6E1212" stroke-width="3"/>
+    <path d="M 694 458 C 744 442, 796 470, 786 524 C 756 513, 724 517, 702 528 C 686 508, 682 478, 694 458 Z" fill="#A81F1F" stroke="#6E1212" stroke-width="3"/>
+    <!-- Herzkranzgefäße -->
+    <path d="M 618 470 C 596 560, 604 690, 660 850" stroke="#7A1414" stroke-width="13" stroke-linecap="round" fill="none"/>
+    <path d="M 646 600 C 694 612, 734 642, 752 692" stroke="#7A1414" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M 606 690 C 546 702, 484 692, 424 652" stroke="#7A1414" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M 410 540 C 356 580, 330 630, 336 700" stroke="#3B5C9C" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <!-- Glanzlichter -->
+    <ellipse cx="450" cy="590" rx="120" ry="72" fill="url(#shine)" transform="rotate(-25 450 590)"/>
+    <ellipse cx="540" cy="300" rx="40" ry="16" fill="url(#shine)" transform="rotate(-30 540 300)"/>
+  </g>
+</svg>

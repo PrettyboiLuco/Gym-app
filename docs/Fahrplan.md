@@ -289,7 +289,8 @@ Gerätetest durchführen (6.6, O1). Bekannte Grenzen: Mitteilungen nicht sekunde
 
 **Prüfung Phase 7 (30.10.2026):** 2 Lücken geschlossen – Fehleranzeige für Tester statt leerer Seite,
 Korrekturen ohne neuen Build (EAS Update) in der Anleitung.
-**Offen (nur Luc):** Developer Program abschließen (99 $), App-Name, Bundle-ID und App-Symbol festlegen, Build
+**Erledigt:** Arbeitstitel „Myhealth“, Bundle-ID `myhealth.system`, App-Symbol (anatomisches Herz, 30.10.2026).
+**Offen (nur Luc):** Developer Program abschließen (99 $, am MacBook), endgültigen App-Namen festlegen, Build
 hochladen, Tester einladen, Pilot durchführen und auswerten. Absturzberichte kommen über TestFlight; ein eigener
 Absturzdienst ist bewusst nicht eingebaut (Datenschutz).
 
