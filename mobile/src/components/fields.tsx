@@ -70,6 +70,54 @@ export function Choice<T extends string>({
   );
 }
 
+/** Auswahl mit längeren Beschriftungen untereinander, z. B. Aktivitätsstufen. */
+export function RadioList<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  format,
+  describe,
+}: {
+  label: string;
+  options: readonly T[];
+  value: T;
+  onChange: (value: T) => void;
+  format: (value: T) => string;
+  describe?: (value: T) => string;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.field} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <ThemedText type="small" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+      {options.map((option) => {
+        const selected = option === value;
+        return (
+          <Pressable
+            key={option}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            accessibilityLabel={format(option)}
+            onPress={() => onChange(option)}
+            style={[styles.radio, { borderColor: selected ? theme.tint : theme.backgroundSelected }]}>
+            <ThemedText style={{ color: theme.tint }}>{selected ? '●' : '○'}</ThemedText>
+            <View style={styles.rowText}>
+              <ThemedText>{format(option)}</ThemedText>
+              {describe ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {describe(option)}
+                </ThemedText>
+              ) : null}
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 /** Kleine Schnellwahl-Knöpfe, z. B. Pausenlängen. */
 export function Presets<T extends string | number>({
   options,
@@ -189,4 +237,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   rowText: { flex: 1, gap: Spacing.half },
+  radio: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+    padding: Spacing.two,
+    minHeight: 44,
+  },
 });

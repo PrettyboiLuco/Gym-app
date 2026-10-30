@@ -357,9 +357,10 @@ export function parseSettingsForm(form: SettingsForm) {
   if (Number.isNaN(kcalGoal)) problems.push('kcal');
   if (Number.isNaN(drinkGoalMl)) problems.push('drink');
   if (form.glassSizes.length === 0) problems.push('glasses');
-  if (problems.length > 0) return { settings: null, problems };
+  if (problems.length > 0) return { settings: null, kcalGoal: null, problems };
   return {
-    settings: { kcalGoal, drinkGoalMl, glassSizes: form.glassSizes, hideNumbers: form.hideNumbers },
+    settings: { drinkGoalMl, glassSizes: form.glassSizes, hideNumbers: form.hideNumbers },
+    kcalGoal,
     problems,
   };
 }

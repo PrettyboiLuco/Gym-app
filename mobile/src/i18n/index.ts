@@ -1,6 +1,8 @@
 import { getLocales } from 'expo-localization';
 import { I18n } from 'i18n-js';
 
+import { cmToUnit, kgToUnit, type LengthUnit, type WeightUnit } from '@/domain/units';
+
 import { de } from './de';
 
 const i18n = new I18n({ de });
@@ -41,4 +43,14 @@ export function formatLongDate(date: Date): string {
     day: 'numeric',
     month: 'long',
   }).format(date);
+}
+
+/** Gewicht aus kg in der gewählten Einheit, z. B. „80,5 kg“ oder „177,5 lb“. */
+export function formatWeight(kg: number, unit: WeightUnit, digits = 1): string {
+  return t(`units.${unit}`, { value: formatNumber(kgToUnit(kg, unit), digits) });
+}
+
+/** Länge aus cm in der gewählten Einheit, z. B. „82 cm“ oder „32,3 in“. */
+export function formatLength(cm: number, unit: LengthUnit): string {
+  return t(`units.${unit}`, { value: formatNumber(cmToUnit(cm, unit)) });
 }

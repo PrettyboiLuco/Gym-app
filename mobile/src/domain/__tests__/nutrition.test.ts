@@ -222,8 +222,13 @@ describe('Formular Rezept', () => {
 
 describe('Formular Einstellungen', () => {
   const base: SettingsForm = { kcalGoal: '', drinkGoal: '1500', glassSizes: [250], hideNumbers: false };
-  test('leeres Ziel = kein Ziel', () =>
-    expect(parseSettingsForm(base).settings).toEqual({ kcalGoal: null, drinkGoalMl: 1500, glassSizes: [250], hideNumbers: false }));
+  test('leeres Ziel = kein Ziel', () => {
+    const result = parseSettingsForm(base);
+    expect(result.settings).toEqual({ drinkGoalMl: 1500, glassSizes: [250], hideNumbers: false });
+    expect(result.kcalGoal).toBeNull();
+  });
+  test('Kalorienziel wird getrennt zurückgegeben (versioniert gespeichert)', () =>
+    expect(parseSettingsForm({ ...base, kcalGoal: '2300' }).kcalGoal).toBe(2300));
   test('Tippfehler werden abgefangen', () =>
     expect(parseSettingsForm({ ...base, kcalGoal: '25000', drinkGoal: '1,5', glassSizes: [] }).problems).toEqual([
       'kcal',

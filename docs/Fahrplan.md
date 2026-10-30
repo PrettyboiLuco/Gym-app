@@ -138,6 +138,41 @@ Mitternacht auf dem Vortag, Lebensmittel nicht entfernbar; dazu Einzahl/Mehrzahl
 
 **Fertig, wenn:** Ziel setzen → Kalorienziel erscheint im Tracker → Gewichtstrend sichtbar.
 
+**Stand 30.10.2026:** 4.0–4.4 gebaut. Erststart beim ersten Öffnen (auch für bestehende Daten): „mindestens 18?“
+(nur Ja/Nein gespeichert, bei Nein kein Weiter), sensible Situationen (Schwangerschaft/Stillzeit, Essstörung,
+Untergewicht, Erkrankung; gespeichert nur ja/nein) mit Hinweis auf Fachleute und Option „Zahlen ausblenden“,
+Einheiten, Gewichtsrichtung, freiwillige Rechner-Angaben (alles überspringbar). Profil unter Fortschritt und Mehr.
+Einheiten kg/lb und cm/in für Körpergewicht, Ziele, Maße, Größe und Training; gespeichert wird immer kg/cm.
+Gewicht für frühere Tage nachtragen, 7-Tage-Durchschnitt, Veränderung zur Vorwoche, Verlauf der letzten 30 Tage
+als Punkte mit Durchschnittslinie. Körpermaße (Taille, Hüfte, Brust, Oberarm, Oberschenkel) mit Textanleitung und
+Verlauf. Ziele parallel: Gewicht (abnehmen/halten/zunehmen, Zielgewicht optional, nur eins), Kraft (Übung, Gewicht,
+Wdh., Fortschritt aus Sätzen), Gewohnheit (Trainingstage oder Trinkziel-Tage pro Woche, ohne Serien/Strafe);
+jede Änderung eine neue Version mit Gültig-ab, „Ziel beenden“ behält den Verlauf; kein Zieldatum, keine Prognose.
+Abnehmziel nicht unterstützt bei BMI < 18,5 (jetzt oder Ziel) und bei sensibler Situation. Kalorienrechner:
+Mifflin-St Jeor × eine PAL-Tabelle (DGE-Stufen 1,45/1,65/1,85/2,2, Sport +0,3), Abstand −250/−500/0/+250/+500,
+Untergrenze max(1200, Ruheenergie), keine Zahl außerhalb 19–78 Jahre, bei sensibler Situation oder Untergewicht +
+Abnehmen; Rechenweg sichtbar, „Schätzung“, Eiweiß als Bereich (0,8 bzw. 1,2–2,0 g/kg), kein Fett/KH-Split.
+„Übernehmen“ setzt das Kalorienziel ab heute. Kalorienziel jetzt versioniert (Tabelle calorie_goal, Migration 4
+übernimmt das bisherige Ziel für alle bisherigen Tage); Tagebuch und „Heute“ zeigen das Ziel, das an dem Tag galt.
+232 automatische Tests, Browser-Test Phase 4 37/37 ohne Konsolenfehler, Referenztests 24 + 22.
+
+**Prüfung Phase 4 (30.10.2026), Zeile für Zeile gegen Fahrplan und Register – 2. Durchlauf:** 4 Lücken gefunden
+und behoben – Gewichtsziel aus dem Erststart (vor der ersten Messung) zeigte nie „Seit Start“ (jetzt erste Messung
+ab Gültigkeitsbeginn), unverändertes Speichern legte eine leere neue Zielversion an, ein altes Abnehmziel blieb
+ohne Hinweis, wenn später „sensible Situation“ eingeschaltet wurde, Profil/Einheiten waren unter „Mehr“ nicht
+erreichbar. Testumgebung: `expo-env.d.ts` fehlte für die Typprüfung (wird von `expo start` erzeugt, nicht im Git).
+**Offen / bewusst verschoben:**
+- Alle Rechner-Parameter (PAL-Stufen, Sport +0,3, Abstände, Untergrenze 1200/Ruheenergie, BMI 18,5, Eiweiß-Bereiche,
+  7-Tage-Fenster mit 4 Messungen) sind vorläufig an einer Stelle (`src/domain/energy.ts`) und warten auf die
+  Fachprüfung (10.1, CALC-003–005, GOAL-003, GOAL-007, COACH-005). DGE-Primärquelle in diesem Durchlauf nicht abgerufen.
+- GOAL-008 Fortschrittsfotos: nicht gebaut, Entscheidung Luc offen. GOAL-009 Körperfett: nicht gebaut (Fachfreigabe).
+- GOAL-006 Prognose: bewusst keine. COACH-008 automatische Anpassung nach Gewichtstrend: Phase 9.
+- Zieltypen Maße/Beweglichkeit/Schritte/Dehnroutinen: Phase 5 (Dehnen) bzw. 6 (Schritte); Pilotauswahl offen (GOAL-001).
+- Einheiten ml/oz und ft für Größe: nicht gebaut (Start nur Deutsch); Trinkziel bleibt ml.
+- Health-Freigabe im Erststart: kommt mit Apple Health (6.2). Beruf/Geräte/Zeit im Profil: mit dem Planassistenten (Phase 8).
+- Bebilderte Messanleitung (GOAL-004). Trinkziel ist nicht versioniert (Gewohnheit zählt mit dem aktuellen Trinkziel).
+- Von dir: Erststart und Rechner auf dem iPhone durchgehen, ein Ziel setzen, eine Woche Gewicht eintragen.
+
 ## Phase 5 – Dehnung, Mobilität & HIIT-Programme
 
 | # | Schritt | Register |

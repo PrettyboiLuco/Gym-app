@@ -1,6 +1,8 @@
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 
 import { Card } from '@/components/card';
+import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { t } from '@/i18n';
@@ -8,6 +10,9 @@ import { t } from '@/i18n';
 export default function MoreScreen() {
   return (
     <Screen title={t('more.title')}>
+      <Card title={t('progress.profileTitle')}>
+        <ListRow title={t('progress.profileOpen')} accessory="›" onPress={() => router.push('/progress/profile')} />
+      </Card>
       <Card title={t('more.privacyTitle')}>
         <ThemedText themeColor="textSecondary">{t('more.privacy')}</ThemedText>
       </Card>

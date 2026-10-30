@@ -4,9 +4,11 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, Presets } from '@/components/fields';
+import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { calorieGoalOn, setCalorieGoal } from '@/data/goals';
 import { DEFAULT_SETTINGS, loadNutritionSettings, saveNutritionSettings } from '@/data/nutrition';
 import { useDb } from '@/data/store-provider';
 import { parseSettingsForm, type SettingsForm, type SettingsProblem } from '@/domain/nutrition';
@@ -14,9 +16,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
 
-function toForm(s: typeof DEFAULT_SETTINGS): SettingsForm {
+function toForm(s: typeof DEFAULT_SETTINGS, kcalGoal: number | null): SettingsForm {
   return {
-    kcalGoal: s.kcalGoal === null ? '' : String(s.kcalGoal),
+    kcalGoal: kcalGoal === null ? '' : String(kcalGoal),
     drinkGoal: s.drinkGoalMl === null ? '' : String(s.drinkGoalMl),
     glassSizes: s.glassSizes,
     hideNumbers: s.hideNumbers,
@@ -26,16 +28,18 @@ function toForm(s: typeof DEFAULT_SETTINGS): SettingsForm {
 export default function NutritionSettingsScreen() {
   const db = useDb();
   const theme = useTheme();
-  const [form, setForm] = useState<SettingsForm>(() => toForm(DEFAULT_SETTINGS));
+  const [form, setForm] = useState<SettingsForm>(() => toForm(DEFAULT_SETTINGS, null));
+  const [savedGoal, setSavedGoal] = useState<number | null>(null);
   const [baseline, setBaseline] = useState('');
   const [newGlass, setNewGlass] = useState('');
   const [problems, setProblems] = useState<SettingsProblem[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    loadNutritionSettings(db).then((s) => {
+    Promise.all([loadNutritionSettings(db), calorieGoalOn(db, todayDay())]).then(([s, goal]) => {
       if (cancelled) return;
-      const loaded = toForm(s);
+      setSavedGoal(goal?.kcal ?? null);
+      const loaded = toForm(s, goal?.kcal ?? null);
       setForm(loaded);
       setBaseline(JSON.stringify(loaded));
     });
@@ -58,12 +62,14 @@ export default function NutritionSettingsScreen() {
   }
 
   async function save() {
-    const { settings, problems: found } = parseSettingsForm(form);
+    const { settings, kcalGoal, problems: found } = parseSettingsForm(form);
     if (!settings) {
       setProblems(found);
       return;
     }
     await saveNutritionSettings(db, settings);
+    // Neues Ziel gilt ab heute; frühere Tage behalten ihr Ziel (GOAL-002).
+    if (kcalGoal !== savedGoal) await setCalorieGoal(db, kcalGoal, todayDay());
     allowLeave();
     router.back();
   }
@@ -80,6 +86,7 @@ export default function NutritionSettingsScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.settings.kcalGoalHint')}
         </ThemedText>
+        <Button label={t('nutrition.settings.calculator')} variant="danger" onPress={() => router.push('/progress/calculator')} />
       </Card>
       <Card>
         <Field

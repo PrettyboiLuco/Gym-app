@@ -278,16 +278,15 @@ describe('Rezepte', () => {
 });
 
 describe('Einstellungen', () => {
-  test('Standard: kein Kalorienziel, 1500 ml Orientierung, Glasgrößen', async () => {
+  test('Standard: 1500 ml Orientierung, Glasgrößen', async () => {
     expect(await loadNutritionSettings(db)).toEqual({
-      kcalGoal: null,
       drinkGoalMl: 1500,
       glassSizes: [200, 250, 330, 500],
       hideNumbers: false,
     });
   });
   test('eigene Vorgabe bleibt erhalten (TIME-010)', async () => {
-    await saveNutritionSettings(db, { kcalGoal: 2400, drinkGoalMl: 2000, glassSizes: [300], hideNumbers: true });
+    await saveNutritionSettings(db, { drinkGoalMl: 2000, glassSizes: [300], hideNumbers: true });
     expect((await loadNutritionSettings(db)).drinkGoalMl).toBe(2000);
   });
 });

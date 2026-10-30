@@ -11,6 +11,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
+import { calorieGoalOn } from '@/data/goals';
 import {
   copyMeal,
   DEFAULT_SETTINGS,
@@ -26,8 +27,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 
 async function loadDiary(db: Db, day: string) {
-  const [events, settings] = await Promise.all([listDay(db, day), loadNutritionSettings(db)]);
-  return { events, settings };
+  const [events, settings, goal] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day)]);
+  return { events, settings, goal: goal?.kcal ?? null, estimated: goal?.source === 'rechner' };
 }
 
 export default function DiaryScreen() {
@@ -45,8 +46,8 @@ export default function DiaryScreen() {
     });
     return () => sub.remove();
   }, []);
-  const { data, reload, db } = useLoad((d) => loadDiary(d, day), { events: [] as ConsumptionEvent[], settings: DEFAULT_SETTINGS }, day);
-  const { events, settings } = data;
+  const { data, reload, db } = useLoad((d) => loadDiary(d, day), { events: [] as ConsumptionEvent[], settings: DEFAULT_SETTINGS, goal: null as number | null, estimated: false }, day);
+  const { events, settings, goal, estimated } = data;
   const hide = settings.hideNumbers;
 
   // Hinweise pro Mahlzeit (z. B. „3 Einträge kopiert“) und offenes Vorlagen-Formular.
@@ -58,7 +59,6 @@ export default function DiaryScreen() {
   const sums = sumNutrients(events);
   const drinks = events.filter((e) => e.kind === 'getraenk');
   const { waterMl, allMl } = drinkTotals(drinks);
-  const goal = settings.kcalGoal;
   const left = goal === null ? null : goal - sums.values.kcal;
 
   function changeDay(next: string) {
@@ -138,6 +138,7 @@ export default function DiaryScreen() {
         ) : null}
         {!hide && goal !== null ? (
           <ThemedText type="small" themeColor="textSecondary">
+            {estimated ? `${t('nutrition.summary.estimated')} ` : ''}
             {t('nutrition.summary.training')}
           </ThemedText>
         ) : null}

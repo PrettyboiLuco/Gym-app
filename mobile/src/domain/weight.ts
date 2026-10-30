@@ -32,3 +32,31 @@ export function parseWeight(input: string): number | null {
   const kg = Number(normalized);
   return kg >= 20 && kg <= 400 ? kg : null;
 }
+
+/**
+ * Veränderung des 7-Tage-Durchschnitts gegenüber der Woche davor. Ohne zwei gültige
+ * Durchschnitte gibt es keine Aussage (null) statt einer erfundenen.
+ */
+export function weeklyChange(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string): number | null {
+  const now = weightTrend(entries, endDay);
+  const before = weightTrend(entries, shiftDayBy(endDay, -7));
+  return now === null || before === null ? null : now - before;
+}
+
+/** Ein Wert pro Tag (Mittel bei mehreren Messungen), aufsteigend nach Datum, nur im Zeitraum. */
+export function dailyMeans(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string, days: number) {
+  const end = dayNumber(endDay);
+  const byDay = new Map<string, number[]>();
+  for (const e of entries) {
+    const d = dayNumber(e.day);
+    if (d > end || d <= end - days) continue;
+    byDay.set(e.day, [...(byDay.get(e.day) ?? []), e.kg]);
+  }
+  return [...byDay.entries()]
+    .map(([day, values]) => ({ day, kg: values.reduce((s, v) => s + v, 0) / values.length }))
+    .sort((a, b) => (a.day < b.day ? -1 : 1));
+}
+
+function shiftDayBy(day: string, delta: number): string {
+  return new Date((dayNumber(day) + delta) * DAY_MS).toISOString().slice(0, 10);
+}

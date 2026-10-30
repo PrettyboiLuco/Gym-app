@@ -534,9 +534,8 @@ export async function archiveRecipe(db: Db, recipeId: string) {
 
 // --------------------------------------------------------------------------- Einstellungen
 
+// Das Kalorienziel steht seit Phase 4 versioniert in der Tabelle calorie_goal (data/goals.ts).
 export type NutritionSettings = {
-  /** Kalorienziel pro Tag; null = noch keins (Rechner folgt in Phase 4). */
-  kcalGoal: number | null;
   /** Editierbares Trinkziel; 1500 ml als allgemeine DGE-Orientierung, keine Mindestmenge (TIME-007). */
   drinkGoalMl: number | null;
   /** Eigene Glas- und Flaschengrößen (TIME-004). */
@@ -546,14 +545,16 @@ export type NutritionSettings = {
 };
 
 export const DEFAULT_SETTINGS: NutritionSettings = {
-  kcalGoal: null,
   drinkGoalMl: 1500,
   glassSizes: [200, 250, 330, 500],
   hideNumbers: false,
 };
 
 export async function loadNutritionSettings(db: Db): Promise<NutritionSettings> {
-  return { ...DEFAULT_SETTINGS, ...(await readState<Partial<NutritionSettings>>(db, 'nutrition_settings', {})) };
+  const stored = await readState<Partial<NutritionSettings> & { kcalGoal?: unknown }>(db, 'nutrition_settings', {});
+  // Alter Wert aus Phase 3; wurde mit Migration 4 nach calorie_goal übernommen.
+  const { kcalGoal: _old, ...rest } = stored;
+  return { ...DEFAULT_SETTINGS, ...rest };
 }
 
 export async function saveNutritionSettings(db: Db, settings: NutritionSettings) {

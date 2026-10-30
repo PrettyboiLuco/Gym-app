@@ -1,5 +1,7 @@
 // Trainingslogik ohne Oberfläche (Register TRAIN-002, -004, -007, -013, -015, HEALTH-008–011).
 
+import { LIFT_RANGE, parseWeightIn, type WeightUnit } from './units';
+
 export type PlanItemDraft = {
   exerciseId: string;
   sets: number;
@@ -65,13 +67,18 @@ export function parseWholeNumber(input: string): number | null {
   return /^\d{1,4}$/.test(trimmed) ? Number(trimmed) : null;
 }
 
-/** Liest Gewicht (0–1000 kg, Komma erlaubt) und Wiederholungen (1–100) eines Satzes. */
-export function parseSetInput(weightText: string, repsText: string): { weightKg: number; reps: number } | null {
-  const weight = weightText.trim().replace(',', '.');
-  if (!/^\d{1,4}(\.\d{1,2})?$/.test(weight)) return null;
-  const weightKg = Number(weight);
+/**
+ * Liest Gewicht (0–1000 kg, Komma erlaubt) und Wiederholungen (1–100) eines Satzes.
+ * Bei lb wird in kg umgerechnet, gespeichert wird immer kg (UX-003).
+ */
+export function parseSetInput(
+  weightText: string,
+  repsText: string,
+  unit: WeightUnit = 'kg'
+): { weightKg: number; reps: number } | null {
+  const weightKg = parseWeightIn(weightText, unit, LIFT_RANGE);
   const reps = parseWholeNumber(repsText);
-  if (weightKg > 1000 || reps === null || reps < 1 || reps > 100) return null;
+  if (weightKg === null || reps === null || reps < 1 || reps > 100) return null;
   return { weightKg, reps };
 }
 

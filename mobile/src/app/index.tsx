@@ -6,29 +6,33 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { formatKcal, formatKcalSum, todayDay } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
-import { DEFAULT_SETTINGS, listDay, loadNutritionSettings } from '@/data/nutrition';
+import { calorieGoalOn } from '@/data/goals';
+import { listDay, loadNutritionSettings } from '@/data/nutrition';
+import { useUnits } from '@/data/profile-provider';
 import { getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
 import { listWeights } from '@/data/weights';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { nextDayIndex } from '@/domain/training';
-import type { WeightEntry } from '@/domain/weight';
+import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
-import { formatDay, formatLongDate, formatNumber, t } from '@/i18n';
+import { formatDay, formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
 
 async function loadToday(db: Db) {
-  const [weights, active, plans, events, settings] = await Promise.all([
+  const today = todayDay();
+  const [weights, active, plans, events, settings, goal] = await Promise.all([
     listWeights(db),
     getActiveSession(db),
     listActivePlans(db),
-    listDay(db, todayDay()),
+    listDay(db, today),
     loadNutritionSettings(db),
+    calorieGoalOn(db, today),
   ]);
   const sums = sumNutrients(events);
   const food = {
     entries: events.length,
     sums,
     drinksMl: drinkTotals(events.filter((e) => e.kind === 'getraenk')).allMl,
-    goal: settings.kcalGoal,
+    goal: goal?.kcal ?? null,
     hide: settings.hideNumbers,
   };
   let next: { plan: string; day: string } | null = null;
@@ -37,17 +41,19 @@ async function loadToday(db: Db) {
     const index = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
     next = { plan: plan.name, day: plan.days[index].name };
   }
-  return { lastWeight: weights[0] ?? null, active, next, food };
+  return { lastWeight: weights[0] ?? null, trend: weightTrend(weights, today), active, next, food };
 }
 
 export default function TodayScreen() {
   const { data } = useLoad(loadToday, {
     lastWeight: null as WeightEntry | null,
+    trend: null as number | null,
     active: null as SessionInfo | null,
     next: null as { plan: string; day: string } | null,
-    food: { entries: 0, sums: sumNutrients([]), drinksMl: 0, goal: DEFAULT_SETTINGS.kcalGoal, hide: false },
+    food: { entries: 0, sums: sumNutrients([]), drinksMl: 0, goal: null as number | null, hide: false },
   });
-  const { lastWeight, active, next, food } = data;
+  const { lastWeight, trend, active, next, food } = data;
+  const units = useUnits();
   const eaten = formatKcalSum(food.sums);
   const left = food.goal === null ? 0 : food.goal - food.sums.values.kcal;
   const unsure = food.sums.unknown.kcal > 0 ? '≤ ' : '';
@@ -90,14 +96,16 @@ export default function TodayScreen() {
         />
       </Card>
       <Card title={t('today.weight')}>
-        <ThemedText themeColor={lastWeight ? 'text' : 'textSecondary'}>
-          {lastWeight
-            ? t('today.weightLast', {
-                kg: t('common.kg', { value: formatNumber(lastWeight.kg) }),
-                date: formatDay(lastWeight.day),
-              })
-            : t('today.weightNone')}
-        </ThemedText>
+        <ListRow
+          title={
+            lastWeight
+              ? t('today.weightLast', { kg: formatWeight(lastWeight.kg, units.weight), date: formatDay(lastWeight.day) })
+              : t('today.weightNone')
+          }
+          subtitle={trend === null ? undefined : t('progress.trend', { kg: formatWeight(trend, units.weight) })}
+          accessory="›"
+          onPress={() => router.push('/progress')}
+        />
       </Card>
     </Screen>
   );

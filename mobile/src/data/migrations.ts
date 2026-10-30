@@ -171,6 +171,53 @@ export const MIGRATIONS: string[] = [
      protein REAL CHECK (protein IS NULL OR protein >= 0),
      carbs REAL CHECK (carbs IS NULL OR carbs >= 0),
      fat REAL CHECK (fat IS NULL OR fat >= 0)`),
+
+  // Version 4: Körper, Ziele, Kalorienziel (Register GOAL-001–005, UX-002, CALC, COACH-004)
+  // Ziele sind versioniert mit Gültig-ab-Datum: ein neues Ziel ändert vergangene Tage nicht (GOAL-002).
+  `CREATE TABLE calorie_goal (
+     id TEXT PRIMARY KEY NOT NULL,
+     valid_from TEXT NOT NULL,
+     -- NULL = ab diesem Tag kein Kalorienziel.
+     kcal INTEGER CHECK (kcal IS NULL OR kcal BETWEEN 500 AND 10000),
+     source TEXT NOT NULL CHECK (source IN ('eigen', 'rechner')),
+     -- Rechner-Eingaben als Schnappschuss (JSON), damit die Herkunft nachvollziehbar bleibt.
+     inputs TEXT,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX calorie_goal_from ON calorie_goal (valid_from);
+   -- Bisheriges Ziel aus den Ernährungs-Einstellungen gilt für alle bisherigen Tage weiter.
+   INSERT INTO calorie_goal (id, valid_from, kcal, source, inputs, created_at_utc)
+     SELECT 'migriert-v4', '0001-01-01', CAST(json_extract(value, '$.kcalGoal') AS INTEGER), 'eigen', NULL, '2026-10-29T00:00:00Z'
+     FROM app_state WHERE key = 'nutrition_settings' AND json_extract(value, '$.kcalGoal') IS NOT NULL;
+   CREATE TABLE goal (
+     id TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('gewicht', 'kraft', 'gewohnheit')),
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE TABLE goal_version (
+     id TEXT PRIMARY KEY NOT NULL,
+     goal_id TEXT NOT NULL REFERENCES goal (id),
+     version INTEGER NOT NULL CHECK (version > 0),
+     valid_from TEXT NOT NULL,
+     status TEXT NOT NULL CHECK (status IN ('aktiv', 'beendet')),
+     direction TEXT CHECK (direction IS NULL OR direction IN ('abnehmen', 'halten', 'zunehmen')),
+     target_kg REAL CHECK (target_kg IS NULL OR target_kg >= 0),
+     start_kg REAL CHECK (start_kg IS NULL OR start_kg > 0),
+     exercise_id TEXT REFERENCES exercise (id),
+     target_reps INTEGER CHECK (target_reps IS NULL OR target_reps BETWEEN 1 AND 100),
+     habit TEXT CHECK (habit IS NULL OR habit IN ('training', 'trinken')),
+     per_week INTEGER CHECK (per_week IS NULL OR per_week BETWEEN 1 AND 7),
+     created_at_utc TEXT NOT NULL,
+     UNIQUE (goal_id, version)
+   );
+   CREATE TABLE body_measurement (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     site TEXT NOT NULL CHECK (site IN ('taille', 'huefte', 'brust', 'arm', 'oberschenkel')),
+     cm REAL NOT NULL CHECK (cm > 0),
+     recorded_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX body_measurement_site ON body_measurement (site, day);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

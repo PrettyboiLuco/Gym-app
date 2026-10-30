@@ -11,6 +11,7 @@ import { RestTimerBar } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useUnits } from '@/data/profile-provider';
 import { useDb } from '@/data/store-provider';
 import {
   addSet,
@@ -32,8 +33,9 @@ import {
   type SetRow,
 } from '@/data/training';
 import { extendRest, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
+import { kgToUnit, type WeightUnit } from '@/domain/units';
 import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, t } from '@/i18n';
+import { formatNumber, formatWeight, t } from '@/i18n';
 
 type Inputs = Record<string, { weight: string; reps: string }>;
 
@@ -46,14 +48,17 @@ function KeepAwake() {
   return null;
 }
 
-function formatSets(sets: { weightKg: number | null; reps: number | null }[]) {
-  return sets.map((s) => `${formatNumber(s.weightKg ?? 0)} × ${s.reps}`).join(', ');
+function formatSets(sets: { weightKg: number | null; reps: number | null }[], unit: WeightUnit) {
+  return sets.map((s) => `${formatNumber(kgToUnit(s.weightKg ?? 0, unit))} × ${s.reps}`).join(', ');
 }
 
 export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useDb();
   const theme = useTheme();
+  const units = useUnits();
+  // Eingabefelder zeigen das Gewicht in der gewählten Einheit; gespeichert wird kg (UX-003).
+  const shown = (kg: number) => formatNumber(kgToUnit(kg, units.weight), 2);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [sets, setSets] = useState<SetRow[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -101,7 +106,7 @@ export default function SessionScreen() {
    */
   function suggestion(row: SetRow, indexInExercise: number) {
     if (row.weightKg != null && row.reps != null) {
-      return { weight: formatNumber(row.weightKg, 2), reps: String(row.reps) };
+      return { weight: shown(row.weightKg), reps: String(row.reps) };
     }
     const bodyweight = exercises.find((e) => e.id === row.exerciseId)?.equipment === 'koerpergewicht';
     const own = sets.filter((s) => s.exerciseId === row.exerciseId && s.completedAt && s.position < row.position);
@@ -110,9 +115,9 @@ export default function SessionScreen() {
     return {
       weight:
         previous?.weightKg != null
-          ? formatNumber(previous.weightKg, 2)
+          ? shown(previous.weightKg)
           : lastTime
-            ? formatNumber(lastTime.weightKg, 2)
+            ? shown(lastTime.weightKg)
             : bodyweight
               ? '0'
               : '',
@@ -122,7 +127,7 @@ export default function SessionScreen() {
 
   async function complete(row: SetRow, indexInExercise: number) {
     const value = inputs[row.id] ?? suggestion(row, indexInExercise);
-    const parsed = parseSetInput(value.weight, value.reps);
+    const parsed = parseSetInput(value.weight, value.reps, units.weight);
     if (!parsed) {
       setInvalid(row.id);
       return;
@@ -203,7 +208,7 @@ export default function SessionScreen() {
         return (
           <Card key={exerciseId} title={exerciseName(byId.get(exerciseId))}>
             <ThemedText type="small" themeColor="textSecondary">
-              {lastSets.length ? t('session.last', { sets: formatSets(lastSets) }) : t('session.lastNone')}
+              {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
             </ThemedText>
             {rows[0].plannedRepsMin != null ? (
               <ThemedText type="small" themeColor="textSecondary">
@@ -220,7 +225,7 @@ export default function SessionScreen() {
                   {row.completedAt ? (
                     <>
                       <ThemedText style={styles.flex}>
-                        {t('session.setDone', { weight: formatNumber(row.weightKg ?? 0), reps: row.reps })}
+                        {t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
                       </ThemedText>
                       {active ? (
                         <Button
@@ -239,10 +244,10 @@ export default function SessionScreen() {
                       <TextInput
                         value={value.weight}
                         onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...value, weight } }))}
-                        placeholder={t('session.weight')}
+                        placeholder={units.weight}
                         placeholderTextColor={theme.textSecondary}
                         keyboardType="decimal-pad"
-                        accessibilityLabel={`${t('session.weight')} ${index + 1}`}
+                        accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${index + 1}`}
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
                       <TextInput

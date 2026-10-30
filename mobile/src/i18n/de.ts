@@ -165,10 +165,11 @@ export const de = {
   session: {
     title: 'Training',
     free: 'Freies Training',
-    last: 'Letztes Mal: {{sets}}',
+    last: 'Letztes Mal ({{unit}}): {{sets}}',
     lastNone: 'Noch kein früheres Training mit dieser Übung.',
     target: 'Ziel: {{min}}–{{max}} Wdh.',
     weight: 'kg',
+    weightIn: 'Gewicht in {{unit}}',
     reps: 'Wdh.',
     done: 'Satz erledigt',
     undo: 'Satz wieder öffnen',
@@ -188,7 +189,7 @@ export const de = {
     restPlus: '+30 s',
     restAuto: 'Pause nach jedem Satz automatisch starten',
     restManual: 'Pause starten:',
-    setDone: '{{weight}} kg × {{reps}}',
+    setDone: '{{weight}} × {{reps}}',
     removeSet: 'Satz entfernen',
     restSkip: 'Überspringen',
     restStart: 'Pause starten',
@@ -267,7 +268,8 @@ export const de = {
       goal: 'Ziel',
       left: 'Übrig',
       over: 'Über dem Ziel',
-      noGoal: 'Noch kein Kalorienziel. Du kannst es unter „Einstellungen“ eintragen.',
+      noGoal: 'Noch kein Kalorienziel. Lass es unter „Fortschritt → Kalorienrechner“ schätzen oder trag es unter „Einstellungen“ ein.',
+      estimated: 'Das Ziel stammt aus dem Kalorienrechner und ist eine Schätzung.',
       incomplete: {
         one: '1 Eintrag ohne Kalorienangabe – die Summe ist unvollständig. Ergänze die Werte beim Lebensmittel.',
         other: '{{count}} Einträge ohne Kalorienangabe – die Summe ist unvollständig. Ergänze die Werte beim Lebensmittel.',
@@ -467,7 +469,8 @@ export const de = {
     settings: {
       title: 'Ernährung – Einstellungen',
       kcalGoal: 'Kalorienziel pro Tag (kcal, optional)',
-      kcalGoalHint: 'Den Kalorienrechner gibt es bald. Bis dahin kannst du dein Ziel hier selbst eintragen.',
+      kcalGoalHint: 'Ein neues Ziel gilt ab heute; frühere Tage behalten ihr damaliges Ziel. Oder lass es vom Kalorienrechner schätzen.',
+      calculator: 'Zum Kalorienrechner',
       drinkGoal: 'Trinkziel pro Tag (ml, optional)',
       drinkGoalHint: 'Dein Wert wird nie automatisch geändert.',
       glasses: 'Meine Glas- und Flaschengrößen (ml)',
@@ -483,15 +486,302 @@ export const de = {
       },
     },
   },
+  units: {
+    kg: '{{value}} kg',
+    lb: '{{value}} lb',
+    cm: '{{value}} cm',
+    in: '{{value}} in',
+    weightLabel: {
+      kg: 'Kilogramm (kg)',
+      lb: 'Pfund (lb)',
+    },
+    lengthLabel: {
+      cm: 'Zentimeter (cm)',
+      in: 'Zoll (in)',
+    },
+  },
   progress: {
     title: 'Fortschritt',
     weightTitle: 'Körpergewicht',
-    weightLabel: 'Gewicht in kg',
+    weightLabel: 'Gewicht in {{unit}}',
     weightPlaceholder: 'z. B. 80,5',
-    weightInvalid: 'Bitte ein Gewicht zwischen 20 und 400 kg eingeben.',
+    weightInvalid: 'Bitte ein Gewicht zwischen {{min}} und {{max}} eingeben.',
     trend: '7-Tage-Durchschnitt: {{kg}}',
     trendMissing: 'Für einen Durchschnitt brauchst du mindestens 4 Messungen in 7 Tagen.',
+    change: 'Zur Vorwoche: {{change}} (Durchschnitt)',
+    trendHint: 'Das Gewicht schwankt von Tag zu Tag, z. B. durch Wasser. Aussagekräftig ist der Durchschnitt, nicht der Einzelwert.',
+    chartTitle: 'Letzte 30 Tage',
+    chartLabel: 'Gewichtsverlauf der letzten 30 Tage, von {{min}} bis {{max}}',
     empty: 'Noch keine Einträge.',
+    history: 'Verlauf',
+    showAll: 'Alle anzeigen ({{count}})',
+    showLess: 'Weniger anzeigen',
+    goalsTitle: 'Meine Ziele',
+    goalsEmpty: 'Noch keine Ziele. Du kannst mehrere gleichzeitig haben, z. B. Gewicht halten und ein Kraftziel.',
+    goalAdd: 'Ziel hinzufügen',
+    calorieTitle: 'Kalorienziel',
+    calorieCurrent: '{{kcal}} pro Tag',
+    calorieFromCalc: 'aus dem Kalorienrechner – eine Schätzung',
+    calorieOwn: 'selbst eingetragen',
+    calorieNone: 'Noch kein Kalorienziel.',
+    calculatorOpen: 'Kalorienrechner',
+    measureTitle: 'Körpermaße',
+    measureEmpty: 'Noch keine Maße eingetragen.',
+    measureOpen: 'Maße eintragen und Verlauf',
+    profileTitle: 'Profil und Einheiten',
+    profileOpen: 'Profil bearbeiten',
+    profileSummary: 'Einheiten: {{weight}}, {{length}}',
+    notIncluded:
+      'Noch nicht enthalten: Fortschrittsfotos (Entscheidung offen) und Körperfett-Schätzungen (erst nach fachlicher Prüfung).',
+  },
+  onboarding: {
+    welcomeTitle: 'Willkommen',
+    welcome:
+      'Training, Ernährung und Fortschritt an einem Ort. Alles bleibt auf deinem Gerät, es gibt kein Konto. ' +
+      'Ein paar kurze Fragen, dann geht es los – fast alles ist freiwillig.',
+    step: 'Schritt {{step}} von {{total}}',
+    adultQuestion: 'Bist du mindestens 18 Jahre alt?',
+    adultHint: 'Die App ist im Moment nur für Erwachsene gedacht. Wir speichern nur deine Antwort, kein Geburtsdatum.',
+    yes: 'Ja',
+    no: 'Nein',
+    minor:
+      'Diese App ist im Moment nur für Erwachsene ab 18 Jahren. Für Training und Ernährung in deinem Alter ' +
+      'sprich am besten mit Eltern, Sportverein, Schulärztin oder Hausarzt.',
+    sensitiveTitle: 'Gibt es etwas, worauf wir achten sollten?',
+    sensitiveIntro: 'Trifft eines davon auf dich zu?',
+    sensitiveList:
+      '• Schwangerschaft oder Stillzeit\n• Essstörung, jetzt oder früher\n• Untergewicht\n' +
+      '• Erkrankung oder Medikamente, die Gewicht oder Ernährung betreffen',
+    sensitivePrivacy: 'Gespeichert wird nur „ja“ oder „nein“, nicht was zutrifft. Du kannst es im Profil ändern.',
+    sensitiveYes:
+      'Danke. Der Kalorienrechner zeigt dir dann keine automatische Zahl und Abnehmziele werden nicht unterstützt, ' +
+      'weil die Formeln für deine Situation nicht gemacht sind. Bitte besprich Ziele mit einer Ärztin, einem Arzt oder ' +
+      'einer Ernährungsfachkraft. Training, Tagebuch und alles andere kannst du normal nutzen.',
+    hideNumbers: 'Kalorienzahlen im Tagebuch ausblenden',
+    hideNumbersHint: 'Du kannst das jederzeit unter Ernährung → Einstellungen ändern.',
+    unitsTitle: 'Einheiten',
+    goalTitle: 'Was ist dein Ziel beim Gewicht?',
+    goalHint: 'Du kannst später weitere Ziele anlegen, z. B. ein Kraftziel. Die App verspricht kein Ergebnis und kein Zieldatum.',
+    goalLater: 'Später festlegen',
+    profileTitle: 'Für den Kalorienrechner (freiwillig)',
+    profileHint: 'Nur nötig, wenn du dir ein Kalorienziel schätzen lassen möchtest. Du kannst das auch überspringen.',
+    next: 'Weiter',
+    back: 'Zurück',
+    skip: 'Überspringen',
+    finish: 'Los geht’s',
+    doneHint: 'Den Kalorienrechner findest du unter „Fortschritt“. Dort kannst du auch dein Gewicht eintragen.',
+  },
+  profile: {
+    title: 'Profil und Einheiten',
+    birth: 'Geburtsmonat (MM.JJJJ, für den Rechner)',
+    birthPlaceholder: 'z. B. 03.1996',
+    height: 'Größe in {{unit}}',
+    formula: 'Formel-Variante (Mifflin-St Jeor)',
+    formulaHint:
+      'Die Formel wurde in der Studie getrennt für Männer (+5) und Frauen (−161) bestimmt. Wähle die Variante, ' +
+      'die für deinen Körper besser passt. Sie wird nur für die Rechnung verwendet.',
+    formulaOption: {
+      '+5': '+5 (Studie: Männer)',
+      '-161': '−161 (Studie: Frauen)',
+      keine: 'keine Angabe',
+    },
+    activity: 'Bewegung im Alltag',
+    activityHint: 'Schritte und Trainings werden nicht zusätzlich gutgeschrieben – sie stecken schon in dieser Einstufung.',
+    activityNone: 'keine Angabe',
+    activityOption: {
+      sitzend: 'Überwiegend sitzend',
+      sitzend_bewegt: 'Sitzend, zeitweise gehend oder stehend',
+      stehend_gehend: 'Überwiegend stehend oder gehend',
+      koerperlich_schwer: 'Körperlich schwere Arbeit',
+    },
+    activityExample: {
+      sitzend: 'z. B. Büro, wenig Bewegung in der Freizeit',
+      sitzend_bewegt: 'z. B. Studium, Fahrdienst, Labor',
+      stehend_gehend: 'z. B. Verkauf, Gastronomie, Handwerk',
+      koerperlich_schwer: 'z. B. Bau, Landwirtschaft',
+    },
+    sport: 'Sport 4–5× pro Woche je 30–60 Minuten',
+    sensitive: 'Sensible Situation (Schwangerschaft/Stillzeit, Essstörung, Untergewicht, Erkrankung)',
+    sensitiveHint: 'Wenn „an“: keine automatische Kalorienzahl und keine Abnehmziele. Gespeichert wird nur an/aus.',
+    weightUnit: 'Gewicht',
+    lengthUnit: 'Länge (Größe, Maße)',
+    unitsHint: 'Gespeichert wird immer in kg und cm. Ein Wechsel ändert nur die Anzeige, nie deine Daten.',
+    privacy: 'Alle Angaben bleiben auf deinem Gerät.',
+    problems: {
+      birth: 'Geburtsmonat bitte als MM.JJJJ, z. B. 03.1996.',
+      height: 'Größe: {{min}} bis {{max}}.',
+      minor: 'Die App ist im Moment nur für Erwachsene ab 18 Jahren.',
+    },
+  },
+  goals: {
+    titleNew: 'Neues Ziel',
+    titleEdit: 'Ziel',
+    kind: 'Art des Ziels',
+    kindOption: {
+      gewicht: 'Gewicht',
+      kraft: 'Kraft',
+      gewohnheit: 'Gewohnheit',
+    },
+    direction: {
+      abnehmen: 'Abnehmen',
+      halten: 'Halten',
+      zunehmen: 'Zunehmen',
+    },
+    targetWeight: 'Zielgewicht in {{unit}} (optional)',
+    targetWeightHint: 'Ohne Zielgewicht zeigt die App nur, wie sich dein Durchschnitt entwickelt.',
+    exercise: 'Übung',
+    exercisePick: 'Übung wählen',
+    liftWeight: 'Gewicht in {{unit}}',
+    reps: 'Wiederholungen',
+    habit: {
+      training: 'Trainingstage pro Woche',
+      trinken: 'Tage pro Woche mit erreichtem Trinkziel',
+    },
+    perWeek: 'Wie viele Tage pro Woche? (1–7)',
+    later: 'Später kommen dazu: Maße, Beweglichkeit, Schritte, Dehnroutinen.',
+    noPromise: 'Kein Zieldatum und keine Erfolgsgarantie: Wie schnell sich etwas verändert, hängt von vielen Dingen ab.',
+    save: 'Ziel speichern',
+    saved: 'Gespeichert. Frühere Tage behalten ihr damaliges Ziel.',
+    end: 'Ziel beenden',
+    endHint: 'Das Ziel verschwindet aus der Liste. Der Verlauf bleibt erhalten.',
+    versions: 'Verlauf dieses Ziels',
+    version: 'Version {{version}} · ab {{date}}',
+    ended: 'beendet',
+    weightOnly: 'Es gibt immer nur ein Gewichtsziel. Speichern ersetzt es ab heute durch eine neue Version.',
+    summary: {
+      gewicht: '{{direction}}',
+      gewichtTarget: '{{direction}} auf {{target}}',
+      kraft: '{{exercise}}: {{weight}} × {{reps}}',
+      gewohnheit: '{{habit}}: {{perWeek}}',
+    },
+    progress: {
+      noTrend: 'Noch kein 7-Tage-Durchschnitt – trag dein Gewicht regelmäßig ein.',
+      current: 'Jetzt (Durchschnitt): {{current}}',
+      change: 'Seit Start: {{change}}',
+      remaining: 'Noch {{remaining}} bis zum Ziel',
+      reached: 'Zielbereich erreicht.',
+      best: 'Bester Satz mit mindestens {{reps}} Wdh.: {{best}}',
+      bestNone: 'Noch kein Satz mit mindestens {{reps}} Wiederholungen.',
+      last: 'Zuletzt: {{last}} am {{date}}',
+      liftReached: 'Ziel geschafft.',
+      week: 'Diese Woche: {{count}} von {{perWeek}}',
+      weeks: 'Letzte 4 Wochen erreicht: {{reached}} von 4',
+      noDrinkGoal: 'Lege zuerst unter Ernährung → Einstellungen ein Trinkziel fest.',
+    },
+    problems: {
+      targetWeight: 'Zielgewicht: Zahl im gültigen Bereich oder leer lassen.',
+      direction: 'Das Zielgewicht passt nicht zur Richtung (Abnehmen: unter, Zunehmen: über deinem jetzigen Gewicht).',
+      heightNeeded: 'Für ein Zielgewicht beim Abnehmen braucht die App deine Größe (Profil), um zu prüfen, ob das Ziel gesund sein kann.',
+      underweight:
+        'Dieses Ziel würde in den Bereich Untergewicht führen (BMI unter 18,5) oder du bist schon dort. Die App unterstützt ' +
+        'das nicht als Abnehmziel. Bitte sprich mit einer Ärztin, einem Arzt oder einer Ernährungsfachkraft.',
+      sensitive:
+        'Weil du eine sensible Situation angegeben hast, unterstützt die App kein Abnehmziel. Bitte besprich das mit einer ' +
+        'Ärztin, einem Arzt oder einer Ernährungsfachkraft.',
+      exercise: 'Bitte eine Übung wählen.',
+      lift: 'Gewicht: Zahl zwischen 0 und 1000 kg.',
+      reps: 'Wiederholungen: 1 bis 100.',
+      perWeek: 'Tage pro Woche: 1 bis 7.',
+    },
+  },
+  calculator: {
+    title: 'Kalorienrechner',
+    intro:
+      'Eine Schätzung deines Tagesbedarfs – keine Messung. Die Werte im Rechner sind vorläufig und noch nicht fachlich ' +
+      'geprüft. Dein Körper kann deutlich davon abweichen.',
+    inputs: 'Deine Angaben',
+    weight: 'Gewicht: {{kg}}',
+    weightSourceTrend: '(7-Tage-Durchschnitt)',
+    weightSourceLast: '(letzte Messung vom {{date}})',
+    weightMissing: 'Gewicht: noch keins – bitte unter „Fortschritt“ eintragen.',
+    height: 'Größe: {{value}}',
+    age: 'Alter: {{age}} Jahre',
+    formula: 'Formel-Variante: {{value}}',
+    activity: 'Bewegung: {{value}}',
+    sport: 'Sport: {{value}}',
+    sportYes: 'ja (+0,3)',
+    sportNo: 'nein',
+    editProfile: 'Angaben ändern',
+    goal: 'Ziel',
+    goalFromGoals: 'Aus deinem Gewichtsziel übernommen.',
+    delta: 'Abstand zum Bedarf',
+    deltaOption: '{{value}} kcal pro Tag',
+    resultTitle: 'Ergebnis',
+    resting: 'Ruheenergie (Mifflin-St Jeor): {{kcal}}',
+    estimate: '× Bewegung {{factor}} = Bedarf (Schätzung): {{kcal}}',
+    target: 'Vorschlag: {{kcal}} pro Tag',
+    targetHint: 'Gerundet auf 10 kcal. Training und Schritte werden im Tagebuch nicht zusätzlich gutgeschrieben.',
+    protein: 'Eiweiß: etwa {{min}}–{{max}} g pro Tag',
+    proteinSingle: 'Eiweiß: etwa {{min}} g pro Tag',
+    proteinHint:
+      'Bezogen auf dein aktuelles Gewicht ({{perKg}} g je kg). Bei starkem Übergewicht oder einer Nierenerkrankung bitte ' +
+      'fachlich klären. Fett und Kohlenhydrate legt die App bewusst nicht fest.',
+    lowBmi: 'Dein BMI liegt unter 18,5. Lass deinen Bedarf bitte fachlich prüfen.',
+    apply: 'Als Kalorienziel übernehmen',
+    applied: 'Übernommen. Das Ziel gilt ab heute und erscheint im Tagebuch.',
+    adjustHint:
+      'Nach einigen Wochen kannst du anhand deines Gewichtstrends nachjustieren. Automatische Anpassungen gibt es noch nicht.',
+    missing: 'Für eine Schätzung fehlt noch: {{list}}.',
+    missingItem: {
+      weight: 'Gewicht',
+      height: 'Größe',
+      age: 'Geburtsmonat',
+      term: 'Formel-Variante',
+      activity: 'Bewegung im Alltag',
+    },
+    sensitive:
+      'Du hast eine sensible Situation angegeben. Dafür ist die Formel nicht gemacht, deshalb zeigt der Rechner keine Zahl. ' +
+      'Bitte lass deinen Bedarf von einer Ärztin, einem Arzt oder einer Ernährungsfachkraft einschätzen. Ein eigenes Ziel ' +
+      'kannst du unter Ernährung → Einstellungen eintragen.',
+    ageOutside:
+      'Die Formel ist nur für Erwachsene von 19 bis 78 Jahren geprüft. Für dein Alter zeigt der Rechner keine Zahl. ' +
+      'Ein eigenes Ziel kannst du unter Ernährung → Einstellungen eintragen.',
+    underweight:
+      'Dein BMI liegt unter 18,5 (Untergewicht). Ein Abnehmziel rechnet die App deshalb nicht aus. Bitte sprich mit einer ' +
+      'Ärztin, einem Arzt oder einer Ernährungsfachkraft.',
+    floor:
+      'Das Ergebnis läge unter der Untergrenze (geschätzte Ruheenergie bzw. 1200 kcal). Deshalb zeigt der Rechner keine Zahl. ' +
+      'Wähle einen kleineren Abstand oder lass dich individuell beraten.',
+    method: 'So wird gerechnet',
+    methodText:
+      'Ruheenergie nach Mifflin-St Jeor: 10 × kg + 6,25 × cm − 5 × Alter + Variante (+5 oder −161). Mal Bewegungsfaktor ' +
+      '(PAL-Stufen nach DGE, Sport +0,3). Dann der gewählte Abstand. Nie weniger als die geschätzte Ruheenergie und ' +
+      'nie unter 1200 kcal. Faktoren, Abstände und Grenzen sind vorläufig, bis eine Fachperson sie geprüft hat.',
+    history: 'Frühere Kalorienziele',
+    historyItem: '{{kcal}} ab {{date}} · {{source}}',
+    historyNone: 'kein Ziel ab {{date}}',
+    fromStart: 'Beginn',
+    sourceOption: {
+      eigen: 'selbst eingetragen',
+      rechner: 'Rechner',
+    },
+  },
+  measure: {
+    title: 'Körpermaße',
+    day: 'Tag',
+    sites: {
+      taille: 'Taille',
+      huefte: 'Hüfte',
+      brust: 'Brust',
+      arm: 'Oberarm',
+      oberschenkel: 'Oberschenkel',
+    },
+    input: '{{site}} in {{unit}}',
+    save: 'Maße speichern',
+    saved: 'Gespeichert.',
+    invalid: 'Maße: Zahl zwischen {{min}} und {{max}} oder leer lassen.',
+    none: 'Bitte mindestens ein Maß eintragen.',
+    latest: '{{value}} am {{date}}',
+    previousChange: '({{change}} seit {{date}})',
+    guideTitle: 'So misst du',
+    guide:
+      '• Gleiche Bedingungen: am besten morgens, vor dem Essen, entspannt stehen.\n' +
+      '• Maßband anliegend, aber nicht einschnürend, waagerecht.\n' +
+      '• Taille: in der Mitte zwischen unterster Rippe und Beckenkamm, nach normalem Ausatmen.\n' +
+      '• Hüfte: an der breitesten Stelle des Gesäßes.\n' +
+      '• Brust: auf Höhe der Brustwarzen, Arme locker hängend.\n' +
+      '• Oberarm und Oberschenkel: an der dicksten Stelle, entspannt, immer dieselbe Seite.',
+    guideNote: 'Eine bebilderte Anleitung folgt.',
     history: 'Verlauf',
   },
   more: {
