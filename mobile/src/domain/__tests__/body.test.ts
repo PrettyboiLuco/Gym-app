@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { latestBySite } from '../body';
+import { comparePair, latestBySite } from '../body';
 import { bmi, calculate, CALORIE_FLOOR, proteinRange, underweightLimitKg, type CalculatorInput } from '../energy';
 import { EMPTY_GOAL_FORM, habitWeeks, parseGoalForm, strengthProgress, weekStart, weightProgress } from '../goals';
 import { ageOn, EMPTY_PROFILE, parseBirthMonth, parseProfileForm, profileToForm } from '../profile';
@@ -229,4 +229,19 @@ describe('Körpermaße (GOAL-004)', () => {
     expect(result.taille?.previous?.cm).toBe(85);
     expect(result.arm).toBeUndefined();
   });
+});
+
+describe('Fortschrittsfotos (GOAL-008)', () => {
+  const photos = [
+    { id: '1', day: '2026-10-30', pose: 'vorne' as const, fileName: '1.jpg' },
+    { id: '2', day: '2026-09-01', pose: 'vorne' as const, fileName: '2.jpg' },
+    { id: '3', day: '2026-10-01', pose: 'vorne' as const, fileName: '3.jpg' },
+    { id: '4', day: '2026-10-15', pose: 'seite' as const, fileName: '4.jpg' },
+  ];
+  test('Vergleich: erstes und neuestes Foto derselben Ansicht', () => {
+    const pair = comparePair(photos, 'vorne');
+    expect(pair?.first.id).toBe('2');
+    expect(pair?.latest.id).toBe('1');
+  });
+  test('ein Foto reicht nicht für einen Vergleich', () => expect(comparePair(photos, 'seite')).toBeNull());
 });

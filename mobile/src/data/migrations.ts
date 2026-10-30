@@ -218,6 +218,17 @@ export const MIGRATIONS: string[] = [
      recorded_at_utc TEXT NOT NULL
    );
    CREATE INDEX body_measurement_site ON body_measurement (site, day);`,
+
+  // Version 5: Fortschrittsfotos (Register GOAL-008). Nur der Dateiname steht hier; die Datei liegt im
+  // App-Ordner auf dem Gerät. Kein Upload, keine Weitergabe.
+  `CREATE TABLE progress_photo (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     pose TEXT NOT NULL CHECK (pose IN ('vorne', 'seite', 'hinten')),
+     file_name TEXT NOT NULL UNIQUE,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX progress_photo_day ON progress_photo (day);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

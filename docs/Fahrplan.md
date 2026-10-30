@@ -154,7 +154,11 @@ Untergrenze max(1200, Ruheenergie), keine Zahl außerhalb 19–78 Jahre, bei sen
 Abnehmen; Rechenweg sichtbar, „Schätzung“, Eiweiß als Bereich (0,8 bzw. 1,2–2,0 g/kg), kein Fett/KH-Split.
 „Übernehmen“ setzt das Kalorienziel ab heute. Kalorienziel jetzt versioniert (Tabelle calorie_goal, Migration 4
 übernimmt das bisherige Ziel für alle bisherigen Tage); Tagebuch und „Heute“ zeigen das Ziel, das an dem Tag galt.
-232 automatische Tests, Browser-Test Phase 4 37/37 ohne Konsolenfehler, Referenztests 24 + 22.
+Fortschrittsfotos (nach Lucs Entscheidung vom 30.10.2026): freiwillig und standardmäßig aus, Erklärung vor dem
+Einschalten, Aufnahme oder Auswahl aus der Mediathek, Ansicht vorne/seite/hinten, Tag wählbar, Vergleich erstes vs.
+neuestes Foto je Ansicht, beim Öffnen verdeckt, einzeln oder alle löschen. Speicherung als Kopie im App-Ordner
+(nur Dateiname in der Datenbank, Migration 5), keine Vorschaubilder in der Übersicht, nichts verlässt das Gerät.
+237 automatische Tests, Browser-Test Phase 4 38/38 ohne Konsolenfehler, iOS-Bundle baut, Referenztests 24 + 22.
 
 **Prüfung Phase 4 (30.10.2026), Zeile für Zeile gegen Fahrplan und Register – 2. Durchlauf:** 4 Lücken gefunden
 und behoben – Gewichtsziel aus dem Erststart (vor der ersten Messung) zeigte nie „Seit Start“ (jetzt erste Messung
@@ -165,13 +169,16 @@ erreichbar. Testumgebung: `expo-env.d.ts` fehlte für die Typprüfung (wird von 
 - Alle Rechner-Parameter (PAL-Stufen, Sport +0,3, Abstände, Untergrenze 1200/Ruheenergie, BMI 18,5, Eiweiß-Bereiche,
   7-Tage-Fenster mit 4 Messungen) sind vorläufig an einer Stelle (`src/domain/energy.ts`) und warten auf die
   Fachprüfung (10.1, CALC-003–005, GOAL-003, GOAL-007, COACH-005). DGE-Primärquelle in diesem Durchlauf nicht abgerufen.
-- GOAL-008 Fortschrittsfotos: nicht gebaut, Entscheidung Luc offen. GOAL-009 Körperfett: nicht gebaut (Fachfreigabe).
+- GOAL-008 Fotos: Kamera/Mediathek nur auf dem iPhone testbar (im Browser nicht verfügbar); App-Sperre (Face ID)
+  und Sicherung der Fotos folgen mit Phase 6.5; Datenschutzprüfung (DSGVO) vor der Veröffentlichung (10.2).
+- GOAL-009 Körperfett: nicht gebaut (Fachfreigabe).
 - GOAL-006 Prognose: bewusst keine. COACH-008 automatische Anpassung nach Gewichtstrend: Phase 9.
 - Zieltypen Maße/Beweglichkeit/Schritte/Dehnroutinen: Phase 5 (Dehnen) bzw. 6 (Schritte); Pilotauswahl offen (GOAL-001).
 - Einheiten ml/oz und ft für Größe: nicht gebaut (Start nur Deutsch); Trinkziel bleibt ml.
 - Health-Freigabe im Erststart: kommt mit Apple Health (6.2). Beruf/Geräte/Zeit im Profil: mit dem Planassistenten (Phase 8).
 - Bebilderte Messanleitung (GOAL-004). Trinkziel ist nicht versioniert (Gewohnheit zählt mit dem aktuellen Trinkziel).
-- Von dir: Erststart und Rechner auf dem iPhone durchgehen, ein Ziel setzen, eine Woche Gewicht eintragen.
+- Von dir: Erststart und Rechner auf dem iPhone durchgehen, ein Ziel setzen, eine Woche Gewicht eintragen,
+  Fortschrittsfotos einschalten und ein Foto aufnehmen.
 
 ## Phase 5 – Dehnung, Mobilität & HIIT-Programme
 

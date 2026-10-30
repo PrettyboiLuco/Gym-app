@@ -531,8 +531,14 @@ export const de = {
     profileTitle: 'Profil und Einheiten',
     profileOpen: 'Profil bearbeiten',
     profileSummary: 'Einheiten: {{weight}}, {{length}}',
-    notIncluded:
-      'Noch nicht enthalten: Fortschrittsfotos (Entscheidung offen) und Körperfett-Schätzungen (erst nach fachlicher Prüfung).',
+    notIncluded: 'Noch nicht enthalten: Körperfett-Schätzungen (erst nach fachlicher Prüfung).',
+    photosTitle: 'Fortschrittsfotos',
+    photosOff: 'Aus. Freiwillig und nur auf deinem Gerät.',
+    photosCount: {
+      one: '1 Foto',
+      other: '{{count}} Fotos',
+    },
+    photosOpen: 'Fotos öffnen',
   },
   onboarding: {
     welcomeTitle: 'Willkommen',
@@ -756,6 +762,46 @@ export const de = {
       rechner: 'Rechner',
     },
   },
+  photos: {
+    title: 'Fortschrittsfotos',
+    introTitle: 'So funktionieren die Fotos',
+    intro:
+      '• Freiwillig und standardmäßig aus.\n' +
+      '• Die Fotos bleiben nur in dieser App auf deinem Gerät. Kein Upload, keine Weitergabe, keine Werbung, keine KI.\n' +
+      '• Aufnahmen landen nicht in deiner Fotos-Mediathek. Gewählte Bilder werden als Kopie gespeichert.\n' +
+      '• Wer dein entsperrtes Handy hat, kann die App öffnen. Eine eigene App-Sperre gibt es noch nicht.\n' +
+      '• Beim Löschen der App sind die Fotos weg. Eine Sicherung kommt später (Phase 6) und fragt dann extra nach.',
+    enable: 'Fotos einschalten',
+    disable: 'Fotos ausschalten',
+    disableHint: 'Ausschalten blendet den Bereich aus. Vorhandene Fotos bleiben gespeichert, bis du sie löschst.',
+    webOnly: 'Im Browser gibt es keine Fotos. Probier es auf dem iPhone.',
+    add: 'Neues Foto',
+    pose: 'Ansicht',
+    poses: {
+      vorne: 'Vorne',
+      seite: 'Seite',
+      hinten: 'Hinten',
+    },
+    camera: 'Foto aufnehmen',
+    library: 'Aus Mediathek wählen',
+    tip: 'Tipp: gleiches Licht, gleicher Abstand, gleiche Uhrzeit – dann lassen sich Fotos besser vergleichen.',
+    cameraDenied: 'Kamerazugriff ist aus. Du kannst ihn in den iPhone-Einstellungen erlauben.',
+    saved: 'Foto gespeichert.',
+    failed: 'Das Foto konnte nicht gespeichert werden.',
+    hidden: 'Fotos sind verdeckt, damit niemand mitschaut.',
+    show: 'Fotos anzeigen',
+    hide: 'Fotos verdecken',
+    compareTitle: 'Vergleich',
+    compareNone: 'Für einen Vergleich brauchst du mindestens zwei Fotos mit derselben Ansicht.',
+    first: 'Erstes: {{date}}',
+    latest: 'Neuestes: {{date}}',
+    listTitle: 'Alle Fotos',
+    empty: 'Noch keine Fotos.',
+    photoLabel: '{{pose}} vom {{date}}',
+    deleteAll: 'Alle Fotos löschen',
+    deleteAllConfirm: 'Wirklich alle löschen?',
+    deletedAll: 'Alle Fotos gelöscht.',
+  },
   measure: {
     title: 'Körpermaße',
     day: 'Tag',
@@ -789,7 +835,7 @@ export const de = {
     privacyTitle: 'Deine Daten',
     privacy:
       'Alles bleibt auf deinem Gerät, es gibt kein Konto. Nur beim Scannen oder bei der Online-Suche wird der ' +
-      'Barcode bzw. Suchbegriff an Open Food Facts gesendet – nie dein Tagebuch.',
+      'Barcode bzw. Suchbegriff an Open Food Facts gesendet – nie dein Tagebuch. Fortschrittsfotos verlassen das Gerät nie.',
     healthTitle: 'Hinweis',
     health:
       'Die App unterstützt allgemeine Fitness für Erwachsene. Sie ersetzt keine ärztliche oder ' +

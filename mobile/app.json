@@ -50,9 +50,17 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Die Kamera wird nur zum Scannen von Barcodes auf Lebensmitteln verwendet. Es werden keine Bilder gespeichert oder gesendet.",
+          "cameraPermission": "Die Kamera wird zum Scannen von Barcodes verwendet und – nur wenn du sie einschaltest – für Fortschrittsfotos. Fotos bleiben auf deinem Gerät und werden nicht gesendet.",
           "microphonePermission": false,
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Nur wenn du ein Fortschrittsfoto aus deiner Mediathek wählst. Das Foto wird als Kopie in der App gespeichert und nicht gesendet.",
+          "cameraPermission": "Die Kamera wird zum Scannen von Barcodes verwendet und – nur wenn du sie einschaltest – für Fortschrittsfotos. Fotos bleiben auf deinem Gerät und werden nicht gesendet.",
+          "microphonePermission": false
         }
       ]
     ],

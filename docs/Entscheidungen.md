@@ -8,6 +8,7 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | Erfahrung | Keine klassische Programmiererfahrung; 4–5 Websites und ein angefangenes Spiel mit Claude Code gebaut | 28.10.2026 |
 | Fokus erste Version | Dehnen, Kalorientracker, Kalorienrechner (Gewicht, Bewegung, Erhaltungskalorien), fertige und eigene Trainingspläne, Satzpausen-Timer, fertige HIIT-Abläufe (z. B. Bauch). Weitere Wünsche folgen. | 28.10.2026 |
 | Sprache | Ziel: viele Sprachen. Start nur Deutsch; Übersetzungsstruktur von Anfang an, weitere Sprachen als Folgepunkt | 28.10.2026 |
+| Fortschrittsfotos | Ja. Umsetzung: freiwillig, standardmäßig aus, nur auf dem Gerät, kein Upload/keine Werbung/keine KI, beim Öffnen verdeckt | 30.10.2026 |
 
 ## Vorläufig umgesetzt (Phase 4, 30.10.2026) – bitte bestätigen oder ändern
 
@@ -15,7 +16,6 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 |---|---|
 | Einheiten | Standard kg/cm; lb und Zoll in Profil wählbar; gespeichert immer kg/cm. ml/oz nicht. |
 | Pilot-Zieltypen | Gewicht + Kraftziel + Gewohnheit (Vorschlag aus Kap. 21.7). Maße als Verlauf, nicht als Ziel. |
-| Fortschrittsfotos | nicht eingebaut, bis du entscheidest. |
 | Zielprognose | keine (kein Zieldatum, keine Schätzung). |
 | Zielalter | Start nur ab 18 (Ja/Nein beim Erststart); Rechner nur 19–78 Jahre. |
 | Rechner-Werte | DGE-PAL-Stufen, Abstände ±250/±500, Untergrenze max(1200, Ruheenergie), BMI 18,5 – alles bis zur Fachprüfung vorläufig. |
@@ -37,5 +37,5 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 ## Noch offen
 
 App-Name · Budget · Zeit pro Woche · Zielalter · 3D-Figur oder Clips · Free/Pro-Grenze und Preis ·
-Werbenetzwerk · Dehnung als eigener Tab · Pilot-Zieltypen (vorläufig s. o.) · Fortschrittsfotos · Einheiten (vorläufig s. o.) ·
+Werbenetzwerk · Dehnung als eigener Tab · Pilot-Zieltypen (vorläufig s. o.) · Einheiten (vorläufig s. o.) ·
 Fachperson Training/Ernährung · Rechtsprüfung

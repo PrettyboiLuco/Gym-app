@@ -1,4 +1,4 @@
-// Phase 4: versionierte Ziele, Kalorienziel, Körpermaße, Profil, Migration 4.
+// Phase 4: versionierte Ziele, Kalorienziel, Körpermaße, Fotos, Profil, Migrationen 4 und 5.
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
@@ -22,6 +22,7 @@ import {
 } from '../goals';
 import { MIGRATIONS, migrate } from '../migrations';
 import { logWater } from '../nutrition';
+import { addPhoto, deleteAllPhotos, deletePhoto, listPhotos } from '../photos';
 import { loadOnboardingDone, loadProfile, saveOnboardingDone, saveProfile } from '../profile';
 import { createTestDb } from '../testing/node-db';
 import { addSet, completeSet, listSessionSets, startSession } from '../training';
@@ -169,5 +170,26 @@ describe('Profil und Erststart (UX-010)', () => {
     expect((await loadProfile(db)).heightCm).toBe(180);
     expect((await loadProfile(db)).units.weight).toBe('lb');
     expect(await loadOnboardingDone(db)).toBe(true);
+  });
+});
+
+describe('Fortschrittsfotos (GOAL-008)', () => {
+  test('speichern, auflisten, einzeln und alle löschen', async () => {
+    await addPhoto(db, '2026-10-01', 'vorne', 'a.jpg');
+    await addPhoto(db, '2026-10-30', 'vorne', 'b.jpg');
+    await addPhoto(db, '2026-10-30', 'seite', 'c.jpg');
+    const list = await listPhotos(db);
+    expect(list.map((p) => p.fileName)).toEqual(['c.jpg', 'b.jpg', 'a.jpg']);
+    expect(await deletePhoto(db, list[0].id)).toBe('c.jpg');
+    expect((await deleteAllPhotos(db)).sort()).toEqual(['a.jpg', 'b.jpg']);
+    expect(await listPhotos(db)).toHaveLength(0);
+  });
+  test('Datenbank lehnt unbekannte Ansicht und doppelte Datei ab', async () => {
+    await expect(addPhoto(db, '2026-10-30', 'oben' as never, 'x.jpg')).rejects.toThrow();
+    await addPhoto(db, '2026-10-30', 'vorne', 'y.jpg');
+    await expect(addPhoto(db, '2026-10-30', 'seite', 'y.jpg')).rejects.toThrow();
+  });
+  test('Fotos sind standardmäßig aus', async () => {
+    expect((await loadProfile(db)).photos).toBe(false);
   });
 });

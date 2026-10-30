@@ -16,7 +16,9 @@ Versionen sind in `mobile/package-lock.json` festgeschrieben.
 | expo-updates | 58.0.19 | MIT | Vorschau-Updates in Expo Go |
 | expo-haptics | 58.0.7 | MIT | Vibration am Pausenende |
 | expo-keep-awake | 58.0.3 | MIT | Bildschirm bleibt im Training an |
-| expo-camera | 58.0.14 | MIT | Barcode-Scanner (nur Scannen, keine Fotos gespeichert) |
+| expo-camera | 58.0.14 | MIT | Barcode-Scanner (beim Scannen werden keine Bilder gespeichert) |
+| expo-image-picker | 58.0.10 | MIT | Fortschrittsfotos aufnehmen oder aus der Mediathek wählen (nur wenn eingeschaltet) |
+| expo-file-system | 58.0.13 | MIT | Fortschrittsfotos als Kopie im App-Ordner speichern und löschen |
 | i18n-js | 4.5.4 | MIT | Übersetzungen |
 | react / react-native | 19.3.0 / 0.88.1 | MIT | UI |
 | weitere expo-* und react-native-* aus der Vorlage | 58.x | MIT | Vorlage |
@@ -27,7 +29,7 @@ Produktdaten: Open Food Facts, Abruf zur Laufzeit nur auf Aktion des Nutzers (Sc
 Datenbanklizenz ODbL, Namensnennung unter „Mehr → Datenquellen“. Produktbilder werden nicht verwendet
 (eigene Lizenz CC BY-SA, FOOD-005).
 
-## `npm audit` (nur Laufzeit-Abhängigkeiten, 29.10.2026)
+## `npm audit` (nur Laufzeit-Abhängigkeiten, 29.10.2026; erneut 30.10.2026 nach expo-image-picker/expo-file-system: unverändert)
 
 8 Meldungen (5 niedrig, 3 hoch). Alle betreffen **Expos Build-Werkzeuge** (`@expo/cli`, `@expo/config`,
 `@expo/metro-config`, `@expo/prebuild-config`) über die Pakete `deepmerge` und `zod`. Diese laufen beim

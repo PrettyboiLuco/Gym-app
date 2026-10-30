@@ -22,6 +22,8 @@ export type Profile = {
    */
   sensitive: boolean;
   units: Units;
+  /** Fortschrittsfotos eingeschaltet (Standard aus, GOAL-008). */
+  photos: boolean;
 };
 
 export const EMPTY_PROFILE: Profile = {
@@ -33,6 +35,7 @@ export const EMPTY_PROFILE: Profile = {
   sport: false,
   sensitive: false,
   units: DEFAULT_UNITS,
+  photos: false,
 };
 
 /** Volle Lebensjahre am Tag `today` (YYYY-MM-DD); Geburtstag wird am Monatsersten angenommen. */
