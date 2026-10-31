@@ -51,7 +51,7 @@ import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import type { MuscleGroup } from '@/domain/exercises';
 import { replacementOptions } from '@/domain/planner';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, type Advice, type PastSession } from '@/domain/progression';
-import { extendRest, formatClock, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
+import { extendRest, formatClock, isStaleSession, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, type WeightUnit } from '@/domain/units';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
@@ -272,6 +272,19 @@ export default function SessionScreen() {
     router.dismissTo('/training');
   }
 
+  /**
+   * Vergessenes Training (länger als 6 Stunden offen): beenden mit dem Zeitpunkt des letzten Satzes
+   * (sonst stünde eine Dauer von Stunden oder Tagen in der Zusammenfassung) oder verwerfen, wenn nichts gemacht wurde.
+   */
+  async function closeStale(keep: boolean) {
+    const lastSet = sets.filter((s) => s.completedAt).map((s) => s.completedAt!).sort().at(-1) ?? session?.startedAt;
+    await finishSession(db, id, keep ? 'abgeschlossen' : 'abgebrochen', keep ? undefined : 'vergessen', lastSet);
+    await updateTimer(stopRest(timer));
+    setRestFocus(false);
+    if (keep) router.replace(`/training/summary/${id}`);
+    else router.dismissTo('/training');
+  }
+
   /** Aufwärmen/Cool-down passend zu den Muskelgruppen dieses Trainings (STRETCH-001/002). */
   function blockFor(kind: 'aufwaermen' | 'cooldown') {
     const groups = [...new Set(sets.map((s) => byIdAll.get(s.exerciseId)?.muscleGroup).filter((g): g is MuscleGroup => !!g))];
@@ -424,6 +437,20 @@ export default function SessionScreen() {
         options={{ title: session.dayName ? `${session.planName} – ${session.dayName}` : t('session.free') }}
       />
       {active && Platform.OS !== 'web' ? <KeepAwake /> : null}
+      {active && loadedAtMs > 0 && isStaleSession(session.startedAt, loadedAtMs) ? (
+        <Card title={t('session.staleTitle')}>
+          <ThemedText>
+            {t('session.staleText', {
+              date: new Date(session.startedAt).toLocaleString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }),
+            })}
+          </ThemedText>
+          {doneCount > 0 ? <Button label={t('session.staleFinish', { count: doneCount })} onPress={() => closeStale(true)} /> : null}
+          <ConfirmButton label={t('session.staleDiscard')} confirmLabel={t('session.staleDiscardConfirm')} onConfirm={() => closeStale(false)} />
+          <ThemedText type="small" themeColor="textSecondary">
+            {doneCount > 0 ? t('session.staleHint') : t('session.staleHintEmpty')}
+          </ThemedText>
+        </Card>
+      ) : null}
       {!active ? (
         <Card>
           <ThemedText themeColor="textSecondary">

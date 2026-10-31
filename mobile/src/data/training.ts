@@ -466,12 +466,19 @@ export async function addSet(db: Db, sessionId: string, exerciseId: string) {
 }
 
 /** Beendet ein Training. Nicht erledigte geplante Sätze bleiben als „nicht gemacht“ stehen. */
-export async function finishSession(db: Db, sessionId: string, status: 'abgeschlossen' | 'abgebrochen', reason?: string) {
+export async function finishSession(
+  db: Db,
+  sessionId: string,
+  status: 'abgeschlossen' | 'abgebrochen',
+  reason?: string,
+  /** Ende zu einem früheren Zeitpunkt (vergessenes Training: Zeit des letzten Satzes). */
+  finishedAtUtc?: string
+) {
   await db.runAsync(
     'UPDATE workout_session SET status = ?, abort_reason = ?, finished_at_utc = ? WHERE id = ?',
     status,
     reason ?? null,
-    nowUtc(),
+    finishedAtUtc ?? nowUtc(),
     sessionId
   );
 }

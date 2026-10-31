@@ -5,11 +5,13 @@ import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { LiveTraining } from '@/data/live-training';
-import { formatClock, isRestVisible, restRemainingMs } from '@/domain/training';
+import { formatClock, isRestVisible, isStaleSession, restRemainingMs } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { formatDay, t } from '@/i18n';
+import { localDay } from '@/domain/time';
+import { timeZone } from '@/components/nutrition-format';
 
 /**
  * Mini-Player über der Tab-Leiste, solange ein Training oder Ablauf läuft (wie der Musik-Player in Apple Music):
@@ -26,9 +28,13 @@ export function MiniPlayer({ live, compact = false }: { live: LiveTraining; comp
   if (pathname.startsWith('/training/session') || pathname.startsWith('/training/run') || pathname.startsWith('/training/summary')) return null;
 
   const title = live.timedTitle ?? live.session?.dayName ?? t('session.free');
+  // Länger als 6 Stunden offen: vermutlich vergessen – Datum statt Minutenzähler.
+  const stale = !!live.session && !live.timedTitle && isStaleSession(live.session.startedAt, now);
   const right = live.timedTitle
     ? null
-    : resting
+    : stale
+      ? t('mini.since', { date: formatDay(localDay(new Date(live.session!.startedAt), timeZone)) })
+      : resting
       ? `${t('session.restTitle')} ${formatClock(restRemainingMs(live.timer, now))}`
       : live.session
         ? t('mini.elapsed', { minutes: Math.max(0, Math.floor((now - Date.parse(live.session.startedAt)) / 60_000)) })
@@ -38,14 +44,14 @@ export function MiniPlayer({ live, compact = false }: { live: LiveTraining; comp
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[t('mini.running'), title, right, t('mini.open')].filter(Boolean).join('. ')}
+      accessibilityLabel={[stale ? t('mini.stale') : t('mini.running'), title, right, t('mini.open')].filter(Boolean).join('. ')}
       onPress={go}
       style={({ pressed }) => [styles.row, compact && styles.compact, { opacity: pressed ? 0.7 : 1 }]}>
       <View style={[styles.dot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
       <View style={styles.text}>
         {!compact ? (
           <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-            {t('mini.running')}
+            {stale ? t('mini.stale') : t('mini.running')}
           </ThemedText>
         ) : null}
         <ThemedText type="smallBold" numberOfLines={1}>

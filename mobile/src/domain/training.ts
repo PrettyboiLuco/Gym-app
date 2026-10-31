@@ -196,3 +196,10 @@ export function formatClock(ms: number): string {
   const seconds = total % 60;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
+
+/** Ab so vielen Stunden gilt ein laufendes Training als vergessen (Hinweis statt Minutenzähler). */
+export const STALE_SESSION_HOURS = 6;
+
+export function isStaleSession(startedAtIso: string, nowMs: number): boolean {
+  return nowMs - Date.parse(startedAtIso) > STALE_SESSION_HOURS * 3_600_000;
+}
