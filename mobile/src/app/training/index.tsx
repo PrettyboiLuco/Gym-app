@@ -199,6 +199,7 @@ export default function TrainingScreen() {
             onPress={() => router.push(`/training/plan/${p.planId}`)}
           />
         ))}
+        <ListRow icon="book" title={t('planImport.open')} subtitle={t('planImport.openSub')} accessory="›" onPress={() => router.push('/training/import')} />
         <ListRow
           icon="sparkle"
           title={t('training.assistantTitle')}

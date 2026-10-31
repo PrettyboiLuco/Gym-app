@@ -1,0 +1,53 @@
+{
+  "format": "myhealth-plan",
+  "version": 1,
+  "name": "Lucs Training",
+  "note": "So Push · Mo Pull · Mi Oberkörper · Fr Beine. 3–5 min Pause zwischen allen Sätzen (hier 4 min). RIR und Hinweise stehen in der PDF.",
+  "days": [
+    {
+      "name": "Push (So)",
+      "items": [
+        { "exercise": "cable_crossover", "sets": 3, "reps": [10, 15], "rest": 240 },
+        { "exercise": "schraegbankdruecken_smith", "sets": 3, "reps": [6, 10], "rest": 240 },
+        { "exercise": "butterfly", "sets": 2, "reps": [10, 15], "rest": 240 },
+        { "exercise": "brustpresse", "sets": 2, "reps": [8, 12], "rest": 240 },
+        { "exercise": "seitheben_kabel", "sets": 4, "reps": [12, 20], "rest": 240 },
+        { "exercise": "french_press_kabel", "sets": 2, "reps": [10, 15], "rest": 240 }
+      ]
+    },
+    {
+      "name": "Pull (Mo)",
+      "items": [
+        { "exercise": "latzug", "sets": 3, "reps": [8, 12], "rest": 240 },
+        { "exercise": "rudern_maschine", "sets": 3, "reps": [8, 12], "rest": 240 },
+        { "exercise": "ueberzuege_kabel", "sets": 2, "reps": [10, 15], "rest": 240 },
+        { "exercise": "reverse_butterfly", "sets": 3, "reps": [12, 20], "rest": 240 },
+        { "exercise": "shrugs_kh", "sets": 2, "reps": [10, 15], "rest": 240 },
+        { "exercise": "scottcurls_kabel", "sets": 3, "reps": [10, 15], "rest": 240 },
+        { "exercise": "hammercurls", "sets": 2, "reps": [10, 15], "rest": 240 }
+      ]
+    },
+    {
+      "name": "Oberkörper (Mi)",
+      "items": [
+        { "exercise": "cable_crossover", "sets": 2, "reps": [10, 15], "rest": 240 },
+        { "exercise": "brustpresse", "sets": 3, "reps": [6, 10], "rest": 240 },
+        { "exercise": "rudern_maschine_hoch", "sets": 3, "reps": [8, 12], "rest": 240 },
+        { "exercise": "rudern_maschine", "sets": 2, "reps": [8, 12], "rest": 240 },
+        { "exercise": "seitheben_kabel", "sets": 3, "reps": [12, 20], "rest": 240 },
+        { "exercise": "trizeps_ueberkopf_kabel", "sets": 2, "reps": [10, 15], "rest": 240 },
+        { "exercise": "bizepscurls_kabel", "sets": 2, "reps": [10, 15], "rest": 240 }
+      ]
+    },
+    {
+      "name": "Beine (Fr)",
+      "items": [
+        { "exercise": "beinbeuger_sitzend", "sets": 3, "reps": [8, 12], "rest": 240 },
+        { "exercise": "beinpresse", "sets": 3, "reps": [8, 12], "rest": 240 },
+        { "exercise": "beinstrecker", "sets": 3, "reps": [10, 15], "rest": 240 },
+        { "exercise": "adduktoren_maschine", "sets": 2, "reps": [10, 15], "rest": 240 },
+        { "exercise": "wadenheben_sitzend", "sets": 2, "reps": [10, 20], "rest": 240 }
+      ]
+    }
+  ]
+}
