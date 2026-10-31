@@ -24,7 +24,7 @@ import { localDay } from '@/domain/time';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
+import { formatDay, formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
 
 async function loadToday(db: Db) {
   const today = todayDay();
@@ -176,7 +176,7 @@ export default function TodayScreen() {
   const liters = (ml: number) => formatNumber(ml / 1000, 1);
 
   return (
-    <Screen title={greeting} subtitle={formatLongDate(new Date())}>
+    <Screen title={greeting} eyebrow={formatLongDate(new Date())}>
       {checkin ? (
         <Card>
           <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
@@ -186,6 +186,7 @@ export default function TodayScreen() {
       <TileGrid>
         <StatTile
           index={1}
+          icon="flame"
           label={t('today.tileKcal')}
           value={kcalValue}
           unit={kcalUnit}
@@ -200,6 +201,7 @@ export default function TodayScreen() {
         />
         <StatTile
           index={2}
+          icon="drop"
           label={t('today.tileDrinks')}
           value={liters(food.drinksMl)}
           unit="l"
@@ -214,16 +216,26 @@ export default function TodayScreen() {
         />
         <StatTile
           index={3}
+          icon="scale"
           label={t('today.tileWeight')}
           value={lastWeight ? formatWeight(lastWeight.kg, units.weight).replace(/\s*\S+$/, '') : '–'}
           unit={lastWeight ? units.weight : undefined}
-          caption={trend !== null ? t('today.tileWeightTrend', { kg: formatWeight(trend, units.weight) }) : lastWeight ? null : t('today.tileWeightNone')}
+          caption={
+            trend !== null
+              ? t('today.tileWeightTrend', { kg: formatWeight(trend, units.weight) })
+              : lastWeight
+                ? lastWeight.day === todayDay()
+                  ? t('today.tileWeightToday')
+                  : t('today.tileWeightLast', { date: formatDay(lastWeight.day) })
+                : t('today.tileWeightNone')
+          }
           footer={<Sparkline values={recent} color={theme.tint} />}
           accessibilityLabel={`${t('today.tileWeight')} ${lastWeight ? formatWeight(lastWeight.kg, units.weight) : t('today.tileWeightNone')}`}
           onPress={() => router.push('/progress')}
         />
         <StatTile
           index={4}
+          icon="calendar"
           label={t('today.tileWeek')}
           value={String(week.count)}
           unit={week.goal ? undefined : t('today.tileWeekUnit', { count: week.count })}

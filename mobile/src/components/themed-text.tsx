@@ -4,7 +4,7 @@ import { DisplayFont, Fonts, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code' | 'eyebrow';
   themeColor?: ThemeColor;
 };
 
@@ -15,6 +15,14 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 }
 
 const styles = StyleSheet.create({
+  /** Kleine Überschrift in Versalien mit Sperrung – für Abschnitts- und Kartenbeschriftungen. */
+  eyebrow: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: 600,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   small: {
     fontSize: 14,
     lineHeight: 20,

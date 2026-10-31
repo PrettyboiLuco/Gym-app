@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { Glyph, type GlyphName } from '@/components/glyph';
 import { ThemedText } from '@/components/themed-text';
 import { Spring, WordRise } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -36,7 +38,11 @@ function usePress() {
   };
 }
 
-/** Großes Lime-Panel oben: worum es heute geht und ein Knopf, der direkt dorthin führt. */
+/**
+ * Panel oben: worum es heute geht und ein Knopf, der direkt dorthin führt.
+ * Dunkle (bzw. weiße) Fläche mit weichem Lime-Schein in der Ecke; Lime selbst nur auf dem Knopf –
+ * der Akzent wird sparsam eingesetzt (getlayers-Regel „the accent is rationed“).
+ */
 export function HeroPanel({
   eyebrow,
   title,
@@ -51,6 +57,7 @@ export function HeroPanel({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const scheme = useColorScheme();
   const press = usePress();
   return (
     <Animated.View entering={entering(0)} style={press.style}>
@@ -60,27 +67,27 @@ export function HeroPanel({
         onPress={onPress}
         onPressIn={press.onPressIn}
         onPressOut={press.onPressOut}
-        style={[styles.hero, { backgroundColor: theme.accent }]}>
-        <HeroRings color={theme.onAccent} />
+        style={[styles.hero, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+        <Glow color={theme.accent} strength={scheme === 'dark' ? 0.32 : 0.55} />
         <View style={styles.eyebrowRow}>
-          <View style={[styles.dot, { backgroundColor: theme.onAccent }]} />
-          <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
+          <View style={[styles.dot, { backgroundColor: scheme === 'dark' ? theme.accent : theme.tint, shadowColor: theme.accent }]} />
+          <ThemedText type="eyebrow" style={{ color: theme.tint }}>
             {eyebrow}
           </ThemedText>
         </View>
-        <ThemedText type="title" style={[styles.heroTitle, { color: theme.onAccent }]} numberOfLines={2}>
+        <ThemedText type="title" style={styles.heroTitle} numberOfLines={2} adjustsFontSizeToFit>
           {title}
         </ThemedText>
         {text ? (
-          <ThemedText type="small" style={[styles.heroText, { color: theme.onAccent }]}>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.heroText}>
             {text}
           </ThemedText>
         ) : null}
-        <View style={[styles.heroAction, { backgroundColor: theme.onAccent }]}>
-          <ThemedText type="smallBold" style={{ color: theme.accent }}>
+        <View style={[styles.heroAction, { backgroundColor: theme.accent }]}>
+          <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
             {action}
           </ThemedText>
-          <ThemedText type="smallBold" style={{ color: theme.accent }}>
+          <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
             →
           </ThemedText>
         </View>
@@ -89,14 +96,19 @@ export function HeroPanel({
   );
 }
 
-/** Dezente Kreisbögen oben rechts – geben dem Panel Tiefe, ohne Inhalt zu tragen. */
-function HeroRings({ color }: { color: string }) {
+/** Weicher Lichtschein oben rechts (radialer Verlauf), trägt keinen Inhalt. */
+function Glow({ color, strength }: { color: string; strength: number }) {
   return (
-    <View style={styles.rings} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Svg width={220} height={220}>
-        {[50, 80, 110].map((r, i) => (
-          <Circle key={r} cx={170} cy={50} r={r} stroke={color} strokeOpacity={0.1 - i * 0.025} strokeWidth={14} fill="none" />
-        ))}
+    <View style={StyleSheet.absoluteFill} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width="100%" height="100%">
+        <Defs>
+          <RadialGradient id="heroGlow" cx="92%" cy="0%" rx="75%" ry="95%" fx="92%" fy="0%">
+            <Stop offset="0" stopColor={color} stopOpacity={strength} />
+            <Stop offset="0.55" stopColor={color} stopOpacity={strength * 0.25} />
+            <Stop offset="1" stopColor={color} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#heroGlow)" />
       </Svg>
     </View>
   );
@@ -105,6 +117,7 @@ function HeroRings({ color }: { color: string }) {
 /** Kachel mit großer Zahl. `visual` sitzt oben rechts (Ring) oder unten (Balken, Kurve, Punkte). */
 export function StatTile({
   index,
+  icon,
   label,
   value,
   unit,
@@ -115,6 +128,7 @@ export function StatTile({
   onPress,
 }: {
   index: number;
+  icon: GlyphName;
   label: string;
   value: string;
   unit?: string;
@@ -134,11 +148,16 @@ export function StatTile({
         onPress={onPress}
         onPressIn={press.onPressIn}
         onPressOut={press.onPressOut}
-        style={[styles.tile, { backgroundColor: theme.backgroundElement }]}>
+        style={[styles.tile, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
         <View style={styles.tileHead}>
-          <ThemedText type="small" themeColor="textSecondary">
-            {label}
-          </ThemedText>
+          <View style={styles.tileLabel}>
+            <View style={[styles.badge, { backgroundColor: theme.backgroundSelected }]}>
+              <Glyph name={icon} color={theme.text} size={15} />
+            </View>
+            <ThemedText type="eyebrow" themeColor="textSecondary" numberOfLines={1} style={styles.tileLabelText}>
+              {label}
+            </ThemedText>
+          </View>
           {corner}
         </View>
         <View style={styles.tileBody}>
@@ -147,7 +166,7 @@ export function StatTile({
               {value}
             </ThemedText>
             {unit ? (
-              <ThemedText type="smallBold" themeColor="textSecondary">
+              <ThemedText type="small" themeColor="textSecondary" style={styles.unit}>
                 {unit}
               </ThemedText>
             ) : null}
@@ -212,17 +231,16 @@ export function TileGrid({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   hero: {
     borderRadius: Radius.card + Spacing.one,
+    borderWidth: StyleSheet.hairlineWidth * 2,
     padding: Spacing.four,
-    paddingTop: Spacing.three + Spacing.one,
     gap: Spacing.two,
     overflow: 'hidden',
-    minHeight: 220,
+    minHeight: 236,
   },
-  rings: { position: 'absolute', top: 0, right: 0 },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  heroTitle: { fontSize: 44, lineHeight: 50, letterSpacing: -1.2, marginTop: Spacing.two },
-  heroText: { opacity: 0.75, maxWidth: 280 },
+  dot: { width: 7, height: 7, borderRadius: 4, shadowOpacity: 0.9, shadowRadius: 6, shadowOffset: { width: 0, height: 0 } },
+  heroTitle: { fontSize: 40, lineHeight: 46, letterSpacing: -1.2, marginTop: Spacing.three },
+  heroText: { maxWidth: 300 },
   heroAction: {
     marginTop: 'auto',
     alignSelf: 'flex-start',
@@ -235,8 +253,19 @@ const styles = StyleSheet.create({
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
   tileWrap: { flexBasis: '45%', flexGrow: 1 },
-  tile: { borderRadius: Radius.card, padding: Spacing.three, minHeight: 156, justifyContent: 'space-between', gap: Spacing.two },
-  tileHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 28 },
+  tile: {
+    borderRadius: Radius.card,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    padding: Spacing.three,
+    minHeight: 164,
+    justifyContent: 'space-between',
+    gap: Spacing.three,
+  },
+  tileHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 30, gap: Spacing.one },
+  tileLabel: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, flexShrink: 1 },
+  tileLabelText: { flexShrink: 1, fontSize: 11, letterSpacing: 0.9 },
+  badge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  unit: { fontWeight: 600 },
   tileBody: { gap: Spacing.one },
   valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.one },
   value: { fontSize: 34, lineHeight: 40, letterSpacing: -0.8, fontVariant: ['tabular-nums'], flexShrink: 1 },

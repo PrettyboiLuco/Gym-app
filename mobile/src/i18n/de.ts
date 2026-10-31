@@ -82,7 +82,7 @@ export const de = {
     tileKcalOf: 'von {{goal}} kcal',
     tileKcalLeft: 'noch {{left}} kcal',
     tileKcalOver: '{{over}} kcal darüber',
-    tileKcalEmpty: 'noch nichts eingetragen',
+    tileKcalEmpty: 'heute noch leer',
     tileEntries: {
       one: '1 Eintrag',
       other: '{{count}} Einträge',
@@ -92,6 +92,8 @@ export const de = {
     tileWeight: 'Gewicht',
     tileWeightTrend: 'Trend {{kg}}',
     tileWeightNone: 'noch keine Messung',
+    tileWeightLast: 'zuletzt {{date}}',
+    tileWeightToday: 'heute gemessen',
     tileWeek: 'Diese Woche',
     tileWeekOf: 'von {{goal}} Trainings',
     tileWeekUnit: {

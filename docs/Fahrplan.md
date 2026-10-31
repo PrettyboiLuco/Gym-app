@@ -599,6 +599,13 @@ Mini-Verlauf der letzten 14 Messtage), Diese Woche (abgeschlossene Trainings, Pu
 Coach-Karte darunter nur noch mit Makro-Balken (Kalorien stehen in der Kachel). Kacheln und Panel federn beim Drücken
 und erscheinen auf dem Handy nacheinander. 508 Tests, Lint/Typprüfung ohne Fehler, 31/31 Bildschirme hell und dunkel.
 
+**Nachtrag 31.10.2026 – hochwertiger statt „billig“** (Luc; der gewünschte Skill „/taste“ ist in dieser Sitzung nicht
+installiert und in den Skills nicht zu finden): Lime wird nur noch sparsam eingesetzt (Knopf, Punkt, Beschriftung) statt
+als große Fläche; das Trainings-Panel ist dunkel bzw. weiß mit weichem Lime-Schein in der Ecke, die Kreisbögen sind weg.
+Kleine Überschriften in Versalien mit Sperrung (neuer Textstil „eyebrow“) für Kartentitel in der ganzen App und das
+Datum über der Begrüßung. Feine Kante um Karten und Kacheln (neue Farbe „hairline“) für Tiefe ohne Schatten. Kacheln mit
+kleinen Symbolen (Flamme, Tropfen, Waage, Kalender). 508 Tests, Lint/Typprüfung ohne Fehler, 31/31 Bildschirme hell und dunkel.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

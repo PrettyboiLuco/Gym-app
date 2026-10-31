@@ -24,8 +24,12 @@ const cardEntering =
 export function Card({ title, children }: { title?: string; children: ReactNode }) {
   const theme = useTheme();
   return (
-    <Animated.View entering={cardEntering} style={[styles.card, { backgroundColor: theme.backgroundElement }]}>
-      {title ? <ThemedText type="smallBold">{title}</ThemedText> : null}
+    <Animated.View entering={cardEntering} style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+      {title ? (
+        <ThemedText type="eyebrow" themeColor="textSecondary">
+          {title}
+        </ThemedText>
+      ) : null}
       {children}
     </Animated.View>
   );
@@ -82,6 +86,7 @@ const styles = StyleSheet.create({
   card: {
     padding: Spacing.three + Spacing.one,
     borderRadius: Radius.card,
+    borderWidth: StyleSheet.hairlineWidth * 2,
     gap: Spacing.two,
   },
   button: {

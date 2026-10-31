@@ -14,6 +14,7 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 export function Screen({
   title,
   subtitle,
+  eyebrow,
   withHeader = false,
   footer,
   scrollRef,
@@ -21,6 +22,8 @@ export function Screen({
 }: {
   title?: string;
   subtitle?: string;
+  /** Kleine Zeile über dem Titel (z. B. Datum). */
+  eyebrow?: string;
   withHeader?: boolean;
   footer?: ReactNode;
   /** Für Bildschirme, die selbst nach oben scrollen müssen (z. B. Formular oben, Liste darunter). */
@@ -35,6 +38,11 @@ export function Screen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>
+          {eyebrow ? (
+            <ThemedText type="eyebrow" themeColor="textSecondary" style={styles.eyebrow}>
+              {eyebrow}
+            </ThemedText>
+          ) : null}
           {title && !withHeader ? <AnimatedTitle text={title} /> : null}
           {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
           {children}
@@ -47,6 +55,7 @@ export function Screen({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  eyebrow: { marginTop: Spacing.two, marginBottom: -Spacing.two },
   safeArea: { flex: 1 },
   content: {
     padding: Spacing.three,

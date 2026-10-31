@@ -29,6 +29,8 @@ export const Colors = {
     onAccent: '#000000',
     danger: '#C62828',
     onDanger: '#FFFFFF',
+    /** Feine Kante um Karten – gibt Tiefe, ohne Schatten. */
+    hairline: 'rgba(0,0,0,0.06)',
   },
   dark: {
     text: '#FFFFFF',
@@ -45,6 +47,7 @@ export const Colors = {
     onAccent: '#000000',
     danger: '#FF6B6B',
     onDanger: '#000000',
+    hairline: 'rgba(255,255,255,0.07)',
   },
 } as const;
 
