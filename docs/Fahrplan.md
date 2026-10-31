@@ -553,6 +553,20 @@ war bei gleichem Zeitstempel zufällig (wackeliger Test). 506 automatische Tests
 Seilspringen …) mit Dauer in Minuten (Pläne heute höchstens 10 min je Zeit-Satz), optional Strecke, ohne
 Kalorien-Gutschrift (HEALTH-007).
 
+**Nachtrag 31.10.2026 – Übungen nach Muskel und Zielmuskel** (Wunsch Luc: 800–1000 Übungen, je Muskel alle gängigen
+Varianten nach Gerät): 455 neue Übungen, zusammen **894** (780 Kraft, 114 Dehnen/Mobilität). Jede Variante mit eigenem,
+einzeln geschriebenem Namen und Kurzanleitung (Gerät, Kabel-Aufbau, Aufsatz, Position, Bankwinkel, Griff, Seite).
+Kabel jetzt als drei Geräte: **Kabelzug (einzeln)**, **Kabelturm-Paar (Crossover)** – zwei gegenüberliegende Türme –
+und **Doppelkabelzug (Functional Trainer)** – zwei Rollen nebeneinander. Datenbank-Version 15 verschiebt die zehn
+bisherigen Zwei-Kabel-Übungen zum Kabelturm-Paar und ergänzt beide neuen Kabel-Geräte im Profil, wenn dort „Kabelzug“
+gewählt war (frühere Versionen bleiben unverändert eingefroren); Version 16 trägt die neuen Übungen ein. Zielmuskeln:
+Brust oben/mittig/unten, Lat/oberer/unterer Rücken, Schulter vorn/seitlich/hinten/Rotatoren, Bizeps/Trizeps/Unterarme,
+Quadrizeps/Beinbeuger, Adduktoren/Abduktoren/Hüftbeuger, gerader/seitlicher Bauch/Rumpfstabilität. Übungsliste in der
+App: Muskelgruppen aufklappbar, darin nach Zielmuskel gegliedert, mit Suche (mehrere Wörter, auch englisch) und
+Gerätefilter; die Übungsauswahl im Plan zeigt höchstens 60 Treffer mit Hinweis zum Eingrenzen. Vorlagen unverändert
+(Test). 508 automatische Tests, 36/36 Bildschirme ohne Fehler, Liste/Suche/Zielmuskel im Browser 12/12. Liste zum
+Durchlesen, gegliedert wie in der App: `docs/Uebungsliste.md`.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit
