@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Myhealth – Training, Ernährung, Fortschritt</title>
+<meta name="description" content="Myhealth: Training, Ernährung und Fortschritt in einer ruhigen iPhone-App. Kein Konto, deine Daten bleiben auf deinem Gerät.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="assets/icon.png">
+<!-- Schrift und 3D-Bibliothek liegen auf dieser Seite selbst: keine Anfragen an Google oder CDNs (Datenschutz). -->
+<!--
+  Aufbau nach getlayers.ai: Stil „Relay“ (Schwarz, ein Lime für Aktion und Licht, Pillen), Hero nach der
+  Komposition „soda-hero“ (Text links, 3D-Objekt mittig, Auswahl rechts), 3D-Herz nach dem Werkzeug „SVG to 3D“.
+  Regeln nach taste-skill (Seiten): keine Überschriften-Etiketten, keine Verläufe, keine dünnen Trennlinien,
+  keine Symbol-Kacheln; echte Bilder = echte Bildschirme der App; Bewegung mit Fallback für „Bewegung reduzieren“.
+-->
+<style>
+@font-face { font-family: 'Manrope'; src: url('fonts/Manrope_400Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('fonts/Manrope_500Medium.ttf') format('truetype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('fonts/Manrope_600SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('fonts/Manrope_700Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+:root {
+  --bg: #000000;
+  --bg-alt: #0d0d0d;
+  --surface: #141414;
+  --ink: #ffffff;
+  --ink-muted: #a8acb0;
+  --accent: #c6f24e;
+  --accent-ink: #0a0b09;
+  --radius: 28px;
+  --pad: clamp(20px, 5vw, 80px);
+  --font: 'Manrope', system-ui, -apple-system, sans-serif;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { background: var(--bg); overflow-x: hidden; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* Navigation: Wortmarke, wenige Links, eine Aktion */
+.nav { position: absolute; top: 0; left: 0; right: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: 22px var(--pad); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; letter-spacing: -0.02em; }
+.brand img { width: 28px; height: 28px; border-radius: 8px; }
+.nav ul { display: flex; gap: 28px; list-style: none; font-size: 15px; color: var(--ink-muted); }
+.nav ul a { text-decoration: none; transition: color 150ms var(--ease); }
+.nav ul a:hover { color: var(--ink); }
+
+/* Hero: soda-hero – Text links, Herz mittig, Fakten rechts */
+.hero { position: relative; min-height: 100svh; display: grid; grid-template-columns: 1fr minmax(320px, 1.15fr) 0.8fr; align-items: center; gap: clamp(16px, 3vw, 48px); padding: 110px var(--pad) 64px; }
+.hero h1 { font-size: clamp(54px, 8.4vw, 132px); line-height: 0.92; letter-spacing: -0.05em; font-weight: 700; }
+.hero h1 .w { display: inline-block; }
+.lead { margin-top: 28px; font-size: clamp(19px, 1.6vw, 24px); line-height: 1.4; max-width: 30ch; }
+.lead + p { margin-top: 14px; color: var(--ink-muted); font-size: 17px; line-height: 1.55; max-width: 38ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 26px; border-radius: 999px; font: 600 16px/1 var(--font); text-decoration: none; border: 0; cursor: pointer; transition: transform 150ms var(--ease), background-color 150ms var(--ease); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: #d4f86c; }
+.btn-quiet { background: var(--surface); color: var(--ink); }
+.btn-quiet:hover { background: #1f1f1f; }
+.stage { position: relative; aspect-ratio: 1; width: 100%; }
+.stage canvas { width: 100% !important; height: 100% !important; display: block; cursor: grab; touch-action: pan-y; -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%); mask-image: radial-gradient(closest-side, #000 72%, transparent 100%); }
+.stage canvas:active { cursor: grabbing; }
+.stage .poster { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; transition: opacity 600ms var(--ease); }
+.stage.ready .poster { opacity: 0; }
+.facts { display: grid; gap: 14px; }
+.fact { background: var(--surface); border-radius: 20px; padding: 20px 22px; }
+.fact strong { display: block; font-size: 22px; letter-spacing: -0.02em; }
+.fact span { display: block; margin-top: 4px; color: var(--ink-muted); font-size: 15px; line-height: 1.45; }
+
+/* Abschnitte */
+section { padding: clamp(96px, 14vw, 200px) var(--pad) 0; }
+h2 { font-size: clamp(34px, 4.6vw, 64px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 700; max-width: 18ch; }
+.intro { margin-top: 20px; font-size: 19px; line-height: 1.5; max-width: 52ch; }
+
+/* Einblick: Auswahl links, Telefon rechts (das „live thing“) */
+.peek { display: grid; grid-template-columns: 1fr minmax(260px, 380px); gap: clamp(32px, 6vw, 96px); align-items: center; margin-top: 56px; }
+.tabs { display: grid; gap: 10px; }
+.tab { text-align: left; background: var(--surface); color: var(--ink); border: 0; border-radius: 22px; padding: 22px 24px; font: inherit; cursor: pointer; transition: background-color 200ms var(--ease), transform 150ms var(--ease); }
+.tab:active { transform: scale(0.985); }
+.tab strong { display: block; font-size: 22px; letter-spacing: -0.02em; }
+.tab span { display: block; margin-top: 6px; color: var(--ink-muted); font-size: 16px; line-height: 1.5; }
+.tab[aria-pressed="true"] { background: var(--ink); color: #000; }
+.tab[aria-pressed="true"] span { color: #3d3f42; }
+.phone { position: relative; border-radius: 52px; background: #1c1c1c; padding: 12px; box-shadow: 0 40px 120px rgba(198, 242, 78, 0.08); }
+.phone img { border-radius: 40px; width: 100%; height: auto; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; transition: opacity 260ms var(--ease); }
+.phone img.swap { opacity: 0; }
+.caption { margin-top: 14px; color: var(--ink-muted); font-size: 14px; text-align: center; }
+
+/* Privat: großer Satz + drei Punkte */
+.private { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(32px, 6vw, 96px); align-items: start; }
+.private .statement { font-size: clamp(28px, 3vw, 36px); line-height: 1.22; letter-spacing: -0.02em; font-weight: 600; max-width: 22ch; }
+.points { display: grid; gap: 12px; list-style: none; }
+.points li { background: var(--bg-alt); border-radius: 20px; padding: 22px 24px; font-size: 17px; line-height: 1.5; }
+.points li b { display: block; font-size: 19px; margin-bottom: 4px; }
+
+/* Training: zwei Bildschirme nebeneinander, Text daneben */
+.duo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(16px, 3vw, 40px); align-items: end; margin-top: 56px; }
+.duo figure { background: var(--surface); border-radius: 36px; padding: 10px; }
+.duo img { border-radius: 28px; width: 100%; height: auto; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; }
+.duo figcaption { padding: 14px 10px 8px; color: var(--ink-muted); font-size: 15px; line-height: 1.45; }
+.duo .text p { font-size: 18px; line-height: 1.55; margin-top: 16px; }
+.duo .text p:first-child { margin-top: 0; }
+
+/* Abschluss: Name groß über die ganze Breite */
+footer { padding: clamp(120px, 16vw, 220px) var(--pad) 40px; }
+.wordmark { font-size: clamp(64px, 19vw, 300px); line-height: 0.82; padding-bottom: 0.2em; letter-spacing: -0.06em; font-weight: 700; color: var(--accent); }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; margin-top: 8px; color: var(--ink-muted); font-size: 15px; line-height: 1.6; }
+.foot nav { display: flex; gap: 24px; }
+
+/* Bewegung: Teile eines Abschnitts steigen gestaffelt auf (einmal); ohne Skript bleibt alles sichtbar */
+.js .rise { opacity: 0; transform: translateY(24px); transition: opacity 700ms var(--ease), transform 900ms var(--ease); transition-delay: var(--d, 0ms); }
+.js .rise.in { opacity: 1; transform: none; }
+.js .hero h1 .w { opacity: 0; transform: translateY(28px); transition: opacity 600ms var(--ease), transform 900ms cubic-bezier(0.2, 1.2, 0.3, 1); transition-delay: var(--d); }
+.js .hero.in h1 .w { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .js .rise, .js .hero h1 .w { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* Tablet und Telefon: eigene Anordnung */
+@media (max-width: 1080px) {
+  .hero { grid-template-columns: 1fr 1fr; }
+  .facts { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); }
+  .duo { grid-template-columns: 1fr 1fr; }
+  .duo .text { grid-column: 1 / -1; order: -1; }
+}
+@media (max-width: 720px) {
+  .nav ul { display: none; }
+  .hero { grid-template-columns: 1fr; padding-top: 96px; min-height: auto; }
+  .stage { max-width: 420px; margin: 0 auto; order: -1; }
+  .facts { grid-template-columns: 1fr; }
+  .peek, .private { grid-template-columns: 1fr; }
+  .phone { max-width: 320px; margin: 0 auto; }
+  .duo { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .duo figure { border-radius: 26px; padding: 6px; }
+  .duo img { border-radius: 21px; }
+}
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="#top"><img src="assets/icon.png" alt="">Myhealth</a>
+  <ul>
+    <li><a href="#einblick">Einblick</a></li>
+    <li><a href="#privat">Privat</a></li>
+    <li><a href="#training">Training</a></li>
+  </ul>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="titel">
+    <div>
+      <h1 id="titel"><span class="w" style="--d: 80ms">Myhealth</span></h1>
+      <p class="lead rise" style="--d: 240ms">Training, Ernährung und Fortschritt in einer ruhigen App für dein iPhone.</p>
+      <p class="rise" style="--d: 320ms">Pläne mit Pausen-Timer, Kalorien mit Barcode-Scanner, dein Gewichtstrend – ohne Konto, alles bleibt auf deinem Gerät.</p>
+      <div class="actions rise" style="--d: 400ms">
+        <a class="btn btn-primary" href="#einblick">App ansehen</a>
+        <a class="btn btn-quiet" href="datenschutz.html">Datenschutz</a>
+      </div>
+    </div>
+    <div class="stage" id="stage" aria-label="Das Myhealth-Herz in 3D, mit Finger oder Maus drehbar" role="img">
+      <img class="poster" src="assets/icon.png" alt="">
+    </div>
+    <div class="facts">
+      <div class="fact rise" style="--d: 300ms"><strong>Kein Konto</strong><span>Öffnen und loslegen. Keine Anmeldung, keine E-Mail.</span></div>
+      <div class="fact rise" style="--d: 380ms"><strong>Auf deinem Gerät</strong><span>Tagebuch, Training und Fotos verlassen dein iPhone nicht.</span></div>
+      <div class="fact rise" style="--d: 460ms"><strong>Erscheint bald</strong><span>Für iPhone. Gerade in der Testphase.</span></div>
+    </div>
+  </section>
+
+  <section id="einblick" aria-labelledby="einblick-titel">
+    <h2 id="einblick-titel" class="rise">Ein Blick in die App</h2>
+    <p class="intro rise" style="--d: 80ms">Vier Bereiche, ein ruhiger Aufbau. Wähle einen aus und sieh dir den echten Bildschirm an.</p>
+    <div class="peek">
+      <div class="tabs rise" style="--d: 140ms" role="group" aria-label="Bereich wählen">
+        <button class="tab" type="button" aria-pressed="true" data-shot="screen-heute" data-cap="Heute: was ansteht, deine Woche, Kalorien, Trinken, Gewicht.">
+          <strong>Heute</strong><span>Was heute ansteht, deine Trainingswoche und die wichtigsten Zahlen auf einen Blick.</span>
+        </button>
+        <button class="tab" type="button" aria-pressed="false" data-shot="screen-pause" data-cap="Pause im Vollbild mit dem nächsten Satz.">
+          <strong>Training</strong><span>Sätze abhaken, Pause im Vollbild, am Ende deine Bestleistungen.</span>
+        </button>
+        <button class="tab" type="button" aria-pressed="false" data-shot="screen-ernaehrung" data-cap="Ernährung: Tagesbilanz und Mahlzeiten.">
+          <strong>Ernährung</strong><span>Mahlzeiten eintragen, Barcode scannen, Trinken mitzählen.</span>
+        </button>
+        <button class="tab" type="button" aria-pressed="false" data-shot="screen-fortschritt" data-cap="Fortschritt: Gewichtstrend über 30 Tage.">
+          <strong>Fortschritt</strong><span>Trend statt Tageswert, Ziele, Maße und Schritte.</span>
+        </button>
+      </div>
+      <div class="rise" style="--d: 220ms">
+        <div class="phone"><img id="shot" src="assets/screen-heute.webp" alt="Bildschirm „Heute“ der App Myhealth" width="585" height="1266"></div>
+        <p class="caption" id="cap" aria-live="polite">Heute: was ansteht, deine Woche, Kalorien, Trinken, Gewicht.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="privat" aria-labelledby="privat-titel">
+    <h2 id="privat-titel" class="rise">Deine Daten bleiben bei dir</h2>
+    <div class="private" style="margin-top: 48px;">
+      <p class="statement rise" style="--d: 80ms">Kein Konto, kein Server. Dein Tagebuch, dein Training und deine Fotos werden nur auf deinem iPhone gespeichert.</p>
+      <ul class="points">
+        <li class="rise" style="--d: 140ms"><b>Barcode-Scanner</b>Gesendet wird nur der Barcode an Open Food Facts – nie dein Tagebuch.</li>
+        <li class="rise" style="--d: 200ms"><b>Sicherung in deiner Hand</b>Eine Sicherungsdatei entsteht nur, wenn du sie selbst erstellst.</li>
+        <li class="rise" style="--d: 260ms"><b>App-Sperre</b>Auf Wunsch mit Face ID oder Gerätecode beim Öffnen.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="training" aria-labelledby="training-titel">
+    <h2 id="training-titel" class="rise">Training, das mitzählt</h2>
+    <div class="duo">
+      <div class="text rise" style="--d: 80ms">
+        <p>Hak deine Sätze ab und die Pause startet von selbst – groß, mit dem nächsten Satz und einem spürbaren Countdown in den letzten drei Sekunden.</p>
+        <p>Am Ende siehst du, was du geschafft hast. Neue Bestleistungen erkennt die App aus deinen eigenen früheren Trainings.</p>
+      </div>
+      <figure class="rise" style="--d: 160ms"><img src="assets/screen-pause.webp" alt="Pause im Vollbild mit Restzeit 1:30 und dem nächsten Satz" width="585" height="1266" loading="lazy"><figcaption>Pause im Vollbild</figcaption></figure>
+      <figure class="rise" style="--d: 240ms"><img src="assets/screen-abschluss.webp" alt="Abschluss-Bildschirm mit einer neuen Bestleistung" width="585" height="1266" loading="lazy"><figcaption>Abschluss mit Bestleistung</figcaption></figure>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wordmark" aria-hidden="true">Myhealth</div>
+  <div class="foot">
+    <p>Myhealth unterstützt allgemeine Fitness für Erwachsene und ersetzt keine ärztliche oder fachliche Beratung.<br>Alle Kalorienwerte sind Schätzungen. Bildschirme mit Beispieldaten.</p>
+    <nav aria-label="Rechtliches"><a href="datenschutz.html">Datenschutz</a><a href="impressum.html">Impressum</a></nav>
+  </div>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js');
+  // Gestaffeltes Aufsteigen, einmal beim Erscheinen; Hero sofort.
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.18 });
+  document.querySelectorAll('.rise').forEach((el) => io.observe(el));
+  requestAnimationFrame(() => document.querySelector('.hero').classList.add('in'));
+
+  // Einblick: Bereich wählen → echter Bildschirm (das „live thing“ der Seite)
+  const shot = document.getElementById('shot'), cap = document.getElementById('cap');
+  document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-pressed', String(t === tab)));
+    shot.classList.add('swap');
+    setTimeout(() => {
+      shot.src = `assets/${tab.dataset.shot}.webp`;
+      shot.alt = `Bildschirm „${tab.querySelector('strong').textContent}“ der App Myhealth`;
+      cap.textContent = tab.dataset.cap;
+      shot.onload = () => shot.classList.remove('swap');
+    }, 180);
+  }));
+</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/examples/jsm/":"./vendor/three/examples/jsm/"}}</script>
+<script type="module">
+// 3D-Herz nach getlayers.ai „SVG to 3D“ (Preset Heart, #C6F24E, Flüssig-Chrom, Rim + Fill), live:
+// dreht sich langsam (0,4 rad/s), mit Finger/Maus drehbar, pausiert außerhalb des Bildschirms,
+// steht still bei „Bewegung reduzieren“. Ohne WebGL bleibt das App-Symbol als Bild stehen.
+import * as THREE from 'three';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+
+const stage = document.getElementById('stage');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+try {
+  const svg = await (await fetch('assets/logo.svg')).text();
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  stage.appendChild(renderer.domElement);
+  RectAreaLightUniformsLib.init();
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#000000');
+  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+  const camera = new THREE.PerspectiveCamera(36, 1, 1, 5000);
+  camera.position.set(0, 0, 520);
+
+  const data = new SVGLoader().parse(svg.replaceAll('#C6F24E', '#ffffff'));
+  const shapes = data.paths.flatMap((p) => SVGLoader.createShapes(p));
+  const box = new THREE.Box2();
+  shapes.forEach((s) => s.getPoints(16).forEach((pt) => box.expandByPoint(pt)));
+  const size = box.getSize(new THREE.Vector2());
+  const k = 200 / Math.max(size.x, size.y);
+  const bevel = Math.max(0.18 / k, Math.min(4 / k, 6.4 * 0.38));
+  const geometry = new THREE.ExtrudeGeometry(shapes, { depth: 60 / k, bevelEnabled: true, bevelSize: bevel, bevelThickness: bevel * (2.4 / 1.45), bevelOffset: -0.2 * bevel, bevelSegments: 32, curveSegments: 20, steps: 2 });
+  geometry.center();
+  geometry.scale(k, -k, k);
+  const pos = geometry.getAttribute('position');
+  for (let i = 0; i < pos.count; i += 3) for (let c = 0; c < 3; c++) { const t = pos.array[(i + 1) * 3 + c]; pos.array[(i + 1) * 3 + c] = pos.array[(i + 2) * 3 + c]; pos.array[(i + 2) * 3 + c] = t; }
+  geometry.computeVertexNormals();
+
+  const base = new THREE.Color('#C6F24E'); const hsl = {}; base.getHSL(hsl);
+  const sat = THREE.MathUtils.clamp(hsl.s * 0.96, 0.18, 0.94);
+  const tone = (l, m) => new THREE.Color().setHSL(hsl.h, THREE.MathUtils.clamp(sat * m, 0, 1), l);
+  const caps = new THREE.MeshPhysicalMaterial({ color: tone(0.14, 0.88), metalness: 0.94, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 2.3 });
+  const walls = new THREE.MeshPhysicalMaterial({ color: tone(0.28, 0.72), emissive: tone(0.03, 0.8), emissiveIntensity: 0.11, metalness: 0.94, roughness: 0.18, clearcoat: 1, envMapIntensity: 2.05 });
+  const group = new THREE.Group(); group.add(new THREE.Mesh(geometry, [caps, walls])); scene.add(group);
+  group.rotation.x = 0.12;
+
+  const area = (c, i, w, h, p, t) => { const l = new THREE.RectAreaLight(c, i, w, h); l.position.set(...p); l.lookAt(...t); scene.add(l); };
+  scene.add(new THREE.AmbientLight('#8babff', 0.056));
+  area(tone(0.24, 0.82), 3.5, 240, 300, [-90, -40, 170], [0, 0, 0]);
+  area(tone(0.56, 1), 16.8, 72, 520, [-165, 20, -60], [-18, 0, 0]);
+  area(tone(0.56, 1), 15.4, 72, 520, [165, 10, -58], [18, 0, 0]);
+  area(tone(0.52, 0.5), 7, 150, 300, [120, 90, 160], [0, 0, 0]);
+
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.2, 0.5, 0.86);
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.06; controls.enablePan = false; controls.enableZoom = false;
+
+  const resize = () => {
+    const w = stage.clientWidth, h = stage.clientHeight, dpr = Math.min(devicePixelRatio, 2);
+    renderer.setPixelRatio(dpr); renderer.setSize(w, h, false); composer.setPixelRatio(dpr); composer.setSize(w, h);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  };
+  new ResizeObserver(resize).observe(stage); resize();
+
+  let visible = true, last = performance.now(), first = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; last = performance.now(); }).observe(stage);
+  const loop = (now) => {
+    requestAnimationFrame(loop);
+    if (!visible) return;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!reduced) group.rotation.y += dt * 0.4;
+    controls.update();
+    composer.render();
+    if (first) { first = false; stage.classList.add('ready'); }
+  };
+  requestAnimationFrame(loop);
+} catch (e) {
+  // Ohne WebGL bleibt das Bild des App-Symbols stehen.
+}
+</script>
+</body>
+</html>
