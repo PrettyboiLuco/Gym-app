@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-import { useTheme } from '@/hooks/use-theme';
+import { useStackOptions } from '@/components/stack-options';
 import { t } from '@/i18n';
 import { ErrorView } from '@/components/error-view';
 
@@ -8,15 +8,10 @@ import { ErrorView } from '@/components/error-view';
 export const ErrorBoundary = ErrorView;
 
 export default function NutritionLayout() {
-  const theme = useTheme();
+  const stackOptions = useStackOptions();
   return (
     <Stack
-      screenOptions={{
-        headerBackTitle: t('common.back'),
-        headerTintColor: theme.text,
-        headerStyle: { backgroundColor: theme.background },
-        headerTitleStyle: { color: theme.text },
-      }}>
+      screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="add" options={{ title: t('nutrition.search.title') }} />
       <Stack.Screen name="text" options={{ title: t('foodText.title') }} />

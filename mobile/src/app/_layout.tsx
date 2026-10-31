@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
 import { LockGate } from '@/components/lock-gate';
+import { ToastHost } from '@/components/toast';
 import { Onboarding } from '@/components/onboarding';
 import { configureNotifications } from '@/data/notifications';
 import { ProfileProvider, useProfile } from '@/data/profile-provider';
@@ -44,6 +45,7 @@ export default function TabLayout() {
           <LockGate>
             <Gate />
           </LockGate>
+          <ToastHost />
         </ProfileProvider>
       </StoreProvider>
     </ThemeProvider>

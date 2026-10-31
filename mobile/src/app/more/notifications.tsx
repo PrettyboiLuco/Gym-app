@@ -5,6 +5,7 @@ import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, Field, Presets } from '@/components/fields';
 import { Screen } from '@/components/screen';
+import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
@@ -62,6 +63,7 @@ export default function NotificationsScreen() {
     allowLeave();
     setBaseline(JSON.stringify(form));
     setMessage(anyOn && !granted && NOTIFICATIONS_SUPPORTED ? t('reminders.savedNoPermission') : t('reminders.saved'));
+    showToast(t('common.saved'));
   }
 
   const toggle = (value: boolean, onChange: (v: boolean) => void, label: string) => (

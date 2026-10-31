@@ -1,18 +1,30 @@
 import { NativeTabs } from 'expo-router/native-tabs';
+
+import { MiniPlayer } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
+import { useLiveTraining } from '@/data/live-training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
 
 export default function AppTabs() {
   const scheme = useColorScheme();
   const colors = Colors[scheme];
+  const live = useLiveTraining();
+  const running = !!live.session || !!live.timedTitle;
 
   return (
     <NativeTabs
+      // iOS 26: Leiste schrumpft beim Scrollen nach unten und kommt beim Zurückscrollen wieder.
+      minimizeBehavior="onScrollDown"
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       tintColor={colors.text}
       labelStyle={{ selected: { color: colors.text } }}>
+      {running ? (
+        <NativeTabs.BottomAccessory>
+          <Accessory live={live} />
+        </NativeTabs.BottomAccessory>
+      ) : null}
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>{t('tabs.today')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
@@ -35,4 +47,10 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
     </NativeTabs>
   );
+}
+
+/** Mini-Player im Zubehör-Platz über der Tab-Leiste (iOS 26); eingeklappt kompakt. */
+function Accessory({ live }: { live: ReturnType<typeof useLiveTraining> }) {
+  const placement = NativeTabs.BottomAccessory.usePlacement();
+  return <MiniPlayer live={live} compact={placement === 'inline'} />;
 }

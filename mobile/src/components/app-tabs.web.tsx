@@ -8,7 +8,9 @@ import {
 } from 'expo-router/ui';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
+import { MiniPlayer } from '@/components/mini-player';
 import { TabIcon, type TabIconName } from '@/components/tab-icon';
+import { useLiveTraining } from '@/data/live-training';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -43,8 +45,15 @@ export default function AppTabs() {
 }
 
 function TabBar(props: TabListProps) {
+  const live = useLiveTraining();
+  const running = !!live.session || !!live.timedTitle;
   return (
     <View {...props} style={styles.bar}>
+      {running ? (
+        <ThemedView type="backgroundElement" style={styles.player}>
+          <MiniPlayer live={live} />
+        </ThemedView>
+      ) : null}
       <ThemedView type="backgroundElement" style={styles.inner}>
         {props.children}
       </ThemedView>
@@ -75,7 +84,9 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: Spacing.two,
     alignItems: 'center',
+    gap: Spacing.two,
   },
+  player: { width: '100%', maxWidth: MaxContentWidth, borderRadius: Radius.card, overflow: 'hidden' },
   inner: {
     flexDirection: 'row',
     width: '100%',

@@ -6,6 +6,7 @@ import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
 import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
+import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
@@ -93,6 +94,7 @@ export default function SupplementsScreen() {
     await saveSupplement(db, editing === 'neu' ? null : editing, value);
     setEditing(null);
     setMessage(t('supplements.saved'));
+    showToast(t('common.saved'));
     await reload();
     await rescheduleReminders(value.reminderTime !== null);
   }

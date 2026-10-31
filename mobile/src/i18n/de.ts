@@ -20,6 +20,8 @@ export const de = {
   },
   common: {
     save: 'Speichern',
+    saved: 'Gespeichert',
+    deleted: 'Gelöscht',
     delete: 'Löschen',
     confirmDelete: 'Wirklich löschen?',
     cancel: 'Abbrechen',
@@ -110,6 +112,14 @@ export const de = {
     continue: 'Weiter trainieren',
     startTitle: 'Training starten',
     suggested: 'Vorschlag',
+    otherDay: 'Anderen Tag wählen',
+    newPlanShort: 'Neu',
+    routinesTitle: 'Abläufe',
+    lastToday: 'Letztes Training: heute',
+    lastDays: {
+      one: 'Letztes Training: gestern',
+      other: 'Letztes Training: vor {{count}} Tagen',
+    },
     dayChoiceHint: 'Du kannst jeden Tag wählen. Ausgelassene Tage zählen nicht als absolviert.',
     freeWorkout: 'Freies Training ohne Plan',
     plansTitle: 'Meine Pläne',
@@ -583,6 +593,11 @@ export const de = {
     adviceApply: 'Vorschlag eintragen',
     adviceNote: 'Steigerungsregeln Fassung {{version}}, Vorschlag ohne fachliche Prüfung. Du entscheidest.',
   },
+  mini: {
+    running: 'Training läuft',
+    elapsed: '{{minutes}} min',
+    open: 'Zurück zum Training',
+  },
   summary: {
     navTitle: 'Geschafft',
     title: 'Training geschafft',
@@ -825,8 +840,11 @@ export const de = {
     today: 'Heute',
     yesterday: 'Gestern',
     prevDay: 'Vorheriger Tag',
+    toToday: 'Zu heute',
     nextDay: 'Nächster Tag',
     weekLink: 'Woche',
+    weekLinkSub: 'Sieben Tage im Überblick',
+    settingsLinkSub: 'Kalorienziel, Trinkziel, Zahlen ausblenden',
     settingsLink: 'Einstellungen',
     recipesLink: 'Rezepte',
     meals: {
@@ -865,6 +883,7 @@ export const de = {
       eaten: 'Gegessen',
       goal: 'Ziel',
       left: 'Übrig',
+      ofGoal: 'von {{goal}} kcal',
       over: 'Über dem Ziel',
       noGoal: 'Noch kein Kalorienziel. Lass es unter „Fortschritt → Kalorienrechner“ schätzen oder trag es unter „Einstellungen“ ein.',
       estimated: 'Das Ziel stammt aus dem Kalorienrechner und ist eine Schätzung.',
@@ -1116,6 +1135,12 @@ export const de = {
     history: 'Verlauf',
     showAll: 'Alle anzeigen ({{count}})',
     showLess: 'Weniger anzeigen',
+    bodyTitle: 'Körper und Daten',
+    trendUnit: '{{unit}} · Trend (Ø 7 Tage)',
+    measureCount: {
+      one: '1 Stelle',
+      other: '{{count}} Stellen',
+    },
     goalsTitle: 'Meine Ziele',
     goalsEmpty: 'Noch keine Ziele. Du kannst mehrere gleichzeitig haben, z. B. Gewicht halten und ein Kraftziel.',
     goalAdd: 'Ziel hinzufügen',
@@ -2375,6 +2400,8 @@ export const de = {
     languageTitle: 'Sprache',
     language: 'Deutsch. Weitere Sprachen folgen.',
     versionTitle: 'Version',
+    aboutTitle: 'Über die App',
+    languageValue: 'Deutsch',
     sourcesTitle: 'Datenquellen',
     sources:
       'Produktdaten beim Scannen und in der Online-Suche stammen von Open Food Facts (openfoodfacts.org), ' +

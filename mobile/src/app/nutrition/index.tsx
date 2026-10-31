@@ -3,13 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { MeterBar } from '@/components/charts';
 import { DaySwitcher } from '@/components/day-switcher';
+import { Icon } from '@/components/icon';
 import { Field, ListRow, Presets } from '@/components/fields';
 import { foodTitle } from '@/components/food-title';
 import { formatAmount, formatKcal, formatKcalSum, macroSumLine, todayDay, whenFor } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import {
@@ -22,6 +24,7 @@ import {
   type ConsumptionEvent,
 } from '@/data/nutrition';
 import { drinkTotals, MEALS, shiftDay, sumNutrients, type Meal } from '@/domain/nutrition';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
@@ -33,6 +36,8 @@ async function loadDiary(db: Db, day: string) {
 
 export default function DiaryScreen() {
   const theme = useTheme();
+  const dark = useColorScheme() === 'dark';
+  const dataColor = dark ? theme.accent : theme.tint;
   const [day, setDay] = useState(todayDay);
   // App über Mitternacht offen: Wer „Heute“ angesehen hat, sieht nach dem Zurückkehren den neuen Tag.
   const shownToday = useRef(todayDay());
@@ -99,12 +104,6 @@ export default function DiaryScreen() {
   return (
     <Screen title={t('nutrition.title')}>
       <DaySwitcher day={day} onChange={changeDay} />
-      <View style={styles.links}>
-        <Button label={t('nutrition.weekLink')} variant="secondary" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
-        <Button label={t('nutrition.recipesLink')} variant="secondary" onPress={() => router.push('/nutrition/recipes')} />
-        <Button label={t('supplements.link')} variant="secondary" onPress={() => router.push('/nutrition/supplements')} />
-        <Button label={t('nutrition.settingsLink')} variant="secondary" onPress={() => router.push('/nutrition/settings')} />
-      </View>
 
       <Card title={t('nutrition.summary.title')}>
         {events.length === 0 ? (
@@ -113,14 +112,22 @@ export default function DiaryScreen() {
           <ThemedText>{t('nutrition.summary.hidden', { count: events.length })}</ThemedText>
         ) : (
           <>
+            {/* Leitfrage „Wie viel habe ich gegessen, was ist noch offen?“: die gegessene Menge groß,
+                darunter der Balken als echter Anteil am Ziel (beide Enden beschriftet). */}
+            <View style={styles.big} accessible accessibilityLabel={`${t('nutrition.summary.eaten')} ${formatKcalSum(sums)}${goal !== null ? `, ${t('nutrition.summary.goal')} ${formatKcal(goal)}` : ''}`}>
+              <ThemedText style={styles.bigValue}>{formatNumber(sums.values.kcal, 0)}</ThemedText>
+              <ThemedText themeColor="textSecondary">{goal !== null ? t('nutrition.summary.ofGoal', { goal: formatNumber(goal, 0) }) : 'kcal'}</ThemedText>
+            </View>
+            {goal !== null && goal > 0 ? (
+              <MeterBar progress={sums.values.kcal / goal} color={left !== null && left < 0 ? theme.danger : dataColor} trackColor={theme.backgroundSelected} height={10} />
+            ) : null}
             <View style={styles.numbers}>
-              <Stat label={t('nutrition.summary.eaten')} value={formatKcalSum(sums)} />
-              <Stat label={t('nutrition.summary.goal')} value={goal === null ? '–' : formatKcal(goal)} />
               {/* Fehlen Werte, ist „übrig“ höchstens so viel (≤). */}
               <Stat
                 label={left !== null && left < 0 ? t('nutrition.summary.over') : t('nutrition.summary.left')}
                 value={left === null ? '–' : `${sums.unknown.kcal > 0 && left >= 0 ? '≤ ' : sums.unknown.kcal > 0 ? '≥ ' : ''}${formatKcal(Math.abs(left))}`}
               />
+              <Stat label={t('nutrition.summary.goal')} value={goal === null ? '–' : formatKcal(goal)} />
             </View>
             <ThemedText type="small" themeColor="textSecondary">
               {macroSumLine(sums)}
@@ -148,20 +155,30 @@ export default function DiaryScreen() {
       {MEALS.map((meal) => {
         const items = events.filter((e) => e.kind === 'essen' && e.meal === meal);
         const mealKcal = sumNutrients(items);
-        const title =
-          hide || items.length === 0
-            ? t(`nutrition.meals.${meal}`)
-            : `${t(`nutrition.meals.${meal}`)} · ${formatKcalSum(mealKcal)}`;
         return (
-          <Card key={meal} title={title}>
+          <Card
+            key={meal}
+            title={t(`nutrition.meals.${meal}`)}
+            trailing={
+              !hide && items.length > 0 ? (
+                <ThemedText themeColor="textSecondary" style={styles.num}>
+                  {formatKcalSum(mealKcal)}
+                </ThemedText>
+              ) : null
+            }>
             {items.map(entryRow)}
             <View style={styles.links}>
-              <Button label={t('nutrition.add')} onPress={() => router.push({ pathname: '/nutrition/add', params: { day, meal } })} />
+              <Button
+                label={t('nutrition.add')}
+                size="compact"
+                icon={<Icon name="plus" color={theme.onPrimary} size={16} strokeWidth={2.2} />}
+                onPress={() => router.push({ pathname: '/nutrition/add', params: { day, meal } })}
+              />
               {items.length === 0 ? (
-                <Button label={t('nutrition.copyYesterday')} variant="secondary" onPress={() => copyFromPreviousDay(meal)} />
+                <Button label={t('nutrition.copyYesterday')} variant="secondary" size="compact" onPress={() => copyFromPreviousDay(meal)} />
               ) : null}
               {items.some((e) => e.foodId) && templateFor !== meal ? (
-                <Button label={t('nutrition.saveTemplate')} variant="secondary" onPress={() => setTemplateFor(meal)} />
+                <Button label={t('nutrition.saveTemplate')} variant="secondary" size="compact" onPress={() => setTemplateFor(meal)} />
               ) : null}
             </View>
             {templateFor === meal ? (
@@ -188,6 +205,9 @@ export default function DiaryScreen() {
             ? t('nutrition.drinks.progress', { all: formatNumber(allMl, 0), goal: formatNumber(settings.drinkGoalMl, 0) })
             : t('nutrition.drinks.progressNoGoal', { all: formatNumber(allMl, 0) })}
         </ThemedText>
+        {settings.drinkGoalMl ? (
+          <MeterBar progress={allMl / settings.drinkGoalMl} color={dataColor} trackColor={theme.backgroundSelected} height={8} />
+        ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.drinks.water', { water: formatNumber(waterMl, 0) })}
         </ThemedText>
@@ -212,6 +232,13 @@ export default function DiaryScreen() {
           {t('nutrition.drinks.basis')}
         </ThemedText>
       </Card>
+
+      <Card>
+        <ListRow icon="calendar" title={t('nutrition.weekLink')} subtitle={t('nutrition.weekLinkSub')} accessory="›" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
+        <ListRow icon="book" title={t('nutrition.recipesLink')} accessory="›" onPress={() => router.push('/nutrition/recipes')} />
+        <ListRow icon="pill" title={t('supplements.link')} accessory="›" onPress={() => router.push('/nutrition/supplements')} />
+        <ListRow icon="target" title={t('nutrition.settingsLink')} subtitle={t('nutrition.settingsLinkSub')} accessory="›" onPress={() => router.push('/nutrition/settings')} last />
+      </Card>
     </Screen>
   );
 }
@@ -230,6 +257,9 @@ function Stat({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   links: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   numbers: { flexDirection: 'row', gap: Spacing.two },
+  big: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },
+  bigValue: { fontFamily: DisplayFont.bold, fontSize: 36, lineHeight: 42, letterSpacing: -1, fontVariant: ['tabular-nums'] },
+  num: { fontVariant: ['tabular-nums'] },
   stat: { flex: 1, gap: Spacing.half },
   templateRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.two, flexWrap: 'wrap' },
   flex: { flex: 1, minWidth: 160 },

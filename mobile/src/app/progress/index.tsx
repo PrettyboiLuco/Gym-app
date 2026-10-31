@@ -6,11 +6,13 @@ import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { goalProgressLines, goalTitle } from '@/components/goal-progress';
+import { Icon } from '@/components/icon';
 import { formatKcal, todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
+import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
 import { WeightChart } from '@/components/weight-chart';
-import { Spacing } from '@/constants/theme';
+import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn, listActiveGoals, listMeasurements, type CalorieGoal, type GoalVersion } from '@/data/goals';
 import { useProfile } from '@/data/profile-provider';
@@ -25,7 +27,7 @@ import { stepsForDay } from '@/domain/steps';
 import { dailyMeans, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDay, formatLength, formatNumber, formatWeight, t } from '@/i18n';
+import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
 
 type GoalCard = { goal: GoalVersion; title: string; lines: string[] };
 
@@ -87,11 +89,13 @@ export default function ProgressScreen() {
     setError(false);
     await addWeight(db, day, kg);
     setInput('');
+    showToast(t('common.saved'));
     await reload();
   }
 
   async function remove(id: string) {
     await deleteWeight(db, id);
+    showToast(t('common.deleted'));
     await reload();
   }
 
@@ -100,9 +104,29 @@ export default function ProgressScreen() {
     return kg > 0.05 ? `+${text}` : kg < -0.05 ? `−${text}` : text;
   };
 
+  const measuredSites = MEASURE_SITES.filter((s) => latest[s]).length;
   return (
-    <Screen title={t('progress.title')}>
+    <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined}>
+      {/* Leitfrage „Bewege ich mich Richtung Ziel?“: der Trend groß, darunter der Verlauf, dann das Eintragen. */}
       <Card title={t('progress.weightTitle')}>
+        <View
+          style={styles.big}
+          accessible
+          accessibilityLabel={trend === null ? t('progress.trendMissing') : t('progress.trend', { kg: formatWeight(trend, units.weight) })}>
+          {trend !== null ? (
+            <>
+              <ThemedText style={styles.bigValue}>{formatWeight(trend, units.weight).replace(/\s*\S+$/, '')}</ThemedText>
+              <ThemedText themeColor="textSecondary">{t('progress.trendUnit', { unit: units.weight })}</ThemedText>
+            </>
+          ) : (
+            <ThemedText themeColor="textSecondary">{t('progress.trendMissing')}</ThemedText>
+          )}
+        </View>
+        <WeightChart days={chartDays} points={points} trend={trendPoints} unit={units.weight} />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('progress.trendHint')}
+        </ThemedText>
+        <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
         <DaySwitcher day={day} onChange={setDay} />
         <View style={styles.row}>
           <Field
@@ -125,42 +149,39 @@ export default function ProgressScreen() {
             })}
           </ThemedText>
         ) : null}
-        <ThemedText>
-          {trend === null ? t('progress.trendMissing') : t('progress.trend', { kg: formatWeight(trend, units.weight) })}
-        </ThemedText>
-        {change !== null ? <ThemedText>{t('progress.change', { change: signed(change) })}</ThemedText> : null}
-        <WeightChart days={chartDays} points={points} trend={trendPoints} unit={units.weight} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('progress.trendHint')}
-        </ThemedText>
       </Card>
 
-      <Card>
-        <ListRow
-          title={t('checkin.open')}
-          subtitle={t('checkin.dueSubtitle')}
-          accessory="›"
-          onPress={() => router.push('/progress/checkin')}
-        />
-      </Card>
-
-      <Card title={t('progress.goalsTitle')}>
+      <Card
+        title={t('progress.goalsTitle')}
+        trailing={
+          <Button
+            label={t('training.newPlanShort')}
+            variant="secondary"
+            size="compact"
+            icon={<Icon name="plus" color={theme.text} size={16} strokeWidth={2.2} />}
+            onPress={() => router.push('/progress/goal/new')}
+          />
+        }>
         {cards.length === 0 ? <ThemedText themeColor="textSecondary">{t('progress.goalsEmpty')}</ThemedText> : null}
-        {cards.map((c) => (
+        {cards.map((c, i) => (
           <ListRow
             key={c.goal.goalId}
+            icon="target"
             title={c.title}
             subtitle={c.lines.join('\n')}
             accessory="›"
+            last={i === cards.length - 1}
             onPress={() => router.push(`/progress/goal/${c.goal.goalId}`)}
           />
         ))}
-        <Button label={t('progress.goalAdd')} onPress={() => router.push('/progress/goal/new')} />
       </Card>
 
-      <Card title={t('progress.calorieTitle')}>
+      {/* Alles Weitere zum Körper als eine ruhige Liste statt sechs kleiner Karten; Werte stehen rechts. */}
+      <Card title={t('progress.bodyTitle')}>
+        <ListRow icon="calendar" title={t('checkin.open')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         <ListRow
-          title={calorie ? t('progress.calorieCurrent', { kcal: formatKcal(calorie.baseKcal) }) : t('progress.calorieNone')}
+          icon="flame"
+          title={t('progress.calorieTitle')}
           subtitle={
             calorie
               ? calorie.source === 'coach'
@@ -168,49 +189,38 @@ export default function ProgressScreen() {
                 : calorie.source === 'rechner'
                   ? t('progress.calorieFromCalc')
                   : t('progress.calorieOwn')
-              : undefined
+              : t('progress.calorieNone')
           }
+          value={calorie ? formatKcal(calorie.baseKcal) : undefined}
           accessory="›"
           onPress={() => router.push('/progress/calculator')}
         />
-        <Button label={t('progress.calculatorOpen')} variant="secondary" onPress={() => router.push('/progress/calculator')} />
-      </Card>
-
-      <Card title={t('progress.measureTitle')}>
-        {measurements.length === 0 ? <ThemedText themeColor="textSecondary">{t('progress.measureEmpty')}</ThemedText> : null}
-        {MEASURE_SITES.filter((s) => latest[s]).map((s) => (
-          <ThemedText key={s}>
-            {t(`measure.sites.${s}`)}: {t('measure.latest', { value: formatLength(latest[s]!.latest.cm, units.length), date: formatDay(latest[s]!.latest.day) })}
-          </ThemedText>
-        ))}
-        <Button label={t('progress.measureOpen')} variant="secondary" onPress={() => router.push('/progress/measurements')} />
-      </Card>
-
-      <Card title={t('steps.title')}>
         <ListRow
-          title={steps === null ? t('steps.todayNone') : t('steps.today', { steps: formatNumber(steps, 0) })}
+          icon="ruler"
+          title={t('progress.measureTitle')}
+          subtitle={measuredSites === 0 ? t('progress.measureEmpty') : undefined}
+          value={measuredSites > 0 ? t('progress.measureCount', { count: measuredSites }) : undefined}
           accessory="›"
-          onPress={() => router.push('/progress/steps')}
+          onPress={() => router.push('/progress/measurements')}
         />
-      </Card>
-
-      <Card title={t('progress.photosTitle')}>
+        <ListRow icon="steps" title={t('steps.title')} value={steps === null ? '–' : formatNumber(steps, 0)} accessory="›" onPress={() => router.push('/progress/steps')} />
         {/* Keine Vorschaubilder in der Übersicht: Fotos erst auf eigener Seite und verdeckt. */}
         <ListRow
-          title={profile.photos ? t('progress.photosCount', { count: photoCount }) : t('progress.photosOff')}
+          icon="camera"
+          title={t('progress.photosTitle')}
+          value={profile.photos ? String(photoCount) : t('common.off')}
           accessory="›"
           onPress={() => router.push('/progress/photos')}
         />
-      </Card>
-
-      <Card title={t('progress.profileTitle')}>
         <ListRow
+          icon="person"
           title={t('progress.profileOpen')}
           subtitle={t('progress.profileSummary', {
             weight: t(`units.weightLabel.${units.weight}`),
             length: t(`units.lengthLabel.${units.length}`),
           })}
           accessory="›"
+          last
           onPress={() => router.push('/progress/profile')}
         />
         <ThemedText type="small" themeColor="textSecondary">
@@ -223,11 +233,10 @@ export default function ProgressScreen() {
           <ThemedText themeColor="textSecondary">{t('progress.empty')}</ThemedText>
         ) : (
           (showAll ? weights : weights.slice(0, SHOWN)).map((entry) => (
-            <View key={entry.id} style={styles.entry}>
-              <ThemedText>
-                {formatDay(entry.day)} · {formatWeight(entry.kg, units.weight)}
-              </ThemedText>
-              <ConfirmButton label={t('common.delete')} onConfirm={() => remove(entry.id)} />
+            <View key={entry.id} style={[styles.entry, { borderColor: theme.backgroundSelected }]}>
+              <ThemedText style={styles.flex}>{formatDay(entry.day)}</ThemedText>
+              <ThemedText style={styles.num}>{formatWeight(entry.kg, units.weight)}</ThemedText>
+              <ConfirmButton label={t('common.delete')} size="compact" onConfirm={() => remove(entry.id)} />
             </View>
           ))
         )}
@@ -246,5 +255,9 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Spacing.two, alignItems: 'flex-end' },
   flex: { flex: 1, minWidth: 0 },
-  entry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
+  num: { fontVariant: ['tabular-nums'] },
+  big: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },
+  bigValue: { fontFamily: DisplayFont.bold, fontSize: 36, lineHeight: 42, letterSpacing: -1, fontVariant: ['tabular-nums'] },
+  divider: { height: 1, marginVertical: Spacing.two },
 });
