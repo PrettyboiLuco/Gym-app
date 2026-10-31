@@ -515,6 +515,12 @@ Freigabematrix mit Stand je Risiko: `docs/Freigabematrix.md` – heute **nicht e
 Luc und Fachleute (Gerätetests R1/R6, Fachperson R3, Rechtsprüfung R5/R8, Konto/Name R7).
 463 automatische Tests (11 neu), Lint und Typprüfung ohne Befund, Browser: alle 34 Bildschirme ohne Fehler, Hilfe 9/9.
 
+**Nachtrag 31.10.2026 – Vergleich mit 50 fremden Repositories** (`docs/Repo_Vergleich.md`): kein fremder Code
+übernommen (meist Flutter oder AGPL/GPL), aber drei Verbesserungen selbst gebaut – Scanner liest die neuen QR- und
+DataMatrix-Codes (GS1 „Sunrise 2027“), Barcodes in beiden Schreibweisen (UPC-A/EAN-13) gefunden, Kalorien aus dem
+älteren Open-Food-Facts-Feld `energy_100g`; dazu ein Fehler behoben: der 7-Tage-Gewichtsschnitt zählte Messungen statt
+Tage (Check-in braucht jetzt Messungen an 4 Tagen). 472 automatische Tests.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

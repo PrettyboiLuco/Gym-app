@@ -58,6 +58,18 @@ describe('Gewicht', () => {
   test('7-Tage-Mittel aus 7 Messungen', () => expect(weightTrend(week, '2026-10-28')).toBeCloseTo(80.1));
   test('zu wenige Messungen ergeben keinen Trend', () =>
     expect(weightTrend(week.slice(0, 3), '2026-10-28')).toBeNull());
+  test('mehrere Messungen an einem Tag zählen als ein Tag', () => {
+    const sameDay = [80, 80, 80, 80].map((kg) => ({ day: '2026-10-28', kg }));
+    expect(weightTrend(sameDay, '2026-10-28')).toBeNull();
+    // Drei Tage je 80 kg, ein Tag mit drei Messungen à 84 kg: Tagesmittel zählen gleich → 81 kg, nicht 82,3 kg.
+    const mixed = [
+      { day: '2026-10-25', kg: 80 },
+      { day: '2026-10-26', kg: 80 },
+      { day: '2026-10-27', kg: 80 },
+      ...[84, 84, 84].map((kg) => ({ day: '2026-10-28', kg })),
+    ];
+    expect(weightTrend(mixed, '2026-10-28')).toBeCloseTo(81);
+  });
   test('Messungen außerhalb des Fensters ignoriert', () =>
     expect(weightTrend([...week, { day: '2026-09-28', kg: 95 }], '2026-10-28')).toBeCloseTo(80.1));
   test('Eingabe mit Komma', () => expect(parseWeight('80,5')).toBe(80.5));

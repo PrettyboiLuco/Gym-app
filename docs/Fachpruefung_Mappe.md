@@ -55,7 +55,7 @@ Fundstelle: `mobile/src/domain/checkin.ts`.
 
 | ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
 |---|---|---|---|---|---|
-| C1 | Genug Daten | in beiden Wochen ≥ 4 Gewichtsmessungen (7-Tage-Schnitt) und ≥ 5 vollständig erfasste Esstage | Schwellen freigeben? | | |
+| C1 | Genug Daten | in beiden Wochen an ≥ 4 Tagen gewogen (7-Tage-Schnitt über Tagesmittel) und ≥ 5 vollständig erfasste Esstage | Schwellen freigeben? | | |
 | C2 | Schrittweite | ±100 kcal je Check-in, höchstens ein Vorschlag pro Woche, nur nach Bestätigung | Freigeben? | | |
 | C3 | Abnehmen | kein Rückgang → −100; Verlust > 1 % des Körpergewichts pro Woche → +100 | Grenzen freigeben? | | |
 | C4 | Zunehmen | kein Anstieg → +100; Zunahme > 0,5 % pro Woche → −100 | Freigeben? | | |

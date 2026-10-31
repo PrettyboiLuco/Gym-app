@@ -1327,7 +1327,7 @@ export const de = {
       abweichung: 'das Gewicht weicht vom Halten ab',
     },
     missing: {
-      gewicht: 'mindestens 4 Gewichtsmessungen in dieser und der letzten Woche',
+      gewicht: 'an mindestens 4 Tagen gewogen, in dieser und der letzten Woche',
       essen: 'mindestens 5 vollständig erfasste Tage',
       ziel: 'ein Kalorienziel',
       richtung: 'ein Gewichtsziel (abnehmen, halten oder zunehmen)',

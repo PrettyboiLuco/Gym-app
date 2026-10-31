@@ -36,7 +36,9 @@ muss beim ersten Versuch geprüft werden; sonst Weg B.
 ## Was ich danach einbaue (Claude Code)
 
 1. **Apple Health:** Paket nach Prüfung von Lizenz und Kompatibilität mit Expo SDK 58 (Kandidat laut Register
-   TECH-004: MIT-lizenzierter HealthKit-Wrapper mit Expo-Config-Plugin). Nur Lesen von Schritten, einmalige
+   TECH-004: MIT-lizenzierter HealthKit-Wrapper mit Expo-Config-Plugin; Kandidat geprüft 31.10.2026:
+   `@kingstinct/react-native-healthkit`, Tagessummen per `queryStatisticsCollectionForQuantity` ohne Doppelzählung,
+   siehe `docs/Repo_Vergleich.md`). Nur Lesen von Schritten, einmalige
    Erlaubnis, keine Schreibrechte. Werte werden pro Tag mit Abrufzeit und Zeitfenster gespeichert (Tabelle
    `steps_entry` ist schon vorbereitet, Quelle `apple_health`) und haben Vorrang vor eigenen Einträgen –
    nie addiert (HEALTH-005/006). Hinweis: iOS verrät nicht, ob Lesen abgelehnt wurde (HEALTH-002); die App

@@ -81,6 +81,13 @@ describe('Lebensmittel', () => {
     expect((await searchFoods(db, 'marke'))[0].id).toBe(id);
     expect((await findFoodByBarcode(db, '3017620422003'))?.id).toBe(id);
   });
+  test('Barcode als UPC-A gespeichert, als EAN-13 gescannt (und umgekehrt)', async () => {
+    const upc = await saveFood(db, null, { ...spread, barcode: '036000291452' });
+    expect((await findFoodByBarcode(db, '0036000291452'))?.id).toBe(upc);
+    const ean = await saveFood(db, null, { ...bread, barcode: '0012345678905' });
+    expect((await findFoodByBarcode(db, '012345678905'))?.id).toBe(ean);
+    expect(await findFoodByBarcode(db, '4006381333931')).toBeNull();
+  });
   test('roh und gekocht bleiben getrennt (FOOD-011)', async () => {
     const raw = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'roh', per100: { kcal: 350, protein: 7, carbs: 77, fat: 1, fiber: null } });
     const cooked = await saveFood(db, null, { ...bread, name: 'Reis', prep: 'gekocht', per100: { kcal: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: null } });

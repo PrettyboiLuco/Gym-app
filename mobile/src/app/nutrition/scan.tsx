@@ -13,7 +13,7 @@ import { Spacing } from '@/constants/theme';
 import { findFoodByBarcode, saveFood } from '@/data/nutrition';
 import { fetchProduct, type OffError } from '@/data/off';
 import { useDb } from '@/data/store-provider';
-import { isValidBarcode, type FoodDraft } from '@/domain/nutrition';
+import { isValidBarcode, productCodeFromScan, type FoodDraft } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
@@ -23,8 +23,8 @@ type Phase =
   | { kind: 'found'; draft: FoodDraft }
   | { kind: 'error'; code: string; error: OffError | 'invalidCode' };
 
-// Gängige Lebensmittel-Barcodes (FOOD-001).
-const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e'] as const;
+// Gängige Lebensmittel-Barcodes (FOOD-001) und die 2D-Codes, die ab 2027 auf Verpackungen kommen (GS1 „Sunrise 2027“).
+const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'qr', 'datamatrix'] as const;
 
 export default function ScanScreen() {
   const params = useLocalSearchParams<TargetParams>();
@@ -60,8 +60,11 @@ export default function ScanScreen() {
     setPhase(res.ok ? { kind: 'found', draft: res.value } : { kind: 'error', code, error: res.error });
   }
 
-  function onScanned(code: string, typed = false) {
+  function onScanned(data: string, typed = false) {
     if (busy.current) return;
+    // QR-Codes ohne Produktnummer (z. B. Werbung auf der Packung) still übergehen und weiter scannen.
+    const code = typed ? data : productCodeFromScan(data);
+    if (!code) return;
     busy.current = true;
     lookUp(code, typed);
   }

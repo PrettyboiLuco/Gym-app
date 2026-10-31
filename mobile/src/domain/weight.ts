@@ -9,20 +9,20 @@ function dayNumber(day: string): number {
   return Math.round(Date.parse(`${day}T00:00:00Z`) / DAY_MS);
 }
 
-/** Mittelwert der Messungen in den letzten `days` Tagen bis einschließlich `endDay`. */
+/**
+ * Mittelwert der letzten `days` Tage bis einschließlich `endDay`, gebildet über Tagesmittel: Mehrere Messungen an
+ * einem Tag zählen als ein Tag, sonst würde ein Tag mit vier Messungen den Schnitt bestimmen und allein „genug
+ * Messungen“ ergeben. Ohne Messungen an mindestens `minDays` Tagen gibt es keinen Trend.
+ */
 export function weightTrend(
   entries: Pick<WeightEntry, 'day' | 'kg'>[],
   endDay: string,
   days = 7,
-  minEntries = 4
+  minDays = 4
 ): number | null {
-  const end = dayNumber(endDay);
-  const window = entries.filter((e) => {
-    const d = dayNumber(e.day);
-    return d <= end && d > end - days;
-  });
-  if (window.length < minEntries) return null;
-  return window.reduce((sum, e) => sum + e.kg, 0) / window.length;
+  const means = dailyMeans(entries, endDay, days);
+  if (means.length < minDays) return null;
+  return means.reduce((sum, d) => sum + d.kg, 0) / means.length;
 }
 
 /** Liest eine Gewichtseingabe wie „80,5“ oder „80.5“. Unplausible Werte ergeben null. */

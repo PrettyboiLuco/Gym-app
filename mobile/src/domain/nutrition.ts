@@ -119,6 +119,41 @@ export function isValidBarcode(code: string): boolean {
   return (10 - (sum % 10)) % 10 === check;
 }
 
+/**
+ * Produktnummer (GTIN) aus einem gescannten Code. Klassische Strichcodes (EAN/UPC) kommen unverändert zurück – ihre
+ * Prüfziffer prüft die Kamera selbst. Dazu die 2D-Codes, die Hersteller ab 2027 drucken (GS1 „Sunrise 2027“):
+ * GS1 Digital Link als QR-Code (https://…/01/04012345678901/…), Klammerform „(01)04012345678901(17)…“ und
+ * GS1-Rohdaten aus DataMatrix-Codes („01“ + 14 Ziffern, ggf. mit Trennzeichen). Daraus wird nur die Produktnummer
+ * genommen (Mindesthaltbarkeit, Charge usw. bleiben unbeachtet); eine GTIN-14 mit führender 0 wird zur EAN-13.
+ * null = kein Produktcode, z. B. eine gewöhnliche Web-Adresse.
+ */
+export function productCodeFromScan(raw: string): string | null {
+  const text = raw.trim();
+  if (/^\d{8,14}$/.test(text)) return text;
+  let gtin: string | undefined;
+  if (/^https?:\/\//i.test(text)) {
+    gtin = /\/01\/(\d{14}|\d{13}|\d{12}|\d{8})(?=[/?#]|$)/.exec(text)?.[1] ?? /[?&]01=(\d{8,14})(?=&|#|$)/.exec(text)?.[1];
+  } else if (text.startsWith('(')) {
+    gtin = /\(01\)(\d{14})/.exec(text)?.[1];
+  } else {
+    // DataMatrix: optional Symbologie-Kennung (z. B. „]d2“) und Trennzeichen FNC1 (GS, als Zeichen 29 oder „␝“).
+    gtin = /^(?:\][A-Za-z]\d)?[\u001d␝]?01(\d{14})/.exec(text)?.[1];
+  }
+  if (!gtin) return null;
+  const code = gtin.length === 14 && gtin.startsWith('0') ? gtin.slice(1) : gtin;
+  return isValidBarcode(code) ? code : null;
+}
+
+/**
+ * Schreibweisen derselben Nummer: UPC-A (12 Ziffern) und dieselbe Nummer als EAN-13 mit führender 0. Je nach Gerät
+ * meldet die Kamera die eine oder andere Form; die eigene Liste soll das Produkt in beiden Fällen finden.
+ */
+export function barcodeVariants(code: string): string[] {
+  if (/^\d{12}$/.test(code)) return [code, `0${code}`];
+  if (/^0\d{12}$/.test(code)) return [code, code.slice(1)];
+  return [code];
+}
+
 // ------------------------------------------------------------------------- Mahlzeiten / Zeit
 
 export const MEALS = ['fruehstueck', 'mittag', 'abend', 'snack'] as const;
@@ -208,7 +243,8 @@ function num(value: unknown): number | null {
 /**
  * Macht aus einer Open-Food-Facts-Antwort (API v2 oder v3) einen Lebensmittel-Entwurf.
  * Fehlende Werte bleiben unbekannt. kcal wird nur aus kJ berechnet, wenn kcal fehlt
- * (1 kcal = 4,184 kJ). Gibt null zurück, wenn kein Produkt enthalten ist.
+ * (1 kcal = 4,184 kJ); als kJ-Quelle dient auch das ältere Feld `energy_100g`, das Open Food Facts immer in kJ
+ * führt. Gibt null zurück, wenn kein Produkt enthalten ist.
  */
 export function normalizeOffProduct(response: unknown, barcode: string): FoodDraft | null {
   if (!response || typeof response !== 'object') return null;
@@ -218,7 +254,7 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
   if (r.status === 0 || r.status === 'failure') return null;
 
   const nutriments = (product.nutriments ?? {}) as Record<string, unknown>;
-  const kj = num(nutriments['energy-kj_100g']);
+  const kj = num(nutriments['energy-kj_100g']) ?? num(nutriments.energy_100g);
   const kcal = num(nutriments['energy-kcal_100g']) ?? (kj !== null ? Math.round((kj / 4.184) * 10) / 10 : null);
   const name =
     [product.product_name_de, product.product_name, product.generic_name_de, product.generic_name]

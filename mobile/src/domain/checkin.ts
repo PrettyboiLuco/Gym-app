@@ -2,7 +2,7 @@
 // und macht höchstens einen Vorschlag; geändert wird erst nach Bestätigung (neue Version des Kalorienziels).
 //
 // Regeln Fassung 1 (Vorschlag, Schwellen fachlich nicht freigegeben – Phase 10.1):
-// - Nur mit genug Daten: in beiden Wochen ≥ 4 Gewichtsmessungen (7-Tage-Schnitt) und ≥ 5 vollständig erfasste Tage.
+// - Nur mit genug Daten: in beiden Wochen an ≥ 4 Tagen gewogen (7-Tage-Schnitt über Tagesmittel) und ≥ 5 vollständig erfasste Tage.
 // - Nie bei sensibler Situation (COACH-010) und nie ein Abnehm-Vorschlag bei Untergewicht (GOAL-007).
 // - Lag das Essen im Schnitt > 150 kcal über dem Ziel, wird das Ziel nicht gesenkt, sondern erst Einhalten empfohlen.
 // - Schritte von ±100 kcal, nie unter die Untergrenze (CALC-005); Ziel abnehmen: kein Rückgang → −100,

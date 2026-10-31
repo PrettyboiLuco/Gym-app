@@ -3,7 +3,9 @@ import { describe, expect, test } from '@jest/globals';
 import {
   drinkTotals,
   fractionOf,
+  barcodeVariants,
   isValidBarcode,
+  productCodeFromScan,
   normalizeOffProduct,
   nutrientsForAmount,
   parseAmount,
@@ -146,6 +148,14 @@ describe('Open Food Facts einlesen', () => {
       diet: null,
     });
   });
+  test('kcal aus dem älteren kJ-Feld energy_100g, wenn sonst nichts da ist', () => {
+    const only = (nutriments: Record<string, number>) =>
+      normalizeOffProduct({ status: 1, product: { product_name: 'Alt', nutriments } }, '1')?.per100.kcal;
+    expect(only({ energy_100g: 2255 })).toBeCloseTo(539, 0);
+    expect(only({ 'energy-kcal_100g': 540, energy_100g: 2255 })).toBe(540);
+    expect(only({ 'energy-kj_100g': 418.4, energy_100g: 9999 })).toBe(100);
+    expect(only({})).toBeNull();
+  });
   test('Ballaststoffe aus fiber_100g (C4)', () =>
     expect(normalizeOffProduct({ status: 1, product: { product_name: 'Vollkornbrot', nutriments: { fiber_100g: 7.5 } } }, '1')?.per100.fiber).toBe(7.5));
   test('Allergene, Spuren und vegan/vegetarisch aus den Tags (COACH-009)', () => {
@@ -259,4 +269,35 @@ describe('Formular Einstellungen', () => {
       'drink',
       'glasses',
     ]));
+});
+
+describe('Produktnummer aus gescannten Codes (GS1 „Sunrise 2027“)', () => {
+  test('klassische Strichcodes unverändert', () => {
+    expect(productCodeFromScan('4006381333931')).toBe('4006381333931');
+    expect(productCodeFromScan(' 96385074 ')).toBe('96385074');
+  });
+  test('GS1 Digital Link im QR-Code', () => {
+    expect(productCodeFromScan('https://id.gs1.org/01/04006381333931')).toBe('4006381333931');
+    expect(productCodeFromScan('https://marke.example/01/04006381333931/10/ABC123?17=271231')).toBe('4006381333931');
+    expect(productCodeFromScan('https://marke.example/produkt?01=04006381333931')).toBe('4006381333931');
+  });
+  test('Klammerform und DataMatrix-Rohdaten', () => {
+    expect(productCodeFromScan('(01)04006381333931(17)271231(10)L1')).toBe('4006381333931');
+    expect(productCodeFromScan('010400638133393117271231')).toBe('4006381333931');
+    expect(productCodeFromScan(']d2010400638133393117271231')).toBe('4006381333931');
+    expect(productCodeFromScan('\u001d010400638133393110L1')).toBe('4006381333931');
+  });
+  test('GTIN-14 ohne führende 0 bleibt 14-stellig', () =>
+    expect(productCodeFromScan('(01)14006381333938')).toBe('14006381333938'));
+  test('kein Produktcode: normale Adresse, falsche Prüfziffer, Text', () => {
+    expect(productCodeFromScan('https://www.example.com/aktion')).toBeNull();
+    expect(productCodeFromScan('https://id.gs1.org/01/04006381333932')).toBeNull();
+    expect(productCodeFromScan('Hallo')).toBeNull();
+    expect(productCodeFromScan('')).toBeNull();
+  });
+  test('UPC-A und EAN-13 mit führender 0 sind dieselbe Nummer', () => {
+    expect(barcodeVariants('036000291452')).toEqual(['036000291452', '0036000291452']);
+    expect(barcodeVariants('0036000291452')).toEqual(['0036000291452', '036000291452']);
+    expect(barcodeVariants('4006381333931')).toEqual(['4006381333931']);
+  });
 });

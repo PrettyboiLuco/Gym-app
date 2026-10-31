@@ -15,6 +15,7 @@ App in Entwicklung (Expo/React Native, Ordner `mobile/`); Stand je Phase in `doc
 - Phase 10 (vor der Veröffentlichung): `docs/Freigabematrix.md` – was noch blockiert; `docs/Fachpruefung_Mappe.md` – für die Fachperson;
   `docs/Rechtspruefung_Mappe.md` – für die Rechtsprüfung; `website/` – Datenschutzerklärung und Impressum (Entwürfe);
   `docs/Monetarisierung_Entscheidung.md` – Pro/Werbung; `docs/Store_Texte.md` – App-Store-Texte
+- `docs/Repo_Vergleich.md` – Vergleich mit 50 fremden Repositories (Lizenzen, übernommene Ideen, Ideen für später)
 - `register/Originalabdeckung.csv` – 98 Originalblöcke
 - `mobile/` – **die App** (Expo / React Native), Start siehe `mobile/README.md`
 - `reference/` – isolierte Python-Referenztests (24 + 22), kein Produktionscode

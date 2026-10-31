@@ -5,6 +5,7 @@
 
 import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
+  barcodeVariants,
   fractionOf,
   nutrientsForAmount,
   per100FromTotal,
@@ -117,8 +118,13 @@ export function getFood(db: Db, id: string) {
   return db.getFirstAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE id = ?`, id);
 }
 
+/** Gespeichertes Lebensmittel zu einem Barcode, auch wenn es unter der anderen Schreibweise (UPC-A/EAN-13) liegt. */
 export function findFoodByBarcode(db: Db, barcode: string) {
-  return db.getFirstAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE barcode = ? AND archived = 0 ORDER BY updated_at_utc DESC`, barcode);
+  const variants = barcodeVariants(barcode);
+  return db.getFirstAsync<Food>(
+    `SELECT ${FOOD_COLUMNS} FROM food WHERE barcode IN (${variants.map(() => '?').join(', ')}) AND archived = 0 ORDER BY updated_at_utc DESC`,
+    ...variants
+  );
 }
 
 /**
