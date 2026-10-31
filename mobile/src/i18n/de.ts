@@ -1167,7 +1167,11 @@ export const de = {
     photosOpen: 'Fotos öffnen',
   },
   onboarding: {
-    welcomeTitle: 'Willkommen',
+    welcomeTitle: 'Willkommen bei Myhealth',
+    stepTitle: {
+      sensitive: 'Was dir guttut',
+      units: 'Deine Einheiten',
+    },
     welcome:
       'Training, Ernährung und Fortschritt an einem Ort. Alles bleibt auf deinem Gerät, es gibt kein Konto. ' +
       'Ein paar kurze Fragen, dann geht es los – fast alles ist freiwillig.',

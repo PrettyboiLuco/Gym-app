@@ -3,6 +3,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice } from '@/components/fields';
+import { HeartLoop } from '@/components/heart-loop';
+import { Rise, RiseText } from '@/components/rise-text';
 import { todayDay } from '@/components/nutrition-format';
 import { UnitFields } from '@/components/profile-fields';
 import { Screen } from '@/components/screen';
@@ -54,12 +56,26 @@ export function Onboarding() {
   }
 
   return (
-    <Screen title={t('onboarding.welcomeTitle')} subtitle={t('onboarding.step', { step: index + 1, total: STEPS.length })}>
+    <Screen>
+      {/* Erststart = einmaliger erster Eindruck (getlayers „revealChoreography“): das 3D-Herz pendelt, der Titel
+          steigt Wort für Wort auf, die Karten folgen gestaffelt. Danach ist die App ruhig. */}
+      <View style={styles.hero}>
+        {step === 'adult' ? <HeartLoop size={128} /> : null}
+        <RiseText key={step} text={step === 'adult' ? t('onboarding.welcomeTitle') : t(`onboarding.stepTitle.${step}`)} />
+        <View style={styles.progress} accessible accessibilityLabel={t('onboarding.step', { step: index + 1, total: STEPS.length })}>
+          {STEPS.map((s, i) => (
+            <View key={s} style={[styles.progressPill, { backgroundColor: i <= index ? theme.text : theme.backgroundSelected }]} />
+          ))}
+        </View>
+      </View>
       {step === 'adult' ? (
         <>
-          <Card>
-            <ThemedText>{t('onboarding.welcome')}</ThemedText>
-          </Card>
+          <Rise delay={260}>
+            <Card>
+              <ThemedText>{t('onboarding.welcome')}</ThemedText>
+            </Card>
+          </Rise>
+          <Rise delay={380}>
           <Card title={t('onboarding.adultQuestion')}>
             <View style={styles.row}>
               <Button label={t('onboarding.yes')} onPress={() => { setAdult(true); setStep('sensitive'); }} />
@@ -70,11 +86,12 @@ export function Onboarding() {
             </ThemedText>
             {adult === false ? <ThemedText style={{ color: theme.danger }}>{t('onboarding.minor')}</ThemedText> : null}
           </Card>
-          <Card>
-            <ThemedText type="small" themeColor="textSecondary">
+          </Rise>
+          <Rise delay={500}>
+            <ThemedText type="small" themeColor="textSecondary" style={styles.health}>
               {t('more.health')}
             </ThemedText>
-          </Card>
+          </Rise>
         </>
       ) : null}
 
@@ -138,4 +155,8 @@ export function Onboarding() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  hero: { gap: Spacing.three, paddingTop: Spacing.three, paddingBottom: Spacing.two },
+  progress: { flexDirection: 'row', gap: Spacing.one + 2 },
+  progressPill: { flex: 1, height: 4, borderRadius: 2 },
+  health: { paddingHorizontal: Spacing.one },
 });
