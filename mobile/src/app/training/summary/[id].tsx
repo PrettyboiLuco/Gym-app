@@ -1,10 +1,11 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { exerciseName } from '@/components/exercise-name';
 import { haptic } from '@/components/haptics';
+import { Icon } from '@/components/icon';
 import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -126,7 +127,12 @@ export default function SummaryScreen() {
       {records.length > 0 ? (
         <Card title={t('summary.recordsTitle', { count: records.length })}>
           {records.map((r) => (
-            <View key={r.exerciseId} style={styles.record}>
+            <Pressable
+              key={r.exerciseId}
+              accessibilityRole="button"
+              accessibilityLabel={`${exerciseName(byId.get(r.exerciseId))}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
+              onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
+              style={({ pressed }) => [styles.record, { opacity: pressed ? 0.7 : 1 }]}>
               <View style={[styles.recordMark, { backgroundColor: dark ? theme.accent : theme.tint }]}>
                 <ThemedText style={[styles.recordMarkText, { color: dark ? theme.onAccent : theme.onTint }]}>↑</ThemedText>
               </View>
@@ -136,7 +142,8 @@ export default function SummaryScreen() {
                   {recordText(r)}
                 </ThemedText>
               </View>
-            </View>
+              <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
+            </Pressable>
           ))}
         </Card>
       ) : null}

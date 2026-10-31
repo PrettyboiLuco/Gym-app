@@ -60,3 +60,19 @@ export function dailyMeans(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: s
 function shiftDayBy(day: string, delta: number): string {
   return new Date((dayNumber(day) + delta) * DAY_MS).toISOString().slice(0, 10);
 }
+
+/**
+ * Hochrechnung für das Diagramm: Wohin führt das aktuelle Wochentempo, höchstens 4 Wochen weit oder bis zum
+ * Ziel? Nur wenn sich das Gewicht messbar (≥ 0,05 kg/Woche) in Richtung Ziel bewegt – sonst keine Linie.
+ * Ausdrücklich eine Hochrechnung, keine Vorhersage.
+ */
+export function projectWeight(trendKg: number | null, weeklyChangeKg: number | null, targetKg: number | null, today: string): { day: string; kg: number } | null {
+  if (trendKg === null || weeklyChangeKg === null || targetKg === null) return null;
+  if (Math.abs(weeklyChangeKg) < 0.05) return null;
+  const towards = Math.sign(targetKg - trendKg) === Math.sign(weeklyChangeKg);
+  if (!towards || Math.abs(targetKg - trendKg) < 0.05) return null;
+  const days = Math.min(28, Math.ceil((Math.abs(targetKg - trendKg) / Math.abs(weeklyChangeKg)) * 7));
+  const d = new Date(`${today}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return { day: d.toISOString().slice(0, 10), kg: Math.round((trendKg + (weeklyChangeKg / 7) * days) * 10) / 10 };
+}

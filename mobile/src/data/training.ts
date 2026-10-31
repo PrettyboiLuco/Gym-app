@@ -602,3 +602,26 @@ export async function previousBests(db: Db, exerciseIds: string[], excludeSessio
   }
   return result;
 }
+
+/** Bester Satz je abgeschlossenem Training einer Übung (für den Kraftverlauf), älteste zuerst. */
+export type ExerciseBest = { sessionId: string; at: string; weightKg: number; reps: number | null; seconds: number | null };
+
+export async function exerciseBests(db: Db, exerciseId: string): Promise<ExerciseBest[]> {
+  const rows = await db.getAllAsync<{ sessionId: string; at: string; weightKg: number | null; reps: number | null; seconds: number | null }>(
+    `SELECT l.session_id AS sessionId, s.started_at_utc AS at, l.weight_kg AS weightKg, l.reps, l.seconds
+     FROM set_log l JOIN workout_session s ON s.id = l.session_id
+     WHERE l.exercise_id = ? AND l.completed_at_utc IS NOT NULL AND s.status <> 'abgebrochen'
+     ORDER BY s.started_at_utc`,
+    exerciseId
+  );
+  const bySession = new Map<string, ExerciseBest>();
+  for (const r of rows) {
+    const prev = bySession.get(r.sessionId);
+    const kg = r.weightKg ?? 0;
+    const better =
+      !prev ||
+      (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : kg > prev.weightKg || (kg === prev.weightKg && (r.reps ?? 0) > (prev.reps ?? 0)));
+    if (better) bySession.set(r.sessionId, { sessionId: r.sessionId, at: r.at, weightKg: kg, reps: r.reps, seconds: r.seconds });
+  }
+  return [...bySession.values()].sort((a, b) => a.at.localeCompare(b.at));
+}

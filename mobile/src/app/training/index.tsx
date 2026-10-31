@@ -6,7 +6,12 @@ import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { TrainingBlock, type WeekDay } from '@/components/today-widgets';
-import { loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
+import { loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
+import { MeterBar } from '@/components/charts';
+import type { MuscleGroup } from '@/domain/exercises';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { StyleSheet, View } from 'react-native';
+import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { todayDay } from '@/components/nutrition-format';
 import {
@@ -36,6 +41,7 @@ async function loadOverview(db: Db) {
     lastFinishedAt(db),
     loadTrainingWeek(db, todayDay()),
   ]);
+  const muscles = await loadWeekSetsByMuscle(db, todayDay());
   const suggestions: Record<string, number> = {};
   for (const plan of plans) {
     if (plan.days.length > 0) {
@@ -44,7 +50,7 @@ async function loadOverview(db: Db) {
   }
   // Wiedereinstieg nach längerer Pause (TRAIN-015); Zeitpunkt beim Laden, nicht beim Rendern.
   const pauseDays = finished ? daysBetween(finished, Date.now()) : 0;
-  return { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished: finished !== null };
+  return { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished: finished !== null, muscles };
 }
 
 export default function TrainingScreen() {
@@ -58,8 +64,11 @@ export default function TrainingScreen() {
     pauseDays: 0,
     week: { done: [], planned: [], goal: null, todayIndex: 0 } as TrainingWeek,
     hasFinished: false,
+    muscles: [] as { group: MuscleGroup; sets: number }[],
   });
-  const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished } = data;
+  const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
+  const dark = useColorScheme() === 'dark';
+  const maxSets = Math.max(1, ...muscles.map((m) => m.sets));
 
   async function start(planDayId: string | null) {
     const id = await startSession(db, planDayId);
@@ -108,6 +117,23 @@ export default function TrainingScreen() {
       ) : null}
 
       <TrainingBlock label={hero.label} title={hero.title} meta={hero.meta} week={days} weekSummary={weekSummary} action={hero.action} onPress={hero.go} />
+
+      {/* Wochenvolumen: sortierte Balkenliste (taste-skill „Who ranks?“), eine Farbe, Zahl rechts. */}
+      {muscles.length > 0 ? (
+        <Card title={t('training.muscleTitle')} trailing={<ThemedText type="small" themeColor="textSecondary">{t('training.muscleUnit')}</ThemedText>}>
+          {muscles.map((m) => (
+            <View key={m.group} style={styles.barRow} accessible accessibilityLabel={`${t(`muscle.${m.group}`)}: ${t('training.muscleSets', { count: m.sets })}`}>
+              <View style={styles.barHead}>
+                <ThemedText type="small">{t(`muscle.${m.group}`)}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary" style={styles.num}>
+                  {m.sets}
+                </ThemedText>
+              </View>
+              <MeterBar progress={m.sets / maxSets} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
+            </View>
+          ))}
+        </Card>
+      ) : null}
 
       {!active && !timed ? (
         <Card title={t('training.otherDay')}>
@@ -187,3 +213,9 @@ export default function TrainingScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  barRow: { gap: Spacing.one },
+  barHead: { flexDirection: 'row', justifyContent: 'space-between' },
+  num: { fontVariant: ['tabular-nums'] },
+});

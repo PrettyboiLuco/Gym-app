@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { Fragment, useRef, useState } from 'react';
 import { Pressable, StyleSheet, type ScrollViewInstance } from 'react-native';
 
@@ -135,6 +136,9 @@ export default function ExercisesScreen() {
           onPress={e.customName ? () => startEdit(e) : hasInfo(e) ? () => setOpenHow((id) => (id === e.id ? null : e.id)) : undefined}
         />
         {openHow === e.id ? <ExerciseMedia exerciseId={e.id} label={exerciseName(e)} /> : null}
+        {openHow === e.id && e.kind === 'kraft' ? (
+          <Button label={t('exerciseProgress.open')} variant="secondary" size="compact" onPress={() => router.push(`/training/exercise/${e.id}`)} />
+        ) : null}
         {openHow === e.id ? (
           <ThemedText type="small" themeColor="textSecondary">
             {[

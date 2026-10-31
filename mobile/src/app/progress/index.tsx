@@ -122,7 +122,14 @@ export default function ProgressScreen() {
             <ThemedText themeColor="textSecondary">{t('progress.trendMissing')}</ThemedText>
           )}
         </View>
-        <WeightChart days={chartDays} points={points} trend={trendPoints} unit={units.weight} />
+        <WeightChart
+          days={chartDays}
+          points={points}
+          trend={trendPoints}
+          unit={units.weight}
+          targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null}
+          weeklyChangeKg={change}
+        />
         <ThemedText type="small" themeColor="textSecondary">
           {t('progress.trendHint')}
         </ThemedText>

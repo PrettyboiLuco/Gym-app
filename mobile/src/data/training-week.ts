@@ -1,13 +1,14 @@
 // Trainingswoche Mo–So für „Heute“ und den Abschluss-Bildschirm: eine Quelle für Punkte und Zusammenfassung.
 
 import { timeZone } from '@/components/nutrition-format';
+import type { MuscleGroup } from '@/domain/exercises';
 import { weekStart } from '@/domain/goals';
 import { trainedDays } from '@/domain/summary';
 import { localDay } from '@/domain/time';
 
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
-import { listSessions } from './training';
+import { listExercises, listSessions } from './training';
 
 export type TrainingWeek = { done: boolean[]; planned: boolean[]; goal: number | null; todayIndex: number };
 
@@ -22,4 +23,25 @@ export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingW
     goal: setup?.gymDays ?? null,
     todayIndex: trainedDays([today], monday).indexOf(true),
   };
+}
+
+/** Erledigte Sätze dieser Woche (Mo–So) je Muskelgruppe, meiste zuerst. Abgebrochene Trainings zählen mit
+ * (die Sätze wurden gemacht); Dehn- und Mobilitätsübungen nicht. */
+export async function loadWeekSetsByMuscle(db: Db, today: string): Promise<{ group: MuscleGroup; sets: number }[]> {
+  const monday = weekStart(today);
+  const rows = await db.getAllAsync<{ startedAt: string; exerciseId: string }>(
+    `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
+     JOIN workout_session s ON s.id = l.session_id
+     WHERE l.completed_at_utc IS NOT NULL AND s.started_at_utc >= ?`,
+    new Date(Date.parse(`${monday}T00:00:00Z`) - 86_400_000).toISOString()
+  );
+  const exercises = new Map((await listExercises(db)).map((e) => [e.id, e]));
+  const counts = new Map<MuscleGroup, number>();
+  for (const r of rows) {
+    if (localDay(new Date(r.startedAt), timeZone) < monday) continue;
+    const e = exercises.get(r.exerciseId);
+    if (!e || e.kind !== 'kraft') continue;
+    counts.set(e.muscleGroup, (counts.get(e.muscleGroup) ?? 0) + 1);
+  }
+  return [...counts.entries()].map(([group, sets]) => ({ group, sets })).sort((a, b) => b.sets - a.sets);
 }
