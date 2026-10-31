@@ -4,6 +4,7 @@ import { Button, Card } from '@/components/card';
 import { ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
+import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { TrainingBlock, type WeekDay } from '@/components/today-widgets';
 import { loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
@@ -55,7 +56,7 @@ async function loadOverview(db: Db) {
 
 export default function TrainingScreen() {
   const theme = useTheme();
-  const { data, db } = useLoad(loadOverview, {
+  const { data, db, loaded } = useLoad(loadOverview, {
     active: null,
     plans: [] as PlanSummary[],
     suggestions: {} as Record<string, number>,
@@ -103,6 +104,13 @@ export default function TrainingScreen() {
           };
   const subtitle = active || timed ? undefined : hasFinished ? (pauseDays === 0 ? t('training.lastToday') : t('training.lastDays', { count: pauseDays })) : undefined;
 
+  if (!loaded) {
+    return (
+      <Screen title={t('training.title')}>
+        <SkeletonBlocks blocks={[320, 140, 220]} />
+      </Screen>
+    );
+  }
   return (
     <Screen title={t('training.title')} subtitle={subtitle}>
       {expired.length > 0 ? (

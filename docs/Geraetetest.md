@@ -126,3 +126,22 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | U3 | Supplement entfernen | Erinnerung kommt nicht mehr | Expo Go |
 | U4 | Sicherung erstellen, alle Daten löschen, Sicherung wiederherstellen | Supplements und abgehakte Tage wieder da | Expo Go |
 | U5 | VoiceOver auf der Supplement-Seite | „offen/genommen“ je Supplement vorgelesen | Expo Go |
+
+
+## Optik-Paket (31.10.2026) – auf dem iPhone in Expo Go
+
+| Nr. | Was tun | Erwartung |
+|---|---|---|
+| O1 | App neu installieren bzw. „Alle Daten löschen“, dann öffnen | Herz pendelt, „Willkommen bei Myhealth“ steigt Wort für Wort auf, Karten folgen |
+| O2 | Freies Training, Übung hinzufügen, Satz mit dem runden Haken abhaken | Haken federt, kurzer Druck spürbar, Pause öffnet sich im Vollbild mit „Als Nächstes“ |
+| O3 | Pause bis zum Ende laufen lassen | bei 3, 2, 1 je ein leichter Schlag, am Ende ein Erfolgs-Signal |
+| O4 | Alle Sätze einer Übung abhaken | Erfolgs-Signal, Übung klappt zu einer Zeile zusammen, nächste Übung rückt weich nach |
+| O5 | „Training beenden“ | Abschluss-Bildschirm; beim zweiten Training mit mehr Gewicht „Neue Bestleistung“, heutiger Punkt federt auf |
+| O6 | Während ein Training läuft, zu „Ernährung“ wechseln | Mini-Player „Training läuft“ über der Tab-Leiste (iOS 26), Tippen führt zurück |
+| O7 | Auf einer langen Seite nach unten scrollen (iOS 26) | Tab-Leiste schrumpft, beim Zurückscrollen kommt sie wieder |
+| O8 | Mehr → Darstellung zwischen Wie iPhone / Hell / Dunkel wechseln | Auswahlfeld gleitet, kurzer Tipp spürbar, App wechselt sofort |
+| O9 | Gewicht speichern | „Gespeichert“ gleitet kurz über der Tab-Leiste ein |
+| O10 | Ernährung → einen Eintrag antippen | öffnet sich als Sheet von unten, nach unten wischen schließt |
+| O11 | iPhone: Bedienungshilfen → Bewegung reduzieren an, App öffnen | keine Feder- und Aufsteige-Bewegungen, alles steht sofort |
+| O12 | iPhone: Textgröße sehr groß | Texte wachsen, Titel und große Zahlen begrenzt, nichts abgeschnitten |
+| O13 | Neues App-Symbol (erst mit TestFlight-Build) | 3D-Herz in Lime auf Schwarz |

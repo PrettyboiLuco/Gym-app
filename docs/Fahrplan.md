@@ -616,6 +616,37 @@ noch Makro-Balken (jede Zahl an einem Ort). Prüfrunde nach der Checkliste des S
 abgeschnittene Zahl, zu wenig Kontrast von Lime auf Weiß behoben). 508 Tests, Lint/Typprüfung ohne Fehler,
 31/31 Bildschirme hell und dunkel.
 
+**Nachtrag 31.10.2026 – 14 Verbesserungen (Optik, Bewegung, Bedienung)**, Reihenfolge nach Absprache mit Luc:
+1. **Training-Bildschirm:** runder Satz-Haken federt beim Abhaken, spürbare Rückmeldung (Übung fertig: Erfolgs-Signal),
+   Fortschrittsbalken oben, fertige Übungen klappen zu einer Zeile zusammen, „Jetzt dran“ bei der nächsten Übung;
+   Pause öffnet sich im Vollbild (großer Ring, Restzeit, „Als Nächstes“ mit Satz und Werten, Countdown-Schläge bei 3-2-1).
+2. **Abschluss-Bildschirm** nach „Training beenden“: Dauer, Sätze, bewegtes Gewicht, neue Bestleistungen (nur gegenüber
+   früheren Trainings, nie beim ersten Mal), Trainingswoche mit dem heutigen Punkt; Cool-down von dort aus.
+3. **Haupt-Tabs nach taste-run:** Training (Vorschlag groß mit Direktstart und Woche, andere Tage, Pläne, Abläufe),
+   Ernährung (Tagesbilanz groß mit Balken, Mahlzeiten mit kcal rechts, Links als Liste), Fortschritt (Trend groß,
+   Diagramm, Eintragen; Körperdaten als eine Liste mit Werten), Mehr (siehe 10).
+4. **Erststart als Auftritt:** pendelndes 3D-Herz (vorgerendert, `design/logo/sprite.js`), Titel steigt Wort für Wort auf
+   (getlayers „Word Rise“), Karten folgen gestaffelt, Fortschrittsbalken statt „Schritt 1 von 3“.
+5. **Diagramme:** gemeinsame Zeitachse mit runder Skala (3–5 Linien), Gewicht mit Zielgewicht (gestrichelt) und
+   Hochrechnung bei gleichem Tempo (gestrichelt, ausdrücklich keine Vorhersage), Kraftverlauf je Übung mit
+   Bestleistungen (neuer Bildschirm, aus Übungsliste und Abschluss erreichbar), Wochensätze je Muskelgruppe.
+6. **Startseite** `website/index.html` (getlayers „Relay“ + „soda-hero“, live 3D-Herz, echte App-Bildschirme;
+   Schrift und three.js selbst gehostet – keine Anfragen an Google/CDN).
+7. **Feinschliff:** Ladezustände als graue Platzhalter (kein Aufblitzen falscher Inhalte), Eintrag ändern und Ziel
+   bearbeiten als Sheet von unten, große Schrift: Titel und große Zahlen wachsen begrenzt mit (×1,4).
+8. **Tab-Leiste:** iOS 26 schrumpft beim Scrollen; Mini-Player „Training läuft“ über der Leiste (Pause-Countdown oder
+   Dauer, Tippen = zurück ins Training), in der Web-Vorschau ebenso.
+9. **Kopfzeilen:** überall gleich – ohne Trennlinie, Titel in Manrope, Zurück in Schriftfarbe statt Lime.
+10. **Mehr-Menü:** Gruppen mit Symbolen und Werten, Darstellung als Segment-Schalter, Hinweise klappen auf.
+11. **Listenzeilen:** Symbol links, Wert rechts, gezeichneter Pfeil, Zeile hellt beim Drücken auf.
+12. **Auswahl:** Segment-Schalter mit gleitendem Feld (bis 4 kurze Möglichkeiten), Chips mit Haken und Federn,
+    echte Optionskreise, Tag-Umschalter als Leiste mit „Zu heute“.
+13. **Knöpfe:** zwei Größen, Symbol, Ladezustand, spürbare Rückmeldung; Löschen mit Warnung und Selbst-Abbruch nach 6 s.
+14. **Rückmeldungen:** „Gespeichert“/„Gelöscht“ gleitet kurz über der Tab-Leiste ein (Gewicht, Supplements, Erinnerungen).
+519 Tests, Lint/Typprüfung ohne Fehler, 31/31 Bildschirme hell und dunkel, Abläufe (Training → Bestleistung,
+Gewicht über 10 Tage, Mini-Player) im Browser durchgespielt. Spürbares und Federn nur auf dem iPhone prüfbar:
+Prüfliste in `docs/Geraetetest.md` (Abschnitt „Optik-Paket“).
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

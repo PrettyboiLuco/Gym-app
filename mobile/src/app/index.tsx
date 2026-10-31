@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Card } from '@/components/card';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
+import { SkeletonBlocks } from '@/components/skeleton';
 import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
 import { todayDay } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
@@ -91,7 +92,7 @@ async function loadToday(db: Db) {
 const EMPTY_WEEK = Array.from({ length: 7 }, () => false);
 
 export default function TodayScreen() {
-  const { data, db } = useLoad(loadToday, {
+  const { data, db, loaded } = useLoad(loadToday, {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
     restDay: false,
@@ -181,6 +182,13 @@ export default function TodayScreen() {
           : t('today.tileWeightLast', { date: formatDay(lastWeight.day) })
         : t('today.tileWeightNone');
 
+  if (!loaded) {
+    return (
+      <Screen title={greeting} subtitle={formatLongDate(new Date())}>
+        <SkeletonBlocks blocks={[300, 104, 160]} />
+      </Screen>
+    );
+  }
   return (
     <Screen title={greeting} subtitle={subtitle}>
       {checkin ? (

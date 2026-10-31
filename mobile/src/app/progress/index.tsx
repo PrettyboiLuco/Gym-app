@@ -9,6 +9,7 @@ import { goalProgressLines, goalTitle } from '@/components/goal-progress';
 import { Icon } from '@/components/icon';
 import { formatKcal, todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
+import { SkeletonBlocks } from '@/components/skeleton';
 import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
 import { WeightChart } from '@/components/weight-chart';
@@ -56,7 +57,7 @@ export default function ProgressScreen() {
   const theme = useTheme();
   const { profile } = useProfile();
   const units = profile.units;
-  const { data, reload, db } = useLoad((d) => loadProgress(d, units, profile.sensitive), {
+  const { data, reload, db, loaded } = useLoad((d) => loadProgress(d, units, profile.sensitive), {
     weights: [] as WeightEntry[],
     cards: [] as GoalCard[],
     calorie: null as CalorieGoal | null,
@@ -105,6 +106,13 @@ export default function ProgressScreen() {
   };
 
   const measuredSites = MEASURE_SITES.filter((s) => latest[s]).length;
+  if (!loaded) {
+    return (
+      <Screen title={t('progress.title')}>
+        <SkeletonBlocks blocks={[420, 140, 300]} />
+      </Screen>
+    );
+  }
   return (
     <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined}>
       {/* Leitfrage „Bewege ich mich Richtung Ziel?“: der Trend groß, darunter der Verlauf, dann das Eintragen. */}

@@ -18,7 +18,8 @@ export default function NutritionLayout() {
       <Stack.Screen name="food/[id]" options={{ title: t('nutrition.food.title') }} />
       <Stack.Screen name="food-edit/[id]" options={{ title: t('nutrition.edit.titleEdit') }} />
       <Stack.Screen name="scan" options={{ title: t('nutrition.scan.title') }} />
-      <Stack.Screen name="entry/[id]" options={{ title: t('nutrition.entry.title') }} />
+      {/* Einen Eintrag ändern: als Sheet von unten (zum Schließen nach unten wischen). */}
+      <Stack.Screen name="entry/[id]" options={{ title: t('nutrition.entry.title'), presentation: 'modal' }} />
       <Stack.Screen name="recipes" options={{ title: t('nutrition.recipe.listTitle') }} />
       <Stack.Screen name="recipe/[id]" options={{ title: t('nutrition.recipe.titleEdit') }} />
       <Stack.Screen name="recipe-log/[id]" options={{ title: t('nutrition.recipe.log.title') }} />
