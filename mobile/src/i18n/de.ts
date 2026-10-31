@@ -2273,6 +2273,9 @@ export const de = {
   more: {
     title: 'Mehr',
     settingsTitle: 'Einstellungen',
+    appearanceTitle: 'Darstellung',
+    appearance: 'Hell oder dunkel',
+    appearanceOption: { system: 'Wie iPhone', hell: 'Hell', dunkel: 'Dunkel' },
     helpTitle: 'Hilfe und Feedback',
     helpSubtitle: 'Häufige Fragen, ohne Internet',
     remindersSubtitle: 'Timer bei gesperrtem Handy, Training, Trinken',

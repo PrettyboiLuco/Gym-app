@@ -44,7 +44,7 @@ export function RestTimerBar({
 
   if (!visible) {
     return (
-      <ThemedView type="backgroundSelected" style={styles.bar}>
+      <ThemedView type="backgroundElement" style={styles.bar}>
         <ThemedText type="small" themeColor="textSecondary">
           {t('session.restManual')}
         </ThemedText>
@@ -55,7 +55,7 @@ export function RestTimerBar({
               accessibilityRole="button"
               accessibilityLabel={`${t('session.restManual')} ${formatClock(seconds * 1000)}`}
               onPress={() => onStart(seconds)}
-              style={({ pressed }) => [styles.preset, { backgroundColor: theme.background, opacity: pressed ? 0.6 : 1 }]}>
+              style={({ pressed }) => [styles.preset, { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.6 : 1 }]}>
               <ThemedText type="smallBold">{formatClock(seconds * 1000)}</ThemedText>
             </Pressable>
           ))}
@@ -66,7 +66,12 @@ export function RestTimerBar({
 
   const done = remaining === 0;
   return (
-    <ThemedView type="backgroundSelected" style={[styles.bar, styles.row]} accessibilityLiveRegion="polite">
+    <ThemedView type="backgroundElement" style={[styles.bar, styles.row]} accessibilityLiveRegion="polite">
+      <View
+        style={[styles.ring, { borderColor: theme.accent, backgroundColor: done ? theme.accent : 'transparent' }]}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
       <View style={styles.text}>
         <ThemedText type="smallBold">{done ? t('session.restDone') : t('session.restTitle')}</ThemedText>
         {!done ? (
@@ -75,8 +80,8 @@ export function RestTimerBar({
           </ThemedText>
         ) : null}
       </View>
-      {!done ? <Button label={t('session.restPlus')} onPress={onExtend} /> : null}
-      <Button label={done ? t('common.ok') : t('session.restSkip')} variant="danger" onPress={onSkip} />
+      {!done ? <Button label={t('session.restPlus')} variant="secondary" onPress={onExtend} /> : null}
+      <Button label={done ? t('common.ok') : t('session.restSkip')} variant={done ? 'primary' : 'secondary'} onPress={onSkip} />
     </ThemedView>
   );
 }
@@ -89,7 +94,8 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.two,
   },
   row: { flexDirection: 'row', alignItems: 'center' },
+  ring: { width: 44, height: 44, borderRadius: 22, borderWidth: 4 },
   text: { flex: 1 },
   presets: { gap: Spacing.two },
-  preset: { minHeight: 40, minWidth: 56, paddingHorizontal: Spacing.three, borderRadius: Spacing.four, alignItems: 'center', justifyContent: 'center' },
+  preset: { minHeight: 40, minWidth: 56, paddingHorizontal: Spacing.three, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
 });

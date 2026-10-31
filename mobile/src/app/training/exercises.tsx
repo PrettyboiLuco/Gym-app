@@ -205,7 +205,7 @@ export default function ExercisesScreen() {
           <ThemedText style={{ color: theme.danger }}>{error === 'name' ? t('exercises.nameMissing') : t('exercises.holdInvalid')}</ThemedText>
         ) : null}
         <Button label={editing ? t('common.save') : t('common.add')} onPress={save} />
-        {editing ? <Button label={t('common.cancel')} variant="danger" onPress={reset} /> : null}
+        {editing ? <Button label={t('common.cancel')} variant="secondary" onPress={reset} /> : null}
       </Card>
 
       <Card title={t('exercises.browseTitle')}>

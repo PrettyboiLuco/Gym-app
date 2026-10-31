@@ -12,7 +12,7 @@ export function DaySwitcher({ day, onChange }: { day: string; onChange: (day: st
   const canForward = day < todayDay();
   return (
     <View style={styles.row}>
-      <Button label="‹" accessibilityLabel={t('nutrition.prevDay')} variant="danger" onPress={() => onChange(shiftDay(day, -1))} />
+      <Button label="‹" accessibilityLabel={t('nutrition.prevDay')} variant="secondary" onPress={() => onChange(shiftDay(day, -1))} />
       <ThemedText type="smallBold" style={styles.label} accessibilityRole="header">
         {dayLabel(day)}
       </ThemedText>
@@ -20,7 +20,7 @@ export function DaySwitcher({ day, onChange }: { day: string; onChange: (day: st
         <Button
           label="›"
           accessibilityLabel={t('nutrition.nextDay')}
-          variant="danger"
+          variant="secondary"
           disabled={!canForward}
           onPress={() => onChange(shiftDay(day, 1))}
         />

@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, type PressableProps } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function Card({ title, children }: { title?: string; children: ReactNode }) {
@@ -19,17 +19,28 @@ export function Button({
   label,
   variant = 'primary',
   ...props
-}: PressableProps & { label: string; variant?: 'primary' | 'danger' }) {
+}: PressableProps & {
+  label: string;
+  /** primary = gefüllte Pille · secondary = Rahmen · danger = Rahmen in Rot · destructive = rot gefüllt (Löschen bestätigen) */
+  variant?: 'primary' | 'secondary' | 'danger' | 'destructive';
+}) {
   const theme = useTheme();
-  const background = variant === 'primary' ? theme.tint : 'transparent';
-  const color = variant === 'primary' ? theme.onTint : theme.danger;
+  const look = {
+    primary: { background: theme.primary, border: theme.primary, color: theme.onPrimary },
+    secondary: { background: 'transparent', border: theme.border, color: theme.text },
+    danger: { background: 'transparent', border: theme.danger, color: theme.danger },
+    destructive: { background: theme.danger, border: theme.danger, color: theme.onDanger },
+  }[variant];
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.button, { backgroundColor: background, opacity: pressed ? 0.7 : 1 }]}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: look.background, borderColor: look.border, opacity: pressed ? 0.7 : props.disabled ? 0.4 : 1 },
+      ]}
       {...props}>
-      <ThemedText type="smallBold" style={{ color }}>
+      <ThemedText type="smallBold" style={{ color: look.color }}>
         {label}
       </ThemedText>
     </Pressable>
@@ -38,14 +49,16 @@ export function Button({
 
 const styles = StyleSheet.create({
   card: {
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
+    padding: Spacing.three + Spacing.one,
+    borderRadius: Radius.card,
     gap: Spacing.two,
   },
   button: {
-    minHeight: 44,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.two,
+    minHeight: 48,
+    minWidth: 48,
+    paddingHorizontal: Spacing.four,
+    borderRadius: Radius.pill,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },

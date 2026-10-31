@@ -111,7 +111,7 @@ export default function RecipeEditorScreen() {
             <ListRow key={f.id} title={foodTitle(f)} subtitle={`${formatKcal(f.kcal)} / 100 ${f.basis}`} accessory="+" onPress={() => pick(f)} />
           ))}
         </Card>
-        <Button label={t('common.cancel')} variant="danger" onPress={() => setPicking(false)} />
+        <Button label={t('common.cancel')} variant="secondary" onPress={() => setPicking(false)} />
       </Screen>
     );
   }

@@ -3,6 +3,9 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { EMPTY_PROFILE, type Profile } from '@/domain/profile';
 import type { Units } from '@/domain/units';
 
+import { setAppearance } from '@/hooks/use-color-scheme';
+
+import { loadAppearance } from './appearance';
 import { loadOnboardingDone, loadProfile, saveOnboardingDone, saveProfile } from './profile';
 import { useDb } from './store-provider';
 
@@ -25,8 +28,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadProfile(db), loadOnboardingDone(db)]).then(([profile, onboardingDone]) => {
-      if (!cancelled) setState({ loaded: true, profile, onboardingDone });
+    Promise.all([loadProfile(db), loadOnboardingDone(db), loadAppearance(db)]).then(([profile, onboardingDone, appearance]) => {
+      if (cancelled) return;
+      setAppearance(appearance);
+      setState({ loaded: true, profile, onboardingDone });
     });
     return () => {
       cancelled = true;
@@ -34,7 +39,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [db]);
 
   const reload = useCallback(async () => {
-    const [profile, onboardingDone] = await Promise.all([loadProfile(db), loadOnboardingDone(db)]);
+    const [profile, onboardingDone, appearance] = await Promise.all([loadProfile(db), loadOnboardingDone(db), loadAppearance(db)]);
+    setAppearance(appearance);
     setState({ loaded: true, profile, onboardingDone });
   }, [db]);
 

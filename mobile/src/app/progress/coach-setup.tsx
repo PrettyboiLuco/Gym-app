@@ -460,7 +460,7 @@ export default function CoachSetupScreen() {
 
       {problem ? <ThemedText style={{ color: theme.danger }}>{problem}</ThemedText> : null}
       <View style={styles.row}>
-        {index > 0 ? <Button label={t('onboarding.back')} variant="danger" onPress={() => setStep(STEPS[index - 1])} /> : null}
+        {index > 0 ? <Button label={t('onboarding.back')} variant="secondary" onPress={() => setStep(STEPS[index - 1])} /> : null}
         {step === 'anbindungen' ? (
           <Button label={t('coach.finish')} disabled={busy} onPress={finish} />
         ) : (

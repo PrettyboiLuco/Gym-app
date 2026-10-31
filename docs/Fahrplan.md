@@ -567,6 +567,13 @@ Gerätefilter; die Übungsauswahl im Plan zeigt höchstens 60 Treffer mit Hinwei
 (Test). 508 automatische Tests, 36/36 Bildschirme ohne Fehler, Liste/Suche/Zielmuskel im Browser 12/12. Liste zum
 Durchlesen, gegliedert wie in der App: `docs/Uebungsliste.md`.
 
+**Nachtrag 31.10.2026 – Optik, Schritt 1** (Wunsch Luc: ruhig und clean, Farben nach seinem Bild): neues Farbschema
+Schwarz/Weiß/Grau mit Lime-Grün als Akzent, Pillen-Knöpfe (Haupt-, Rahmen- und Lösch-Knopf), größere Rundungen,
+fette Überschriften, Pausenleiste mit Lime-Ring. Unter Mehr → Darstellung: Wie iPhone / Hell / Dunkel, gespeichert
+und auch für Tab-Leiste und Systemfenster wirksam. 508 Tests, 36/36 Bildschirme ohne Fehler, Umschalter und
+Speichern im Browser geprüft. Offen: Tab-Symbole (auf dem iPhone schon da, Web-Vorschau ohne), Diagramme,
+Animationen, Logo und App-Icon.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

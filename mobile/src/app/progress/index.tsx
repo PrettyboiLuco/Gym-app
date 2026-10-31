@@ -173,7 +173,7 @@ export default function ProgressScreen() {
           accessory="›"
           onPress={() => router.push('/progress/calculator')}
         />
-        <Button label={t('progress.calculatorOpen')} variant="danger" onPress={() => router.push('/progress/calculator')} />
+        <Button label={t('progress.calculatorOpen')} variant="secondary" onPress={() => router.push('/progress/calculator')} />
       </Card>
 
       <Card title={t('progress.measureTitle')}>
@@ -183,7 +183,7 @@ export default function ProgressScreen() {
             {t(`measure.sites.${s}`)}: {t('measure.latest', { value: formatLength(latest[s]!.latest.cm, units.length), date: formatDay(latest[s]!.latest.day) })}
           </ThemedText>
         ))}
-        <Button label={t('progress.measureOpen')} variant="danger" onPress={() => router.push('/progress/measurements')} />
+        <Button label={t('progress.measureOpen')} variant="secondary" onPress={() => router.push('/progress/measurements')} />
       </Card>
 
       <Card title={t('steps.title')}>
@@ -234,7 +234,7 @@ export default function ProgressScreen() {
         {weights.length > SHOWN ? (
           <Button
             label={showAll ? t('progress.showLess') : t('progress.showAll', { count: weights.length })}
-            variant="danger"
+            variant="secondary"
             onPress={() => setShowAll((v) => !v)}
           />
         ) : null}

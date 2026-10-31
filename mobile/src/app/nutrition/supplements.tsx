@@ -149,7 +149,7 @@ export default function SupplementsScreen() {
         {list.map((s) => (
           <View key={s.id} style={styles.row}>
             <ThemedText style={styles.grow}>{s.name}</ThemedText>
-            <Button label={t('supplements.edit')} variant="danger" onPress={() => open(s.id)} />
+            <Button label={t('supplements.edit')} variant="secondary" onPress={() => open(s.id)} />
           </View>
         ))}
         {editing === null ? (
@@ -211,7 +211,7 @@ export default function SupplementsScreen() {
           ))}
           <View style={styles.row}>
             <Button label={t('common.save')} onPress={save} />
-            <Button label={t('common.cancel')} variant="danger" onPress={() => setEditing(null)} />
+            <Button label={t('common.cancel')} variant="secondary" onPress={() => setEditing(null)} />
           </View>
           {editing !== 'neu' ? (
             <ThemedText type="small" themeColor="textSecondary">

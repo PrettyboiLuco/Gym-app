@@ -274,7 +274,7 @@ export default function AssistantScreen() {
           maxLength={500}
           multiline
         />
-        <Button label={t('assistant.wishApply')} variant="danger" onPress={applyWish} disabled={!wishText.trim()} />
+        <Button label={t('assistant.wishApply')} variant="secondary" onPress={applyWish} disabled={!wishText.trim()} />
         {wishMessages.map((line) => (
           <ThemedText key={line} type="small">
             {line}
@@ -375,7 +375,7 @@ export default function AssistantScreen() {
       {proposal && !applied ? (
         <>
           <Button label={t('assistant.apply')} onPress={apply} disabled={!canApply(proposal)} />
-          <Button label={t('assistant.discard')} variant="danger" onPress={() => setProposal(null)} />
+          <Button label={t('assistant.discard')} variant="secondary" onPress={() => setProposal(null)} />
         </>
       ) : null}
 
@@ -385,7 +385,7 @@ export default function AssistantScreen() {
           {applied ? (
             <>
               <Button label={t('assistant.openPlan')} onPress={() => router.replace(`/training/plan/${applied.planId}`)} />
-              <Button label={t('assistant.undo')} variant="danger" onPress={undo} />
+              <Button label={t('assistant.undo')} variant="secondary" onPress={undo} />
             </>
           ) : null}
         </Card>

@@ -139,7 +139,7 @@ export default function AddScreen() {
         <Button label={t('nutrition.search.scan')} onPress={() => router.push({ pathname: '/nutrition/scan', params: passOn })} />
         <Button
           label={t('nutrition.search.create')}
-          variant="danger"
+          variant="secondary"
           onPress={() => router.push({ pathname: '/nutrition/food-edit/[id]', params: { id: 'neu', name: query.trim(), ...passOn } })}
         />
       </View>
@@ -221,7 +221,7 @@ export default function AddScreen() {
             </Card>
           ) : null}
           {target.kind === 'essen' ? (
-            <Button label={t('nutrition.search.manageRecipes')} variant="danger" onPress={() => router.push('/nutrition/recipes')} />
+            <Button label={t('nutrition.search.manageRecipes')} variant="secondary" onPress={() => router.push('/nutrition/recipes')} />
           ) : null}
         </>
       )}

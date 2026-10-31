@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'rea
 
 import { Button } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
@@ -18,7 +18,7 @@ export function Field({ label, style, ...props }: TextInputProps & { label: stri
       <TextInput
         accessibilityLabel={label}
         placeholderTextColor={theme.textSecondary}
-        style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
         {...props}
       />
     </View>
@@ -58,9 +58,9 @@ export function Choice<T extends string>({
               onPress={() => onChange(option)}
               style={[
                 styles.chip,
-                { backgroundColor: selected ? theme.tint : theme.backgroundSelected },
+                { backgroundColor: selected ? theme.primary : theme.backgroundSelected },
               ]}>
-              <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+              <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text }}>
                 {format(option)}
               </ThemedText>
             </Pressable>
@@ -101,8 +101,8 @@ export function MultiChoice<T extends string>({
               accessibilityState={{ checked: selected }}
               accessibilityLabel={format(option)}
               onPress={() => onChange(selected ? value.filter((v) => v !== option) : [...value, option])}
-              style={[styles.chip, { backgroundColor: selected ? theme.tint : theme.backgroundSelected }]}>
-              <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+              style={[styles.chip, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+              <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text }}>
                 {selected ? `✓ ${format(option)}` : format(option)}
               </ThemedText>
             </Pressable>
@@ -144,7 +144,7 @@ export function RadioList<T extends string>({
             accessibilityState={{ selected }}
             accessibilityLabel={format(option)}
             onPress={() => onChange(option)}
-            style={[styles.radio, { borderColor: selected ? theme.tint : theme.backgroundSelected }]}>
+            style={[styles.radio, { borderColor: selected ? theme.primary : theme.border }]}>
             <ThemedText style={{ color: theme.tint }}>{selected ? '●' : '○'}</ThemedText>
             <View style={styles.rowText}>
               <ThemedText>{format(option)}</ThemedText>
@@ -187,8 +187,8 @@ export function Presets<T extends string | number>({
             accessibilityState={{ selected }}
             accessibilityLabel={`${label} ${format(option)}`}
             onPress={() => onChange(option)}
-            style={[styles.smallChip, { backgroundColor: selected ? theme.tint : theme.backgroundSelected }]}>
-            <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+            style={[styles.smallChip, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+            <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text }}>
               {format(option)}
             </ThemedText>
           </Pressable>
@@ -212,9 +212,10 @@ export function ConfirmButton({
   if (!asking) return <Button label={label} variant="danger" onPress={() => setAsking(true)} />;
   return (
     <View style={styles.confirm}>
-      <Button label={t('common.cancel')} variant="danger" onPress={() => setAsking(false)} />
+      <Button label={t('common.cancel')} variant="secondary" onPress={() => setAsking(false)} />
       <Button
         label={confirmLabel}
+        variant="destructive"
         onPress={() => {
           setAsking(false);
           onConfirm();
@@ -263,13 +264,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     minWidth: 0,
     borderWidth: 1,
-    borderRadius: Spacing.two,
+    borderRadius: Radius.field,
     paddingHorizontal: Spacing.three,
     fontSize: 16,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: Spacing.four },
-  smallChip: { paddingVertical: Spacing.one, paddingHorizontal: Spacing.two, borderRadius: Spacing.three, minHeight: 32, justifyContent: 'center' },
+  chip: { minHeight: 40, justifyContent: 'center', paddingVertical: Spacing.two, paddingHorizontal: Spacing.three + Spacing.one, borderRadius: Radius.pill },
+  smallChip: { paddingVertical: Spacing.one, paddingHorizontal: Spacing.two, borderRadius: Radius.pill, minHeight: 32, justifyContent: 'center' },
   confirm: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
   row: {
     flexDirection: 'row',
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
     borderWidth: 1,
-    borderRadius: Spacing.two,
+    borderRadius: Radius.field,
     padding: Spacing.two,
     minHeight: 44,
   },

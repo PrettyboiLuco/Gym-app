@@ -105,7 +105,7 @@ export default function CalculatorScreen() {
         {profile.formulaTerm ? <ThemedText>{t('calculator.formula', { value: t(`profile.formulaOption.${profile.formulaTerm}`) })}</ThemedText> : null}
         {profile.activity ? <ThemedText>{t('calculator.activity', { value: t(`profile.activityOption.${profile.activity}`) })}</ThemedText> : null}
         <ThemedText>{t('calculator.sport', { value: profile.sport ? t('calculator.sportYes') : t('calculator.sportNo') })}</ThemedText>
-        <Button label={t('calculator.editProfile')} variant="danger" onPress={() => router.push('/progress/profile')} />
+        <Button label={t('calculator.editProfile')} variant="secondary" onPress={() => router.push('/progress/profile')} />
       </Card>
 
       {result.status !== 'sensibel' ? (

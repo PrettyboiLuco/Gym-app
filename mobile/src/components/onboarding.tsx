@@ -63,7 +63,7 @@ export function Onboarding() {
           <Card title={t('onboarding.adultQuestion')}>
             <View style={styles.row}>
               <Button label={t('onboarding.yes')} onPress={() => { setAdult(true); setStep('sensitive'); }} />
-              <Button label={t('onboarding.no')} variant="danger" onPress={() => setAdult(false)} />
+              <Button label={t('onboarding.no')} variant="secondary" onPress={() => setAdult(false)} />
             </View>
             <ThemedText type="small" themeColor="textSecondary">
               {t('onboarding.adultHint')}
@@ -121,10 +121,10 @@ export function Onboarding() {
 
       {step !== 'adult' ? (
         <View style={styles.row}>
-          <Button label={t('onboarding.back')} variant="danger" onPress={() => setStep(STEPS[index - 1])} />
+          <Button label={t('onboarding.back')} variant="secondary" onPress={() => setStep(STEPS[index - 1])} />
           {step === 'units' ? (
             <>
-              <Button label={t('onboarding.skip')} variant="danger" disabled={busy} onPress={() => finish(false)} />
+              <Button label={t('onboarding.skip')} variant="secondary" disabled={busy} onPress={() => finish(false)} />
               <Button label={t('onboarding.coach')} disabled={busy} onPress={() => finish(true)} />
             </>
           ) : (

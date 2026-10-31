@@ -200,11 +200,11 @@ export default function PlanEditorScreen() {
       {active?.validUntil && active.returnVersionId ? (
         <Card>
           <ThemedText type="small">{t('plan.temporary', { date: formatDay(active.validUntil) })}</ThemedText>
-          <Button label={t('plan.temporaryEnd')} variant="danger" onPress={() => activate(active.returnVersionId!)} />
+          <Button label={t('plan.temporaryEnd')} variant="secondary" onPress={() => activate(active.returnVersionId!)} />
         </Card>
       ) : null}
       {!isNew ? (
-        <Button label={t('plan.assistant')} variant="danger" onPress={() => router.push({ pathname: '/training/assistant', params: { plan: id } })} />
+        <Button label={t('plan.assistant')} variant="secondary" onPress={() => router.push({ pathname: '/training/assistant', params: { plan: id } })} />
       ) : null}
       <Card>
         <Field
@@ -233,7 +233,7 @@ export default function PlanEditorScreen() {
                   <Button
                     label="↑"
                     accessibilityLabel={`${t('common.moveUp')} ${exerciseName(byId.get(item.exerciseId))}`}
-                    variant="danger"
+                    variant="secondary"
                     onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex - 1) })}
                   />
                 ) : null}
@@ -241,7 +241,7 @@ export default function PlanEditorScreen() {
                   <Button
                     label="↓"
                     accessibilityLabel={`${t('common.moveDown')} ${exerciseName(byId.get(item.exerciseId))}`}
-                    variant="danger"
+                    variant="secondary"
                     onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex + 1) })}
                   />
                 ) : null}
@@ -316,14 +316,14 @@ export default function PlanEditorScreen() {
               {dayIndex > 0 ? (
                 <Button
                   label={`↑ ${t('common.moveUp')}`}
-                  variant="danger"
+                  variant="secondary"
                   onPress={() => setForm((f) => ({ ...f, days: moveItem(f.days, dayIndex, dayIndex - 1) }))}
                 />
               ) : null}
               {dayIndex < form.days.length - 1 ? (
                 <Button
                   label={`↓ ${t('common.moveDown')}`}
-                  variant="danger"
+                  variant="secondary"
                   onPress={() => setForm((f) => ({ ...f, days: moveItem(f.days, dayIndex, dayIndex + 1) }))}
                 />
               ) : null}

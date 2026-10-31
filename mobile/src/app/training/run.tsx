@@ -160,7 +160,7 @@ export default function RunScreen() {
           {outcome.pain ? <ThemedText>{t('run.painHint')}</ThemedText> : null}
         </Card>
         {outcome.kind === 'dehnen' && outcome.status === 'abgeschlossen' ? (
-          <Button label={t('run.flexLink')} variant="danger" onPress={() => router.replace('/training/stretch')} />
+          <Button label={t('run.flexLink')} variant="secondary" onPress={() => router.replace('/training/stretch')} />
         ) : null}
         <Button
           label={outcome.kind === 'aufwaermen' || outcome.kind === 'cooldown' ? t('run.backToWorkout') : t('run.close')}
@@ -178,7 +178,7 @@ export default function RunScreen() {
           <ThemedText>{t('run.askText')}</ThemedText>
           <View style={styles.row}>
             <Button label={t('run.askYes')} onPress={() => finish('abgeschlossen')} />
-            <Button label={t('run.askNo')} variant="danger" onPress={() => finish('abgebrochen', 'nicht_bestaetigt')} />
+            <Button label={t('run.askNo')} variant="secondary" onPress={() => finish('abgebrochen', 'nicht_bestaetigt')} />
           </View>
         </Card>
       </Screen>
@@ -236,7 +236,7 @@ export default function RunScreen() {
           label={paused ? t('run.resume') : t('run.pause')}
           onPress={() => update(paused ? resumeRun(run, nowMs()) : pauseRun(run, nowMs()))}
         />
-        <Button label={t('run.skip')} variant="danger" onPress={() => update(skipStep(run, nowMs()))} />
+        <Button label={t('run.skip')} variant="secondary" onPress={() => update(skipStep(run, nowMs()))} />
       </View>
 
       <Card>

@@ -116,7 +116,7 @@ export default function ScanScreen() {
             barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
             onBarcodeScanned={(result) => onScanned(result.data)}
           />
-          <View style={[styles.frame, { borderColor: theme.tint }]} pointerEvents="none" />
+          <View style={[styles.frame, { borderColor: theme.accent }]} pointerEvents="none" />
           <ThemedText type="small" style={styles.cameraHint}>
             {t('nutrition.scan.hint')}
           </ThemedText>
@@ -125,7 +125,7 @@ export default function ScanScreen() {
       {showCamera ? (
         <Button
           label={torch ? t('nutrition.scan.torchOff') : t('nutrition.scan.torchOn')}
-          variant="danger"
+          variant="secondary"
           accessibilityState={{ checked: torch }}
           onPress={() => setTorch((on) => !on)}
         />
@@ -154,7 +154,7 @@ export default function ScanScreen() {
           <View style={styles.row}>
             {phase.draft.name ? <Button label={t('nutrition.scan.accept')} onPress={() => accept(phase.draft, false)} /> : null}
             <Button label={t('nutrition.scan.correct')} variant={phase.draft.name ? 'danger' : 'primary'} onPress={() => accept(phase.draft, true)} />
-            <Button label={t('nutrition.scan.again')} variant="danger" onPress={scanAgain} />
+            <Button label={t('nutrition.scan.again')} variant="secondary" onPress={scanAgain} />
           </View>
         </Card>
       ) : null}
@@ -177,9 +177,9 @@ export default function ScanScreen() {
               />
             ) : null}
             {phase.error === 'offline' || phase.error === 'unavailable' || phase.error === 'rateLimited' ? (
-              <Button label={t('nutrition.scan.retry')} variant="danger" onPress={() => lookUp(phase.code, false)} />
+              <Button label={t('nutrition.scan.retry')} variant="secondary" onPress={() => lookUp(phase.code, false)} />
             ) : null}
-            <Button label={t('nutrition.scan.again')} variant="danger" onPress={scanAgain} />
+            <Button label={t('nutrition.scan.again')} variant="secondary" onPress={scanAgain} />
           </View>
         </Card>
       ) : null}

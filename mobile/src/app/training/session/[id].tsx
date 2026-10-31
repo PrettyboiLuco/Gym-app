@@ -415,7 +415,7 @@ export default function SessionScreen() {
               <>
                 <ThemedText type="small">{adviceText(advice)}</ThemedText>
                 {advice.kind !== 'variante' ? (
-                  <Button label={t('session.adviceApply')} variant="danger" onPress={() => applyAdvice(exerciseId, advice)} />
+                  <Button label={t('session.adviceApply')} variant="secondary" onPress={() => applyAdvice(exerciseId, advice)} />
                 ) : null}
               </>
             ) : null}
@@ -452,7 +452,7 @@ export default function SessionScreen() {
                         <Button
                           label="↺"
                           accessibilityLabel={t('session.undo')}
-                          variant="danger"
+                          variant="secondary"
                           onPress={async () => {
                             await reopenSet(db, row.id);
                             await load();
@@ -493,7 +493,7 @@ export default function SessionScreen() {
                           <Button
                             label="▶"
                             accessibilityLabel={`${t('session.holdStart')} ${index + 1}`}
-                            variant="danger"
+                            variant="secondary"
                             disabled={hold !== null}
                             onPress={() => startHold(row, index, value)}
                           />
@@ -503,7 +503,7 @@ export default function SessionScreen() {
                       <Button
                         label="−"
                         accessibilityLabel={`${t('session.removeSet')} ${index + 1}`}
-                        variant="danger"
+                        variant="secondary"
                         onPress={async () => {
                           await deleteOpenSet(db, row.id);
                           await load();
@@ -526,7 +526,7 @@ export default function SessionScreen() {
             {active ? (
               <Button
                 label={t('session.addSet')}
-                variant="danger"
+                variant="secondary"
                 onPress={async () => {
                   await addSet(db, id, exerciseId);
                   await load();
@@ -552,10 +552,10 @@ export default function SessionScreen() {
                   <ThemedText type="small" themeColor="textSecondary">
                     {t('session.busyHint')}
                   </ThemedText>
-                  <Button label={t('common.cancel')} variant="danger" onPress={() => setBusyFor(null)} />
+                  <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
                 </View>
               ) : (
-                <Button label={t('session.busy')} variant="danger" onPress={() => setBusyFor(exerciseId)} />
+                <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
               )
             ) : null}
           </Card>
@@ -577,7 +577,7 @@ export default function SessionScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {t('session.alertsTip')}
           </ThemedText>
-          <Button label={t('session.alertsOpen')} variant="danger" onPress={() => router.push('/more/notifications')} />
+          <Button label={t('session.alertsOpen')} variant="secondary" onPress={() => router.push('/more/notifications')} />
         </Card>
       ) : null}
       {active ? (

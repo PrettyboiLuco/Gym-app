@@ -149,18 +149,18 @@ export default function CheckinScreen() {
         {data.recalc ? (
           <>
             <ThemedText type="small">{t('coach.recalc')}</ThemedText>
-            <Button label={t('coach.recalcOpen')} variant="danger" onPress={() => router.push('/progress/coach-setup')} />
+            <Button label={t('coach.recalcOpen')} variant="secondary" onPress={() => router.push('/progress/coach-setup')} />
           </>
         ) : null}
         {result.hints.includes('trainingWeniger') ? (
-          <Button label={t('checkin.openAssistant')} variant="danger" onPress={() => router.push('/training/assistant')} />
+          <Button label={t('checkin.openAssistant')} variant="secondary" onPress={() => router.push('/training/assistant')} />
         ) : null}
         {message ? <ThemedText style={{ color: theme.tint }}>{message}</ThemedText> : null}
         {!doneThisWeek && !message ? (
           suggestion.kind === 'kcal' ? (
             <>
               <Button label={t('checkin.accept')} onPress={() => decide('angenommen')} />
-              <Button label={t('checkin.decline')} variant="danger" onPress={() => decide('abgelehnt')} />
+              <Button label={t('checkin.decline')} variant="secondary" onPress={() => decide('abgelehnt')} />
             </>
           ) : (
             <Button label={t('checkin.save')} onPress={() => decide('ohne')} />

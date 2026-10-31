@@ -64,7 +64,7 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
           ) : null}
         </>
       ) : null}
-      <Button label={showTips ? t('coach.tipsClose') : t('coach.tipsOpen')} variant="danger" onPress={() => setShowTips((v) => !v)} />
+      <Button label={showTips ? t('coach.tipsClose') : t('coach.tipsOpen')} variant="secondary" onPress={() => setShowTips((v) => !v)} />
       {showTips
         ? tips.map((tip) => (
             <ThemedText key={tip.key} type="small">

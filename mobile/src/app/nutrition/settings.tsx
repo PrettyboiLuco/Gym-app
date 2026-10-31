@@ -119,7 +119,7 @@ export default function NutritionSettingsScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.settings.kcalGoalHint')}
         </ThemedText>
-        <Button label={t('nutrition.settings.calculator')} variant="danger" onPress={() => router.push('/progress/calculator')} />
+        <Button label={t('nutrition.settings.calculator')} variant="secondary" onPress={() => router.push('/progress/calculator')} />
       </Card>
       <Card>
         <Field

@@ -244,10 +244,10 @@ export default function RoutineScreen() {
                       {sideNote}
                     </ThemedText>
                     {index > 0 ? (
-                      <Button label="↑" accessibilityLabel={`${t('common.moveUp')} ${exerciseName(exercise)}`} variant="danger" onPress={() => change({ items: moveItem(form.items, index, index - 1) })} />
+                      <Button label="↑" accessibilityLabel={`${t('common.moveUp')} ${exerciseName(exercise)}`} variant="secondary" onPress={() => change({ items: moveItem(form.items, index, index - 1) })} />
                     ) : null}
                     {index < form.items.length - 1 ? (
-                      <Button label="↓" accessibilityLabel={`${t('common.moveDown')} ${exerciseName(exercise)}`} variant="danger" onPress={() => change({ items: moveItem(form.items, index, index + 1) })} />
+                      <Button label="↓" accessibilityLabel={`${t('common.moveDown')} ${exerciseName(exercise)}`} variant="secondary" onPress={() => change({ items: moveItem(form.items, index, index + 1) })} />
                     ) : null}
                     <Button label={t('common.remove')} variant="danger" onPress={() => change({ items: form.items.filter((_, i) => i !== index) })} />
                   </View>
@@ -308,11 +308,11 @@ export default function RoutineScreen() {
 
       <View style={styles.row}>
         <Button label={`▶ ${t('routine.start')}`} onPress={start} />
-        {editing ? <Button label={t('routine.save')} variant="danger" onPress={save} /> : null}
+        {editing ? <Button label={t('routine.save')} variant="secondary" onPress={save} /> : null}
         {!editing && template ? (
           <Button
             label={t('routine.customize')}
-            variant="danger"
+            variant="secondary"
             onPress={() => {
               setEditing(true);
               setBaseline('');

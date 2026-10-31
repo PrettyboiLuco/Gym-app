@@ -119,8 +119,8 @@ export default function NotificationsScreen() {
                         },
                       }))
                     }
-                    style={[styles.chip, { backgroundColor: selected ? theme.tint : theme.backgroundSelected }]}>
-                    <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+                    style={[styles.chip, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+                    <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text }}>
                       {t(`reminders.dayShort.${d}`)}
                     </ThemedText>
                   </Pressable>
@@ -200,7 +200,7 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: Spacing.four, minWidth: 44, alignItems: 'center' },
+  chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: 999, minWidth: 44, alignItems: 'center' },
   row: { flexDirection: 'row', gap: Spacing.two },
   flex: { flex: 1, minWidth: 0 },
 });

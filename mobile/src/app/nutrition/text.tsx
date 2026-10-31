@@ -204,7 +204,7 @@ export default function FoodTextScreen() {
                 <ThemedText type="small">{t('foodText.noMatch')}</ThemedText>
                 <Button
                   label={t('foodText.search')}
-                  variant="danger"
+                  variant="secondary"
                   onPress={() => router.push({ pathname: '/nutrition/add', params: { ...targetParams(day, target), q: row.item.name } })}
                 />
               </>

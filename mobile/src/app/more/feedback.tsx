@@ -82,8 +82,8 @@ export default function FeedbackScreen() {
                 accessibilityState={{ checked: selected }}
                 accessibilityLabel={t(`feedback.area.${area}`)}
                 onPress={() => change({ used: selected ? answers.used.filter((a) => a !== area) : [...answers.used, area] })}
-                style={[styles.chip, { backgroundColor: selected ? theme.tint : theme.backgroundSelected }]}>
-                <ThemedText type="small" style={{ color: selected ? theme.onTint : theme.text }}>
+                style={[styles.chip, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+                <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text }}>
                   {t(`feedback.area.${area}`)}
                 </ThemedText>
               </Pressable>
@@ -140,7 +140,7 @@ export default function FeedbackScreen() {
       <Button label={t('feedback.share')} onPress={share} />
       <Button
         label={t('feedback.reset')}
-        variant="danger"
+        variant="secondary"
         onPress={() => {
           setAnswers(EMPTY_FEEDBACK);
           saveFeedbackDraft(db, EMPTY_FEEDBACK);
@@ -155,5 +155,5 @@ export default function FeedbackScreen() {
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: Spacing.four },
+  chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: 999 },
 });

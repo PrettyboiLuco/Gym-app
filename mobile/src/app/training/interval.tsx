@@ -95,7 +95,7 @@ export default function IntervalScreen() {
           </ThemedText>
           <Button
             label={state.phase === 'fertig' ? t('common.ok') : t('interval.stop')}
-            variant="danger"
+            variant="secondary"
             onPress={() => {
               setStartedAt(null);
               setRunning(null);

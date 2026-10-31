@@ -106,7 +106,7 @@ export default function PhotosScreen() {
           <Choice label={t('photos.pose')} options={PHOTO_POSES} value={pose} onChange={setPose} format={(p) => t(`photos.poses.${p}`)} />
           <View style={styles.row}>
             <Button label={t('photos.camera')} onPress={takePhoto} />
-            <Button label={t('photos.library')} variant="danger" onPress={pickPhoto} />
+            <Button label={t('photos.library')} variant="secondary" onPress={pickPhoto} />
           </View>
           <ThemedText type="small" themeColor="textSecondary">
             {t('photos.tip')}
@@ -121,7 +121,7 @@ export default function PhotosScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               {visible ? '' : t('photos.hidden')}
             </ThemedText>
-            <Button label={visible ? t('photos.hide') : t('photos.show')} variant="danger" onPress={() => setVisible((v) => !v)} />
+            <Button label={visible ? t('photos.hide') : t('photos.show')} variant="secondary" onPress={() => setVisible((v) => !v)} />
           </Card>
 
           <Card title={t('photos.compareTitle')}>

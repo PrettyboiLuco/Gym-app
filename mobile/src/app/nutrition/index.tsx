@@ -100,10 +100,10 @@ export default function DiaryScreen() {
     <Screen title={t('nutrition.title')}>
       <DaySwitcher day={day} onChange={changeDay} />
       <View style={styles.links}>
-        <Button label={t('nutrition.weekLink')} variant="danger" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
-        <Button label={t('nutrition.recipesLink')} variant="danger" onPress={() => router.push('/nutrition/recipes')} />
-        <Button label={t('supplements.link')} variant="danger" onPress={() => router.push('/nutrition/supplements')} />
-        <Button label={t('nutrition.settingsLink')} variant="danger" onPress={() => router.push('/nutrition/settings')} />
+        <Button label={t('nutrition.weekLink')} variant="secondary" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
+        <Button label={t('nutrition.recipesLink')} variant="secondary" onPress={() => router.push('/nutrition/recipes')} />
+        <Button label={t('supplements.link')} variant="secondary" onPress={() => router.push('/nutrition/supplements')} />
+        <Button label={t('nutrition.settingsLink')} variant="secondary" onPress={() => router.push('/nutrition/settings')} />
       </View>
 
       <Card title={t('nutrition.summary.title')}>
@@ -158,10 +158,10 @@ export default function DiaryScreen() {
             <View style={styles.links}>
               <Button label={t('nutrition.add')} onPress={() => router.push({ pathname: '/nutrition/add', params: { day, meal } })} />
               {items.length === 0 ? (
-                <Button label={t('nutrition.copyYesterday')} variant="danger" onPress={() => copyFromPreviousDay(meal)} />
+                <Button label={t('nutrition.copyYesterday')} variant="secondary" onPress={() => copyFromPreviousDay(meal)} />
               ) : null}
               {items.some((e) => e.foodId) && templateFor !== meal ? (
-                <Button label={t('nutrition.saveTemplate')} variant="danger" onPress={() => setTemplateFor(meal)} />
+                <Button label={t('nutrition.saveTemplate')} variant="secondary" onPress={() => setTemplateFor(meal)} />
               ) : null}
             </View>
             {templateFor === meal ? (
@@ -174,7 +174,7 @@ export default function DiaryScreen() {
                   style={styles.flex}
                 />
                 <Button label={t('common.save')} onPress={() => saveTemplate(meal)} />
-                <Button label={t('common.cancel')} variant="danger" onPress={() => setTemplateFor(null)} />
+                <Button label={t('common.cancel')} variant="secondary" onPress={() => setTemplateFor(null)} />
               </View>
             ) : null}
             {notice?.meal === meal ? <ThemedText type="small">{notice.text}</ThemedText> : null}
@@ -205,7 +205,7 @@ export default function DiaryScreen() {
         />
         <Button
           label={t('nutrition.drinks.other')}
-          variant="danger"
+          variant="secondary"
           onPress={() => router.push({ pathname: '/nutrition/add', params: { day, drink: 'sonstiges' } })}
         />
         <ThemedText type="small" themeColor="textSecondary">

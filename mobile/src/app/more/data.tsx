@@ -129,7 +129,7 @@ export default function DataScreen() {
 
       <Card title={t('dataScreen.restoreTitle')}>
         <ThemedText type="small">{t('dataScreen.restoreText')}</ThemedText>
-        <Button label={t('dataScreen.choose')} variant="danger" disabled={busy} onPress={chooseFile} />
+        <Button label={t('dataScreen.choose')} variant="secondary" disabled={busy} onPress={chooseFile} />
         {summary ? (
           <>
             <ThemedText>

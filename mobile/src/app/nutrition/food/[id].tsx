@@ -157,12 +157,12 @@ export default function FoodScreen() {
       <View style={styles.row}>
         <Button
           label={food.favorite ? t('nutrition.food.unfavorite') : t('nutrition.food.favorite')}
-          variant="danger"
+          variant="secondary"
           onPress={toggleFavorite}
         />
         <Button
           label={t('nutrition.food.edit')}
-          variant="danger"
+          variant="secondary"
           onPress={() =>
             router.push({ pathname: '/nutrition/food-edit/[id]', params: { id: food.id, ...targetParams(day, target) } })
           }

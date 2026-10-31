@@ -52,7 +52,7 @@ export function WeightChart({
               {avg !== undefined ? (
                 <View style={[styles.trend, { top: y(avg) - 1, backgroundColor: theme.textSecondary }]} />
               ) : null}
-              {kg !== undefined ? <View style={[styles.dot, { top: y(kg) - 3, backgroundColor: theme.tint }]} /> : null}
+              {kg !== undefined ? <View style={[styles.dot, { top: y(kg) - 3, backgroundColor: theme.accent }]} /> : null}
             </View>
           );
         })}

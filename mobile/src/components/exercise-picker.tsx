@@ -49,7 +49,7 @@ export function ExercisePicker({
           onPress={() => onPick(exercise)}
         />
       ))}
-      <Button label={t('common.cancel')} variant="danger" onPress={onCancel} />
+      <Button label={t('common.cancel')} variant="secondary" onPress={onCancel} />
     </Card>
   );
 }
