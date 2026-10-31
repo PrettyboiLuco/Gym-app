@@ -2,10 +2,9 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 
 import { Card } from '@/components/card';
-import { MeterBar, ProgressRing } from '@/components/charts';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
-import { HeroPanel, Sparkline, StatTile, TileGrid, WeekDots } from '@/components/today-widgets';
+import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
 import { timeZone, todayDay } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
@@ -23,7 +22,6 @@ import { weekStart } from '@/domain/goals';
 import { localDay } from '@/domain/time';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
-import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
 
 async function loadToday(db: Db) {
@@ -54,7 +52,6 @@ async function loadToday(db: Db) {
     const index = Math.round((Date.parse(`${day}T12:00:00Z`) - Date.parse(`${monday}T12:00:00Z`)) / 86_400_000);
     if (index >= 0 && index < 7) week[index] = true;
   }
-  const weekCount = sessions.filter((s) => s.status === 'abgeschlossen' && localDay(new Date(s.startedAt), timeZone) >= monday).length;
   const todayIndex = Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${monday}T12:00:00Z`)) / 86_400_000);
   // Wochen-Check-in fällig (COACH-008)? Frühestens eine Woche nach dem letzten Check-in, sonst nach der
   // Coach-Einrichtung bzw. der ersten Gewichtsmessung – vorher gäbe es keine Woche zum Zurückschauen.
@@ -87,13 +84,11 @@ async function loadToday(db: Db) {
   };
   // Direkt nach dem Erststart einmal die Coach-Einrichtung öffnen (C1).
   const openSetup = pending && setup === null;
-  // Letzte Messungen für die Mini-Kurve: ein Wert pro Tag (der neueste), älteste zuerst.
-  const seen = new Set<string>();
-  const recent = weights.filter((w) => !seen.has(w.day) && seen.add(w.day)).slice(0, 14).reverse().map((w) => w.kg);
+  // Geplante Trainingstage aus dem Coach (ISO: 1 = Montag … 7 = Sonntag).
+  const planned = Array.from({ length: 7 }, (_, i) => (setup?.trainingWeekdays ?? []).includes(i + 1));
   return {
     lastWeight: weights[0] ?? null,
     trend: weightTrend(weights, today),
-    recent,
     active,
     next,
     food,
@@ -102,17 +97,18 @@ async function loadToday(db: Db) {
     coach,
     openSetup,
     restDay: goal?.trainingDay === false,
-    week: { done: week, count: weekCount, goal: setup?.gymDays ?? null, todayIndex },
+    week: { done: week, planned, goal: setup?.gymDays ?? null, todayIndex },
   };
 }
+
+const EMPTY_WEEK = Array.from({ length: 7 }, () => false);
 
 export default function TodayScreen() {
   const { data, db } = useLoad(loadToday, {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
-    recent: [] as number[],
     restDay: false,
-    week: { done: Array.from({ length: 7 }, () => false), count: 0, goal: null as number | null, todayIndex: 0 },
+    week: { done: EMPTY_WEEK, planned: EMPTY_WEEK, goal: null as number | null, todayIndex: 0 },
     timed: null as string | null,
     checkin: false,
     active: null as SessionInfo | null,
@@ -121,8 +117,7 @@ export default function TodayScreen() {
     coach: null as CoachTodayData | null,
     openSetup: false,
   });
-  const { lastWeight, trend, recent, active, next, food, timed, checkin, coach, openSetup, restDay, week } = data;
-  const theme = useTheme();
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week } = data;
   useEffect(() => {
     if (!openSetup) return;
     saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
@@ -131,120 +126,116 @@ export default function TodayScreen() {
   const hour = new Date().getHours();
   const greeting = hour < 11 ? t('today.greetingMorning') : hour < 18 ? t('today.greetingDay') : t('today.greetingEvening');
 
-  // Trainings-Panel: läuft etwas? Sonst nächster Tag, Ruhetag oder erster Plan.
-  const hero = timed
-    ? { eyebrow: t('today.heroRunning'), title: timed, text: null, action: t('today.heroContinue'), go: () => router.push('/training/run') }
+  // Die Frage des Bildschirms: Was steht heute an? Der Trainingsblock beantwortet sie, sein Knopf führt direkt hin.
+  const training = timed
+    ? { label: t('today.heroRunning'), title: timed, meta: null, action: t('today.heroContinue'), go: () => router.push('/training/run') }
     : active
       ? {
-          eyebrow: t('today.heroRunning'),
+          label: t('today.heroRunning'),
           title: active.dayName ?? t('today.heroFree'),
-          text: active.planName,
+          meta: active.planName,
           action: t('today.heroContinue'),
           go: () => router.push(`/training/session/${active.id}`),
         }
       : next && restDay
         ? {
-            eyebrow: t('today.title'),
-            title: t('today.heroRest'),
-            text: `${t('today.heroRestText')} ${t('today.heroRestNext', { day: next.day })}`,
+            label: t('today.heroRest'),
+            title: t('today.heroRestTitle'),
+            meta: t('today.heroRestNext', { day: next.day }),
             action: t('today.heroStretch'),
             go: () => router.push('/training/stretch'),
           }
         : next
-          ? { eyebrow: t('today.heroToday'), title: next.day, text: next.plan, action: t('today.heroStart'), go: () => router.push('/training') }
+          ? { label: t('today.heroToday'), title: next.day, meta: next.plan, action: t('today.heroStart'), go: () => router.push('/training') }
           : {
-              eyebrow: t('today.heroNoPlanEyebrow'),
+              label: t('today.heroNoPlanEyebrow'),
               title: t('today.heroNoPlanTitle'),
-              text: t('today.heroNoPlanText'),
+              meta: t('today.heroNoPlanText'),
               action: t('today.heroNoPlan'),
               go: () => router.push('/training'),
             };
 
-  // Kalorien-Kachel
+  // Die Zeile unter der Begrüßung: Datum und das Wichtigste von heute.
+  const finding = timed || active ? t('today.findingRunning') : next && restDay ? t('today.heroRest') : next ? t('today.findingNext', { day: next.day }) : null;
+  const subtitle = [formatLongDate(new Date()), finding].filter(Boolean).join(' · ');
+
+  // Trainingswoche: eine Variable für Punkte und Zusammenfassung (gezählt werden Tage mit Training).
+  const dayLabels = [1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`));
+  const days: WeekDay[] = dayLabels.map((label, i) => ({ label, done: week.done[i], planned: week.planned[i], today: i === week.todayIndex }));
+  const doneDays = week.done.filter(Boolean).length;
+  const weekSummary = week.goal
+    ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal })
+    : t('today.weekSummary', { count: doneDays });
+
+  // Kennzahlen
   const kcal = food.sums.values.kcal;
-  const kcalValue = food.hide ? String(food.entries) : food.entries === 0 ? '0' : formatNumber(kcal, 0);
-  const kcalUnit = food.hide ? undefined : 'kcal';
-  const kcalCaption = food.hide
-    ? t('today.tileEntries', { count: food.entries })
-    : food.entries === 0
-      ? t('today.tileKcalEmpty')
-      : food.goal === null
-        ? null
-        : kcal <= food.goal
-          ? t('today.tileKcalLeft', { left: formatNumber(food.goal - kcal, 0) })
-          : t('today.tileKcalOver', { over: formatNumber(kcal - food.goal, 0) });
   const liters = (ml: number) => formatNumber(ml / 1000, 1);
+  const kcalFigure = food.hide
+    ? { value: String(food.entries), unit: undefined, sub: t('today.tileEntries', { count: food.entries }) }
+    : {
+        value: formatNumber(kcal, 0),
+        unit: 'kcal',
+        sub:
+          food.entries === 0
+            ? t('today.tileKcalEmpty')
+            : food.goal === null
+              ? null
+              : kcal <= food.goal
+                ? t('today.tileKcalLeft', { left: formatNumber(food.goal - kcal, 0) })
+                : t('today.tileKcalOver', { over: formatNumber(kcal - food.goal, 0) }),
+      };
+  const weightValue = lastWeight ? formatWeight(lastWeight.kg, units.weight).replace(/\s*\S+$/, '') : null;
+  const weightSub =
+    trend !== null
+      ? t('today.tileWeightTrend', { kg: formatWeight(trend, units.weight) })
+      : lastWeight
+        ? lastWeight.day === todayDay()
+          ? t('today.tileWeightToday')
+          : t('today.tileWeightLast', { date: formatDay(lastWeight.day) })
+        : t('today.tileWeightNone');
 
   return (
-    <Screen title={greeting} eyebrow={formatLongDate(new Date())}>
+    <Screen title={greeting} subtitle={subtitle}>
       {checkin ? (
         <Card>
           <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         </Card>
       ) : null}
-      <HeroPanel eyebrow={hero.eyebrow} title={hero.title} text={hero.text} action={hero.action} onPress={hero.go} />
-      <TileGrid>
-        <StatTile
-          index={1}
-          icon="flame"
-          label={t('today.tileKcal')}
-          value={kcalValue}
-          unit={kcalUnit}
-          caption={kcalCaption ?? (food.goal !== null && !food.hide ? t('today.tileKcalOf', { goal: formatNumber(food.goal, 0) }) : null)}
-          corner={
-            !food.hide && food.goal ? (
-              <ProgressRing progress={kcal / food.goal} size={30} stroke={4} color={theme.tint} trackColor={theme.backgroundSelected} />
-            ) : null
-          }
-          accessibilityLabel={[t('today.tileKcal'), kcalValue, kcalUnit, kcalCaption].filter(Boolean).join(' ')}
-          onPress={() => router.push('/nutrition')}
-        />
-        <StatTile
-          index={2}
-          icon="drop"
-          label={t('today.tileDrinks')}
-          value={liters(food.drinksMl)}
-          unit="l"
-          caption={food.drinkGoalMl ? t('today.tileDrinksOf', { goal: liters(food.drinkGoalMl) }) : null}
-          footer={
-            food.drinkGoalMl ? (
-              <MeterBar progress={food.drinksMl / food.drinkGoalMl} color={theme.tint} trackColor={theme.backgroundSelected} height={6} />
-            ) : null
-          }
-          accessibilityLabel={`${t('today.tileDrinks')} ${liters(food.drinksMl)} l`}
-          onPress={() => router.push('/nutrition')}
-        />
-        <StatTile
-          index={3}
-          icon="scale"
-          label={t('today.tileWeight')}
-          value={lastWeight ? formatWeight(lastWeight.kg, units.weight).replace(/\s*\S+$/, '') : '–'}
-          unit={lastWeight ? units.weight : undefined}
-          caption={
-            trend !== null
-              ? t('today.tileWeightTrend', { kg: formatWeight(trend, units.weight) })
-              : lastWeight
-                ? lastWeight.day === todayDay()
-                  ? t('today.tileWeightToday')
-                  : t('today.tileWeightLast', { date: formatDay(lastWeight.day) })
-                : t('today.tileWeightNone')
-          }
-          footer={<Sparkline values={recent} color={theme.tint} />}
-          accessibilityLabel={`${t('today.tileWeight')} ${lastWeight ? formatWeight(lastWeight.kg, units.weight) : t('today.tileWeightNone')}`}
-          onPress={() => router.push('/progress')}
-        />
-        <StatTile
-          index={4}
-          icon="calendar"
-          label={t('today.tileWeek')}
-          value={String(week.count)}
-          unit={week.goal ? undefined : t('today.tileWeekUnit', { count: week.count })}
-          caption={week.goal ? t('today.tileWeekOf', { goal: week.goal }) : null}
-          footer={<WeekDots done={week.done} todayIndex={week.todayIndex} labels={[1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`))} />}
-          accessibilityLabel={`${t('today.tileWeek')}: ${week.count} ${t('today.tileWeekUnit', { count: week.count })}`}
-          onPress={() => router.push('/training/history')}
-        />
-      </TileGrid>
+      <TrainingBlock
+        label={training.label}
+        title={training.title}
+        meta={training.meta}
+        week={days}
+        weekSummary={weekSummary}
+        action={training.action}
+        onPress={training.go}
+      />
+      <FigureStrip
+        figures={[
+          {
+            label: t('today.tileKcal'),
+            ...kcalFigure,
+            accessibilityLabel: [t('today.tileKcal'), kcalFigure.value, kcalFigure.unit, kcalFigure.sub].filter(Boolean).join(' '),
+            onPress: () => router.push('/nutrition'),
+          },
+          {
+            label: t('today.tileDrinks'),
+            value: liters(food.drinksMl),
+            unit: 'l',
+            sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: liters(food.drinkGoalMl) }) : null,
+            accessibilityLabel: `${t('today.tileDrinks')} ${liters(food.drinksMl)} l`,
+            onPress: () => router.push('/nutrition'),
+          },
+          {
+            label: t('today.tileWeight'),
+            value: weightValue,
+            unit: lastWeight ? units.weight : undefined,
+            sub: weightSub,
+            accessibilityLabel: `${t('today.tileWeight')} ${lastWeight ? formatWeight(lastWeight.kg, units.weight) : t('today.tileWeightNone')}, ${weightSub}`,
+            onPress: () => router.push('/progress'),
+          },
+        ]}
+      />
       {coach ? <CoachToday data={coach} /> : null}
     </Screen>
   );

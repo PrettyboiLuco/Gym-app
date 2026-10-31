@@ -11,8 +11,8 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const clamp01 = (v: number) => (Number.isFinite(v) ? Math.min(Math.max(v, 0), 1) : 0);
 
 /**
- * Fortschrittsring (Kalorien, Pause). Läuft mit derselben Feder wie die Überschriften an;
- * bei „Bewegung reduzieren“ steht er sofort. Inhalt (z. B. Zahl) kommt mittig hinein.
+ * Fortschrittsring (Pause). Steht beim Öffnen sofort auf seinem Wert (keine Eingangs-Animation,
+ * taste-skill: Bewegung ist auf App-Bildschirmen nur Rückmeldung) und federt, wenn sich der Wert ändert.
  */
 export function ProgressRing({
   progress,
@@ -36,7 +36,7 @@ export function ProgressRing({
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const target = clamp01(progress);
-  const value = useSharedValue(follow === 'spring' && !reduced ? 0 : target);
+  const value = useSharedValue(target);
 
   useEffect(() => {
     if (reduced) value.value = target;
@@ -70,12 +70,12 @@ export function ProgressRing({
   );
 }
 
-/** Waagrechter Balken (Makros). Breite federt auf den Anteil; über 100 % bleibt er voll. */
+/** Waagrechter Balken (Kalorien, Makros, Trinken): Füllung = echter Anteil, über 100 % voll. Federt nur bei Änderungen. */
 export function MeterBar({ progress, color, trackColor, height = 8 }: { progress: number; color: string; trackColor: string; height?: number }) {
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
-  const value = useSharedValue(0);
   const target = clamp01(progress);
+  const value = useSharedValue(target);
 
   useEffect(() => {
     value.value = reduced ? target : withSpring(target, Spring);

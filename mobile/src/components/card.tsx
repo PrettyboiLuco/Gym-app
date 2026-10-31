@@ -1,37 +1,19 @@
 import type { ReactNode } from 'react';
-import { Platform, Pressable, StyleSheet, type GestureResponderEvent, type PressableProps } from 'react-native';
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { Pressable, StyleSheet, View, type GestureResponderEvent, type PressableProps } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-/**
- * Karten erscheinen weich von unten (gleiche Feder wie die Überschriften); „Bewegung reduzieren“ schaltet das ab.
- * Nicht in der Web-Vorschau: Reanimated nimmt dort Karten mit Eingangs-Animation aus dem Layout
- * (sie liegen dann über Elementen ohne Animation, gesehen 31.10.2026).
- */
-const cardEntering =
-  Platform.OS === 'web'
-    ? undefined
-    : FadeInDown.springify()
-  .stiffness(Spring.stiffness)
-  .damping(Spring.damping)
-  .mass(Spring.mass)
-  .withInitialValues({ opacity: 0, transform: [{ translateY: 12 }] });
-
 export function Card({ title, children }: { title?: string; children: ReactNode }) {
   const theme = useTheme();
   return (
-    <Animated.View entering={cardEntering} style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
-      {title ? (
-        <ThemedText type="eyebrow" themeColor="textSecondary">
-          {title}
-        </ThemedText>
-      ) : null}
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+      {title ? <ThemedText style={styles.title}>{title}</ThemedText> : null}
       {children}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -83,10 +65,11 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
+  title: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
   card: {
     padding: Spacing.three + Spacing.one,
     borderRadius: Radius.card,
-    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderWidth: 1,
     gap: Spacing.two,
   },
   button: {

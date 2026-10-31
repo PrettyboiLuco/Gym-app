@@ -51,7 +51,6 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
   const dayKind = target?.trainingDay === true ? t('coach.trainingDay') : target?.trainingDay === false ? t('coach.restDay') : null;
   return (
     <Card title={dayKind ? `${t('coach.todayTitle')} · ${dayKind}` : t('coach.overview')}>
-      {target?.trainingDay && data.nextDay ? <ThemedText>{t('coach.trainingToday', { name: data.nextDay })}</ThemedText> : null}
       {!hideNumbers && target ? (
         <>
           <View
@@ -67,27 +66,29 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
                   ]
                 : []),
             ].join('. ')}>
-            {macros ? (
-              <View style={styles.macros}>
-                {(
-                  [
-                    ['nutrition.protein', sums.values.protein, macros.protein],
-                    ['nutrition.fat', sums.values.fat, macros.fat],
-                    ['nutrition.carbs', sums.values.carbs, macros.carbs],
-                  ] as const
-                ).map(([label, eaten, goal]) => (
-                  <View key={label} style={styles.macro}>
-                    <View style={styles.macroHead}>
-                      <ThemedText type="small">{t(label)}</ThemedText>
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {t('coach.macroShort', { eaten: g(eaten), target: g(goal) })}
-                      </ThemedText>
-                    </View>
-                    <MeterBar progress={goal > 0 ? eaten / goal : 0} color={theme.tint} trackColor={theme.backgroundSelected} />
+            {/* Fortschritt zum Ziel: Balken mit echtem Anteil, beide Enden beschriftet (gegessen / Ziel). */}
+            <View style={styles.macros}>
+              {[
+                // Kalorien stehen auf „Heute“ in der Kennzahlenzeile – eine Zahl, ein Ort (taste-skill).
+                ...(macros
+                  ? [
+                      { key: 'protein', label: t('nutrition.protein'), eaten: sums.values.protein, goal: macros.protein, text: 'coach.macroShort' },
+                      { key: 'fat', label: t('nutrition.fat'), eaten: sums.values.fat, goal: macros.fat, text: 'coach.macroShort' },
+                      { key: 'carbs', label: t('nutrition.carbs'), eaten: sums.values.carbs, goal: macros.carbs, text: 'coach.macroShort' },
+                    ]
+                  : []),
+              ].map((row) => (
+                <View key={row.key} style={styles.macro}>
+                  <View style={styles.macroHead}>
+                    <ThemedText type="small">{row.label}</ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" style={styles.num}>
+                      {t(row.text, { eaten: g(row.eaten), target: g(row.goal) })}
+                    </ThemedText>
                   </View>
-                ))}
-              </View>
-            ) : null}
+                  <MeterBar progress={row.goal > 0 ? row.eaten / row.goal : 0} color={theme.tint} trackColor={theme.backgroundSelected} height={6} />
+                </View>
+              ))}
+            </View>
           </View>
           {macros ? <ThemedText type="small">{t('coach.fiberLine', { eaten: g(sums.values.fiber), target: g(macros.fiber) })}</ThemedText> : null}
         </>
@@ -106,8 +107,9 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
 }
 
 const styles = StyleSheet.create({
-  overview: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: Spacing.one },
-  macros: { flex: 1, gap: Spacing.two },
+  overview: { paddingVertical: Spacing.one },
+  macros: { gap: Spacing.three },
+  num: { fontVariant: ['tabular-nums'] },
   macro: { gap: Spacing.one },
   macroHead: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.two },
 });

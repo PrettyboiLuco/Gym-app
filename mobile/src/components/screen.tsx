@@ -1,8 +1,7 @@
 import type { ReactNode, Ref } from 'react';
-import { ScrollView, StyleSheet, type ScrollViewInstance } from 'react-native';
+import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedTitle } from '@/components/animated-title';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -14,7 +13,6 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 export function Screen({
   title,
   subtitle,
-  eyebrow,
   withHeader = false,
   footer,
   scrollRef,
@@ -22,8 +20,6 @@ export function Screen({
 }: {
   title?: string;
   subtitle?: string;
-  /** Kleine Zeile über dem Titel (z. B. Datum). */
-  eyebrow?: string;
   withHeader?: boolean;
   footer?: ReactNode;
   /** Für Bildschirme, die selbst nach oben scrollen müssen (z. B. Formular oben, Liste darunter). */
@@ -38,13 +34,16 @@ export function Screen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>
-          {eyebrow ? (
-            <ThemedText type="eyebrow" themeColor="textSecondary" style={styles.eyebrow}>
-              {eyebrow}
-            </ThemedText>
+          {title && !withHeader ? (
+            <View style={styles.head}>
+              <ThemedText type="subtitle" accessibilityRole="header">
+                {title}
+              </ThemedText>
+              {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
+            </View>
+          ) : subtitle ? (
+            <ThemedText themeColor="textSecondary">{subtitle}</ThemedText>
           ) : null}
-          {title && !withHeader ? <AnimatedTitle text={title} /> : null}
-          {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
           {children}
         </ScrollView>
         {footer}
@@ -55,7 +54,7 @@ export function Screen({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  eyebrow: { marginTop: Spacing.two, marginBottom: -Spacing.two },
+  head: { gap: Spacing.one, paddingTop: Spacing.two, paddingBottom: Spacing.one },
   safeArea: { flex: 1 },
   content: {
     padding: Spacing.three,

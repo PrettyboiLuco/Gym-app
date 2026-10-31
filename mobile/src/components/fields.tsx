@@ -145,7 +145,7 @@ export function RadioList<T extends string>({
             accessibilityLabel={format(option)}
             onPress={() => onChange(option)}
             style={[styles.radio, { borderColor: selected ? theme.primary : theme.border }]}>
-            <ThemedText style={{ color: theme.tint }}>{selected ? '●' : '○'}</ThemedText>
+            <ThemedText style={{ color: selected ? theme.text : theme.textSecondary }}>{selected ? '●' : '○'}</ThemedText>
             <View style={styles.rowText}>
               <ThemedText>{format(option)}</ThemedText>
               {describe ? (
@@ -253,7 +253,7 @@ export function ListRow({
           </ThemedText>
         ) : null}
       </View>
-      {accessory ? <ThemedText style={{ color: theme.tint }}>{accessory}</ThemedText> : null}
+      {accessory ? <ThemedText style={{ color: theme.textSecondary }}>{accessory}</ThemedText> : null}
     </Pressable>
   );
 }

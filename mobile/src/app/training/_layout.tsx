@@ -13,7 +13,7 @@ export default function TrainingLayout() {
     <Stack
       screenOptions={{
         headerBackTitle: t('common.back'),
-        headerTintColor: theme.tint,
+        headerTintColor: theme.text,
         headerStyle: { backgroundColor: theme.background },
         headerTitleStyle: { color: theme.text },
       }}>

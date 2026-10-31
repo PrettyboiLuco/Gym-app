@@ -1,4 +1,4 @@
-import { Manrope_700Bold, Manrope_800ExtraBold, useFonts } from '@expo-google-fonts/manrope';
+import { Manrope_600SemiBold, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -20,7 +20,7 @@ configureNotifications();
 function Gate() {
   const { loaded, onboardingDone } = useProfile();
   // Überschrift-Schrift (Manrope) abwarten; schlägt das Laden fehl, geht es mit der Systemschrift weiter.
-  const [fontsLoaded, fontError] = useFonts({ Manrope_700Bold, Manrope_800ExtraBold });
+  const [fontsLoaded, fontError] = useFonts({ Manrope_600SemiBold, Manrope_700Bold });
   if (!loaded || (!fontsLoaded && !fontError)) return null;
   return onboardingDone ? <AppTabs /> : <Onboarding />;
 }

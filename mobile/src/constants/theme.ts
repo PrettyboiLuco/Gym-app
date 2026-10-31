@@ -9,6 +9,9 @@ import { Platform } from 'react-native';
 
 /**
  * Farben nach Lucs Vorlage (31.10.2026): ruhig, Schwarz/Weiß/Grau, Akzent Lime-Grün #C6F24E.
+ * Verfeinert nach taste-skill (App-Stil „True-black flat“): Karten heben sich nur durch Helligkeit ab
+ * (dunkel #000 → #111 → #2A2A2A, ohne Rand), hell durch eine 1-px-Kante. Lime nur auf Daten
+ * (Ringe, Balken, Verlauf, erledigte Tage), nie auf Knöpfen, Tabs oder Navigation.
  * - primary/onPrimary: Hauptknöpfe und gewählte Optionen (dunkel: weiße Pille, hell: schwarze Pille)
  * - accent/onAccent: Flächen in Lime (Ringe, Punkte, Fortschritt) – immer mit schwarzer Schrift
  * - tint: Akzent als Schrift- und Symbolfarbe; hell dunkleres Grün, damit es auf Weiß lesbar bleibt (Kontrast ≥ 4,5)
@@ -16,11 +19,11 @@ import { Platform } from 'react-native';
 export const Colors = {
   light: {
     text: '#0A0A0A',
-    background: '#F4F4F5',
+    background: '#F6F6F7',
     backgroundElement: '#FFFFFF',
-    backgroundSelected: '#E7E7EA',
-    border: '#D4D4D8',
-    textSecondary: '#6E6E73',
+    backgroundSelected: '#EEEEEE',
+    border: '#D1D5DB',
+    textSecondary: '#5F6368',
     tint: '#4A7300',
     onTint: '#FFFFFF',
     primary: '#0A0A0A',
@@ -30,15 +33,15 @@ export const Colors = {
     danger: '#C62828',
     onDanger: '#FFFFFF',
     /** Feine Kante um Karten – gibt Tiefe, ohne Schatten. */
-    hairline: 'rgba(0,0,0,0.06)',
+    hairline: '#E8E8E8',
   },
   dark: {
     text: '#FFFFFF',
     background: '#000000',
-    backgroundElement: '#1C1C1E',
-    backgroundSelected: '#2C2C2E',
-    border: '#3A3A3C',
-    textSecondary: '#A1A1A6',
+    backgroundElement: '#111111',
+    backgroundSelected: '#2A2A2A',
+    border: '#444444',
+    textSecondary: '#B4B4B4',
     tint: '#C6F24E',
     onTint: '#000000',
     primary: '#FFFFFF',
@@ -47,7 +50,7 @@ export const Colors = {
     onAccent: '#000000',
     danger: '#FF6B6B',
     onDanger: '#000000',
-    hairline: 'rgba(255,255,255,0.07)',
+    hairline: 'transparent',
   },
 } as const;
 
@@ -79,10 +82,10 @@ export const Fonts = Platform.select({
 });
 
 /**
- * Überschriften in Manrope (aus der getlayers.ai-Schriftauswahl: „engineered, premium, calm“),
- * Fließtext bleibt in der Systemschrift. Geladen in app/_layout.tsx; bei eigenen Schriften kein fontWeight setzen.
+ * Überschriften und Kennzahlen in Manrope (aus der getlayers.ai-Schriftauswahl: „engineered, premium, calm“),
+ * Fließtext bleibt in der Systemschrift. Höchstens 700 (taste-skill: App-Schrift ist keine Plakatschrift). Geladen in app/_layout.tsx; bei eigenen Schriften kein fontWeight setzen.
  */
-export const DisplayFont = { bold: 'Manrope_700Bold', extraBold: 'Manrope_800ExtraBold' } as const;
+export const DisplayFont = { semiBold: 'Manrope_600SemiBold', bold: 'Manrope_700Bold' } as const;
 
 export const Spacing = {
   half: 2,
@@ -95,7 +98,7 @@ export const Spacing = {
 } as const;
 
 /** Rundungen: Karten groß und weich, Knöpfe als Pille. */
-export const Radius = { card: 24, field: 14, pill: 999 } as const;
+export const Radius = { card: 20, field: 14, pill: 999 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 72 }) ?? 0;
 export const MaxContentWidth = 800;

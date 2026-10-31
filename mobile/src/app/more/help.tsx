@@ -50,7 +50,7 @@ export default function HelpScreen() {
                     <ThemedText type="smallBold" style={styles.questionText}>
                       {text(id).q}
                     </ThemedText>
-                    <ThemedText style={{ color: theme.tint }}>{expanded ? '−' : '+'}</ThemedText>
+                    <ThemedText style={{ color: theme.textSecondary }}>{expanded ? '−' : '+'}</ThemedText>
                   </Pressable>
                   {expanded ? <ThemedText themeColor="textSecondary">{text(id).a}</ThemedText> : null}
                 </View>

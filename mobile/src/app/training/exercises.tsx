@@ -239,7 +239,7 @@ export default function ExercisesScreen() {
               <ThemedText type="smallBold" style={styles.grow}>
                 {t(`muscle.${group}`)} ({inGroup.length})
               </ThemedText>
-              <ThemedText style={{ color: theme.tint }}>{expanded ? '−' : '+'}</ThemedText>
+              <ThemedText style={{ color: theme.textSecondary }}>{expanded ? '−' : '+'}</ThemedText>
             </Pressable>
             {expanded
               ? sections.map(([target, list]) => (

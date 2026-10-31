@@ -1,5 +1,6 @@
 /**
- * Bewegung, einheitlich für die ganze App.
+ * Bewegung, einheitlich für die ganze App. Nach taste-skill (App-Bildschirme) nur als Rückmeldung:
+ * Drücken, Werte, die sich ändern, Timer. Nichts bekommt einen Auftritt beim Öffnen.
  * Vorlage: getlayers.ai Text Animations, Preset „Word Rise“ – Wörter steigen gestaffelt auf
  * (aus 28 px, Feder tension 180 / friction 22, 70 ms Versatz). Die Web-Bibliothek dort (spring-text-engine)
  * läuft nicht in React Native; die Werte sind hier 1:1 auf Reanimated übertragen (tension = stiffness,

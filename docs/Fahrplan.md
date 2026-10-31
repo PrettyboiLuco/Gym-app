@@ -599,12 +599,22 @@ Mini-Verlauf der letzten 14 Messtage), Diese Woche (abgeschlossene Trainings, Pu
 Coach-Karte darunter nur noch mit Makro-Balken (Kalorien stehen in der Kachel). Kacheln und Panel federn beim Drücken
 und erscheinen auf dem Handy nacheinander. 508 Tests, Lint/Typprüfung ohne Fehler, 31/31 Bildschirme hell und dunkel.
 
-**Nachtrag 31.10.2026 – hochwertiger statt „billig“** (Luc; der gewünschte Skill „/taste“ ist in dieser Sitzung nicht
-installiert und in den Skills nicht zu finden): Lime wird nur noch sparsam eingesetzt (Knopf, Punkt, Beschriftung) statt
-als große Fläche; das Trainings-Panel ist dunkel bzw. weiß mit weichem Lime-Schein in der Ecke, die Kreisbögen sind weg.
-Kleine Überschriften in Versalien mit Sperrung (neuer Textstil „eyebrow“) für Kartentitel in der ganzen App und das
-Datum über der Begrüßung. Feine Kante um Karten und Kacheln (neue Farbe „hairline“) für Tiefe ohne Schatten. Kacheln mit
-kleinen Symbolen (Flamme, Tropfen, Waage, Kalender). 508 Tests, Lint/Typprüfung ohne Fehler, 31/31 Bildschirme hell und dunkel.
+**Nachtrag 31.10.2026 – taste-skill angewendet** (Luc: „/taste“ war in dieser Sitzung nicht installiert; geholt von
+github.com/Leonxlnx/taste-skill, MIT, jetzt im Projekt unter `.claude/skills/taste-skill/`, lädt in künftigen Sitzungen
+automatisch). Für App-Bildschirme gilt dort `references/app-screens.md`; die Stil-Wahl wurde von Hand aus der Bibliothek
+getroffen (die Skript-Ausführung fremden Codes war in der Sitzung gesperrt): **„True-black flat“** – laut Bibliothek
+„Lime nur für Sport“. Umgesetzt: Karten nur durch Helligkeit abgesetzt (dunkel #000 → #111 → #2A2A2A, ohne Rand; hell
+1-px-Kante #E8E8E8), Lime nur auf Daten (erledigte Tage, Balken, Verlauf, Pausenring), nie auf Knöpfen, Tabs, Pfeilen
+oder Zurück-Knöpfen; Hauptknopf als invertierte Pille; Titel 28 px, Zahlen 22–24 px, höchstens Gewicht 700;
+Kartentitel in Satzschreibung; **keine Eingangs-Animationen mehr** (Bewegung nur als Rückmeldung: Drücken, sich
+ändernde Werte, Timer); Gewichtsverlauf mit geraden Abschnitten statt geglätteter Kurve. Wieder entfernt: Lichtschein
+(Verlauf), Versal-Beschriftungen, Symbole in Kreisen, Mini-Kurven auf Kennzahlen. **„Heute“**: Frage des Bildschirms
+„Was steht heute an, und bin ich auf Kurs?“ – größter Block ist das Training mit der **Trainingswoche** Mo–So
+(gefüllt = trainiert, Ring = geplanter Tag laut Coach, heute hervorgehoben; das Element, das nur diese App hat), unter
+der Begrüßung Datum und „heute ist … dran“; Kennzahlen Kalorien/Trinken/Gewicht als ein geteiltes Feld; Coach-Karte nur
+noch Makro-Balken (jede Zahl an einem Ort). Prüfrunde nach der Checkliste des Skills: 2 Runden (doppelte Kalorien,
+abgeschnittene Zahl, zu wenig Kontrast von Lime auf Weiß behoben). 508 Tests, Lint/Typprüfung ohne Fehler,
+31/31 Bildschirme hell und dunkel.
 
 ## Phase 11 – Nach dem Start
 

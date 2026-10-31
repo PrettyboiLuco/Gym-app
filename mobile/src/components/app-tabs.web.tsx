@@ -54,7 +54,7 @@ function TabBar(props: TabListProps) {
 
 function TabButton({ children, isFocused, icon, ...props }: TabTriggerSlotProps & { icon: TabIconName }) {
   const theme = useTheme();
-  const color = isFocused ? theme.tint : theme.textSecondary;
+  const color = isFocused ? theme.text : theme.textSecondary;
   // TabTrigger braucht ref und onPress; die ref-Typen von expo-router/ui und Pressable weichen ab.
   return (
     <Pressable {...(props as PressableProps)} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
