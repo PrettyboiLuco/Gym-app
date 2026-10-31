@@ -20,6 +20,7 @@ export default function TrainingLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="plan/[id]" options={{ title: t('plan.titleEdit') }} />
       <Stack.Screen name="session/[id]" options={{ title: t('session.title') }} />
+      <Stack.Screen name="summary/[id]" options={{ title: t('summary.navTitle'), headerBackVisible: false, gestureEnabled: false }} />
       <Stack.Screen name="exercises" options={{ title: t('exercises.title') }} />
       <Stack.Screen name="assistant" options={{ title: t('assistant.title') }} />
       <Stack.Screen name="history" options={{ title: t('history.title') }} />

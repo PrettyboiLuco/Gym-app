@@ -1,15 +1,18 @@
-import * as Haptics from 'expo-haptics';
 import { useKeepAwake } from 'expo-keep-awake';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 
 import { Button, Card } from '@/components/card';
+import { MeterBar } from '@/components/charts';
+import { haptic } from '@/components/haptics';
+import { SetCheck } from '@/components/set-check';
 import { exerciseName } from '@/components/exercise-name';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, ListRow } from '@/components/fields';
-import { RestTimerBar } from '@/components/rest-timer-bar';
+import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -50,11 +53,15 @@ import { replacementOptions } from '@/domain/planner';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, type Advice, type PastSession } from '@/domain/progression';
 import { extendRest, formatClock, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, type WeightUnit } from '@/domain/units';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
 
 type Inputs = Record<string, { weight: string; reps: string }>;
+
+// Übungen rücken weich nach, wenn eine fertige Übung zusammenklappt (nur Handy; im Web verschiebt Reanimated sonst das Layout).
+const cardLayout = Platform.OS === 'web' ? undefined : LinearTransition.springify().stiffness(180).damping(22);
 
 // Zeitpunkt für Timer-Aktionen (in Event-Handlern, nicht beim Rendern).
 const nowMs = () => Date.now();
@@ -75,6 +82,7 @@ export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useDb();
   const theme = useTheme();
+  const dark = useColorScheme() === 'dark';
   const units = useUnits();
   // Eingabefelder zeigen das Gewicht in der gewählten Einheit; gespeichert wird kg (UX-003).
   const shown = (kg: number) => formatNumber(kgToUnit(kg, units.weight), 2);
@@ -86,6 +94,9 @@ export default function SessionScreen() {
   const [invalid, setInvalid] = useState<string | null>(null);
   const [timer, setTimer] = useState<RestTimer>(null);
   const [picking, setPicking] = useState(false);
+  // Pause im Vollbild (öffnet sich nach einem erledigten Satz von selbst) und wieder aufgeklappte fertige Übungen.
+  const [restFocus, setRestFocus] = useState(false);
+  const [openDone, setOpenDone] = useState<Set<string>>(new Set());
   const [restAuto, setRestAuto] = useState(true);
   // Steigerungsvorschläge (TRAIN-018) und Ersatz bei belegtem Gerät (TRAIN-016).
   const [progressionOn, setProgressionOn] = useState(true);
@@ -193,7 +204,7 @@ export default function SessionScreen() {
     holdTimeout.current = setTimeout(() => {
       holdTimeout.current = null;
       setHold(null);
-      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptic.success();
       complete(row, index, String(seconds));
     }, seconds * 1000);
   }
@@ -229,10 +240,16 @@ export default function SessionScreen() {
       setInvalid(null);
       await completeSet(db, row.id, parsed.weightKg, parsed.reps);
     }
+    // Letzter offener Satz dieser Übung? Dann ein Erfolgs-Signal statt nur eines Drucks.
+    const openLeft = sets.filter((s) => s.exerciseId === row.exerciseId && !s.completedAt && s.id !== row.id).length;
+    if (openLeft === 0) haptic.success();
+    const anyOpenElsewhere = sets.some((s) => !s.completedAt && s.id !== row.id);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
     if (restAuto && row.restSeconds > 0) {
       try {
         await updateTimer(startRest(timer, row.restSeconds, nowMs()));
+        // Pause im Vollbild, solange noch etwas zu tun ist.
+        if (anyOpenElsewhere) setRestFocus(true);
       } catch {
         // Timer bleibt aus, das Training geht weiter.
       }
@@ -244,9 +261,11 @@ export default function SessionScreen() {
   async function finish(status: 'abgeschlossen' | 'abgebrochen') {
     await finishSession(db, id, status, status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined);
     await updateTimer(stopRest(timer));
-    // Nach einem normalen Ende bleibt die Seite offen, wenn ein Cool-down vorgeschlagen wird (STRETCH-002).
-    if (status === 'abgeschlossen' && session?.cooldown !== 0 && !blocks.some((b) => b.kind === 'cooldown')) {
-      await load();
+    setRestFocus(false);
+    // Nach einem normalen Ende: Abschluss-Bildschirm (Zusammenfassung, Bestleistungen, Woche).
+    // Ein vorgeschlagenes Cool-down startet von dort aus (STRETCH-002).
+    if (status === 'abgeschlossen') {
+      router.replace(`/training/summary/${id}`);
       return;
     }
     // Zurück zur Trainingsübersicht, auch wenn das Training direkt (z. B. von „Heute“) geöffnet wurde.
@@ -345,6 +364,27 @@ export default function SessionScreen() {
     session.cooldown !== 0 && !cooldownDone && session.status !== 'abgebrochen' && (active ? doneCountOf(sets) > 0 : recentlyFinished);
   const order = [...new Set(sets.map((s) => s.exerciseId))];
   const doneCount = sets.filter((s) => s.completedAt).length;
+  // Die Übung, die gerade dran ist: die erste mit offenem Satz.
+  const currentId = order.find((exerciseId) => sets.some((s) => s.exerciseId === exerciseId && !s.completedAt)) ?? null;
+  // Was nach der Pause kommt, für die Vollbild-Pause.
+  const nextRow = currentId ? sets.find((s) => s.exerciseId === currentId && !s.completedAt) : undefined;
+  let nextUp: NextUp = null;
+  if (nextRow) {
+    const rowsOfNext = sets.filter((s) => s.exerciseId === nextRow.exerciseId);
+    const index = rowsOfNext.indexOf(nextRow);
+    const value = inputs[nextRow.id] ?? suggestion(nextRow, index);
+    const what = isTimed(nextRow.exerciseId)
+      ? value.reps
+        ? t('session.setDoneSeconds', { seconds: value.reps })
+        : ''
+      : value.weight && value.reps
+        ? `${value.weight} ${units.weight} × ${value.reps}`
+        : '';
+    nextUp = {
+      title: exerciseName(byIdAll.get(nextRow.exerciseId)),
+      detail: [t('session.setOf', { n: index + 1, total: rowsOfNext.length }), what].filter(Boolean).join(' · '),
+    };
+  }
 
   if (picking) {
     return (
@@ -374,6 +414,9 @@ export default function SessionScreen() {
             onStart={(seconds) => updateTimer(startRest(timer, seconds, nowMs()))}
             onExtend={() => updateTimer(extendRest(timer, 30, nowMs()))}
             onSkip={() => updateTimer(stopRest(timer))}
+            next={nextUp}
+            focus={restFocus}
+            onFocusChange={setRestFocus}
           />
         ) : null
       }>
@@ -396,6 +439,9 @@ export default function SessionScreen() {
           <Button label={t('session.warmupStart')} onPress={() => startBlock('aufwaermen')} />
         </Card>
       ) : null}
+      {active && sets.length > 0 ? (
+        <MeterBar progress={doneCount / sets.length} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
+      ) : null}
       {warmupDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.warmupDone')}</ThemedText> : null}
       {blockMessage ? <ThemedText>{blockMessage}</ThemedText> : null}
 
@@ -405,8 +451,50 @@ export default function SessionScreen() {
         const advice = active ? adviceFor(exerciseId) : null;
         const hasOpen = rows.some((r) => !r.completedAt);
         const exercise = byId.get(exerciseId);
+        const allDone = rows.every((r) => r.completedAt);
+        // Fertige Übungen klappen im laufenden Training zu einer Zeile zusammen; Tippen klappt sie wieder auf.
+        if (active && allDone && !openDone.has(exerciseId)) {
+          return (
+            <Animated.View key={exerciseId} layout={cardLayout}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${exerciseName(exercise)}: ${t('session.exerciseDone', { count: rows.length })}. ${t('session.showSets')}`}
+                onPress={() => setOpenDone((o) => new Set(o).add(exerciseId))}
+                style={({ pressed }) => [
+                  styles.doneCard,
+                  { backgroundColor: theme.backgroundElement, borderColor: theme.hairline, opacity: pressed ? 0.7 : 1 },
+                ]}>
+                <View style={[styles.doneMark, { backgroundColor: dark ? theme.accent : theme.tint }]}>
+                  <ThemedText style={[styles.doneMarkText, { color: dark ? theme.onAccent : theme.onTint }]}>✓</ThemedText>
+                </View>
+                <View style={styles.flex}>
+                  <ThemedText style={styles.doneTitle} numberOfLines={1}>
+                    {exerciseName(exercise)}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                    {t('session.doneSummary', {
+                      unit: units.weight,
+                      sets: formatSets(
+                        rows.map((r) => ({ weightKg: r.weightKg, reps: r.reps, seconds: r.seconds })),
+                        units.weight
+                      ),
+                    })}
+                  </ThemedText>
+                </View>
+                <ThemedText themeColor="textSecondary">›</ThemedText>
+              </Pressable>
+            </Animated.View>
+          );
+        }
         return (
-          <Card key={exerciseId} title={exerciseName(byId.get(exerciseId))}>
+          <Animated.View key={exerciseId} layout={cardLayout}>
+          <Card title={exerciseName(byId.get(exerciseId))}>
+            {active && exerciseId === currentId ? (
+              <View style={styles.nowRow}>
+                <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
+                <ThemedText type="small">{t('session.now')}</ThemedText>
+              </View>
+            ) : null}
             <ExerciseMedia exerciseId={exerciseId} label={exerciseName(byId.get(exerciseId))} />
             <ThemedText type="small" themeColor="textSecondary">
               {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
@@ -438,21 +526,20 @@ export default function SessionScreen() {
               const value = inputs[row.id] ?? suggestion(row, index);
               return (
                 <View key={row.id} style={styles.setRow}>
-                  <ThemedText type="smallBold" style={styles.setNumber}>
+                  <ThemedText type="smallBold" themeColor={row.completedAt ? 'textSecondary' : 'text'} style={styles.setNumber}>
                     {index + 1}
                   </ThemedText>
                   {row.completedAt ? (
                     <>
-                      <ThemedText style={styles.flex}>
+                      <ThemedText style={[styles.flex, styles.doneText]}>
                         {row.seconds != null
                           ? t('session.setDoneSeconds', { seconds: row.seconds })
                           : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
                       </ThemedText>
                       {active ? (
-                        <Button
-                          label="↺"
-                          accessibilityLabel={t('session.undo')}
-                          variant="secondary"
+                        <SetCheck
+                          done
+                          accessibilityLabel={`${t('session.undo')} ${index + 1}`}
                           onPress={async () => {
                             await reopenSet(db, row.id);
                             await load();
@@ -499,7 +586,7 @@ export default function SessionScreen() {
                           />
                         )
                       ) : null}
-                      <Button label="✓" accessibilityLabel={`${t('session.done')} ${index + 1}`} onPress={() => complete(row, index)} />
+                      <SetCheck done={false} accessibilityLabel={`${t('session.done')} ${index + 1}`} onPress={() => complete(row, index)} />
                       <Button
                         label="−"
                         accessibilityLabel={`${t('session.removeSet')} ${index + 1}`}
@@ -558,7 +645,21 @@ export default function SessionScreen() {
                 <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
               )
             ) : null}
+            {active && allDone ? (
+              <Button
+                label={t('session.hideSets')}
+                variant="secondary"
+                onPress={() =>
+                  setOpenDone((o) => {
+                    const n = new Set(o);
+                    n.delete(exerciseId);
+                    return n;
+                  })
+                }
+              />
+            ) : null}
           </Card>
+          </Animated.View>
         );
       })}
 
@@ -637,7 +738,14 @@ function doneCountOf(rows: SetRow[]) {
 
 const styles = StyleSheet.create({
   setRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
-  setNumber: { width: 20 },
+  setNumber: { width: 20, fontVariant: ['tabular-nums'] },
+  doneText: { fontVariant: ['tabular-nums'] },
+  nowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: -Spacing.one },
+  nowDot: { width: 8, height: 8, borderRadius: 4 },
+  doneCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, borderRadius: 20, borderWidth: 1, padding: Spacing.three, minHeight: 64 },
+  doneMark: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  doneMarkText: { fontSize: 16, lineHeight: 20, fontWeight: 700 },
+  doneTitle: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
   input: {
     flex: 1,
     minWidth: 0,

@@ -5,6 +5,7 @@
 
 import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
 import type { PastSession } from '@/domain/progression';
+import type { PreviousBest } from '@/domain/summary';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
@@ -571,3 +572,33 @@ export const saveProgressionOn = (db: Db, on: boolean) => writeState(db, 'progre
 export type IntervalRun = { config: IntervalConfig; startedAtMs: number } | null;
 export const loadIntervalRun = (db: Db) => readState<IntervalRun>(db, 'interval_run', null);
 export const saveIntervalRun = (db: Db, run: IntervalRun) => writeState(db, 'interval_run', run);
+
+/**
+ * Bisher Bestes je Übung aus früheren, nicht abgebrochenen Trainings (vor `beforeIso`), für die
+ * Bestleistungen nach einem Training. Übungen ohne früheren Satz fehlen in der Liste.
+ */
+export async function previousBests(db: Db, exerciseIds: string[], excludeSessionId: string, beforeIso: string): Promise<PreviousBest[]> {
+  const result: PreviousBest[] = [];
+  for (const exerciseId of exerciseIds) {
+    const rows = await db.getAllAsync<{ weightKg: number | null; reps: number | null; seconds: number | null }>(
+      `SELECT l.weight_kg AS weightKg, l.reps, l.seconds FROM set_log l
+       JOIN workout_session s ON s.id = l.session_id
+       WHERE l.exercise_id = ? AND l.session_id <> ? AND l.completed_at_utc IS NOT NULL
+         AND s.status <> 'abgebrochen' AND s.started_at_utc < ?`,
+      exerciseId,
+      excludeSessionId,
+      beforeIso
+    );
+    if (rows.length === 0) continue;
+    const lifted = rows.filter((r) => r.reps != null && r.reps > 0);
+    const maxKg = lifted.length ? Math.max(...lifted.map((r) => r.weightKg ?? 0)) : null;
+    result.push({
+      exerciseId,
+      maxKg,
+      repsAtMaxKg: maxKg === null ? null : Math.max(...lifted.filter((r) => (r.weightKg ?? 0) === maxKg).map((r) => r.reps ?? 0)),
+      maxReps: lifted.length ? Math.max(...lifted.map((r) => r.reps ?? 0)) : null,
+      maxSeconds: rows.some((r) => r.seconds != null) ? Math.max(...rows.map((r) => r.seconds ?? 0)) : null,
+    });
+  }
+  return result;
+}

@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useEffect } from 'react';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
@@ -61,7 +62,7 @@ export function TrainingBlock({
  * Mo–So: gefüllt (Lime) = Training abgeschlossen, Ring = geplanter Trainingstag laut Coach,
  * heute in voller Schrift und mit kräftigerem Ring. Die Zusammenfassung trägt die Zahl in Worten.
  */
-function WeekStrip({ days, summary }: { days: WeekDay[]; summary: string }) {
+export function WeekStrip({ days, summary, celebrateToday = false }: { days: WeekDay[]; summary: string; celebrateToday?: boolean }) {
   const theme = useTheme();
   // Datenfarbe: dunkel Lime, hell das dunklere Grün (Lime auf Weiß hätte unter 3:1 Kontrast).
   const doneColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
@@ -79,7 +80,8 @@ function WeekStrip({ days, summary }: { days: WeekDay[]; summary: string }) {
               style={[styles.dayLabel, d.today && styles.dayLabelToday]}>
               {d.label}
             </ThemedText>
-            <View
+            <DayDot
+              pop={celebrateToday && d.today && d.done}
               style={[
                 styles.dot,
                 d.done
@@ -99,6 +101,17 @@ function WeekStrip({ days, summary }: { days: WeekDay[]; summary: string }) {
       </ThemedText>
     </View>
   );
+}
+
+/** Ein Tagespunkt; `pop` lässt ihn einmal auffedern (Abschluss-Bildschirm: der heute verdiente Punkt). */
+function DayDot({ pop, style }: { pop: boolean; style: StyleProp<ViewStyle> }) {
+  const reduced = useReducedMotion();
+  const scale = useSharedValue(pop && !reduced ? 0.3 : 1);
+  useEffect(() => {
+    if (pop && !reduced) scale.set(withDelay(250, withSpring(1, { ...Spring, stiffness: 260, damping: 12 })));
+  }, [pop, reduced, scale]);
+  const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return <Animated.View style={[style, animated]} />;
 }
 
 export type Figure = {

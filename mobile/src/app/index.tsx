@@ -5,7 +5,7 @@ import { Card } from '@/components/card';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
-import { timeZone, todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { loadTimedRun } from '@/data/routines';
@@ -14,12 +14,11 @@ import { useUnits } from '@/data/profile-provider';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
 import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
 import { checkinDue } from '@/domain/checkin';
-import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, listSessions, type SessionInfo } from '@/data/training';
+import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
+import { loadTrainingWeek } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { nextDayIndex } from '@/domain/training';
-import { weekStart } from '@/domain/goals';
-import { localDay } from '@/domain/time';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
@@ -36,23 +35,13 @@ async function loadToday(db: Db) {
     loadNutritionSettings(db),
     calorieGoalOn(db, today),
   ]);
-  const [timed, setup, pending, sleep, sessions] = await Promise.all([
+  const [timed, setup, pending, sleep, trainingWeek] = await Promise.all([
     loadTimedRun(db),
     loadCoachSetup(db),
     loadCoachPending(db),
     listSleep(db, today),
-    listSessions(db, 30),
+    loadTrainingWeek(db, today),
   ]);
-  // Woche Mo–So: an welchen Tagen wurde ein Training abgeschlossen?
-  const monday = weekStart(today);
-  const week = Array.from({ length: 7 }, () => false);
-  for (const s of sessions) {
-    if (s.status !== 'abgeschlossen') continue;
-    const day = localDay(new Date(s.startedAt), timeZone);
-    const index = Math.round((Date.parse(`${day}T12:00:00Z`) - Date.parse(`${monday}T12:00:00Z`)) / 86_400_000);
-    if (index >= 0 && index < 7) week[index] = true;
-  }
-  const todayIndex = Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${monday}T12:00:00Z`)) / 86_400_000);
   // Wochen-Check-in fällig (COACH-008)? Frühestens eine Woche nach dem letzten Check-in, sonst nach der
   // Coach-Einrichtung bzw. der ersten Gewichtsmessung – vorher gäbe es keine Woche zum Zurückschauen.
   const since = (await lastCheckinWeekEnd(db)) ?? setup?.doneAt ?? weights.at(-1)?.day ?? null;
@@ -84,8 +73,6 @@ async function loadToday(db: Db) {
   };
   // Direkt nach dem Erststart einmal die Coach-Einrichtung öffnen (C1).
   const openSetup = pending && setup === null;
-  // Geplante Trainingstage aus dem Coach (ISO: 1 = Montag … 7 = Sonntag).
-  const planned = Array.from({ length: 7 }, (_, i) => (setup?.trainingWeekdays ?? []).includes(i + 1));
   return {
     lastWeight: weights[0] ?? null,
     trend: weightTrend(weights, today),
@@ -97,7 +84,7 @@ async function loadToday(db: Db) {
     coach,
     openSetup,
     restDay: goal?.trainingDay === false,
-    week: { done: week, planned, goal: setup?.gymDays ?? null, todayIndex },
+    week: trainingWeek,
   };
 }
 
