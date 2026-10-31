@@ -4,7 +4,7 @@ import { describe, expect, test } from '@jest/globals';
 
 import { backupSummary, checkBackup } from '../backup';
 import { EMPTY_FEEDBACK, feedbackText, isEmptyFeedback } from '../feedback';
-import { drinkTimes, formatTime, parseTime, toExpoWeekday, upcomingAlerts, validateReminders, DEFAULT_REMINDERS } from '../reminders';
+import { drinkTimes, formatTime, IOS_NOTIFICATION_LIMIT, parseTime, reminderCount, timerAlertBudget, toExpoWeekday, upcomingAlerts, validateReminders, DEFAULT_REMINDERS } from '../reminders';
 import { parseSteps, stepGoalDays, stepsAverage, stepsForDay, type StepEntry } from '../steps';
 import { hiitSteps } from '../timeline';
 
@@ -48,6 +48,17 @@ describe('Timer-Hinweise bei gesperrtem Handy (UX-006, HEALTH-012)', () => {
   test('Obergrenze für geplante Mitteilungen', () => {
     const long = hiitSteps({ items: [{ exerciseId: 'a', bothSides: false }], workSeconds: 10, restSeconds: 0, rounds: 20, roundRestSeconds: 5, prepSeconds: 0 });
     expect(upcomingAlerts(long, 0, 0, 10)).toHaveLength(10);
+  });
+  test('Timer-Hinweise + Erinnerungen + Pausen-Hinweis bleiben unter der iOS-Grenze von 64', () => {
+    expect(timerAlertBudget(DEFAULT_REMINDERS)).toBe(50);
+    const all = {
+      ...DEFAULT_REMINDERS,
+      training: { enabled: true, weekdays: [1, 2, 3, 4, 5, 6, 7], time: '18:00' },
+      drink: { enabled: true, from: '00:00', to: '23:59', everyHours: 1 },
+    };
+    expect(reminderCount(all)).toBe(19);
+    expect(reminderCount(all) + timerAlertBudget(all) + 1).toBeLessThanOrEqual(IOS_NOTIFICATION_LIMIT);
+    expect(timerAlertBudget(all)).toBe(41);
   });
 });
 

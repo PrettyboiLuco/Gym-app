@@ -3,7 +3,7 @@
 import type { Db } from '@/data/db';
 import { cancelAlerts, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
 import { loadReminders } from '@/data/reminders';
-import { drinkTimes, parseTime, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
+import { drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
 import { runElapsedMs, type TimedRun } from '@/domain/timeline';
 import type { IntervalConfig, RestTimer } from '@/domain/training';
 import { t } from '@/i18n';
@@ -23,7 +23,7 @@ export async function syncRunAlerts(db: Db, run: TimedRun | null, nameOf: (id: s
   const settings = await loadReminders(db);
   if (!settings.timerAlerts || !run || run.pausedAtMs !== null) return cancelAlerts(RUN);
   const now = Date.now();
-  const alerts = upcomingAlerts(run.steps, runElapsedMs(run, now), now).map((a, i) => ({
+  const alerts = upcomingAlerts(run.steps, runElapsedMs(run, now), now, timerAlertBudget(settings)).map((a, i) => ({
     id: String(i),
     atMs: a.atMs,
     title: run.title,
@@ -44,8 +44,9 @@ export async function syncIntervalAlerts(db: Db, config: IntervalConfig | null, 
   const settings = await loadReminders(db);
   if (!settings.timerAlerts || !config || startedAtMs === null) return cancelAlerts(RUN);
   const alerts = [];
+  const budget = timerAlertBudget(settings);
   let at = startedAtMs;
-  for (let round = 1; round <= config.rounds && alerts.length < 50; round++) {
+  for (let round = 1; round <= config.rounds && alerts.length < budget; round++) {
     at += config.workSeconds * 1000;
     const last = round === config.rounds;
     alerts.push({ id: `${round}-a`, atMs: at, title: t('interval.title'), body: last ? t('interval.phase.fertig') : t('interval.phase.pause') });

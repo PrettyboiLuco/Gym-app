@@ -58,3 +58,57 @@ Gibt es dort besseren Code, der unseren ersetzen kann?
 
 Nicht übernommen: Streak-Trophäen (wger) – widerspricht „keine Streak-Bestrafung“ (TRACK-006); Kalorien-Gutschrift für
 Training (OpenNutriTracker) – HEALTH-007.
+
+## Die übrigen 41 Repositories (31.10.2026, nachgeholt)
+
+Alle 41 geklont (ohne große Dateien) und Doku, Changelogs und Code gezielt nach Punkten durchsucht, die für uns
+zählen. Code übernehmen kann keins (Flutter, Kotlin, Python, Swift). Ergebnisse:
+
+### Umgesetzt
+
+| Fund | Quelle | Was bei uns passiert ist |
+|---|---|---|
+| **iOS behält höchstens 64 geplante Mitteilungen**, seit iOS 10 die zuletzt geplanten | flutter_local_notifications (32) | **Fehler bei uns:** bis zu 19 Erinnerungen + 50 Timer-Hinweise + Pausen-Hinweis = 70. Ein langer Dehn-/HIIT-Ablauf hätte Trink- und Trainingserinnerungen still verdrängt. Jetzt bekommen Timer-Hinweise nur den freien Rest (`timerAlertBudget`, höchstens 41 bei allen Erinnerungen an); Test |
+| Taschenlampe und Vibration beim Erkennen | Open-Food-Facts-Scan-Anleitung (15) | Taste „Licht an/aus“ im Scanner, kurze Vibration beim erkannten Code |
+| App-Kennung im Format „App - System - Version - Kontakt“ | OFF-Server-Doku (15) | `Myhealth - ios - Version 1.0.0`; Kontakt folgt mit den Anbieterangaben |
+| Barcode **nicht** selbst umformen, der Server normalisiert | OFF-Server-Doku (15) | bestätigt: wir senden den Code unverändert, Varianten nur für die eigene Liste |
+| Offizielle Grenzen 15 Produkt- / 10 Suchabfragen pro Minute | OFF-Server-Doku (15) | bestätigt: wir drosseln auf 12 / 8 |
+
+### Für Apple Health (Phase 6.2) notiert
+
+- **Schlaf** kommt in überlappenden Stufen („im Bett“, „wach“, Kern, Tief, REM) und von iPhone und Watch doppelt.
+  Für Schlafstunden nur Schlafstufen nehmen, „im Bett“/„wach“ weglassen und überlappende Zeiten zusammenführen,
+  nicht aufaddieren (carp-health-flutter 1, connect_kit 8).
+- **Selbst eingetippte Werte** sind in Apple Health markiert („manuell“) und lassen sich erkennen (1).
+- Hintergrund-Abruf aus Apple Health kann iOS die App beenden lassen, wenn er zu viel tut (Terra 10) – wir lesen nur
+  beim Öffnen, kein Hintergrund.
+
+### Für Android (Phase 11) notiert
+
+- Health Connect: Gesundheitsdaten-Erklärung in der Play Console, danach **5–7 Werktage** bis zur Freischaltung;
+  Datenschutzseite muss im Health-Connect-Dialog erreichbar sein; ohne Zusatzrecht nur **30 Tage** rückwirkend lesbar
+  (1, 4, 7).
+- `expo-health-connect` ist überholt und in `react-native-health-connect` aufgegangen; beide zusammen brechen den
+  Android-Build (4).
+- Exakte Wecker für Timer brauchen ab Android 14 eine eigene Berechtigung (32).
+
+### Für später / andere Phasen
+
+| Idee | Quelle |
+|---|---|
+| Import aus Strong, Hevy, FitNotes (CSV) – Umsteiger nehmen ihren Verlauf mit; Spaltennamen-Zuordnung dort gut dokumentiert (AGPL, nur Idee) | openGym (24) |
+| Körperkarte: welche Muskeln eine Einheit trifft | openGym (24) |
+| Geschätztes 1RM, Volumen je Übung | verifit (25), wger (21) |
+| Lizenzen der Pakete in der App anzeigen | gym_rest_timer (35) – passt zur offenen Frage in 10.2 |
+| Pausen-Countdown auf dem Sperrbildschirm (Live Activity) | gym_rest_timer (35) – ist schon geplant (6.3, Build) |
+| Pflichtknopf „Käufe wiederherstellen“, falls je ein Pro-Abo kommt | RevenueCat (45), Apple-Regel |
+| Nährwerte vom Etikett per Texterkennung auf dem Gerät | ML Kit (47) – berührt „keine KI“, nur auf Wunsch |
+
+### Ohne verwertbare Infos für uns
+
+Kalender (31), Diagramme (33), Datenbank Drift (42), Supabase/PowerSync/Firebase (41, 43, 44 – kein Server),
+LangChain/MediaPipe (46, 48 – keine KI), Robotoff (19), OFF-Dart/JS/Python-Clients (16–18, unsere Anbindung ist
+gleichwertig), Fitbit/Strava/Garmin/Polar (36, 38–40 – Phase 11+, Strava mit Abfragegrenzen je 15 min/Tag),
+Spezi/Android-Beispiele/Capacitor (5–7), RunnerUp (50 – GPS-Läufe, nicht unser Umfang), wger-App (22 – wie 21),
+exercises.json (27 – gleiche Daten wie 26, Public Domain), Secure Storage (49 – erst relevant, wenn wir einen
+Schlüssel speichern; dann „erst nach Entsperren“ wählen), Stretch/Mindful/SimpleHIIT (29, 30, 34 – haben wir).

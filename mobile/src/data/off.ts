@@ -6,12 +6,16 @@
 // HINWEIS: Antwortformate sind gegen die Dokumentation des Plans geschrieben, aber noch nicht gegen
 // die Live-API getestet (Netzwerk der Entwicklungsumgebung gesperrt). Erster echter Test: iPhone.
 
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
 import { normalizeOffProduct, type FoodDraft } from '@/domain/nutrition';
 
 const BASE = 'https://world.openfoodfacts.org';
 const SEARCH_BASE = 'https://search.openfoodfacts.org';
-// Eigene App-Kennung (FOOD-006). Vor Veröffentlichung um Kontaktadresse ergänzen.
-const USER_AGENT = 'GymApp/0.1 (Expo; Entwicklung)';
+// Eigene App-Kennung (FOOD-006) im Format der Open-Food-Facts-Anleitung: „App - System - Version - Kontakt“.
+// Vor Veröffentlichung um die Kontaktadresse ergänzen (Anbieterangaben, Phase 10.2).
+const USER_AGENT = `${Constants.expoConfig?.name ?? 'Myhealth'} - ${Platform.OS} - Version ${Constants.expoConfig?.version ?? '?'}`;
 const FIELDS = [
   'code',
   'product_name',

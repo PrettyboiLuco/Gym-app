@@ -106,3 +106,13 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | V2 | Hilfe mit großer Schrift und VoiceOver | Fragen vorgelesen als „Taste, eingeklappt/ausgeklappt“, nichts abgeschnitten | Expo Go |
 | V3 | Store-Version (TestFlight) ohne Internet starten | App startet normal, keine Fehlermeldung (Update-Abfrage scheitert still) | Build |
 | V4 | Store-Version: Daten aus der Pilot-Version per Sicherung übernehmen | alles da (Golden-Dataset-Probe auf dem Gerät, R1) | Build |
+
+## Scanner und Mitteilungen (Nachtrag 31.10.2026)
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| N1 | Alle Erinnerungen an (7 Trainingstage, Trinken stündlich), dann langen Dehnablauf starten und Handy sperren; am nächsten Tag | Trink- und Trainingserinnerungen kommen weiter | Expo Go |
+| B1 | Produkt mit QR-Code (GS1 Digital Link) scannen, falls eins auffindbar | Produkt wird gesucht | Expo Go |
+| B2 | Werbe-QR-Code (z. B. Webseite) vor die Kamera halten | nichts passiert, Scanner bleibt offen | Expo Go |
+| B3 | „Licht an“ in dunkler Umgebung | Taschenlampe an; Barcode wird erkannt | Expo Go |
+| B4 | Kleinen Barcode nah scannen (iPhone Pro) | wird scharf erkannt; sonst notieren (Nah-Linse) | Expo Go |

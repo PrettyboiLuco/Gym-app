@@ -53,7 +53,7 @@ Register LAW-017, TECH-017, O6. Commit-Stand: Branch `claude/plan-ergaenzung-mod
 |---|---|
 | Typprüfung (`npm run typecheck`) | ohne Fehler – jetzt auch direkt nach frischem Klonen (neue Datei `src/expo-types.d.ts`; vorher fehlte die erzeugte `expo-env.d.ts`) |
 | Lint (`npm run lint`) | ohne Befund |
-| Automatische Tests (`npm test`) | 472/472 bestanden (21 Testdateien, Stand 31.10.2026), neu: Update-Test mit Golden-Dataset (Version 4 → 10, jede Spalte gleich) |
+| Automatische Tests (`npm test`) | 473/473 bestanden (21 Testdateien, Stand 31.10.2026), neu: Update-Test mit Golden-Dataset (Version 4 → 10, jede Spalte gleich) |
 | Browser-Durchlauf | 34/34 Bildschirme ohne Konsolenfehler; Hilfe-Seite 9/9 |
 | `expo-doctor` | 18/20; die 2 übrigen brauchen Expo-Server (im Container nicht erreichbar) → am PC/MacBook wiederholen |
 | `npm audit` (nur Laufzeit) | unverändert 8 Meldungen (5 niedrig, 3 hoch), alle in Expos Build-Werkzeugen (`deepmerge` über `@expo/config`, `zod` über `@expo/cli`), nicht im App-Code auf dem Handy. Fix nur per Rückschritt auf SDK 51 → nicht angewendet; bei nächstem Expo-Update erneut prüfen |
@@ -64,8 +64,7 @@ Register LAW-017, TECH-017, O6. Commit-Stand: Branch `claude/plan-ergaenzung-mod
 | Aufgeräumt | ungenutzter Code entfernt (`ComingSoonList` aus der Vorlage, `timedSessionTimes`) |
 
 **Vor dem Einreichen noch zu tun:**
-- Open-Food-Facts-Kennung (User-Agent in `src/data/off.ts`) von „GymApp/0.1 (Expo; Entwicklung)“ auf endgültigen
-  App-Namen, Version und Kontakt-E-Mail ändern (Bitte von Open Food Facts).
+- Open-Food-Facts-Kennung (`src/data/off.ts`, jetzt „Myhealth - ios - Version 1.0.0“) um die Kontakt-E-Mail ergänzen.
 - Entscheidung Expo-Updates behalten/abschalten (10.2, D2).
 - `npm audit` und `expo-doctor` auf dem MacBook mit Internet wiederholen; Ergebnis hier eintragen.
 - Lizenzhinweise der Pakete in der App anzeigen? (Frage an die Rechtsprüfung)

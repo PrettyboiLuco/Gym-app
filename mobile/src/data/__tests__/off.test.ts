@@ -40,7 +40,7 @@ describe('Produkt per Barcode', () => {
     });
     const [url, init] = fetchMock.mock.calls[0] as [string, { headers: Record<string, string> }];
     expect(url).toContain('/api/v3/product/4000000000001');
-    expect(init.headers['User-Agent']).toMatch(/^GymApp\//);
+    expect(init.headers['User-Agent']).toMatch(/^Myhealth - \w+ - Version /);
   });
   test('nicht gefunden (404 mit JSON)', async () => {
     const off = await loadOff(jest.fn(async () => respond(404, { status: 'failure', product: null })) as FetchMock);

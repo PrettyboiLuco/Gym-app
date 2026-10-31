@@ -69,6 +69,25 @@ export function validateReminders(r: ReminderSettings): ReminderProblem[] {
 export type PlannedAlert = { atMs: number; kind: Step['kind'] | 'ende'; exerciseId: string | null };
 
 /**
+ * iOS behält höchstens 64 geplante Mitteilungen je App und verwirft den Rest still – seit iOS 10 die zuerst
+ * geplanten, also unsere wiederkehrenden Erinnerungen, sobald ein langer Ablauf viele Timer-Hinweise plant.
+ * Timer-Hinweise bekommen deshalb nur, was neben den Erinnerungen, dem Pausen-Hinweis und einer Reserve frei bleibt.
+ */
+export const IOS_NOTIFICATION_LIMIT = 64;
+const RESERVE = 3;
+
+export function reminderCount(r: ReminderSettings): number {
+  const training = r.training.enabled && parseTime(r.training.time) !== null ? new Set(r.training.weekdays).size : 0;
+  const drink = r.drink.enabled ? drinkTimes(r.drink.from, r.drink.to, r.drink.everyHours).length : 0;
+  return training + drink;
+}
+
+/** Wie viele Hinweise ein Dehn-/HIIT-Ablauf oder der Intervall-Timer planen darf (höchstens 50). */
+export function timerAlertBudget(r: ReminderSettings): number {
+  return Math.max(0, Math.min(50, IOS_NOTIFICATION_LIMIT - reminderCount(r) - 1 - RESERVE));
+}
+
+/**
  * Hinweise für die kommenden Wechsel eines Ablaufs ab `elapsedMs`, z. B. wenn das Handy gesperrt wird.
  * iOS erlaubt nur eine begrenzte Zahl geplanter Mitteilungen; daher höchstens `max` (Standard 50).
  */

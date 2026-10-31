@@ -519,7 +519,10 @@ Luc und Fachleute (Gerätetests R1/R6, Fachperson R3, Rechtsprüfung R5/R8, Kont
 übernommen (meist Flutter oder AGPL/GPL), aber drei Verbesserungen selbst gebaut – Scanner liest die neuen QR- und
 DataMatrix-Codes (GS1 „Sunrise 2027“), Barcodes in beiden Schreibweisen (UPC-A/EAN-13) gefunden, Kalorien aus dem
 älteren Open-Food-Facts-Feld `energy_100g`; dazu ein Fehler behoben: der 7-Tage-Gewichtsschnitt zählte Messungen statt
-Tage (Check-in braucht jetzt Messungen an 4 Tagen). 472 automatische Tests.
+Tage (Check-in braucht jetzt Messungen an 4 Tagen). 472 automatische Tests. Danach auch die übrigen 41 durchgesehen: Fehler behoben – bei
+allen Erinnerungen plus langem Ablauf wären mehr als die 64 Mitteilungen geplant worden, die iOS behält, und
+Erinnerungen still verloren gegangen; Scanner mit Taschenlampe und Vibration, App-Kennung im Open-Food-Facts-Format;
+Hinweise für Apple Health (Schlaf nicht doppelt zählen) und Android notiert. 473 automatische Tests.
 
 ## Phase 11 – Nach dem Start
 

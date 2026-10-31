@@ -1,4 +1,5 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
@@ -35,6 +36,8 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<Phase>({ kind: 'scan' });
   const [manual, setManual] = useState('');
+  // Taschenlampe für dunkle Küchen und Regale (Empfehlung der Open-Food-Facts-Scan-Anleitung).
+  const [torch, setTorch] = useState(false);
   // Die Kamera meldet denselben Code viele Male pro Sekunde: nur der erste zählt.
   const busy = useRef(false);
 
@@ -66,6 +69,8 @@ export default function ScanScreen() {
     const code = typed ? data : productCodeFromScan(data);
     if (!code) return;
     busy.current = true;
+    // Kurze Vibration bestätigt, dass der Code erkannt wurde.
+    if (!typed) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     lookUp(code, typed);
   }
 
@@ -107,6 +112,7 @@ export default function ScanScreen() {
           <CameraView
             style={StyleSheet.absoluteFill}
             facing="back"
+            enableTorch={torch}
             barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
             onBarcodeScanned={(result) => onScanned(result.data)}
           />
@@ -115,6 +121,14 @@ export default function ScanScreen() {
             {t('nutrition.scan.hint')}
           </ThemedText>
         </View>
+      ) : null}
+      {showCamera ? (
+        <Button
+          label={torch ? t('nutrition.scan.torchOff') : t('nutrition.scan.torchOn')}
+          variant="danger"
+          accessibilityState={{ checked: torch }}
+          onPress={() => setTorch((on) => !on)}
+        />
       ) : null}
 
       {phase.kind === 'loading' ? <ThemedText>{t('nutrition.scan.loading')}</ThemedText> : null}
