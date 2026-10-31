@@ -5,7 +5,7 @@ import { describe, expect, test } from '@jest/globals';
 import { CATALOG_TEXTS } from '@/i18n/de-exercises';
 import { de } from '@/i18n/de';
 
-import { CATALOG_EXERCISES } from '../exercise-catalog';
+import { CATALOG_EXERCISES, CATALOG_STRETCHES } from '../exercise-catalog';
 import {
   EQUIPMENT,
   EXERCISE_META,
@@ -37,9 +37,9 @@ const ALL = [...CORE, ...CATALOG];
 const byId = new Map(ALL.map((e) => [e.id, e]));
 
 describe('Katalog vollständig', () => {
-  test('über 220 Kraftübungen, keine doppelten IDs, keine Überschneidung mit Start- oder Dehnübungen', () => {
-    expect(ALL.length).toBeGreaterThanOrEqual(220);
-    const ids = [...ALL.map((e) => e.id), ...STRETCH_EXERCISES.map((e) => e.id)];
+  test('über 350 Kraftübungen, keine doppelten IDs, keine Überschneidung mit Start- oder Dehnübungen', () => {
+    expect(ALL.length).toBeGreaterThanOrEqual(350);
+    const ids = [...ALL.map((e) => e.id), ...STRETCH_EXERCISES.map((e) => e.id), ...CATALOG_STRETCHES.map((e) => e.id)];
     expect(new Set(ids).size).toBe(ids.length);
   });
   test('jede Übung hat Name und Kurzanleitung, keine Texte ohne Übung', () => {
@@ -47,14 +47,28 @@ describe('Katalog vollständig', () => {
       expect([e.id, (de.exercises as unknown as Record<string, string>)[e.id]?.length > 3]).toEqual([e.id, true]);
       expect([e.id, (de.exerciseHow as unknown as Record<string, string>)[e.id]?.length > 30]).toEqual([e.id, true]);
     }
-    expect(Object.keys(CATALOG_TEXTS).sort()).toEqual(CATALOG_EXERCISES.map((e) => e.id).sort());
-  });
-  test('alle Gerätearten haben Übungen, die neuen mindestens 8', () => {
-    for (const eq of EQUIPMENT) {
-      const count = ALL.filter((e) => e.equipment === eq).length;
-      expect([eq, count >= (['kettlebell', 'band', 'smith', 'sz_stange'].includes(eq) ? 8 : 10)]).toEqual([eq, true]);
+    for (const e of CATALOG_STRETCHES) {
+      expect([e.id, (de.exercises as unknown as Record<string, string>)[e.id]?.length > 3]).toEqual([e.id, true]);
+      expect([e.id, (de.exerciseHow as unknown as Record<string, string>)[e.id]?.length > 30]).toEqual([e.id, true]);
     }
-    for (const eq of ['kettlebell', 'band', 'smith', 'sz_stange'] as const) expect(de.equipment).toHaveProperty(eq);
+    expect(Object.keys(CATALOG_TEXTS).sort()).toEqual([...CATALOG_EXERCISES, ...CATALOG_STRETCHES].map((e) => e.id).sort());
+  });
+  test('alle Gerätearten haben Übungen (Kraft oder Dehnen), die neuen mindestens 8', () => {
+    for (const eq of EQUIPMENT) {
+      const count = [...ALL, ...STRETCH_EXERCISES, ...CATALOG_STRETCHES].filter((e) => e.equipment === eq).length;
+      expect([eq, count >= (EQUIPMENT.indexOf(eq) >= EQUIPMENT.indexOf('kettlebell') ? 8 : 10)]).toEqual([eq, true]);
+      expect(de.equipment).toHaveProperty(eq);
+    }
+  });
+  test('Dehnübungen: gültige Art, Haltezeit 5–300 s, keine doppelten IDs', () => {
+    const ids = [...STRETCH_EXERCISES, ...CATALOG_STRETCHES].map((e) => e.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const e of CATALOG_STRETCHES) {
+      expect(['dehnung_statisch', 'dehnung_dynamisch', 'mobilitaet']).toContain(e.kind);
+      expect(e.holdSeconds).toBeGreaterThanOrEqual(5);
+      expect(e.holdSeconds).toBeLessThanOrEqual(300);
+    }
+    expect(STRETCH_EXERCISES.length + CATALOG_STRETCHES.length).toBeGreaterThanOrEqual(75);
   });
 });
 
@@ -134,6 +148,7 @@ describe('Vorlagen und neue Geräte', () => {
     );
     expect(parseWish('zu Hause mit Kettlebell und Band', []).blockedEquipment).not.toContain('kettlebell');
     expect(parseWish('zu Hause mit Kettlebell und Band', []).blockedEquipment).not.toContain('band');
-    expect(parseWish('zu Hause ohne Geräte', []).blockedEquipment).toEqual(expect.arrayContaining(['kettlebell', 'band']));
+    expect(parseWish('zu Hause ohne Geräte', []).blockedEquipment).toEqual(expect.arrayContaining(['kettlebell', 'band', 'medizinball']));
+    expect(parseWish('zu Hause mit Gymnastikball', []).blockedEquipment).not.toContain('gymnastikball');
   });
 });

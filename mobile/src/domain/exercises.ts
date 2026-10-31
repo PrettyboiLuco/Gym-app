@@ -4,8 +4,21 @@
 
 import { CATALOG_EXERCISES } from './exercise-catalog';
 
-/** Gerätearten. Die letzten vier kamen mit dem erweiterten Katalog dazu (31.10.2026). */
-export const EQUIPMENT = ['langhantel', 'kurzhantel', 'kabel', 'maschine', 'koerpergewicht', 'kettlebell', 'band', 'smith', 'sz_stange'] as const;
+/** Gerätearten. Ab „kettlebell“ kamen sie mit dem erweiterten Katalog dazu (31.10.2026). */
+export const EQUIPMENT = [
+  'langhantel',
+  'kurzhantel',
+  'kabel',
+  'maschine',
+  'koerpergewicht',
+  'kettlebell',
+  'band',
+  'smith',
+  'sz_stange',
+  'medizinball',
+  'gymnastikball',
+  'faszienrolle',
+] as const;
 export const MUSCLE_GROUPS = [
   'brust',
   'ruecken',

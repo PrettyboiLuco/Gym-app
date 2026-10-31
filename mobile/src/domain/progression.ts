@@ -37,6 +37,7 @@ export function weightStep(equipment: Equipment, unit: WeightUnit): number {
   if (unit === 'lb') return 5;
   // Kettlebells gibt es meist in 4-kg-Stufen.
   if (equipment === 'kettlebell') return 4;
+  if (equipment === 'medizinball') return 1;
   return equipment === 'kurzhantel' ? 2 : 2.5;
 }
 
@@ -94,7 +95,7 @@ export function progressionAdvice(
   const atWeight = last.sets.filter((s) => s.weightKg === weight);
   const allTop = atWeight.length >= target.sets && atWeight.every((s) => (s.reps ?? 0) >= target.repsMax!);
   if (allTop) {
-    if (weight === 0 && (equipment === 'koerpergewicht' || equipment === 'band')) return { kind: 'variante', reps: target.repsMax };
+    if (weight === 0 && (equipment === 'koerpergewicht' || equipment === 'band' || equipment === 'gymnastikball')) return { kind: 'variante', reps: target.repsMax };
     return { kind: 'mehrGewicht', weightKg: roundToStep(weight + unitToKg(step, unit), step, unit), reps: target.repsMin };
   }
 

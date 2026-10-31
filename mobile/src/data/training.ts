@@ -523,7 +523,7 @@ export async function exerciseHistory(
     `SELECT l.session_id AS sessionId, MAX(l.completed_at_utc) AS at FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
      WHERE l.exercise_id = ? AND l.session_id <> ? AND l.completed_at_utc IS NOT NULL AND s.status <> 'abgebrochen'
-     GROUP BY l.session_id ORDER BY at DESC LIMIT ?`,
+     GROUP BY l.session_id ORDER BY at DESC, s.rowid DESC LIMIT ?`,
     exerciseId,
     excludeSessionId,
     limit

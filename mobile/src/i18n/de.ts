@@ -406,6 +406,9 @@ export const de = {
     band: 'Widerstandsband',
     smith: 'Smith-Maschine',
     sz_stange: 'SZ-Stange',
+    medizinball: 'Medizinball',
+    gymnastikball: 'Gymnastikball',
+    faszienrolle: 'Faszienrolle',
   },
   muscle: {
     brust: 'Brust',

@@ -2,7 +2,7 @@
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
-import { CATALOG_ADDED, CATALOG_EXERCISES } from '@/domain/exercise-catalog';
+import { CATALOG_ADDED, CATALOG_EXERCISES, CATALOG_STRETCHES } from '@/domain/exercise-catalog';
 import { SUPPLEMENT_UNITS } from '@/domain/supplements';
 
 import type { Db } from './db';
@@ -40,6 +40,12 @@ const catalogInserts = (filter: (id: string) => boolean) =>
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', 'kraft', '${e.sides}', NULL, '${e.measure}');`
     )
     .join('\n');
+
+// Ab Version 14: weitere Dehn-, Mobilitäts- und Faszienrollen-Übungen.
+const catalogStretchInserts = CATALOG_STRETCHES.map(
+  (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', '${e.kind}', '${e.sides}', ${e.holdSeconds}, 'zeit');`
+).join('\n');
 
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
 const supplementUnits = SUPPLEMENT_UNITS.map((u) => `'${u}'`).join(', ');
@@ -507,6 +513,11 @@ export const MIGRATIONS: string[] = [
 
   // Version 13: Cable-Fly-Varianten (sitzend, liegend, Schrägbank, einarmig).
   catalogInserts((id) => CATALOG_ADDED[13].includes(id)),
+
+  // Version 14: Lücken gefüllt – Varianten, Gewichtheben, Sprungübungen, Medizin- und Gymnastikball, mehr Dehnen und
+  // Faszienrolle.
+  `${catalogInserts((id) => CATALOG_ADDED[14].includes(id))}
+   ${catalogStretchInserts}`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

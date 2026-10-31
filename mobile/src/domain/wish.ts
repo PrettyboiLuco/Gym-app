@@ -171,7 +171,12 @@ const EQUIPMENT_WORDS: Record<Equipment, string> = {
   band: '(?:widerstandsb(?:and|aender)\\w*|fitnessb(?:and|aender)\\w*|theraband\\w*|\\bbaendern?\\b|\\bband\\b)',
   smith: '(?:smith\\w*|multipresse\\w*)',
   sz_stange: '(?:sz.?stange\\w*|curlstange\\w*)',
+  medizinball: '(?:medizinb(?:all|aelle)\\w*|slam.?ball\\w*)',
+  gymnastikball: '(?:gymnastikb(?:all|aelle)\\w*|pezzib(?:all|aelle)\\w*|sitzb(?:all|aelle)\\w*)',
+  faszienrolle: '(?:faszienroll\\w*|blackroll\\w*|foam.?roll\\w*)',
 };
+/** Kleingeräte, die man oft zu Hause hat: „zu Hause“ schließt sie nur aus, wenn sie nicht erwähnt sind. */
+const HOME_OPTIONAL: Equipment[] = ['kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'];
 const NEGATION = '(?:ohne|kein|keine|keinen|nicht mit|statt|anstatt)';
 const BLOCKED_AFTER = '(?:ist|sind)?\\s*(?:belegt|kaputt|besetzt|gesperrt|nicht verfuegbar|nicht da|fehlt|fehlen|geht nicht|gehen nicht|tut weh|tun weh|schmerzt|schmerzen)';
 
@@ -183,9 +188,7 @@ function parseEquipment(text: string): Equipment[] {
     blocked.add('langhantel').add('kabel').add('maschine').add('smith').add('sz_stange');
     const dumbbellsOk = onlyDumbbells || /mit (?:den |meinen |zwei )?kurzhantel/.test(text);
     if (!dumbbellsOk) blocked.add('kurzhantel');
-    // Kettlebell und Band gibt es oft zu Hause: nur ausschließen, wenn sie nicht erwähnt sind.
-    if (onlyDumbbells || !new RegExp(EQUIPMENT_WORDS.kettlebell).test(text)) blocked.add('kettlebell');
-    if (onlyDumbbells || !new RegExp(EQUIPMENT_WORDS.band).test(text)) blocked.add('band');
+    for (const small of HOME_OPTIONAL) if (onlyDumbbells || !new RegExp(EQUIPMENT_WORDS[small]).test(text)) blocked.add(small);
   }
   for (const equipment of EQUIPMENT) {
     const word = EQUIPMENT_WORDS[equipment];

@@ -79,7 +79,7 @@ Fundstellen: `mobile/src/domain/planner.ts` (`templateParams`, `SPLIT_FITS`, `TE
 | D5 | Zeit-Übungen | Einsteiger 2×30 s, Fortgeschritten 3×45 s, 60 s Pause | Freigeben? | | |
 | D6 | Einsteiger | nur Übungen der Stufe „Einsteiger“; Geräte-Reihenfolge Maschine → Kurzhantel → Kabel → Langhantel → Körpergewicht | Freigeben? | | |
 | D7 | Kürzen bei Zeitmangel | Reihenfolge: Doppeltes → ähnliche Übung am selben Tag → Sätze bis min. 2 → Isolation → Grundübungen; Pausen werden nie gekürzt | Freigeben? | | |
-| D8 | Übungsdaten | 240 Kraftübungen (58 Startliste + 182 Katalog vom 31.10.2026, neun Gerätearten inkl. Kettlebell, Band, Smith-Maschine, SZ-Stange) mit 16 Bewegungsmustern, Stufe, Ersatzübungen und Kurzanleitung (Listen: `exercises.ts`, `exercise-catalog.ts`; Texte `i18n/de.ts`, `i18n/de-exercises.ts`). Vorlagen nutzen weiter zuerst die Startliste | Stichprobe oder Komplettprüfung der Kurzanleitungen und Ersatzübungen | | |
+| D8 | Übungsdaten | 361 Kraftübungen und 78 Dehn-/Mobilitätsübungen (Startliste + Katalog vom 31.10.2026, zwölf Gerätearten inkl. Kettlebell, Band, Smith-Maschine, SZ-Stange, Medizinball, Gymnastikball, Faszienrolle; vollständige Liste `docs/Uebungsliste.md`) mit 16 Bewegungsmustern, Stufe, Ersatzübungen und Kurzanleitung (Listen: `exercises.ts`, `exercise-catalog.ts`; Texte `i18n/de.ts`, `i18n/de-exercises.ts`). Vorlagen nutzen weiter zuerst die Startliste | Stichprobe oder Komplettprüfung der Kurzanleitungen und Ersatzübungen | | |
 | D9 | Schmerz im Freitext | Übung wird ersetzt plus Hinweis, keine Behandlungstipps | Hinweistext freigeben? | | |
 
 ## E. Steigerung (Progression)

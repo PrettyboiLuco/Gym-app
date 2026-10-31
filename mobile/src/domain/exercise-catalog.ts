@@ -2,7 +2,7 @@
 // Kurzanleitungen (Texte in i18n/de-exercises.ts), keine fremden Texte oder Medien. Wie die Startliste: Vorschläge
 // ohne Fachprüfung (Phase 10.1). Ersatzübungen werden aus Muster, Messart und Gerät abgeleitet.
 
-import type { Equipment, Level, Measure, MovementPattern, MuscleGroup, Sides } from './exercises';
+import type { Equipment, ExerciseKind, Level, Measure, MovementPattern, MuscleGroup, Sides } from './exercises';
 
 export type CatalogExercise = {
   id: string;
@@ -229,15 +229,151 @@ const ROWS: Row[] = [
   ['baerengang', 'koerpergewicht', 'ganzkoerper', 'ganzkoerper', E],
 ];
 
+// Zweite Erweiterung (31.10.2026, „Lücken füllen“): häufige Varianten, Gewichtheben, Sprungübungen, Medizinball,
+// Gymnastikball. Kommt mit Datenbank-Version 14.
+const ROWS_V14: Row[] = [
+  // Brust
+  ['bankdruecken_kh_neutral', 'kurzhantel', 'brust', 'druecken_horizontal', E],
+  ['brustpresse_einarmig', 'maschine', 'brust', 'druecken_horizontal', E, ONE],
+  ['archer_liegestuetze', 'koerpergewicht', 'brust', 'druecken_horizontal', F],
+  ['liegestuetze_band', 'band', 'brust', 'druecken_horizontal', E],
+  ['bankdruecken_pause', 'langhantel', 'brust', 'druecken_horizontal', F],
+  ['svend_press', 'kurzhantel', 'brust', 'brust_isolation', E],
+  ['liegestuetze_medizinball', 'medizinball', 'brust', 'druecken_horizontal', F],
+  // Rücken
+  ['rudern_kabel_vgriff', 'kabel', 'ruecken', 'ziehen_horizontal', E],
+  ['rudern_maschine_einarmig', 'maschine', 'ruecken', 'ziehen_horizontal', E, ONE],
+  ['kroc_rudern', 'kurzhantel', 'ruecken', 'ziehen_horizontal', F, ONE],
+  ['meadows_rudern', 'langhantel', 'ruecken', 'ziehen_horizontal', F, ONE],
+  ['klimmzuege_breit', 'koerpergewicht', 'ruecken', 'ziehen_vertikal', F],
+  ['latzug_vgriff', 'kabel', 'ruecken', 'ziehen_vertikal', E],
+  ['kreuzheben_gestreckt', 'langhantel', 'beine', 'hueftstreckung', F],
+  ['kreuzheben_defizit', 'langhantel', 'ruecken', 'hueftstreckung', F],
+  ['kreuzheben_pause', 'langhantel', 'ruecken', 'hueftstreckung', F],
+  ['reverse_hyper', 'maschine', 'gesaess', 'hueftstreckung', E],
+  ['rueckenstrecker_seitlich', 'maschine', 'bauch', 'rumpf', E, ONE],
+  ['good_morning_band', 'band', 'beine', 'hueftstreckung', E],
+  ['kreuzheben_band', 'band', 'beine', 'hueftstreckung', E],
+  // Schultern
+  ['seitheben_sitzend', 'kurzhantel', 'schultern', 'schulter_isolation', E],
+  ['seitheben_liegend', 'kurzhantel', 'schultern', 'schulter_isolation', E, ONE],
+  ['y_raises_kabel', 'kabel', 'schultern', 'schulter_isolation', E],
+  ['schulterdruecken_stehend_kh', 'kurzhantel', 'schultern', 'druecken_vertikal', E],
+  ['z_press', 'langhantel', 'schultern', 'druecken_vertikal', F],
+  ['cuban_press', 'kurzhantel', 'schultern', 'hintere_schulter', F],
+  ['face_pulls_band', 'band', 'schultern', 'hintere_schulter', E],
+  ['frontheben_band', 'band', 'schultern', 'schulter_isolation', E],
+  ['kb_halo', 'kettlebell', 'schultern', 'schulter_isolation', E],
+  ['kb_clean_press', 'kettlebell', 'schultern', 'druecken_vertikal', F, ONE],
+  // Arme
+  ['bizepscurls_sitzend_kh', 'kurzhantel', 'arme', 'bizeps', E],
+  ['bizepscurls_alternierend', 'kurzhantel', 'arme', 'bizeps', E],
+  ['curls_21', 'sz_stange', 'arme', 'bizeps', F],
+  ['hammercurls_quer', 'kurzhantel', 'arme', 'bizeps', E],
+  ['bizepscurls_kabel_ueberkopf', 'kabel', 'arme', 'bizeps', E],
+  ['hammercurls_band', 'band', 'arme', 'bizeps', E],
+  ['tate_press', 'kurzhantel', 'arme', 'trizeps', F],
+  ['jm_press', 'langhantel', 'arme', 'trizeps', F],
+  ['trizepsdruecken_untergriff', 'kabel', 'arme', 'trizeps', E],
+  ['trizeps_ueberkopf_einarmig_kh', 'kurzhantel', 'arme', 'trizeps', E, ONE],
+  ['trizeps_ueberkopf_band', 'band', 'arme', 'trizeps', E],
+  // Beine
+  ['kniebeuge_pause', 'langhantel', 'beine', 'kniebeuge', F],
+  ['zercher_kniebeuge', 'langhantel', 'beine', 'kniebeuge', F],
+  ['guertel_kniebeuge', 'maschine', 'beine', 'kniebeuge', E],
+  ['frontkniebeuge_kb', 'kettlebell', 'beine', 'kniebeuge', E],
+  ['kosaken_kniebeuge', 'koerpergewicht', 'beine', 'ausfallschritt', F],
+  ['sissy_squat', 'koerpergewicht', 'beine', 'bein_isolation', F],
+  ['step_down', 'kurzhantel', 'beine', 'ausfallschritt', E, ONE],
+  ['curtsy_lunge', 'kurzhantel', 'gesaess', 'ausfallschritt', E],
+  ['bulgarische_kniebeuge_kb', 'kettlebell', 'beine', 'ausfallschritt', E, ONE],
+  ['beinpresse_eng', 'maschine', 'beine', 'kniebeuge', E],
+  ['beinpresse_breit', 'maschine', 'beine', 'kniebeuge', E],
+  ['kniebeuge_wand_ball', 'gymnastikball', 'beine', 'kniebeuge', E],
+  ['b_stance_rdl', 'kurzhantel', 'beine', 'hueftstreckung', E, ONE],
+  ['rdl_einbeinig_kb', 'kettlebell', 'beine', 'hueftstreckung', F, ONE],
+  ['glute_ham_raise', 'maschine', 'beine', 'bein_isolation', F],
+  ['frog_pumps', 'koerpergewicht', 'gesaess', 'hueftstreckung', E],
+  ['donkey_kicks', 'koerpergewicht', 'gesaess', 'bein_isolation', E, ONE],
+  ['fire_hydrants', 'koerpergewicht', 'huefte', 'bein_isolation', E, ONE],
+  ['clamshell_band', 'band', 'huefte', 'bein_isolation', E, ONE],
+  ['kickback_band', 'band', 'gesaess', 'bein_isolation', E, ONE],
+  ['hip_thrust_einbeinig', 'langhantel', 'gesaess', 'hueftstreckung', F, ONE],
+  ['beinbeuger_ball', 'gymnastikball', 'beine', 'bein_isolation', E],
+  ['beckenheben_ball', 'gymnastikball', 'gesaess', 'hueftstreckung', E],
+  ['wadenheben_stehend_kh', 'kurzhantel', 'waden', 'waden', E],
+  ['eselwadenheben', 'maschine', 'waden', 'waden', E],
+  ['tibialis_heben', 'koerpergewicht', 'waden', 'waden', E],
+  // Bauch und Rumpf
+  ['plank_schulter_tippen', 'koerpergewicht', 'bauch', 'rumpf', E],
+  ['plank_hoch', 'koerpergewicht', 'bauch', 'rumpf', E, BOTH, 'zeit'],
+  ['seitstuetz_heben', 'koerpergewicht', 'bauch', 'rumpf', E, ONE],
+  ['scheibenwischer_haengend', 'koerpergewicht', 'bauch', 'rumpf', F],
+  ['dragon_flag', 'koerpergewicht', 'bauch', 'rumpf', F],
+  ['toes_to_bar', 'koerpergewicht', 'bauch', 'rumpf', F],
+  ['flutter_kicks', 'koerpergewicht', 'bauch', 'rumpf', E],
+  ['scherenbeine', 'koerpergewicht', 'bauch', 'rumpf', E],
+  ['fersen_tippen', 'koerpergewicht', 'bauch', 'rumpf', E],
+  ['hollow_rocks', 'koerpergewicht', 'bauch', 'rumpf', F],
+  ['copenhagen_plank', 'koerpergewicht', 'huefte', 'rumpf', F, ONE, 'zeit'],
+  ['landmine_rotation', 'langhantel', 'bauch', 'rumpf', F],
+  ['crunch_ball', 'gymnastikball', 'bauch', 'rumpf', E],
+  ['rollout_ball', 'gymnastikball', 'bauch', 'rumpf', E],
+  ['plank_ball', 'gymnastikball', 'bauch', 'rumpf', E, BOTH, 'zeit'],
+  ['pike_ball', 'gymnastikball', 'bauch', 'rumpf', F],
+  ['stir_the_pot', 'gymnastikball', 'bauch', 'rumpf', F],
+  ['rueckenstrecker_ball', 'gymnastikball', 'ruecken', 'hueftstreckung', E],
+  ['kb_windmill', 'kettlebell', 'bauch', 'rumpf', F, ONE],
+  ['kb_figure_8', 'kettlebell', 'bauch', 'rumpf', E],
+  ['russian_twist_medizinball', 'medizinball', 'bauch', 'rumpf', E],
+  ['situp_wurf_medizinball', 'medizinball', 'bauch', 'rumpf', E],
+  ['rotationswurf_medizinball', 'medizinball', 'bauch', 'rumpf', E, ONE],
+  // Gewichtheben und Ganzkörper
+  ['hang_clean', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['reissen', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['hang_snatch', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['power_snatch', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['umsetzen_stossen', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['push_jerk', 'langhantel', 'schultern', 'druecken_vertikal', F],
+  ['split_jerk', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['ueberkopf_kniebeuge', 'langhantel', 'beine', 'kniebeuge', F],
+  ['clean_pull', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['snatch_pull', 'langhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['man_maker', 'kurzhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['devil_press', 'kurzhantel', 'ganzkoerper', 'ganzkoerper', F],
+  ['kb_thruster', 'kettlebell', 'ganzkoerper', 'ganzkoerper', E],
+  ['kb_high_pull', 'kettlebell', 'ganzkoerper', 'ganzkoerper', E],
+  ['kettlebell_swing_einarmig', 'kettlebell', 'gesaess', 'hueftstreckung', F, ONE],
+  // Sprungübungen
+  ['box_jumps', 'koerpergewicht', 'beine', 'ganzkoerper', E],
+  ['box_jumps_seitlich', 'koerpergewicht', 'beine', 'ganzkoerper', F],
+  ['hocksprung', 'koerpergewicht', 'beine', 'ganzkoerper', F],
+  ['weitsprung', 'koerpergewicht', 'beine', 'ganzkoerper', E],
+  ['ausfallschritt_spruenge', 'koerpergewicht', 'beine', 'ganzkoerper', F],
+  ['skater_spruenge', 'koerpergewicht', 'beine', 'ganzkoerper', E],
+  ['sprung_liegestuetze', 'koerpergewicht', 'brust', 'ganzkoerper', F],
+  ['einbeinige_spruenge', 'koerpergewicht', 'beine', 'ganzkoerper', F],
+  ['broad_jump_burpee', 'koerpergewicht', 'ganzkoerper', 'ganzkoerper', F],
+  ['depth_jumps', 'koerpergewicht', 'beine', 'ganzkoerper', F],
+  // Medizinball
+  ['ball_slams', 'medizinball', 'ganzkoerper', 'ganzkoerper', E],
+  ['wall_balls', 'medizinball', 'ganzkoerper', 'ganzkoerper', E],
+  ['brustpass_medizinball', 'medizinball', 'brust', 'ganzkoerper', E],
+  ['ueberkopfwurf_medizinball', 'medizinball', 'ganzkoerper', 'ganzkoerper', E],
+  ['kniebeuge_medizinball', 'medizinball', 'beine', 'kniebeuge', E],
+  ['ausfallschritt_rotation_medizinball', 'medizinball', 'beine', 'ausfallschritt', E],
+];
+
 /**
  * Später ergänzte Übungen je Datenbank-Version. Eine Version wird nach der Auslieferung nie mehr geändert; neue
  * Übungen bekommen deshalb eine eigene Version (Version 12 = Rest des Katalogs).
  */
 export const CATALOG_ADDED: Record<number, readonly string[]> = {
   13: ['cable_flys_sitzend', 'cable_flys_flachbank', 'cable_flys_schraegbank', 'cable_flys_einarmig'],
+  14: ROWS_V14.map((r) => r[0]),
 };
 
-export const CATALOG_EXERCISES: CatalogExercise[] = ROWS.map(([id, equipment, muscleGroup, pattern, level, sides = BOTH, measure = 'wdh']) => ({
+export const CATALOG_EXERCISES: CatalogExercise[] = [...ROWS, ...ROWS_V14].map(([id, equipment, muscleGroup, pattern, level, sides = BOTH, measure = 'wdh']) => ({
   id,
   equipment,
   muscleGroup,
@@ -245,4 +381,83 @@ export const CATALOG_EXERCISES: CatalogExercise[] = ROWS.map(([id, equipment, mu
   level,
   sides,
   measure,
+}));
+
+// ------------------------------------------------------------------------------ Dehnen und Mobilität
+
+export type CatalogStretch = { id: string; equipment: Equipment; muscleGroup: MuscleGroup; kind: ExerciseKind; sides: Sides; holdSeconds: number };
+type StretchRow = [id: string, equipment: Equipment, muscleGroup: MuscleGroup, kind: ExerciseKind, sides: Sides, holdSeconds: number];
+
+const S = 'dehnung_statisch' as const;
+const D = 'dehnung_dynamisch' as const;
+const M = 'mobilitaet' as const;
+
+/** Weitere Dehn- und Mobilitätsübungen und Faszienrolle (Datenbank-Version 14). Haltezeiten sind Voreinstellungen. */
+const STRETCH_ROWS: StretchRow[] = [
+  // statisch
+  ['dehn_brust_boden', 'koerpergewicht', 'brust', S, ONE, 30],
+  ['dehn_lat_stange', 'koerpergewicht', 'ruecken', S, BOTH, 30],
+  ['dehn_lat_seitlich', 'koerpergewicht', 'ruecken', S, ONE, 30],
+  ['dehn_schulter_hinten', 'koerpergewicht', 'schultern', S, BOTH, 30],
+  ['dehn_bizeps_wand', 'koerpergewicht', 'arme', S, ONE, 30],
+  ['dehn_unterarm', 'koerpergewicht', 'arme', S, ONE, 30],
+  ['dehn_handgelenk', 'koerpergewicht', 'arme', S, BOTH, 20],
+  ['dehn_nacken_vorn', 'koerpergewicht', 'nacken', S, BOTH, 30],
+  ['dehn_nacken_diagonal', 'koerpergewicht', 'nacken', S, ONE, 30],
+  ['dehn_oberschenkel_hinten_sitzend', 'koerpergewicht', 'beine', S, BOTH, 30],
+  ['dehn_oberschenkel_hinten_liegend', 'koerpergewicht', 'beine', S, ONE, 30],
+  ['dehn_oberschenkel_vorn_liegend', 'koerpergewicht', 'beine', S, ONE, 30],
+  ['dehn_adduktoren_graetsche', 'koerpergewicht', 'huefte', S, BOTH, 30],
+  ['dehn_adduktoren_seitlich', 'koerpergewicht', 'huefte', S, ONE, 30],
+  ['dehn_frosch', 'koerpergewicht', 'huefte', S, BOTH, 45],
+  ['dehn_tauben_haltung', 'koerpergewicht', 'gesaess', S, ONE, 45],
+  ['dehn_gesaess_liegend', 'koerpergewicht', 'gesaess', S, ONE, 30],
+  ['dehn_piriformis_sitzend', 'koerpergewicht', 'gesaess', S, ONE, 30],
+  ['dehn_huefte_kniend_arm', 'koerpergewicht', 'huefte', S, ONE, 30],
+  ['dehn_tfl_stehend', 'koerpergewicht', 'huefte', S, ONE, 30],
+  ['dehn_wade_gebeugt', 'koerpergewicht', 'waden', S, ONE, 30],
+  ['dehn_schienbein', 'koerpergewicht', 'waden', S, BOTH, 30],
+  ['dehn_bauch_rueckenlage', 'gymnastikball', 'bauch', S, BOTH, 30],
+  ['dehn_seitlich_stehend', 'koerpergewicht', 'bauch', S, ONE, 30],
+  ['dehn_ruecken_drehsitz', 'koerpergewicht', 'ruecken', S, ONE, 30],
+  ['dehn_ruecken_liegend_drehung', 'koerpergewicht', 'ruecken', S, ONE, 30],
+  ['dehn_unterer_ruecken_knie', 'koerpergewicht', 'ruecken', S, BOTH, 30],
+  ['dehn_vorbeuge_stehend', 'koerpergewicht', 'beine', S, BOTH, 30],
+  ['dehn_herabschauender_hund', 'koerpergewicht', 'ganzkoerper', S, BOTH, 30],
+  ['dehn_brust_ball', 'gymnastikball', 'brust', S, BOTH, 30],
+  // dynamisch und Mobilität
+  ['mob_beinpendel_seitlich', 'koerpergewicht', 'huefte', D, ONE, 20],
+  ['mob_weltbeste_dehnung', 'koerpergewicht', 'ganzkoerper', D, ONE, 30],
+  ['mob_inchworm', 'koerpergewicht', 'ganzkoerper', D, BOTH, 30],
+  ['mob_huefte_90_90', 'koerpergewicht', 'huefte', M, BOTH, 40],
+  ['mob_brustwirbelsaeule_offnen', 'koerpergewicht', 'ruecken', M, ONE, 30],
+  ['mob_wandengel', 'koerpergewicht', 'schultern', M, BOTH, 30],
+  ['mob_schulter_dislokation', 'band', 'schultern', M, BOTH, 30],
+  ['mob_handgelenkkreisen', 'koerpergewicht', 'arme', M, BOTH, 20],
+  ['mob_knie_kreisen', 'koerpergewicht', 'beine', M, BOTH, 20],
+  ['mob_fussgelenk_wand', 'koerpergewicht', 'waden', M, ONE, 30],
+  ['mob_seitliche_ausfallschritte', 'koerpergewicht', 'huefte', D, BOTH, 30],
+  ['mob_knie_zur_brust_gehend', 'koerpergewicht', 'gesaess', D, BOTH, 30],
+  ['mob_fersen_gesaess_gehend', 'koerpergewicht', 'beine', D, BOTH, 30],
+  ['mob_skorpion', 'koerpergewicht', 'ruecken', D, BOTH, 30],
+  // Faszienrolle
+  ['rolle_wade', 'faszienrolle', 'waden', M, ONE, 45],
+  ['rolle_oberschenkel_vorn', 'faszienrolle', 'beine', M, ONE, 45],
+  ['rolle_oberschenkel_hinten', 'faszienrolle', 'beine', M, ONE, 45],
+  ['rolle_oberschenkel_aussen', 'faszienrolle', 'beine', M, ONE, 45],
+  ['rolle_adduktoren', 'faszienrolle', 'huefte', M, ONE, 45],
+  ['rolle_gesaess', 'faszienrolle', 'gesaess', M, ONE, 45],
+  ['rolle_oberer_ruecken', 'faszienrolle', 'ruecken', M, BOTH, 45],
+  ['rolle_lat', 'faszienrolle', 'ruecken', M, ONE, 45],
+  ['rolle_brust', 'faszienrolle', 'brust', M, ONE, 45],
+  ['rolle_fusssohle', 'faszienrolle', 'waden', M, ONE, 45],
+];
+
+export const CATALOG_STRETCHES: CatalogStretch[] = STRETCH_ROWS.map(([id, equipment, muscleGroup, kind, sides, holdSeconds]) => ({
+  id,
+  equipment,
+  muscleGroup,
+  kind,
+  sides,
+  holdSeconds,
 }));

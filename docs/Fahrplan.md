@@ -543,6 +543,16 @@ die neuen Geräte; „zu Hause“ schließt Smith-Maschine und SZ-Stange aus, Ke
 Steigerung: Kettlebell in 4-kg-Schritten, Band wie Körpergewicht. 502 automatische Tests. Danach ergänzt: Cable Flys sitzend auf der Bank, liegend auf Flach-
 und Schrägbank, einarmig (Datenbank-Version 13); Butterfly belegt → zuerst Fly-Übungen statt Drücken. 505 Tests.
 
+**Nachtrag 31.10.2026 – Lücken gefüllt** (Entscheidung Luc: „ca. 450“, keine 800 mit Exoten): 121 weitere
+Kraftübungen (häufige Griff-/Winkelvarianten, Gewichtheben, Sprungübungen, Medizinball, Gymnastikball, mehr
+Kettlebell und Band) und 54 Dehn-, Mobilitäts- und Faszienrollen-Übungen; neue Geräte Medizinball, Gymnastikball,
+Faszienrolle. Zusammen **439 Übungen** (361 Kraft, 78 Dehnen/Mobilität). Datenbank-Version 14. Liste zum Durchlesen:
+`docs/Uebungsliste.md` (aus dem Code erzeugt). Nebenbei behoben: Reihenfolge früherer Einheiten für die Steigerung
+war bei gleichem Zeitstempel zufällig (wackeliger Test). 506 automatische Tests, 36/36 Bildschirme ohne Fehler.
+**Offen, nächster Schritt:** Cardio richtig unterstützen (Laufband, Rad, Crosstrainer, Rudergerät, Stepper,
+Seilspringen …) mit Dauer in Minuten (Pläne heute höchstens 10 min je Zeit-Satz), optional Strecke, ohne
+Kalorien-Gutschrift (HEALTH-007).
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit
