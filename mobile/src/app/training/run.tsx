@@ -218,7 +218,7 @@ export default function RunScreen() {
           {nameOf(step.exerciseId)}
           {step.side ? ` – ${t(`run.side.${step.side}`)}` : ''}
         </ThemedText>
-        <ThemedText style={styles.clock}>{formatClock(state.remainingMs)}</ThemedText>
+        <ThemedText type="subtitle" style={styles.clock}>{formatClock(state.remainingMs)}</ThemedText>
         <ThemedText themeColor="textSecondary">
           {t('run.progress', { index: step.index + 1, count: exerciseCount })}
           {rounds > 1 ? ` · ${t('run.round', { round: step.round, rounds })}` : ''}
@@ -283,5 +283,5 @@ function announcement(step: Step, nameOf: (id: string) => string): string {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
-  clock: { fontSize: 72, lineHeight: 80, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  clock: { fontSize: 72, lineHeight: 80, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
 });

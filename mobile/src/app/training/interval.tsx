@@ -88,7 +88,7 @@ export default function IntervalScreen() {
             {t(`interval.phase.${state.phase}`)}
           </ThemedText>
           {state.phase !== 'fertig' ? (
-            <ThemedText style={styles.clock}>{formatClock(state.remainingMs)}</ThemedText>
+            <ThemedText type="subtitle" style={styles.clock}>{formatClock(state.remainingMs)}</ThemedText>
           ) : null}
           <ThemedText themeColor="textSecondary">
             {t('interval.round', { round: state.round, rounds: running?.rounds })}
@@ -142,5 +142,5 @@ export default function IntervalScreen() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Spacing.two },
   field: { flex: 1, minWidth: 0 },
-  clock: { fontSize: 72, lineHeight: 80, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  clock: { fontSize: 72, lineHeight: 80, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
 });

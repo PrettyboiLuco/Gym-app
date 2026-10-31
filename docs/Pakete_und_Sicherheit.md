@@ -4,7 +4,7 @@ Register TECH-010, TECH-011, O6. Stand: 29.10.2026, Expo SDK 58. Bei jedem SDK-U
 
 ## Direkte Pakete der App
 
-Alle direkten Abhängigkeiten stehen unter der **MIT-Lizenz** (geprüft aus `node_modules/*/package.json`).
+Alle direkten Abhängigkeiten stehen unter der **MIT-Lizenz** (geprüft aus `node_modules/*/package.json`); einzige Ausnahme ist die Schriftdatei Manrope (SIL Open Font License 1.1 – Nutzung und Weitergabe in Apps erlaubt, nur nicht einzeln verkaufen).
 Versionen sind in `mobile/package-lock.json` festgeschrieben.
 
 | Paket | Version | Lizenz | Zweck |
@@ -25,6 +25,8 @@ Versionen sind in `mobile/package-lock.json` festgeschrieben.
 | expo-speech | 58.0.3 | MIT | Sprachansage bei Dehnen und HIIT (auf dem Gerät, nichts wird gesendet) |
 | expo-file-system | 58.0.13 | MIT | Fortschrittsfotos als Kopie im App-Ordner speichern und löschen |
 | i18n-js | 4.5.4 | MIT | Übersetzungen |
+| react-native-svg | 15.16.0 | MIT | Diagramme, Ringe, Tab-Symbole (in Expo Go enthalten) |
+| @expo-google-fonts/manrope | 0.4.3 | MIT (Paket), Schrift: SIL Open Font License 1.1 | Überschriften-Schrift Manrope, liegt in der App (kein Laden aus dem Netz) |
 | react / react-native | 19.3.0 / 0.88.1 | MIT | UI |
 | weitere expo-* und react-native-* aus der Vorlage | 58.x | MIT | Vorlage |
 

@@ -2,6 +2,7 @@ import type { ReactNode, Ref } from 'react';
 import { ScrollView, StyleSheet, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AnimatedTitle } from '@/components/animated-title';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -34,11 +35,7 @@ export function Screen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets>
-          {title && !withHeader ? (
-            <ThemedText type="subtitle" accessibilityRole="header">
-              {title}
-            </ThemedText>
-          ) : null}
+          {title && !withHeader ? <AnimatedTitle text={title} /> : null}
           {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
           {children}
         </ScrollView>

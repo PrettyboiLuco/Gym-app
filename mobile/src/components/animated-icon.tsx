@@ -8,7 +8,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 const DURATION = 600;
 // Gleiche Farbe und Bildgröße wie der native Startbildschirm in app.json (expo-splash-screen),
 // damit der Übergang nahtlos ist.
-const SPLASH_BACKGROUND = '#13213A';
+const SPLASH_BACKGROUND = '#000000';
 const SPLASH_IMAGE_WIDTH = 160;
 
 export function AnimatedSplashOverlay() {

@@ -75,6 +75,12 @@ export const Fonts = Platform.select({
   },
 });
 
+/**
+ * Überschriften in Manrope (aus der getlayers.ai-Schriftauswahl: „engineered, premium, calm“),
+ * Fließtext bleibt in der Systemschrift. Geladen in app/_layout.tsx; bei eigenen Schriften kein fontWeight setzen.
+ */
+export const DisplayFont = { bold: 'Manrope_700Bold', extraBold: 'Manrope_800ExtraBold' } as const;
+
 export const Spacing = {
   half: 2,
   one: 4,

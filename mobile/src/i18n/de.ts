@@ -1329,6 +1329,8 @@ export const de = {
     kcalToday: 'Kalorien: {{eaten}} von {{target}} kcal',
     macroLine: '{{name}}: {{eaten}} / {{target}} g',
     fiberLine: 'Ballaststoffe: {{eaten}} / mind. {{target}} g',
+    kcalOf: 'von {{target}} kcal',
+    macroShort: '{{eaten}} / {{target}} g',
     tipsOpen: 'Tipps für heute',
     tipsClose: 'Tipps ausblenden',
     tip: {

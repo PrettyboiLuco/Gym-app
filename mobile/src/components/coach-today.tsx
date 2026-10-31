@@ -1,11 +1,15 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { MeterBar, ProgressRing } from '@/components/charts';
 import { ListRow } from '@/components/fields';
 import { ThemedText } from '@/components/themed-text';
+import { Spacing } from '@/constants/theme';
 import { dailyTips, type DayTarget } from '@/domain/coach';
 import type { NutrientTotals } from '@/domain/nutrition';
+import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 
 export type CoachTodayData = {
@@ -25,6 +29,7 @@ const g = (v: number) => formatNumber(Math.round(v), 0);
 /** Tägliche Begleitung auf „Heute“ (Coach C8): Tagesart, Kalorien und Makros, Tipps nur auf Klick. */
 export function CoachToday({ data }: { data: CoachTodayData }) {
   const [showTips, setShowTips] = useState(false);
+  const theme = useTheme();
   if (!data.setUp) {
     return (
       <Card>
@@ -49,19 +54,50 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
       {target?.trainingDay && data.nextDay ? <ThemedText>{t('coach.trainingToday', { name: data.nextDay })}</ThemedText> : null}
       {!hideNumbers && target ? (
         <>
-          <ThemedText>{t('coach.kcalToday', { eaten: g(sums.values.kcal), target: g(target.kcal) })}</ThemedText>
-          {macros ? (
-            <>
-              <ThemedText type="small">
-                {[
-                  t('coach.macroLine', { name: t('nutrition.protein'), eaten: g(sums.values.protein), target: g(macros.protein) }),
-                  t('coach.macroLine', { name: t('nutrition.fat'), eaten: g(sums.values.fat), target: g(macros.fat) }),
-                  t('coach.macroLine', { name: t('nutrition.carbs'), eaten: g(sums.values.carbs), target: g(macros.carbs) }),
-                ].join(' · ')}
+          <View
+            style={styles.overview}
+            accessible
+            accessibilityLabel={[
+              t('coach.kcalToday', { eaten: g(sums.values.kcal), target: g(target.kcal) }),
+              ...(macros
+                ? [
+                    t('coach.macroLine', { name: t('nutrition.protein'), eaten: g(sums.values.protein), target: g(macros.protein) }),
+                    t('coach.macroLine', { name: t('nutrition.fat'), eaten: g(sums.values.fat), target: g(macros.fat) }),
+                    t('coach.macroLine', { name: t('nutrition.carbs'), eaten: g(sums.values.carbs), target: g(macros.carbs) }),
+                  ]
+                : []),
+            ].join('. ')}>
+            <ProgressRing progress={target.kcal > 0 ? sums.values.kcal / target.kcal : 0} color={theme.tint} trackColor={theme.backgroundSelected}>
+              <ThemedText type="subtitle" style={styles.ringValue}>
+                {g(sums.values.kcal)}
               </ThemedText>
-              <ThemedText type="small">{t('coach.fiberLine', { eaten: g(sums.values.fiber), target: g(macros.fiber) })}</ThemedText>
-            </>
-          ) : null}
+              <ThemedText type="small" themeColor="textSecondary" style={styles.ringLabel}>
+                {t('coach.kcalOf', { target: g(target.kcal) })}
+              </ThemedText>
+            </ProgressRing>
+            {macros ? (
+              <View style={styles.macros}>
+                {(
+                  [
+                    ['nutrition.protein', sums.values.protein, macros.protein],
+                    ['nutrition.fat', sums.values.fat, macros.fat],
+                    ['nutrition.carbs', sums.values.carbs, macros.carbs],
+                  ] as const
+                ).map(([label, eaten, goal]) => (
+                  <View key={label} style={styles.macro}>
+                    <View style={styles.macroHead}>
+                      <ThemedText type="small">{t(label)}</ThemedText>
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {t('coach.macroShort', { eaten: g(eaten), target: g(goal) })}
+                      </ThemedText>
+                    </View>
+                    <MeterBar progress={goal > 0 ? eaten / goal : 0} color={theme.tint} trackColor={theme.backgroundSelected} />
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </View>
+          {macros ? <ThemedText type="small">{t('coach.fiberLine', { eaten: g(sums.values.fiber), target: g(macros.fiber) })}</ThemedText> : null}
         </>
       ) : null}
       <Button label={showTips ? t('coach.tipsClose') : t('coach.tipsOpen')} variant="secondary" onPress={() => setShowTips((v) => !v)} />
@@ -76,3 +112,12 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
     </Card>
   );
 }
+
+const styles = StyleSheet.create({
+  overview: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: Spacing.one },
+  ringValue: { fontSize: 22, lineHeight: 26, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
+  ringLabel: { fontSize: 11, lineHeight: 14 },
+  macros: { flex: 1, gap: Spacing.two },
+  macro: { gap: Spacing.one },
+  macroHead: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.two },
+});

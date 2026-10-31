@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/card';
+import { ProgressRing } from '@/components/charts';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
@@ -67,19 +68,32 @@ export function RestTimerBar({
   const done = remaining === 0;
   return (
     <ThemedView type="backgroundElement" style={[styles.bar, styles.row]} accessibilityLiveRegion="polite">
-      <View
-        style={[styles.ring, { borderColor: theme.accent, backgroundColor: done ? theme.accent : 'transparent' }]}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      />
-      <View style={styles.text}>
-        <ThemedText type="smallBold">{done ? t('session.restDone') : t('session.restTitle')}</ThemedText>
-        {!done ? (
-          <ThemedText type="subtitle" accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}>
-            {formatClock(remaining)}
+      {done ? (
+        <>
+          <View style={[styles.doneDot, { backgroundColor: theme.accent }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+          <ThemedText type="smallBold" style={styles.text}>
+            {t('session.restDone')}
           </ThemedText>
-        ) : null}
-      </View>
+        </>
+      ) : (
+        <>
+          {/* Restzeit mitten im Ring; der Ring läuft gleichmäßig leer. */}
+          <View accessible accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}>
+            <ProgressRing
+              progress={timer && timer.durationMs > 0 ? remaining / timer.durationMs : 0}
+              size={64}
+              stroke={5}
+              color={theme.tint}
+              trackColor={theme.backgroundSelected}
+              follow="tick">
+              <ThemedText type="subtitle" style={styles.clock}>
+                {formatClock(remaining)}
+              </ThemedText>
+            </ProgressRing>
+          </View>
+          <View style={styles.text} />
+        </>
+      )}
       {!done ? <Button label={t('session.restPlus')} variant="secondary" onPress={onExtend} /> : null}
       <Button label={done ? t('common.ok') : t('session.restSkip')} variant={done ? 'primary' : 'secondary'} onPress={onSkip} />
     </ThemedView>
@@ -94,8 +108,9 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.two,
   },
   row: { flexDirection: 'row', alignItems: 'center' },
-  ring: { width: 44, height: 44, borderRadius: 22, borderWidth: 4 },
+  doneDot: { width: 44, height: 44, borderRadius: 22 },
   text: { flex: 1 },
+  clock: { fontSize: 17, lineHeight: 22, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
   presets: { gap: Spacing.two },
   preset: { minHeight: 40, minWidth: 56, paddingHorizontal: Spacing.three, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
 });

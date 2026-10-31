@@ -574,6 +574,22 @@ und auch für Tab-Leiste und Systemfenster wirksam. 508 Tests, 36/36 Bildschirme
 Speichern im Browser geprüft. Offen: Tab-Symbole (auf dem iPhone schon da, Web-Vorschau ohne), Diagramme,
 Animationen, Logo und App-Icon.
 
+**Nachtrag 31.10.2026 – Optik, Schritt 2** (Wunsch Luc: alles Offene ausarbeiten, mit getlayers.ai): getlayers ist für
+Websites gebaut; übernommen wurde, was in die native App passt. **App-Symbol:** 3D-Herz in Lime-Chrom mit
+ausgeschnittener Pulslinie auf Schwarz (getlayers „SVG to 3D“, Preset Heart, Werte 1:1, gerendert mit three.js r158),
+alle Größen inkl. Android und Favicon, Startbildschirm schwarz; erzeugbar mit `design/logo/` → `npm run build`.
+**Schrift:** Überschriften und große Zahlen in Manrope (getlayers-Schriftauswahl), Fließtext Systemschrift.
+**Bewegung** (`constants/motion.ts`): Bereichs-Überschriften steigen wortweise auf („Word Rise“: 28 px, Feder 180/22,
+70 ms Versatz), Karten federn von unten herein (nur Handy; in der Web-Vorschau aus, weil Reanimated dort das Layout
+verschiebt), Knöpfe federn beim Drücken leicht ein; „Bewegung reduzieren“ des iPhones schaltet alles ab.
+**Diagramme:** Gewichtsverlauf mit weicher Durchschnittslinie, Fläche, Raster, letztem Wert und Zeitraum, deckt sich
+von links auf; „Heute“: Kalorienring und Makro-Balken (nur wenn Zahlen nicht ausgeblendet sind); Pausenleiste: Ring mit
+Restzeit in der Mitte, läuft gleichmäßig leer. **Tab-Symbole** auch in der Web-Vorschau (eigene SVG-Symbole im Stil der
+iPhone-Symbole). Neue Pakete: react-native-svg, Manrope (beide in Expo Go nutzbar). 508 Tests, Lint und Typprüfung
+ohne Fehler, 31/31 Bildschirme hell und dunkel ohne Fehler, Diagramme und Pausenring im Browser in beiden Modi
+geprüft. **Noch auf dem iPhone ansehen:** Karten-Animation und Knopf-Feder (in der Web-Vorschau nicht prüfbar),
+neues App-Symbol erst mit dem nächsten Build (Expo Go zeigt sein eigenes Symbol).
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

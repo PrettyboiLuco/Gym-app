@@ -8,9 +8,11 @@ import {
 } from 'expo-router/ui';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
+import { TabIcon, type TabIconName } from '@/components/tab-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
 // Web-Vorschau: gleiche fünf Bereiche wie auf dem Handy, unten als Leiste.
@@ -31,7 +33,7 @@ export default function AppTabs() {
         <TabBar>
           {TABS.map((tab) => (
             <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-              <TabButton>{t(tab.label)}</TabButton>
+              <TabButton icon={tab.name}>{t(tab.label)}</TabButton>
             </TabTrigger>
           ))}
         </TabBar>
@@ -50,12 +52,15 @@ function TabBar(props: TabListProps) {
   );
 }
 
-function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+function TabButton({ children, isFocused, icon, ...props }: TabTriggerSlotProps & { icon: TabIconName }) {
+  const theme = useTheme();
+  const color = isFocused ? theme.tint : theme.textSecondary;
   // TabTrigger braucht ref und onPress; die ref-Typen von expo-router/ui und Pressable weichen ab.
   return (
     <Pressable {...(props as PressableProps)} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
       <ThemedView type={isFocused ? 'backgroundSelected' : 'backgroundElement'} style={styles.buttonInner}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'} numberOfLines={1}>
+        <TabIcon name={icon} color={color} contrastColor={theme.backgroundSelected} selected={!!isFocused} />
+        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'} numberOfLines={1} style={styles.label}>
           {children}
         </ThemedText>
       </ThemedView>
@@ -76,14 +81,16 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     padding: Spacing.one,
-    borderRadius: Spacing.four,
+    borderRadius: Radius.card,
     gap: Spacing.one,
   },
   button: { flex: 1 },
   buttonInner: {
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.three,
+    paddingVertical: Spacing.one + Spacing.half,
+    borderRadius: Radius.field + Spacing.one,
     alignItems: 'center',
+    gap: Spacing.half,
   },
+  label: { fontSize: 11, lineHeight: 14 },
   pressed: { opacity: 0.7 },
 });

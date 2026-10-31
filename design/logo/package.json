@@ -1,0 +1,7 @@
+{
+  "name": "myhealth-logo",
+  "private": true,
+  "description": "Rendert das App-Symbol (3D-Herz) nach getlayers.ai „SVG to 3D“. Aufruf: npm install && npm run build",
+  "scripts": { "build": "node build.js" },
+  "dependencies": { "three": "0.158.0" }
+}
