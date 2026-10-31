@@ -81,6 +81,43 @@ Ernährung, Training. Verarbeitet werden sie **nur auf dem Gerät des Nutzers**;
 12. **Pro-Abo/Werbung (falls später):** Was ändert sich (Verbraucherinformationen, Widerruf, TDDDG-Einwilligung bei
     Werbung, BUS-007: Gesundheitsdaten nie für Werbung)?
 
+## 4a. Supplement-Namensliste: zurückgestellte Stoffe (Stand 31.10.2026)
+
+Die App schlägt beim Eintippen nur Namen vor (keine Mengen, keine Wirkung). Vorgeschlagen werden die Vitamine und
+Mineralstoffe aus Anhang I der Richtlinie 2002/46/EG und gängige Stoffe ohne bekannte Einschränkung
+(`mobile/src/domain/supplement-names.ts`). Folgende Stoffe schlägt die App **nicht** vor, bis die Prüfung entschieden
+hat; eintippen kann man sie trotzdem. Die Gründe sind meine Einschätzung (nicht geprüft) – genau das ist die Frage
+an die Prüfung.
+
+| Stoff | Warum zurückgestellt (zu prüfen) |
+|---|---|
+| TUDCA, UDCA | vermutlich kein zugelassenes Lebensmittel (Novel Food); UDCA ist in Deutschland Arzneimittel |
+| Melatonin | in Deutschland teils als Arzneimittel eingestuft (Gerichtsurteile je nach Menge) |
+| Ashwagandha | behördliche Warnungen/Einschränkungen in einzelnen EU-Ländern |
+| Yohimbe | in mehreren Ländern Verbote bzw. Arzneimittelbezug |
+| Kurkuma-/Curcumin-Extrakt | Warnungen zu Leberschäden bei Extrakten |
+| Grüntee-Extrakt (EGCG) | EU-Beschränkung seit 2022 |
+| Rotschimmelreis (Monacolin K) | EU-Beschränkung seit 2022 |
+| Synephrin / Bitterorange | Warnungen (Herz-Kreislauf), besonders mit Koffein |
+| Johanniskraut | in Deutschland Arzneipflanze, Wechselwirkungen |
+| CBD | Novel Food, keine Zulassung |
+| NMN | Novel Food, keine Zulassung |
+| DHEA | Hormon, kein Lebensmittel; Dopingliste |
+| Berberin | Status und Bewertung in der EU uneinheitlich |
+| Garcinia (Hydroxycitronensäure) | Warnungen, Status uneinheitlich |
+| Probiotika | Bezeichnung gilt in der EU selbst als gesundheitsbezogene Angabe |
+| Tongkat Ali | Status als Lebensmittel unklar |
+| Kratom | in vielen Ländern verboten oder Arzneimittel |
+| DMAA, SARMs, Prohormone | verboten bzw. Dopingliste |
+
+**Fragen dazu:** (1) Dürfen Stoffe dieser Liste in einer App als Namensvorschlag erscheinen, wenn die App weder
+Menge noch Wirkung nennt? (2) Ist schon die Vorschlagsliste der unproblematischen Stoffe „Werbung“ im Sinne der
+Health-Claims-Verordnung? (3) Reicht der feste Hinweis „keine Empfehlungen, Fragen an Ärztin/Arzt/Apotheke“?
+
+**Wen fragen:** Anwältin oder Anwalt mit Schwerpunkt **Lebensmittelrecht** (Novel Food, Nahrungsergänzungsmittel,
+Health Claims). Vorab kostenlos: Bundesamt für Verbraucherschutz und Lebensmittelsicherheit (BVL), Lebensmittelüberwachung
+des Landkreises. Möglichst eine Kanzlei, die auch App-/Datenschutzfragen (Abschnitt 4) abdeckt, oder zwei Termine.
+
 ## 5. Was Luc vor dem Termin klären muss
 
 - [ ] Wer ist Anbieter? (Name, ladungsfähige Anschrift, E-Mail – oder Impressums-Service)

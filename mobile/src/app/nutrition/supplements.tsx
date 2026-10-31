@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
-import { Choice, ConfirmButton, Field } from '@/components/fields';
+import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
 import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -24,6 +24,7 @@ import {
   type SupplementForm,
   type SupplementProblem,
 } from '@/domain/supplements';
+import { suggestSupplementNames } from '@/domain/supplement-names';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 
@@ -108,6 +109,9 @@ export default function SupplementsScreen() {
     await reload();
   }
 
+  // Namensvorschläge beim Tippen, solange der Name nicht schon genau ein Vorschlag ist.
+  const suggestions = suggestSupplementNames(form.name).filter((n) => n !== form.name.trim());
+
   const problemText = (p: SupplementProblem) => t(`supplements.problem.${p}`, { max: MAX_SUPPLEMENT_REMINDERS });
 
   return (
@@ -167,6 +171,14 @@ export default function SupplementsScreen() {
             maxLength={60}
             onChangeText={(name) => setForm((f) => ({ ...f, name }))}
           />
+          {suggestions.length > 0 ? (
+            <Presets
+              label={t('supplements.suggestion')}
+              options={suggestions}
+              onChange={(name) => setForm((f) => ({ ...f, name }))}
+              format={(name) => name}
+            />
+          ) : null}
           <Field
             label={t('supplements.amount')}
             value={form.amount}

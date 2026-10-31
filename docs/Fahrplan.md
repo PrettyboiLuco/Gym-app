@@ -529,7 +529,9 @@ freiwilliger Menge und Einheit (nichts vorgewählt, nichts vorgeschlagen), tägl
 optionale tägliche Erinnerung (höchstens 5, zählt in die 64er-Grenze). Fester Hinweis: keine Empfehlungen, Fragen an
 Ärztin, Arzt oder Apotheke; Proteinpulver mit Kalorien gehört ins Tagebuch. Datenbank-Version 11; mit in Sicherung
 und „Alle Daten löschen“ – ein neuer Test stellt sicher, dass das für jede Tabelle gilt. Hilfe-Frage ergänzt.
-485 automatische Tests, Browser: Supplements 12/12, alle 35 Bildschirme ohne Fehler.
+485 automatische Tests, Browser: Supplements 12/12, alle 35 Bildschirme ohne Fehler. Dazu Namensvorschläge beim Eintippen (50 Namen: alle 13 Vitamine und
+17 Mineralstoffe der EU-Liste, dazu gängige Stoffe wie Kreatin oder Omega-3); 23 problematische Stoffe werden nicht
+vorgeschlagen, bis die Rechtsprüfung entschieden hat (Liste mit Gründen: `docs/Rechtspruefung_Mappe.md`, 4a).
 
 ## Phase 11 – Nach dem Start
 

@@ -53,7 +53,7 @@ Register LAW-017, TECH-017, O6. Commit-Stand: Branch `claude/plan-ergaenzung-mod
 |---|---|
 | Typprüfung (`npm run typecheck`) | ohne Fehler – jetzt auch direkt nach frischem Klonen (neue Datei `src/expo-types.d.ts`; vorher fehlte die erzeugte `expo-env.d.ts`) |
 | Lint (`npm run lint`) | ohne Befund |
-| Automatische Tests (`npm test`) | 485/485 bestanden (21 Testdateien, Stand 31.10.2026), neu: Update-Test mit Golden-Dataset (Version 4 → 10, jede Spalte gleich) |
+| Automatische Tests (`npm test`) | 489/489 bestanden (21 Testdateien, Stand 31.10.2026), neu: Update-Test mit Golden-Dataset (Version 4 → 10, jede Spalte gleich) |
 | Browser-Durchlauf | 34/34 Bildschirme ohne Konsolenfehler; Hilfe-Seite 9/9 |
 | `expo-doctor` | 18/20; die 2 übrigen brauchen Expo-Server (im Container nicht erreichbar) → am PC/MacBook wiederholen |
 | `npm audit` (nur Laufzeit) | unverändert 8 Meldungen (5 niedrig, 3 hoch), alle in Expos Build-Werkzeugen (`deepmerge` über `@expo/config`, `zod` über `@expo/cli`), nicht im App-Code auf dem Handy. Fix nur per Rückschritt auf SDK 51 → nicht angewendet; bei nächstem Expo-Update erneut prüfen |
