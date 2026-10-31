@@ -1,11 +1,14 @@
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName, exerciseSynonyms } from '@/components/exercise-name';
+import { exerciseName, matchesExercise } from '@/components/exercise-name';
 import { Field, ListRow } from '@/components/fields';
+import { ThemedText } from '@/components/themed-text';
 import type { Exercise } from '@/data/training';
 import { MUSCLE_GROUPS } from '@/domain/exercises';
 import { t } from '@/i18n';
+
+const MAX_SHOWN = 60;
 
 /** Übungsliste mit Suche, nach Muskelgruppe sortiert. */
 export function ExercisePicker({
@@ -18,26 +21,26 @@ export function ExercisePicker({
   onCancel: () => void;
 }) {
   const [query, setQuery] = useState('');
-  const needle = query.trim().toLowerCase();
   const filtered = exercises
-    // Suche auch nach anderen Namen, Muskelgruppe und Gerät, z. B. „Squat“, „Brust“ oder „Kabel“.
-    .filter(
-      (e) =>
-        !needle ||
-        [exerciseName(e), ...exerciseSynonyms(e), t(`muscle.${e.muscleGroup}`), t(`equipment.${e.equipment}`)].some((text) =>
-          text.toLowerCase().includes(needle)
-        )
-    )
+    // Suche auch nach anderen Namen, Muskelgruppe, Zielmuskel und Gerät, z. B. „Squat“, „obere Brust“ oder „Kabel Seil“.
+    .filter((e) => matchesExercise(e, query))
     .sort(
       (a, b) =>
         MUSCLE_GROUPS.indexOf(a.muscleGroup) - MUSCLE_GROUPS.indexOf(b.muscleGroup) ||
         exerciseName(a).localeCompare(exerciseName(b))
     );
+  // Bei rund 1000 Übungen nur die ersten Treffer zeigen, damit die Liste flüssig bleibt.
+  const shown = filtered.slice(0, MAX_SHOWN);
 
   return (
     <Card title={t('plan.pickTitle')}>
       <Field label={t('plan.search')} value={query} onChangeText={setQuery} autoFocus />
-      {filtered.map((exercise) => (
+      {filtered.length > MAX_SHOWN ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('plan.pickMore', { shown: MAX_SHOWN, count: filtered.length })}
+        </ThemedText>
+      ) : null}
+      {shown.map((exercise) => (
         <ListRow
           key={exercise.id}
           title={exerciseName(exercise)}

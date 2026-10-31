@@ -62,7 +62,7 @@ describe('Freitext (8.7)', () => {
   test('„von 6 auf 3 Tage“, eine Stunde, nur diese Woche', () =>
     expect(parseWish('Diese Woche von 6 auf 3 Tage, je eine Stunde', NAMES)).toEqual({ days: 3, minutes: 60, duration: 'woche' }));
   test('Geräte: zu Hause mit Kurzhanteln', () =>
-    expect(parseWish('Bin im Urlaub zu Hause mit Kurzhanteln, 45 min', NAMES).blockedEquipment?.sort()).toEqual(['band', 'faszienrolle', 'gymnastikball', 'kabel', 'kettlebell', 'langhantel', 'maschine', 'medizinball', 'smith', 'sz_stange']));
+    expect(parseWish('Bin im Urlaub zu Hause mit Kurzhanteln, 45 min', NAMES).blockedEquipment?.sort()).toEqual(['band', 'faszienrolle', 'gymnastikball', 'kabel', 'kabel_crossover', 'kabel_doppel', 'kettlebell', 'langhantel', 'maschine', 'medizinball', 'smith', 'sz_stange']));
   test('ohne Langhantel; Beinpresse ist kaputt; Kniebeuge behalten', () => {
     const wish = parseWish('Ohne Langhantel bitte, die Beinpresse ist kaputt. Kniebeuge behalten!', NAMES);
     expect(wish.blockedEquipment).toEqual(['langhantel']);

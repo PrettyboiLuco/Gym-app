@@ -128,6 +128,30 @@ describe('Update von Version 4 auf die neueste Version (Golden-Dataset)', () => 
     for (const e of [...CATALOG_EXERCISES, ...CATALOG_STRETCHES]) expect([e.id, ids.filter((id) => id === e.id).length]).toEqual([e.id, 1]);
   });
 
+  test('Version 15: Zwei-Kabel-Übungen wechseln zum Kabelturm-Paar, Profil mit „Kabelzug“ bekommt die neuen Kabel-Geräte', async () => {
+    await migrateTo(db, 14);
+    await db.runAsync(
+      "INSERT INTO app_state (key, value) VALUES ('profile', ?)",
+      JSON.stringify({ equipment: ['kabel', 'kurzhantel', 'koerpergewicht'], experience: 'einsteiger' })
+    );
+    expect((await db.getFirstAsync<{ equipment: string }>("SELECT equipment FROM exercise WHERE id = 'cable_crossover'"))?.equipment).toBe('kabel');
+    await migrate(db);
+    expect((await db.getFirstAsync<{ equipment: string }>("SELECT equipment FROM exercise WHERE id = 'cable_crossover'"))?.equipment).toBe('kabel_crossover');
+    expect((await db.getFirstAsync<{ equipment: string }>("SELECT equipment FROM exercise WHERE id = 'latzug'"))?.equipment).toBe('kabel');
+    const profile = JSON.parse((await db.getFirstAsync<{ value: string }>("SELECT value FROM app_state WHERE key = 'profile'"))!.value);
+    expect(profile.equipment).toEqual(['kabel', 'kurzhantel', 'koerpergewicht', 'kabel_crossover', 'kabel_doppel']);
+    expect(profile.experience).toBe('einsteiger');
+  });
+
+  test('Version 15: Profil ohne Kabelzug oder ohne Geräteangabe bleibt unverändert', async () => {
+    await migrateTo(db, 14);
+    await db.runAsync("INSERT INTO app_state (key, value) VALUES ('profile', ?)", JSON.stringify({ equipment: ['kurzhantel'] }));
+    await migrate(db);
+    expect(JSON.parse((await db.getFirstAsync<{ value: string }>("SELECT value FROM app_state WHERE key = 'profile'"))!.value).equipment).toEqual(['kurzhantel']);
+    await db.runAsync("UPDATE app_state SET value = ? WHERE key = 'profile'", JSON.stringify({ equipment: null }));
+    expect(await db.getAllAsync("SELECT value FROM app_state WHERE key = 'profile'")).toHaveLength(1);
+  });
+
   test('Update von jeder Zwischenversion läuft durch', async () => {
     for (let start = 0; start < MIGRATIONS.length; start++) {
       const fresh = createTestDb();

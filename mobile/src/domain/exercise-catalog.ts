@@ -2,7 +2,9 @@
 // Kurzanleitungen (Texte in i18n/de-exercises.ts), keine fremden Texte oder Medien. Wie die Startliste: Vorschläge
 // ohne Fachprüfung (Phase 10.1). Ersatzübungen werden aus Muster, Messart und Gerät abgeleitet.
 
+import { ROWS_V15, STRETCH_ROWS_V15 } from './exercise-catalog-v15';
 import type { Equipment, ExerciseKind, Level, Measure, MovementPattern, MuscleGroup, Sides } from './exercises';
+import { registerTargets, type Target } from './targets';
 
 export type CatalogExercise = {
   id: string;
@@ -29,7 +31,7 @@ const ROWS: Row[] = [
   ['bankdruecken_smith', 'smith', 'brust', 'druecken_horizontal', E],
   ['schraegbankdruecken_smith', 'smith', 'brust', 'druecken_horizontal', E],
   ['schraegbankpresse_maschine', 'maschine', 'brust', 'druecken_horizontal', E],
-  ['brustpresse_kabel', 'kabel', 'brust', 'druecken_horizontal', E],
+  ['brustpresse_kabel', 'kabel_crossover', 'brust', 'druecken_horizontal', E],
   ['brustpresse_band', 'band', 'brust', 'druecken_horizontal', E],
   ['squeeze_press_kh', 'kurzhantel', 'brust', 'druecken_horizontal', E],
   ['bodendruecken_kh', 'kurzhantel', 'brust', 'druecken_horizontal', E],
@@ -40,12 +42,12 @@ const ROWS: Row[] = [
   ['dips_brust', 'koerpergewicht', 'brust', 'druecken_horizontal', F],
   ['fliegende_kh', 'kurzhantel', 'brust', 'brust_isolation', E],
   ['fliegende_schraeg_kh', 'kurzhantel', 'brust', 'brust_isolation', E],
-  ['cable_crossover', 'kabel', 'brust', 'brust_isolation', E],
-  ['cable_crossover_unten', 'kabel', 'brust', 'brust_isolation', E],
-  ['cable_crossover_oben', 'kabel', 'brust', 'brust_isolation', E],
-  ['cable_flys_sitzend', 'kabel', 'brust', 'brust_isolation', E],
-  ['cable_flys_flachbank', 'kabel', 'brust', 'brust_isolation', E],
-  ['cable_flys_schraegbank', 'kabel', 'brust', 'brust_isolation', E],
+  ['cable_crossover', 'kabel_crossover', 'brust', 'brust_isolation', E],
+  ['cable_crossover_unten', 'kabel_crossover', 'brust', 'brust_isolation', E],
+  ['cable_crossover_oben', 'kabel_crossover', 'brust', 'brust_isolation', E],
+  ['cable_flys_sitzend', 'kabel_crossover', 'brust', 'brust_isolation', E],
+  ['cable_flys_flachbank', 'kabel_crossover', 'brust', 'brust_isolation', E],
+  ['cable_flys_schraegbank', 'kabel_crossover', 'brust', 'brust_isolation', E],
   ['cable_flys_einarmig', 'kabel', 'brust', 'brust_isolation', E, ONE],
   ['fliegende_band', 'band', 'brust', 'brust_isolation', E],
   ['pullover_kh', 'kurzhantel', 'brust', 'brust_isolation', E],
@@ -98,7 +100,7 @@ const ROWS: Row[] = [
   ['aufrechtes_rudern_sz', 'sz_stange', 'schultern', 'schulter_isolation', E],
   ['reverse_flys_kh', 'kurzhantel', 'schultern', 'hintere_schulter', E],
   ['reverse_butterfly', 'maschine', 'schultern', 'hintere_schulter', E],
-  ['reverse_flys_kabel', 'kabel', 'schultern', 'hintere_schulter', E],
+  ['reverse_flys_kabel', 'kabel_crossover', 'schultern', 'hintere_schulter', E],
   ['band_pull_apart', 'band', 'schultern', 'hintere_schulter', E],
   ['aussenrotation_kabel', 'kabel', 'schultern', 'hintere_schulter', E, ONE],
   ['aussenrotation_band', 'band', 'schultern', 'hintere_schulter', E, ONE],
@@ -257,7 +259,7 @@ const ROWS_V14: Row[] = [
   // Schultern
   ['seitheben_sitzend', 'kurzhantel', 'schultern', 'schulter_isolation', E],
   ['seitheben_liegend', 'kurzhantel', 'schultern', 'schulter_isolation', E, ONE],
-  ['y_raises_kabel', 'kabel', 'schultern', 'schulter_isolation', E],
+  ['y_raises_kabel', 'kabel_crossover', 'schultern', 'schulter_isolation', E],
   ['schulterdruecken_stehend_kh', 'kurzhantel', 'schultern', 'druecken_vertikal', E],
   ['z_press', 'langhantel', 'schultern', 'druecken_vertikal', F],
   ['cuban_press', 'kurzhantel', 'schultern', 'hintere_schulter', F],
@@ -270,7 +272,7 @@ const ROWS_V14: Row[] = [
   ['bizepscurls_alternierend', 'kurzhantel', 'arme', 'bizeps', E],
   ['curls_21', 'sz_stange', 'arme', 'bizeps', F],
   ['hammercurls_quer', 'kurzhantel', 'arme', 'bizeps', E],
-  ['bizepscurls_kabel_ueberkopf', 'kabel', 'arme', 'bizeps', E],
+  ['bizepscurls_kabel_ueberkopf', 'kabel_crossover', 'arme', 'bizeps', E],
   ['hammercurls_band', 'band', 'arme', 'bizeps', E],
   ['tate_press', 'kurzhantel', 'arme', 'trizeps', F],
   ['jm_press', 'langhantel', 'arme', 'trizeps', F],
@@ -368,20 +370,53 @@ const ROWS_V14: Row[] = [
  * Später ergänzte Übungen je Datenbank-Version. Eine Version wird nach der Auslieferung nie mehr geändert; neue
  * Übungen bekommen deshalb eine eigene Version (Version 12 = Rest des Katalogs).
  */
+/** Übungen, die zwei gegenüberliegende Kabeltürme brauchen (bis Version 14 als „Kabelzug“ eingetragen). */
+export const MOVED_TO_CROSSOVER = [
+  'cable_crossover',
+  'cable_crossover_unten',
+  'cable_crossover_oben',
+  'cable_flys_sitzend',
+  'cable_flys_flachbank',
+  'cable_flys_schraegbank',
+  'brustpresse_kabel',
+  'reverse_flys_kabel',
+  'y_raises_kabel',
+  'bizepscurls_kabel_ueberkopf',
+] as const;
+
 export const CATALOG_ADDED: Record<number, readonly string[]> = {
   13: ['cable_flys_sitzend', 'cable_flys_flachbank', 'cable_flys_schraegbank', 'cable_flys_einarmig'],
   14: ROWS_V14.map((r) => r[0]),
+  16: ROWS_V15.map((r) => r[0]),
 };
 
-export const CATALOG_EXERCISES: CatalogExercise[] = [...ROWS, ...ROWS_V14].map(([id, equipment, muscleGroup, pattern, level, sides = BOTH, measure = 'wdh']) => ({
-  id,
-  equipment,
-  muscleGroup,
-  pattern,
-  level,
-  sides,
-  measure,
-}));
+/** Später ergänzte Dehnübungen je Datenbank-Version (Version 14 = Rest). */
+export const STRETCH_ADDED: Record<number, readonly string[]> = {
+  16: STRETCH_ROWS_V15.map((r) => r[0]),
+};
+
+export const CATALOG_EXERCISES: CatalogExercise[] = [
+  ...[...ROWS, ...ROWS_V14].map(([id, equipment, muscleGroup, pattern, level, sides = BOTH, measure = 'wdh']) => ({
+    id,
+    equipment,
+    muscleGroup,
+    pattern,
+    level,
+    sides,
+    measure,
+  })),
+  ...ROWS_V15.map(([id, equipment, muscleGroup, , pattern, level, sides = BOTH, measure = 'wdh']) => ({
+    id,
+    equipment,
+    muscleGroup,
+    pattern,
+    level,
+    sides,
+    measure,
+  })),
+];
+
+registerTargets(ROWS_V15.filter((r) => r[3] !== null).map((r): [string, Target] => [r[0], r[3] as Target]));
 
 // ------------------------------------------------------------------------------ Dehnen und Mobilität
 
@@ -453,7 +488,7 @@ const STRETCH_ROWS: StretchRow[] = [
   ['rolle_fusssohle', 'faszienrolle', 'waden', M, ONE, 45],
 ];
 
-export const CATALOG_STRETCHES: CatalogStretch[] = STRETCH_ROWS.map(([id, equipment, muscleGroup, kind, sides, holdSeconds]) => ({
+export const CATALOG_STRETCHES: CatalogStretch[] = [...STRETCH_ROWS, ...STRETCH_ROWS_V15].map(([id, equipment, muscleGroup, kind, sides, holdSeconds]) => ({
   id,
   equipment,
   muscleGroup,

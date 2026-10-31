@@ -9,6 +9,8 @@ export const EQUIPMENT = [
   'langhantel',
   'kurzhantel',
   'kabel',
+  'kabel_crossover',
+  'kabel_doppel',
   'maschine',
   'koerpergewicht',
   'kettlebell',

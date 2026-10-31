@@ -165,6 +165,8 @@ const EQUIPMENT_WORDS: Record<Equipment, string> = {
   langhantel: 'langhantel\\w*',
   kurzhantel: 'kurzhantel\\w*',
   kabel: '(?:kabel\\w*|seilzug\\w*)',
+  kabel_crossover: '(?:crossover\\w*|kabeltu?(?:erme|urm)\\w*)',
+  kabel_doppel: '(?:doppelkabel\\w*|functional.?trainer\\w*|v.?station\\w*)',
   maschine: '(?:maschine\\w*|geraet\\w*)',
   koerpergewicht: '(?!x)x',
   kettlebell: '(?:kettlebell\\w*|kugelhantel\\w*)',
@@ -185,7 +187,7 @@ function parseEquipment(text: string): Equipment[] {
   const home = /zu ?hause|daheim|ohne geraete|nur (?:mit )?(?:dem )?koerpergewicht|ohne studio|im hotel/.test(text);
   const onlyDumbbells = /nur (?:mit )?(?:den |meinen )?kurzhantel/.test(text);
   if (home || onlyDumbbells) {
-    blocked.add('langhantel').add('kabel').add('maschine').add('smith').add('sz_stange');
+    blocked.add('langhantel').add('kabel').add('kabel_crossover').add('kabel_doppel').add('maschine').add('smith').add('sz_stange');
     const dumbbellsOk = onlyDumbbells || /mit (?:den |meinen |zwei )?kurzhantel/.test(text);
     if (!dumbbellsOk) blocked.add('kurzhantel');
     for (const small of HOME_OPTIONAL) if (onlyDumbbells || !new RegExp(EQUIPMENT_WORDS[small]).test(text)) blocked.add(small);
@@ -196,6 +198,8 @@ function parseEquipment(text: string): Equipment[] {
       blocked.add(equipment);
     }
   }
+  // „Ohne Kabel/Kabelzug“ meint alle Kabel-Aufbauten.
+  if (blocked.has('kabel')) blocked.add('kabel_crossover').add('kabel_doppel');
   return [...blocked];
 }
 

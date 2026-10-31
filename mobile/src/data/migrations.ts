@@ -2,7 +2,7 @@
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
-import { CATALOG_ADDED, CATALOG_EXERCISES, CATALOG_STRETCHES } from '@/domain/exercise-catalog';
+import { CATALOG_ADDED, CATALOG_EXERCISES, CATALOG_STRETCHES, MOVED_TO_CROSSOVER, STRETCH_ADDED } from '@/domain/exercise-catalog';
 import { SUPPLEMENT_UNITS } from '@/domain/supplements';
 
 import type { Db } from './db';
@@ -33,19 +33,25 @@ const phase8Inserts = MORE_STRENGTH_EXERCISES.map(
 
 // Ab Version 12: erweiterter Übungskatalog (31.10.2026); später ergänzte Übungen in eigener Version.
 const laterIds = new Set(Object.values(CATALOG_ADDED).flat());
+// Versionen 12–14 bleiben so, wie sie ausgeliefert wurden: Zwei-Kabel-Übungen hießen dort noch „kabel“; erst
+// Version 15 stellt sie um. So kommen frische Installationen und Updates zum selben Ergebnis.
+const movedToCrossover = new Set<string>(MOVED_TO_CROSSOVER);
+const equipmentAsReleased = (e: { id: string; equipment: string }) => (movedToCrossover.has(e.id) ? 'kabel' : e.equipment);
 const catalogInserts = (filter: (id: string) => boolean) =>
   CATALOG_EXERCISES.filter((e) => filter(e.id))
     .map(
       (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
-     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', 'kraft', '${e.sides}', NULL, '${e.measure}');`
+     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${equipmentAsReleased(e)}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', 'kraft', '${e.sides}', NULL, '${e.measure}');`
     )
     .join('\n');
 
 // Ab Version 14: weitere Dehn-, Mobilitäts- und Faszienrollen-Übungen.
-const catalogStretchInserts = CATALOG_STRETCHES.map(
+const laterStretchIds = new Set(Object.values(STRETCH_ADDED).flat());
+const catalogStretchInserts = (filter: (id: string) => boolean) =>
+  CATALOG_STRETCHES.filter((e) => filter(e.id)).map(
   (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', '${e.kind}', '${e.sides}', ${e.holdSeconds}, 'zeit');`
-).join('\n');
+  ).join('\n');
 
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
 const supplementUnits = SUPPLEMENT_UNITS.map((u) => `'${u}'`).join(', ');
@@ -517,7 +523,20 @@ export const MIGRATIONS: string[] = [
   // Version 14: Lücken gefüllt – Varianten, Gewichtheben, Sprungübungen, Medizin- und Gymnastikball, mehr Dehnen und
   // Faszienrolle.
   `${catalogInserts((id) => CATALOG_ADDED[14].includes(id))}
-   ${catalogStretchInserts}`,
+   ${catalogStretchInserts((id) => !laterStretchIds.has(id))}`,
+
+  // Version 15: drei Kabel-Aufbauten als eigene Geräte (Entscheidung 31.10.2026). Übungen mit zwei gegenüberliegenden
+  // Kabeltürmen wechseln zu „kabel_crossover“ (Verlauf bleibt, nur die Geräteangabe ändert sich). Wer im Profil
+  // „Kabelzug“ angehakt hatte, bekommt die beiden neuen Kabel-Geräte dazu, damit keine Übungen wegfallen.
+  `UPDATE exercise SET equipment = 'kabel_crossover' WHERE id IN (${MOVED_TO_CROSSOVER.map((id) => `'${id}'`).join(', ')});
+   UPDATE app_state SET value = json_insert(json_insert(value, '$.equipment[#]', 'kabel_crossover'), '$.equipment[#]', 'kabel_doppel')
+     WHERE key = 'profile' AND json_valid(value) AND json_type(value, '$.equipment') = 'array'
+       AND EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel')
+       AND NOT EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel_crossover');`,
+
+  // Version 16: dritte Erweiterung – Varianten je Muskel nach Gerät, Kabel-Aufbau, Aufsatz, Position, Winkel und Griff.
+  `${catalogInserts((id) => CATALOG_ADDED[16].includes(id))}
+   ${catalogStretchInserts((id) => STRETCH_ADDED[16].includes(id))}`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

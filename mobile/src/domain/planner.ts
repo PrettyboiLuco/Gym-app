@@ -401,8 +401,8 @@ const TEMPLATE_SLOTS: Record<DayType, MovementPattern[][]> = {
 
 // Neue Gerätearten hinten: Vorlagen ändern sich für bestehende Ausstattungen nicht.
 const EQUIPMENT_ORDER: Record<Level, Equipment[]> = {
-  einsteiger: ['maschine', 'kurzhantel', 'kabel', 'langhantel', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'],
-  fortgeschritten: ['langhantel', 'kurzhantel', 'kabel', 'maschine', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'],
+  einsteiger: ['maschine', 'kurzhantel', 'kabel', 'kabel_crossover', 'kabel_doppel', 'langhantel', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'],
+  fortgeschritten: ['langhantel', 'kurzhantel', 'kabel', 'kabel_crossover', 'kabel_doppel', 'maschine', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'],
 };
 
 /** Sätze, Wiederholungen und Pausen je Ziel (Vorschlag, TRAIN-018/O3: fachlich nicht abgenommen). */

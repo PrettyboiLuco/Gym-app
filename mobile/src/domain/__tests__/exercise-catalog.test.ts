@@ -87,7 +87,8 @@ describe('Ersatzübungen im Katalog', () => {
   });
   test('fast jede Übung hat mindestens zwei Ersatzübungen, zuerst mit anderem Gerät', () => {
     const few = CATALOG_EXERCISES.filter((e) => EXERCISE_META[e.id].alternatives.length < 2).map((e) => e.id);
-    expect(few.length).toBeLessThanOrEqual(3);
+    // Wenige Halte-Übungen (z. B. Hängen, Nacken-Halten) haben naturgemäß kaum gleichartigen Ersatz: höchstens 2 %.
+    expect(few.length).toBeLessThanOrEqual(Math.ceil(CATALOG_EXERCISES.length * 0.02));
     const hackenschmidt = EXERCISE_META.hackenschmidt.alternatives;
     expect(byId.get(hackenschmidt[0])!.equipment).not.toBe('maschine');
   });

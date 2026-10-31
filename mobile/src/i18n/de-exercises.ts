@@ -1,9 +1,12 @@
 // Deutsche Namen, Kurzanleitungen und Suchbegriffe für den erweiterten Übungskatalog (domain/exercise-catalog.ts).
 // Eigene Texte. Format: [Name, Kurzanleitung, Suchbegriffe (Komma-getrennt, optional)].
 
+import { CATALOG_TEXTS_V15 } from './de-exercises-v15';
+
 type Text = [name: string, how: string, synonyms?: string];
 
 export const CATALOG_TEXTS: Record<string, Text> = {
+  ...CATALOG_TEXTS_V15,
   // Brust
   schraegbankdruecken_lh: ['Schrägbankdrücken (Langhantel)', 'Bank auf etwa 30 Grad. Stange kontrolliert zur oberen Brust senken und hochdrücken, Schulterblätter zusammen.', 'Incline Bench Press, Schrägbank'],
   negativbankdruecken_lh: ['Negativbankdrücken (Langhantel)', 'Bank leicht nach unten geneigt, Beine fixiert. Stange zur unteren Brust senken und hochdrücken. Mit Sicherung trainieren.', 'Decline Bench Press'],
