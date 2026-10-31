@@ -24,7 +24,10 @@ import {
   type PlannerExercise,
   type RebuildInput,
 } from '../planner';
+import { CATALOG_EXERCISES } from '../exercise-catalog';
 import { validatePlan, type PlanDraft } from '../training';
+
+const CATALOG_IDS = new Set(CATALOG_EXERCISES.map((e) => e.id));
 
 const EXERCISES: PlannerExercise[] = [...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES].map((e) => ({
   id: e.id,
@@ -68,7 +71,8 @@ describe('Übungsdaten (8.1)', () => {
   test('jede kuratierte Kraftübung hat Muster, Stufe und nur existierende Ersatzübungen', () => {
     for (const e of EXERCISES) {
       expect(EXERCISE_META[e.id]).toBeDefined();
-      for (const alt of EXERCISE_META[e.id].alternatives) expect(byId.has(alt)).toBe(true);
+      // Ersatzübungen dürfen auch aus dem erweiterten Katalog kommen (31.10.2026), der in der App mitgeliefert wird.
+      for (const alt of EXERCISE_META[e.id].alternatives) expect(byId.has(alt) || CATALOG_IDS.has(alt)).toBe(true);
     }
   });
   test('eigene Übung ohne Angabe: Muster aus der Muskelgruppe, mit Angabe: eigene Wahl', () => {

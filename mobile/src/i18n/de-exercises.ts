@@ -25,6 +25,10 @@ export const CATALOG_TEXTS: Record<string, Text> = {
   cable_crossover: ['Cable Crossover', 'Zwischen zwei Kabeln stehen, Griffe auf Schulterhöhe. Arme leicht gebeugt vor dem Körper zusammenführen und langsam öffnen.', 'Kabelzug Fliegende, Cable Fly'],
   cable_crossover_unten: ['Cable Crossover von unten', 'Kabel unten einstellen. Arme leicht gebeugt von unten nach vorn oben auf Brusthöhe zusammenführen.', 'Low to High Cable Fly'],
   cable_crossover_oben: ['Cable Crossover von oben', 'Kabel oben einstellen. Arme leicht gebeugt von oben nach vorn unten vor dem Bauch zusammenführen.', 'High to Low Cable Fly'],
+  cable_flys_sitzend: ['Cable Flys sitzend (Bank)', 'Bank aufrecht zwischen zwei Kabeln, Griffe auf Brusthöhe, Rücken an der Lehne. Arme leicht gebeugt vor der Brust zusammenführen und langsam öffnen – wie Butterfly, aber am Kabel.', 'Seated Cable Fly, Butterfly am Kabel'],
+  cable_flys_flachbank: ['Cable Flys liegend (Flachbank)', 'Flachbank zwischen zwei Kabeln, Kabel unten. Rückenlage, Arme leicht gebeugt über der Brust zusammenführen und seitlich langsam öffnen.', 'Flat Bench Cable Fly, Lying Cable Fly'],
+  cable_flys_schraegbank: ['Cable Flys auf der Schrägbank', 'Schrägbank etwa 30 Grad zwischen zwei Kabeln, Kabel unten. Arme leicht gebeugt über der oberen Brust zusammenführen und langsam öffnen.', 'Incline Cable Fly'],
+  cable_flys_einarmig: ['Einarmige Cable Flys', 'Seitlich zum Kabel, Griff auf Schulterhöhe. Arm leicht gebeugt vor die Brust ziehen und langsam zurück. Seite wechseln.', 'Single Arm Cable Fly'],
   fliegende_band: ['Fliegende mit Band', 'Band hinter dem Rücken befestigt. Arme leicht gebeugt vor der Brust zusammenführen und langsam öffnen.', 'Band Fly'],
   pullover_kh: ['Pullover (Kurzhantel)', 'Quer oder längs auf der Bank, Kurzhantel mit beiden Händen über der Brust. Mit leicht gebeugten Armen hinter den Kopf senken und zurückführen.', 'Dumbbell Pullover, Überzüge'],
 

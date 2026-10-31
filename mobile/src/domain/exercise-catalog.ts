@@ -43,6 +43,10 @@ const ROWS: Row[] = [
   ['cable_crossover', 'kabel', 'brust', 'brust_isolation', E],
   ['cable_crossover_unten', 'kabel', 'brust', 'brust_isolation', E],
   ['cable_crossover_oben', 'kabel', 'brust', 'brust_isolation', E],
+  ['cable_flys_sitzend', 'kabel', 'brust', 'brust_isolation', E],
+  ['cable_flys_flachbank', 'kabel', 'brust', 'brust_isolation', E],
+  ['cable_flys_schraegbank', 'kabel', 'brust', 'brust_isolation', E],
+  ['cable_flys_einarmig', 'kabel', 'brust', 'brust_isolation', E, ONE],
   ['fliegende_band', 'band', 'brust', 'brust_isolation', E],
   ['pullover_kh', 'kurzhantel', 'brust', 'brust_isolation', E],
   ['pullover_sz', 'sz_stange', 'brust', 'brust_isolation', E],
@@ -224,6 +228,14 @@ const ROWS: Row[] = [
   ['turkish_get_up', 'kettlebell', 'ganzkoerper', 'ganzkoerper', F, ONE],
   ['baerengang', 'koerpergewicht', 'ganzkoerper', 'ganzkoerper', E],
 ];
+
+/**
+ * Später ergänzte Übungen je Datenbank-Version. Eine Version wird nach der Auslieferung nie mehr geändert; neue
+ * Übungen bekommen deshalb eine eigene Version (Version 12 = Rest des Katalogs).
+ */
+export const CATALOG_ADDED: Record<number, readonly string[]> = {
+  13: ['cable_flys_sitzend', 'cable_flys_flachbank', 'cable_flys_schraegbank', 'cable_flys_einarmig'],
+};
 
 export const CATALOG_EXERCISES: CatalogExercise[] = ROWS.map(([id, equipment, muscleGroup, pattern, level, sides = BOTH, measure = 'wdh']) => ({
   id,

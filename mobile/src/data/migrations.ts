@@ -2,7 +2,7 @@
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
-import { CATALOG_EXERCISES } from '@/domain/exercise-catalog';
+import { CATALOG_ADDED, CATALOG_EXERCISES } from '@/domain/exercise-catalog';
 import { SUPPLEMENT_UNITS } from '@/domain/supplements';
 
 import type { Db } from './db';
@@ -31,11 +31,15 @@ const phase8Inserts = MORE_STRENGTH_EXERCISES.map(
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-30T00:00:00Z', 'kraft', '${e.sides}', NULL, 'wdh');`
 ).join('\n');
 
-// Ab Version 12: erweiterter Übungskatalog (31.10.2026).
-const catalogInserts = CATALOG_EXERCISES.map(
-  (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+// Ab Version 12: erweiterter Übungskatalog (31.10.2026); später ergänzte Übungen in eigener Version.
+const laterIds = new Set(Object.values(CATALOG_ADDED).flat());
+const catalogInserts = (filter: (id: string) => boolean) =>
+  CATALOG_EXERCISES.filter((e) => filter(e.id))
+    .map(
+      (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', 'kraft', '${e.sides}', NULL, '${e.measure}');`
-).join('\n');
+    )
+    .join('\n');
 
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
 const supplementUnits = SUPPLEMENT_UNITS.map((u) => `'${u}'`).join(', ');
@@ -499,7 +503,10 @@ export const MIGRATIONS: string[] = [
 
   // Version 12: erweiterter Übungskatalog mit neuen Gerätearten (Kettlebell, Band, Smith-Maschine, SZ-Stange).
   // Bestehende Übungen, Pläne und Verläufe bleiben unverändert; es kommen nur neue Startübungen dazu.
-  catalogInserts,
+  catalogInserts((id) => !laterIds.has(id)),
+
+  // Version 13: Cable-Fly-Varianten (sitzend, liegend, Schrägbank, einarmig).
+  catalogInserts((id) => CATALOG_ADDED[13].includes(id)),
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

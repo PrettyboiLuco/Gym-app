@@ -79,6 +79,20 @@ describe('Ersatzübungen im Katalog', () => {
   });
 });
 
+describe('Fly-Varianten (Butterfly vs. Cable Flys)', () => {
+  test('sitzend, liegend, Schrägbank und stehend sind eigene Übungen mit eigenem Namen', () => {
+    const names = ['butterfly', 'cable_flys_sitzend', 'cable_flys_flachbank', 'cable_flys_schraegbank', 'cable_crossover', 'fliegende_kh'].map(
+      (id) => (de.exercises as unknown as Record<string, string>)[id]
+    );
+    expect(new Set(names).size).toBe(names.length);
+  });
+  test('Butterfly belegt: zuerst Fly-Übungen als Ersatz, nicht Drücken', () => {
+    const alts = EXERCISE_META.butterfly.alternatives;
+    expect(alts.slice(0, 4).every((id) => EXERCISE_META[id].pattern === 'brust_isolation')).toBe(true);
+    expect(alts[0]).toBe('cable_flys_sitzend');
+  });
+});
+
 describe('Vorlagen und neue Geräte', () => {
   const base = {
     days: 3,

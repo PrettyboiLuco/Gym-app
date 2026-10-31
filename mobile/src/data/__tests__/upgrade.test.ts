@@ -5,6 +5,8 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
 import type { Db } from '../db';
+import { CATALOG_EXERCISES } from '@/domain/exercise-catalog';
+
 import { MIGRATIONS, migrate } from '../migrations';
 import { createTestDb } from '../testing/node-db';
 import { listWeights } from '../weights';
@@ -117,6 +119,13 @@ describe('Update von Version 4 auf die neueste Version (Golden-Dataset)', () => 
     await db.execAsync(GOLDEN);
     await migrate(db);
     expect((await listWeights(db)).map((w) => w.kg)).toEqual(expect.arrayContaining([81.2, 80.9]));
+  });
+
+  test('jede Katalog-Übung ist nach dem Update genau einmal da, auch beim Weg über Version 12', async () => {
+    await migrateTo(db, 12);
+    await migrate(db);
+    const ids = (await db.getAllAsync<{ id: string }>('SELECT id FROM exercise')).map((r) => r.id);
+    for (const e of CATALOG_EXERCISES) expect([e.id, ids.filter((id) => id === e.id).length]).toEqual([e.id, 1]);
   });
 
   test('Update von jeder Zwischenversion läuft durch', async () => {

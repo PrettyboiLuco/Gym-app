@@ -195,7 +195,8 @@ export const EXERCISE_META: Record<string, Meta> = {
   schulterdruecken_lh: { pattern: 'druecken_vertikal', level: 'fortgeschritten', alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine', 'pike_liegestuetze'] },
   schulterpresse_maschine: { pattern: 'druecken_vertikal', level: 'einsteiger', alternatives: ['schulterdruecken_kh', 'schulterdruecken_lh', 'pike_liegestuetze'] },
   pike_liegestuetze: { pattern: 'druecken_vertikal', level: 'fortgeschritten', alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine'] },
-  butterfly: { pattern: 'brust_isolation', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'liegestuetze'] },
+  // Ersatz zuerst andere Fly-Übungen (Katalog seit 31.10.2026), Drücken nur als letzte Möglichkeit.
+  butterfly: { pattern: 'brust_isolation', level: 'einsteiger', alternatives: ['cable_flys_sitzend', 'cable_crossover', 'fliegende_kh', 'fliegende_band', 'bankdruecken_kh'] },
   seitheben: { pattern: 'schulter_isolation', level: 'einsteiger', alternatives: ['seitheben_kabel'] },
   seitheben_kabel: { pattern: 'schulter_isolation', level: 'einsteiger', alternatives: ['seitheben'] },
   trizepsdruecken_kabel: { pattern: 'trizeps', level: 'einsteiger', alternatives: ['trizeps_ueberkopf_kh', 'bankdips', 'dips'] },

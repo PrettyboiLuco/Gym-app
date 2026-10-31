@@ -540,7 +540,8 @@ Messart und Ersatzübungen (gleiches Muster, andere Geräte zuerst). Datenbank-V
 Pläne und Verläufe bleiben unverändert. Vorlagen nutzen weiter zuerst die Startliste (Test: gleiche Vorlage wie
 vorher), der Katalog springt ein, wenn die Ausstattung es verlangt (z. B. nur Kettlebell und Band). Freitext versteht
 die neuen Geräte; „zu Hause“ schließt Smith-Maschine und SZ-Stange aus, Kettlebell/Band nur, wenn nicht erwähnt.
-Steigerung: Kettlebell in 4-kg-Schritten, Band wie Körpergewicht. 502 automatische Tests.
+Steigerung: Kettlebell in 4-kg-Schritten, Band wie Körpergewicht. 502 automatische Tests. Danach ergänzt: Cable Flys sitzend auf der Bank, liegend auf Flach-
+und Schrägbank, einarmig (Datenbank-Version 13); Butterfly belegt → zuerst Fly-Übungen statt Drücken. 505 Tests.
 
 ## Phase 11 – Nach dem Start
 
