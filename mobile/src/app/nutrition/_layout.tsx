@@ -29,6 +29,7 @@ export default function NutritionLayout() {
       <Stack.Screen name="recipe-log/[id]" options={{ title: t('nutrition.recipe.log.title') }} />
       <Stack.Screen name="week" options={{ title: t('nutrition.week.title') }} />
       <Stack.Screen name="settings" options={{ title: t('nutrition.settings.title') }} />
+      <Stack.Screen name="supplements" options={{ title: t('supplements.title') }} />
     </Stack>
   );
 }

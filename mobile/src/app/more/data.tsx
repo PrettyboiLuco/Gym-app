@@ -80,7 +80,7 @@ export default function DataScreen() {
         if (!photoExists(photo.fileName)) await deletePhoto(db, photo.id);
       }
       // Erinnerungen aus der Sicherung wieder einplanen, falls Mitteilungen erlaubt sind.
-      if ((await notificationPermission(false)) === 'granted') await applyReminders(await loadReminders(db));
+      if ((await notificationPermission(false)) === 'granted') await applyReminders(db, await loadReminders(db));
       setPending(null);
       await reload();
       setMessage({ text: t('dataScreen.restored') });

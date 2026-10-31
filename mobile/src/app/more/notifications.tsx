@@ -58,7 +58,7 @@ export default function NotificationsScreen() {
       granted = p === 'granted';
     }
     await saveReminders(db, form);
-    if (granted) await applyReminders(form);
+    if (granted) await applyReminders(db, form);
     allowLeave();
     setBaseline(JSON.stringify(form));
     setMessage(anyOn && !granted && NOTIFICATIONS_SUPPORTED ? t('reminders.savedNoPermission') : t('reminders.saved'));

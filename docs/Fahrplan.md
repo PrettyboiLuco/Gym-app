@@ -524,6 +524,13 @@ allen Erinnerungen plus langem Ablauf wären mehr als die 64 Mitteilungen geplan
 Erinnerungen still verloren gegangen; Scanner mit Taschenlampe und Vibration, App-Kennung im Open-Food-Facts-Format;
 Hinweise für Apple Health (Schlaf nicht doppelt zählen) und Android notiert. 473 automatische Tests.
 
+**Nachtrag 31.10.2026 – Supplement-Tracker** (Entscheidung Luc): Ernährung → Supplements. Eigene Liste mit Name,
+freiwilliger Menge und Einheit (nichts vorgewählt, nichts vorgeschlagen), täglich abhaken mit „x von 7 Tagen“,
+optionale tägliche Erinnerung (höchstens 5, zählt in die 64er-Grenze). Fester Hinweis: keine Empfehlungen, Fragen an
+Ärztin, Arzt oder Apotheke; Proteinpulver mit Kalorien gehört ins Tagebuch. Datenbank-Version 11; mit in Sicherung
+und „Alle Daten löschen“ – ein neuer Test stellt sicher, dass das für jede Tabelle gilt. Hilfe-Frage ergänzt.
+485 automatische Tests, Browser: Supplements 12/12, alle 35 Bildschirme ohne Fehler.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

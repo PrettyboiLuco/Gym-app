@@ -231,7 +231,7 @@ export default function CoachSetupScreen() {
         const current = await loadReminders(db);
         const next = { ...current, training: { enabled: true, weekdays, time: reminderTime.trim() } };
         await saveReminders(db, next);
-        if (NOTIFICATIONS_SUPPORTED && (await notificationPermission(true)) === 'granted') await applyReminders(next);
+        if (NOTIFICATIONS_SUPPORTED && (await notificationPermission(true)) === 'granted') await applyReminders(db, next);
       }
       const setup: CoachSetup = {
         doneAt: today,

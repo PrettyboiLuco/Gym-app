@@ -82,9 +82,12 @@ export function reminderCount(r: ReminderSettings): number {
   return training + drink;
 }
 
-/** Wie viele Hinweise ein Dehn-/HIIT-Ablauf oder der Intervall-Timer planen darf (höchstens 50). */
-export function timerAlertBudget(r: ReminderSettings): number {
-  return Math.max(0, Math.min(50, IOS_NOTIFICATION_LIMIT - reminderCount(r) - 1 - RESERVE));
+/**
+ * Wie viele Hinweise ein Dehn-/HIIT-Ablauf oder der Intervall-Timer planen darf (höchstens 50). `otherReminders` =
+ * weitere wiederkehrende Erinnerungen außerhalb dieser Einstellungen (Supplements).
+ */
+export function timerAlertBudget(r: ReminderSettings, otherReminders = 0): number {
+  return Math.max(0, Math.min(50, IOS_NOTIFICATION_LIMIT - reminderCount(r) - otherReminders - 1 - RESERVE));
 }
 
 /**

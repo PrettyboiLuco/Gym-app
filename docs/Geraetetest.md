@@ -116,3 +116,13 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | B2 | Werbe-QR-Code (z. B. Webseite) vor die Kamera halten | nichts passiert, Scanner bleibt offen | Expo Go |
 | B3 | „Licht an“ in dunkler Umgebung | Taschenlampe an; Barcode wird erkannt | Expo Go |
 | B4 | Kleinen Barcode nah scannen (iPhone Pro) | wird scharf erkannt; sonst notieren (Nah-Linse) | Expo Go |
+
+## Supplements (31.10.2026)
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| U1 | Ernährung → Supplements, „Kreatin“ mit 3 g anlegen, „genommen“ | „1 von 7 Tagen“, bleibt nach Neustart | Expo Go |
+| U2 | Erinnerung 2 Minuten in der Zukunft eintragen, Handy sperren | Mitteilung „Kreatin – abhaken, wenn du es genommen hast.“ | Expo Go |
+| U3 | Supplement entfernen | Erinnerung kommt nicht mehr | Expo Go |
+| U4 | Sicherung erstellen, alle Daten löschen, Sicherung wiederherstellen | Supplements und abgehakte Tage wieder da | Expo Go |
+| U5 | VoiceOver auf der Supplement-Seite | „offen/genommen“ je Supplement vorgelesen | Expo Go |

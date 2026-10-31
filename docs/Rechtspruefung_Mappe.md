@@ -75,7 +75,10 @@ Ernährung, Training. Verarbeitet werden sie **nur auf dem Gerät des Nutzers**;
    Kleinstunternehmen-Ausnahme? (Die App unterstützt große Schrift, Bildschirmleser-Beschriftungen, hell/dunkel.)
 9. **Medizinprodukt (LAW-010):** siehe Abschnitt 1.
 10. **Mindestalter:** Selbstauskunft „18+“ beim Erststart ausreichend? Altersfreigabe im App Store?
-11. **Pro-Abo/Werbung (falls später):** Was ändert sich (Verbraucherinformationen, Widerruf, TDDDG-Einwilligung bei
+11. **Supplements:** Die App hat nur einen Tracker (erfassen, abhaken, erinnern) ohne Empfehlungen, Mengenvorschläge,
+    Marken oder Wirkaussagen (Entscheidung 31.10.2026). Reicht der Hinweistext? Was wäre nötig, falls später
+    Empfehlungen kommen sollen (Health-Claims-Verordnung, MDR)?
+12. **Pro-Abo/Werbung (falls später):** Was ändert sich (Verbraucherinformationen, Widerruf, TDDDG-Einwilligung bei
     Werbung, BUS-007: Gesundheitsdaten nie für Werbung)?
 
 ## 5. Was Luc vor dem Termin klären muss

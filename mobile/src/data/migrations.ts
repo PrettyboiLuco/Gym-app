@@ -2,6 +2,7 @@
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
+import { SUPPLEMENT_UNITS } from '@/domain/supplements';
 
 import type { Db } from './db';
 
@@ -30,6 +31,7 @@ const phase8Inserts = MORE_STRENGTH_EXERCISES.map(
 ).join('\n');
 
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
+const supplementUnits = SUPPLEMENT_UNITS.map((u) => `'${u}'`).join(', ');
 
 export const MIGRATIONS: string[] = [
   // Version 1: Körpergewicht
@@ -462,6 +464,31 @@ export const MIGRATIONS: string[] = [
    DROP TABLE calorie_goal;
    ALTER TABLE calorie_goal_new RENAME TO calorie_goal;
    CREATE INDEX calorie_goal_from ON calorie_goal (valid_from);`,
+
+  // Version 11: Supplement-Tracker – nur erfassen und erinnern, keine Empfehlungen (Entscheidung 31.10.2026).
+  // Menge und Einheit gibt der Nutzer selbst an (beides NULL = keine Angabe). Ein Haken pro Supplement und Tag;
+  // Name und Menge werden beim Abhaken festgehalten, damit spätere Änderungen alte Tage nicht verändern.
+  `CREATE TABLE supplement (
+     id TEXT PRIMARY KEY NOT NULL,
+     name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 60),
+     amount REAL CHECK (amount IS NULL OR (amount > 0 AND amount <= 10000)),
+     unit TEXT CHECK (unit IS NULL OR unit IN (${supplementUnits})),
+     reminder_time TEXT,
+     position INTEGER NOT NULL,
+     archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1)),
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE TABLE supplement_log (
+     id TEXT PRIMARY KEY NOT NULL,
+     supplement_id TEXT NOT NULL REFERENCES supplement (id),
+     day TEXT NOT NULL,
+     name TEXT NOT NULL,
+     amount REAL,
+     unit TEXT,
+     taken_at_utc TEXT NOT NULL,
+     UNIQUE (supplement_id, day)
+   );
+   CREATE INDEX supplement_log_day ON supplement_log (day);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

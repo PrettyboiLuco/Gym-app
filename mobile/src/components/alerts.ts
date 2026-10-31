@@ -3,6 +3,7 @@
 import type { Db } from '@/data/db';
 import { cancelAlerts, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
 import { loadReminders } from '@/data/reminders';
+import { supplementReminders } from '@/data/supplements';
 import { drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
 import { runElapsedMs, type TimedRun } from '@/domain/timeline';
 import type { IntervalConfig, RestTimer } from '@/domain/training';
@@ -23,7 +24,8 @@ export async function syncRunAlerts(db: Db, run: TimedRun | null, nameOf: (id: s
   const settings = await loadReminders(db);
   if (!settings.timerAlerts || !run || run.pausedAtMs !== null) return cancelAlerts(RUN);
   const now = Date.now();
-  const alerts = upcomingAlerts(run.steps, runElapsedMs(run, now), now, timerAlertBudget(settings)).map((a, i) => ({
+  const budget = timerAlertBudget(settings, (await supplementReminders(db)).length);
+  const alerts = upcomingAlerts(run.steps, runElapsedMs(run, now), now, budget).map((a, i) => ({
     id: String(i),
     atMs: a.atMs,
     title: run.title,
@@ -44,7 +46,7 @@ export async function syncIntervalAlerts(db: Db, config: IntervalConfig | null, 
   const settings = await loadReminders(db);
   if (!settings.timerAlerts || !config || startedAtMs === null) return cancelAlerts(RUN);
   const alerts = [];
-  const budget = timerAlertBudget(settings);
+  const budget = timerAlertBudget(settings, (await supplementReminders(db)).length);
   let at = startedAtMs;
   for (let round = 1; round <= config.rounds && alerts.length < budget; round++) {
     at += config.workSeconds * 1000;
@@ -61,8 +63,8 @@ export async function cancelRunAlerts() {
   await cancelAlerts(RUN);
 }
 
-/** Wiederkehrende Erinnerungen neu planen (Training an Wochentagen, Trinken im Zeitfenster). */
-export async function applyReminders(settings: ReminderSettings) {
+/** Wiederkehrende Erinnerungen neu planen (Training an Wochentagen, Trinken im Zeitfenster, Supplements). */
+export async function applyReminders(db: Db, settings: ReminderSettings) {
   const list: Repeating[] = [];
   const trainingAt = parseTime(settings.training.time);
   if (settings.training.enabled && trainingAt !== null) {
@@ -89,6 +91,18 @@ export async function applyReminders(settings: ReminderSettings) {
         body: t('alerts.drinkBody'),
       });
     }
+  }
+  for (const s of await supplementReminders(db)) {
+    const at = parseTime(s.reminderTime ?? '');
+    if (at === null) continue;
+    list.push({
+      id: `supplement-${s.id}`,
+      kind: 'daily',
+      hour: Math.floor(at / 60),
+      minute: at % 60,
+      title: t('supplements.reminderTitle'),
+      body: t('supplements.reminderBody', { name: s.name }),
+    });
   }
   await replaceReminders(list);
 }

@@ -35,7 +35,8 @@ export function Choice<T extends string>({
 }: {
   label: string;
   options: readonly T[];
-  value: T;
+  /** null = noch nichts gewählt. */
+  value: T | null;
   onChange: (value: T) => void;
   format: (value: T) => string;
 }) {

@@ -1955,6 +1955,58 @@ export const de = {
         '{{hiitSessions}} HIIT-Einheiten, {{activeGoals}} aktive Ziele, {{weightEntries}} Gewichtseinträge, erste Nutzung {{firstUseDay}}',
     },
   },
+  supplements: {
+    title: 'Supplements',
+    link: 'Supplements',
+    notice:
+      'Hier hältst du fest, was du nimmst – mit Menge und Einheit so, wie du sie einträgst. Die App gibt keine ' +
+      'Empfehlungen und schlägt keine Mengen vor. Fragen zu Einnahme, Menge oder Wechselwirkungen mit Medikamenten ' +
+      'klärst du am besten mit einer Ärztin, einem Arzt oder in der Apotheke.',
+    proteinHint: 'Proteinpulver oder Shakes mit Kalorien trägst du im Ernährungstagebuch ein, damit sie mitzählen.',
+    todayTitle: 'Heute',
+    empty: 'Noch nichts eingetragen. Lege unten an, was du nimmst.',
+    taken: 'genommen',
+    open: 'offen',
+    lastDays: '{{count}} von 7 Tagen',
+    listTitle: 'Deine Supplements',
+    add: 'Hinzufügen',
+    edit: 'Bearbeiten',
+    remove: 'Entfernen',
+    removeConfirm: 'Ja, entfernen',
+    removeHint: 'Bereits abgehakte Tage bleiben gespeichert.',
+    newTitle: 'Neues Supplement',
+    editTitle: 'Supplement bearbeiten',
+    name: 'Name',
+    namePlaceholder: 'so, wie es auf der Packung steht',
+    amount: 'Menge (freiwillig)',
+    unit: 'Einheit',
+    reminder: 'Erinnerung um (freiwillig, z. B. 08:00)',
+    reminderHint: 'Höchstens {{max}} Erinnerungen. Eine tägliche Mitteilung zur Uhrzeit, ohne Empfehlung.',
+    sameDayHint: 'Mehrmals am Tag? Lege dafür zwei Einträge an, z. B. „… morgens“ und „… abends“.',
+    tooMany: 'Höchstens {{max}} Supplements.',
+    saved: 'Gespeichert.',
+    reminderTitle: 'Erinnerung',
+    reminderBody: '{{name}} – abhaken, wenn du es genommen hast.',
+    problem: {
+      name: 'Bitte einen Namen eingeben (höchstens 60 Zeichen).',
+      amount: 'Menge: eine Zahl größer als 0.',
+      unit: 'Bitte zur Menge eine Einheit wählen.',
+      time: 'Uhrzeit bitte als HH:MM, z. B. 08:00.',
+      tooManyReminders: 'Höchstens {{max}} Supplements mit Erinnerung.',
+    },
+    units: {
+      g: 'g',
+      mg: 'mg',
+      mcg: 'µg',
+      ie: 'IE',
+      ml: 'ml',
+      kapsel: 'Kapsel(n)',
+      tablette: 'Tablette(n)',
+      tropfen: 'Tropfen',
+      messloeffel: 'Messlöffel',
+      portion: 'Portion(en)',
+    },
+  },
   help: {
     title: 'Hilfe und häufige Fragen',
     subtitle: 'Antworten direkt auf dem Gerät, ohne Internet',
@@ -2066,6 +2118,13 @@ export const de = {
         a:
           'Ja. Unter Ernährung → Einstellungen „Kalorienzahlen ausblenden“ einschalten. Die Werte werden weiter ' +
           'gespeichert, aber Tagebuch, Coach und Check-in zeigen keine Kalorien und Makros.',
+      },
+      supplements: {
+        q: 'Kann ich Supplements erfassen?',
+        a:
+          'Ja, unter Ernährung → Supplements: Name und Menge so, wie du sie einträgst, täglich abhaken und auf Wunsch ' +
+          'eine Erinnerung. Die App empfiehlt keine Supplements und schlägt keine Mengen vor. Fragen dazu klärst du mit ' +
+          'einer Ärztin, einem Arzt oder in der Apotheke.',
       },
       kalorienSchaetzung: {
         q: 'Wie genau ist mein Kalorienziel?',

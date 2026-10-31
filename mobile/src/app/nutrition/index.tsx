@@ -102,6 +102,7 @@ export default function DiaryScreen() {
       <View style={styles.links}>
         <Button label={t('nutrition.weekLink')} variant="danger" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
         <Button label={t('nutrition.recipesLink')} variant="danger" onPress={() => router.push('/nutrition/recipes')} />
+        <Button label={t('supplements.link')} variant="danger" onPress={() => router.push('/nutrition/supplements')} />
         <Button label={t('nutrition.settingsLink')} variant="danger" onPress={() => router.push('/nutrition/settings')} />
       </View>
 

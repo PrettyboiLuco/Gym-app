@@ -7,7 +7,7 @@ import { normalize } from './wish';
 export const HELP_SECTIONS = [
   { id: 'start', questions: ['wasKann', 'coachStart', 'coachAendern', 'keinKonto'] },
   { id: 'training', questions: ['planAnlegen', 'planassistent', 'geraetBelegt', 'steigerung', 'pausenTimer', 'dehnenHiit'] },
-  { id: 'ernaehrung', questions: ['eintragen', 'eigeneWorte', 'scanFalsch', 'allergene', 'ohneZahlen'] },
+  { id: 'ernaehrung', questions: ['eintragen', 'eigeneWorte', 'scanFalsch', 'allergene', 'ohneZahlen', 'supplements'] },
   { id: 'ziele', questions: ['kalorienSchaetzung', 'trainingsRuhetag', 'checkin', 'schritte', 'sensibel'] },
   { id: 'daten', questions: ['wasGesendet', 'sicherung', 'neuesHandy', 'loeschen', 'appSperre'] },
   { id: 'probleme', questions: ['mitteilungen', 'fehler', 'appleHealth', 'fachlichGeprueft'] },
