@@ -1,0 +1,2 @@
+Quelle: https://github.com/Leonxlnx/taste-skill (Commit 12af471, 25.10.2026), MIT-Lizenz.
+In dieses Projekt kopiert am 31.10.2026 auf Wunsch von Luc. Für die App gilt references/app-screens.md.
