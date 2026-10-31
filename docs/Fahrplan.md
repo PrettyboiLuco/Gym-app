@@ -590,6 +590,15 @@ ohne Fehler, 31/31 Bildschirme hell und dunkel ohne Fehler, Diagramme und Pausen
 geprüft. **Noch auf dem iPhone ansehen:** Karten-Animation und Knopf-Feder (in der Web-Vorschau nicht prüfbar),
 neues App-Symbol erst mit dem nächsten Build (Expo Go zeigt sein eigenes Symbol).
 
+**Nachtrag 31.10.2026 – „Heute“ neu** (Luc: „sieht so langweilig aus“): Aufbau nach getlayers.ai-Kompositionen
+„lumora-stats“ (farbiges Panel mit großer Aussage) und „stride-stats“ (Kacheln mit großen Zahlen). Oben Begrüßung nach
+Tageszeit, darunter ein großes Lime-Panel mit dem, was heute ansteht (laufendes Training → weiter, nächster Plantag →
+starten, Ruhetag laut Coach → Dehnen, noch kein Plan → Plan anlegen). Darunter vier Kacheln: Kalorien (Mini-Ring zum
+Ziel; bei ausgeblendeten Zahlen nur Anzahl Einträge), Trinken (Balken zum Trinkziel), Gewicht (letzter Wert, Trend,
+Mini-Verlauf der letzten 14 Messtage), Diese Woche (abgeschlossene Trainings, Punkte Mo–So, Ziel aus dem Coach).
+Coach-Karte darunter nur noch mit Makro-Balken (Kalorien stehen in der Kachel). Kacheln und Panel federn beim Drücken
+und erscheinen auf dem Handy nacheinander. 508 Tests, Lint/Typprüfung ohne Fehler, 31/31 Bildschirme hell und dunkel.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

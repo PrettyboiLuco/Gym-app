@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { MeterBar, ProgressRing } from '@/components/charts';
+import { MeterBar } from '@/components/charts';
 import { ListRow } from '@/components/fields';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -67,14 +67,6 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
                   ]
                 : []),
             ].join('. ')}>
-            <ProgressRing progress={target.kcal > 0 ? sums.values.kcal / target.kcal : 0} color={theme.tint} trackColor={theme.backgroundSelected}>
-              <ThemedText type="subtitle" style={styles.ringValue}>
-                {g(sums.values.kcal)}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.ringLabel}>
-                {t('coach.kcalOf', { target: g(target.kcal) })}
-              </ThemedText>
-            </ProgressRing>
             {macros ? (
               <View style={styles.macros}>
                 {(
@@ -115,8 +107,6 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
 
 const styles = StyleSheet.create({
   overview: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: Spacing.one },
-  ringValue: { fontSize: 22, lineHeight: 26, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
-  ringLabel: { fontSize: 11, lineHeight: 14 },
   macros: { flex: 1, gap: Spacing.two },
   macro: { gap: Spacing.one },
   macroHead: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.two },
