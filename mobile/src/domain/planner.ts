@@ -7,6 +7,7 @@
 import {
   EXERCISE_META,
   isCompound,
+  isCoreExercise,
   levelOf,
   PATTERN_GROUP,
   patternOf,
@@ -398,9 +399,10 @@ const TEMPLATE_SLOTS: Record<DayType, MovementPattern[][]> = {
   ],
 };
 
+// Neue Gerätearten hinten: Vorlagen ändern sich für bestehende Ausstattungen nicht.
 const EQUIPMENT_ORDER: Record<Level, Equipment[]> = {
-  einsteiger: ['maschine', 'kurzhantel', 'kabel', 'langhantel', 'koerpergewicht'],
-  fortgeschritten: ['langhantel', 'kurzhantel', 'kabel', 'maschine', 'koerpergewicht'],
+  einsteiger: ['maschine', 'kurzhantel', 'kabel', 'langhantel', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band'],
+  fortgeschritten: ['langhantel', 'kurzhantel', 'kabel', 'maschine', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band'],
 };
 
 /** Sätze, Wiederholungen und Pausen je Ziel (Vorschlag, TRAIN-018/O3: fachlich nicht abgenommen). */
@@ -440,6 +442,9 @@ function pickForPattern(
     .filter((e) => patternOf(e) === pattern && !onDay.has(e.id) && (experience === 'fortgeschritten' || levelOf(e.id) === 'einsteiger'))
     .sort(
       (a, b) =>
+        // Übungen der ursprünglichen Liste zuerst, damit der erweiterte Katalog Vorlagen nicht ändert. Der Katalog
+        // springt ein, wenn die Ausstattung keine passende Übung der Startliste zulässt (z. B. nur Kettlebell und Band).
+        Number(!isCoreExercise(a.id)) - Number(!isCoreExercise(b.id)) ||
         (usage.get(a.id) ?? 0) - (usage.get(b.id) ?? 0) ||
         order.indexOf(a.equipment) - order.indexOf(b.equipment) ||
         // Bei Rumpf zuerst Übungen mit Wiederholungen, Plank kommt als Abwechslung.

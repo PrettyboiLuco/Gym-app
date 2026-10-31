@@ -1,8 +1,11 @@
 // Startliste mit gängigen Übungen. Nur Namen, Zuordnungen und eigene kurze Anleitungen, keine fremden
 // Texte oder Medien, daher keine Lizenzfrage (Register TRAIN-003, TECH-009, STRETCH-009).
-// Namen und Anleitungen stehen in der Sprachdatei.
+// Namen und Anleitungen stehen in der Sprachdatei. Der erweiterte Katalog steht in exercise-catalog.ts.
 
-export const EQUIPMENT = ['langhantel', 'kurzhantel', 'kabel', 'maschine', 'koerpergewicht'] as const;
+import { CATALOG_EXERCISES } from './exercise-catalog';
+
+/** Gerätearten. Die letzten vier kamen mit dem erweiterten Katalog dazu (31.10.2026). */
+export const EQUIPMENT = ['langhantel', 'kurzhantel', 'kabel', 'maschine', 'koerpergewicht', 'kettlebell', 'band', 'smith', 'sz_stange'] as const;
 export const MUSCLE_GROUPS = [
   'brust',
   'ruecken',
@@ -304,3 +307,41 @@ export const STRETCH_EXERCISES: (Starter & { kind: ExerciseKind; sides: Sides; h
   { id: 'mob_ausfallschritt_rotation', equipment: 'koerpergewicht', muscleGroup: 'huefte', kind: 'dehnung_dynamisch', sides: 'einseitig', holdSeconds: 30 },
   { id: 'mob_nacken_halbkreise', equipment: 'koerpergewicht', muscleGroup: 'nacken', kind: 'mobilitaet', sides: 'beidseitig', holdSeconds: 30 },
 ];
+
+// ---------------------------------------------------------------------------- erweiterter Katalog
+
+/** Übungen der ursprünglichen Liste. Vorlagen bevorzugen sie, damit bestehende Pläne gleich bleiben. */
+const CORE_IDS = new Set([...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES].map((e) => e.id));
+
+export function isCoreExercise(id: string): boolean {
+  return CORE_IDS.has(id);
+}
+
+const MEASURE_OF = new Map<string, Measure>([
+  ...[...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES].map((e): [string, Measure] => [e.id, TIMED_EXERCISES.includes(e.id) ? 'zeit' : 'wdh']),
+  ...HIIT_EXERCISES.map((e): [string, Measure] => [e.id, e.measure]),
+  ...CATALOG_EXERCISES.map((e): [string, Measure] => [e.id, e.measure]),
+]);
+const EQUIPMENT_OF = new Map<string, Equipment>(
+  [...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES, ...CATALOG_EXERCISES].map((e) => [e.id, e.equipment])
+);
+
+for (const c of CATALOG_EXERCISES) EXERCISE_META[c.id] = { pattern: c.pattern, level: c.level, alternatives: [] };
+
+/**
+ * Ersatzübungen für den Katalog: gleiches Bewegungsmuster und gleiche Messart; zuerst andere Geräte (Gerät belegt),
+ * dann Übungen der ursprünglichen Liste, dann Einsteiger-Übungen. Höchstens vier.
+ */
+for (const c of CATALOG_EXERCISES) {
+  EXERCISE_META[c.id].alternatives = Object.entries(EXERCISE_META)
+    .filter(([id, m]) => id !== c.id && m.pattern === c.pattern && MEASURE_OF.get(id) === c.measure)
+    .sort(
+      ([a, ma], [b, mb]) =>
+        Number(EQUIPMENT_OF.get(a) === c.equipment) - Number(EQUIPMENT_OF.get(b) === c.equipment) ||
+        Number(!CORE_IDS.has(a)) - Number(!CORE_IDS.has(b)) ||
+        Number(ma.level !== 'einsteiger') - Number(mb.level !== 'einsteiger') ||
+        a.localeCompare(b)
+    )
+    .slice(0, 4)
+    .map(([id]) => id);
+}

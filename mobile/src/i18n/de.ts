@@ -1,6 +1,15 @@
 // Deutsche Texte. Jeder sichtbare Text der App steht hier und nicht im Code (Register UX-004).
 // Weitere Sprachen kommen als eigene Datei mit denselben Schlüsseln dazu.
 
+import { CATALOG_TEXTS } from './de-exercises';
+
+const catalog = (index: 0 | 1 | 2) =>
+  Object.fromEntries(
+    Object.entries(CATALOG_TEXTS)
+      .filter(([, texts]) => texts[index] !== undefined)
+      .map(([id, texts]) => [id, texts[index] as string])
+  );
+
 export const de = {
   tabs: {
     today: 'Heute',
@@ -135,6 +144,7 @@ export const de = {
     search: 'Suchen',
   },
   exercises: {
+    ...catalog(0),
     title: 'Übungen',
     custom: 'Eigene Übung',
     customName: 'Name der Übung',
@@ -251,6 +261,7 @@ export const de = {
     stretchTitle: 'Dehnen und Mobilität',
   },
   exerciseHow: {
+    ...catalog(1),
     plank: 'Unterarme unter den Schultern, Körper von Kopf bis Fersen gerade, Bauch fest.',
     kniebeuge: 'Stange auf dem oberen Rücken, Füße etwa schulterbreit. Gesäß nach hinten unten, Knie folgen den Fußspitzen, Rücken gerade, wieder hochdrücken.',
     bankdruecken: 'Rückenlage auf der Bank, Füße fest am Boden. Stange kontrolliert zur unteren Brust senken und hochdrücken, Schulterblätter bleiben zusammen.',
@@ -340,6 +351,7 @@ export const de = {
   },
   // Andere Namen für die Suche (TRAIN-003), z. B. englische Bezeichnungen aus dem Gym.
   exerciseSynonyms: {
+    ...catalog(2),
     kniebeuge: 'Squat, Back Squat',
     bankdruecken: 'Bench Press, Flachbank',
     kreuzheben: 'Deadlift',
@@ -390,6 +402,10 @@ export const de = {
     kabel: 'Kabelzug',
     maschine: 'Maschine',
     koerpergewicht: 'Körpergewicht',
+    kettlebell: 'Kettlebell',
+    band: 'Widerstandsband',
+    smith: 'Smith-Maschine',
+    sz_stange: 'SZ-Stange',
   },
   muscle: {
     brust: 'Brust',

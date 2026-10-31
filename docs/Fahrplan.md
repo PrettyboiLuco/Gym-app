@@ -533,6 +533,15 @@ und „Alle Daten löschen“ – ein neuer Test stellt sicher, dass das für je
 17 Mineralstoffe der EU-Liste, dazu gängige Stoffe wie Kreatin oder Omega-3); 23 problematische Stoffe werden nicht
 vorgeschlagen, bis die Rechtsprüfung entschieden hat (Liste mit Gründen: `docs/Rechtspruefung_Mappe.md`, 4a).
 
+**Nachtrag 31.10.2026 – Übungskatalog** (Wunsch Luc: „alle, die es gibt“): 178 neue Kraftübungen, zusammen 236
+(plus 24 Dehnübungen), über alle Muskelgruppen und neun Gerätearten – neu Kettlebell, Widerstandsband, Smith-Maschine,
+SZ-Stange. Jede Übung mit eigenem deutschem Namen, Kurzanleitung, englischen Suchbegriffen, Bewegungsmuster, Stufe,
+Messart und Ersatzübungen (gleiches Muster, andere Geräte zuerst). Datenbank-Version 12 trägt sie ein; bestehende
+Pläne und Verläufe bleiben unverändert. Vorlagen nutzen weiter zuerst die Startliste (Test: gleiche Vorlage wie
+vorher), der Katalog springt ein, wenn die Ausstattung es verlangt (z. B. nur Kettlebell und Band). Freitext versteht
+die neuen Geräte; „zu Hause“ schließt Smith-Maschine und SZ-Stange aus, Kettlebell/Band nur, wenn nicht erwähnt.
+Steigerung: Kettlebell in 4-kg-Schritten, Band wie Körpergewicht. 502 automatische Tests.
+
 ## Phase 11 – Nach dem Start
 
 Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) · Konten/Sync mit

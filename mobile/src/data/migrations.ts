@@ -2,6 +2,7 @@
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
+import { CATALOG_EXERCISES } from '@/domain/exercise-catalog';
 import { SUPPLEMENT_UNITS } from '@/domain/supplements';
 
 import type { Db } from './db';
@@ -28,6 +29,12 @@ const phase5Inserts = [
 const phase8Inserts = MORE_STRENGTH_EXERCISES.map(
   (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-30T00:00:00Z', 'kraft', '${e.sides}', NULL, 'wdh');`
+).join('\n');
+
+// Ab Version 12: erweiterter Übungskatalog (31.10.2026).
+const catalogInserts = CATALOG_EXERCISES.map(
+  (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+     VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', 'kraft', '${e.sides}', NULL, '${e.measure}');`
 ).join('\n');
 
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
@@ -489,6 +496,10 @@ export const MIGRATIONS: string[] = [
      UNIQUE (supplement_id, day)
    );
    CREATE INDEX supplement_log_day ON supplement_log (day);`,
+
+  // Version 12: erweiterter Übungskatalog mit neuen Gerätearten (Kettlebell, Band, Smith-Maschine, SZ-Stange).
+  // Bestehende Übungen, Pläne und Verläufe bleiben unverändert; es kommen nur neue Startübungen dazu.
+  catalogInserts,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */
