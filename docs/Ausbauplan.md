@@ -29,7 +29,7 @@ mit der Fachperson statt vieler einzelner.
 | A8 | **fertig** (01.11.2026) – 5 Vorlagen, Deload v1 (Fachprüfung offen, Mappe Abschnitt K), Geräteprofile, Muskelkarte, Statistik; Gerätetest durch Luc offen |
 | A9 | **fertig** (01.11.2026) – Datenbank-Version 25, Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep; Supermarkt-Test durch Luc offen |
 | A10 | **fertig** (01.11.2026) – Datenbank-Version 26; Gerätetest (Foto-Überblendung, Teilen-Karte) durch Luc offen |
-| A11 | offen |
+| A11 | **fertig** (01.11.2026) – Module ein/aus, Barrierefreiheit im Code geprüft, Mappe A–L, Code aufgeräumt (`docs/Code_Struktur.md`), 676 Tests; VoiceOver am iPhone durch Luc offen (VO1–VO10) |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -439,6 +439,33 @@ Einfügen der Zutaten.
 | A11.4 | Fachprüfungs-Mappe vollständig (Regeln aus A1, A6, A7, A8) für den gebündelten Termin |
 
 **Fertig, wenn:** die Mappe vollständig ist und VoiceOver alle Hauptabläufe schafft.
+
+**Umgesetzt (A11, 01.11.2026):**
+- **Module** unter Mehr → Bereiche der App: Ernährung, Coach, Routinen (Dehnen/HIIT), Bereitschaft.
+  - Ohne Ernährung verschwinden der Tab, die Kacheln auf „Heute“ und die Trink-Erinnerung.
+  - Der Coach braucht die Ernährung und geht mit ihr aus.
+- **Barrierefreiheit:**
+  - Ein Test prüft, dass jedes antippbare Element eine Rolle für VoiceOver hat.
+  - Schieber und Ampel sind ansagbar.
+  - Die Prüfliste VO1–VO10 für das iPhone steht in `docs/Geraetetest.md`.
+- **Fahrplan** zeigt den Stand A1–A11. Die **Fachprüfungs-Mappe** ist vollständig (Abschnitte A–L, auch
+  Steigerung v2, 1RM, Aufwärmen).
+- **Code aufgeräumt nach festen Regeln** (`docs/Code_Struktur.md`):
+  - **Schichten** sind als Test festgeschrieben, auch die neue Schicht `services/`. Dazu gehören Abläufe ohne
+    Oberfläche, die vorher in `components/` lagen.
+  - **Gemeinsame Helfer** für Datum, Zeit, Zahlen und Textvergleich ersetzen über ein Dutzend doppelte Kopien.
+  - **Toter Code entfernt:** ungenutzte Funktionen und Konstanten sowie 61 Texte, die nirgends mehr vorkamen.
+  - **Texte** werden in beide Richtungen als Test geprüft.
+  - **Einheitliche Formatierung und Importreihenfolge:** Prettier und ESLint mit 0 Warnungen; ein Befehl für alles:
+    `npm run check`.
+
+**Beim Lückencheck nach A11 gefunden und geschlossen:**
+- Ein Hook stand in der Bereitschafts-Karte hinter einem frühen `return`. Mit ausgeschalteter Bereitschaft wäre
+  die App beim Umschalten abgestürzt.
+- Ein Wissensartikel nannte für das Aufwärmen 40/60/80 %, die App rechnet aber mit 50/70/85 %. Der Text wurde
+  korrigiert.
+- Die Regelfassung von Bereitschaft und Deload stand nur in der Mappe, jetzt auch im Hinweistext der App.
+- Die Mappe-Abschnitte standen nicht in der Reihenfolge A–L.
 
 ---
 

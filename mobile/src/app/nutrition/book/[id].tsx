@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice } from '@/components/fields';
-import { diaryToday, whenFor } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -22,6 +21,7 @@ import { MEALS, type Meal } from '@/domain/nutrition';
 import { findBookRecipe, scaledIngredients } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatNumber, t } from '@/i18n';
+import { diaryToday, whenFor } from '@/services/nutrition-format';
 
 const SERVINGS = ['1', '2', '3', '4'] as const;
 const LOG_AMOUNTS = ['0.5', '1', '1.5', '2'] as const;

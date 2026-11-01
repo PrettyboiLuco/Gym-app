@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, MultiChoice } from '@/components/fields';
-import { readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -15,6 +14,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { readTarget, targetParams, type TargetParams } from '@/services/nutrition-format';
 
 const EMPTY: FoodForm = {
   name: '',

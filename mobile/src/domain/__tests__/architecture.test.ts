@@ -3,6 +3,7 @@
 //   domain     reine Logik: keine Datenbank, kein React, keine Expo-Module, keine Texte (i18n)
 //   format     Anzeige-Texte aus Domain-Werten (i18n erlaubt), kein React; aus data nur Typen
 //   data       Datenbank und Speicher (Expo-Module erlaubt), kein React, keine Oberfläche
+//   services   Abläufe ohne React: verbinden data, domain und Texte (Erinnerungen, Ziel-Fortschritt, Zeitabläufe)
 //   providers  React-Kontext und -Hooks rund um die Daten (Datenbank, Profil, laufendes Training)
 //   components, hooks   wiederverwendbare Oberfläche
 //   app        Bildschirme (expo-router)
@@ -19,6 +20,7 @@ const RULES: Rule[] = [
   { layer: 'domain', forbid: /^(react|react-native|expo[-/].*|expo)$|^@\/(data|format|i18n|components|hooks|app|providers|constants)(\/|$)/ },
   { layer: 'format', forbid: /^(react|react-native|expo[-/].*|expo)$|^@\/(components|hooks|app|providers|data)(\/|$)/, typeOnlyAllowed: /^@\/data\// },
   { layer: 'data', forbid: /^react$|^@\/(components|hooks|app|providers)(\/|$)/ },
+  { layer: 'services', forbid: /^(react|react-native)$|^@\/(components|hooks|app|providers)(\/|$)/ },
   { layer: 'providers', forbid: /^@\/(components|app)(\/|$)/ },
   { layer: 'components', forbid: /^@\/app(\/|$)/ },
   { layer: 'hooks', forbid: /^@\/app(\/|$)/ },

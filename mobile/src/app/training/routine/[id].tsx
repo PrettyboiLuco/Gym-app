@@ -7,7 +7,6 @@ import { ExercisePicker } from '@/components/exercise-picker';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { routineMinutes, startRoutineRun, templateName } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
 import { activateRoutineVersion, archiveRoutine, listRoutineVersions, loadRoutineDraft, saveRoutine, type RoutineVersionInfo } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
@@ -18,6 +17,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t, tOptional } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { routineMinutes, startRoutineRun, templateName } from '@/services/timed';
 
 type Form = {
   name: string;

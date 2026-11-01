@@ -3,7 +3,6 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
@@ -17,6 +16,7 @@ import { weightTrend } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatHeight, formatNumber, formatWeight, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
+import { formatKcal } from '@/services/nutrition-format';
 
 async function loadCalc(db: Db) {
   const today = todayDay();

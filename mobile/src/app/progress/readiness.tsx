@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, ListRow, MultiChoice } from '@/components/fields';
 import { levelColor, reasonText } from '@/components/readiness';
@@ -45,6 +44,7 @@ import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
+import { applyReminders } from '@/services/alerts';
 
 const SCALE = ['1', '2', '3', '4', '5'] as const;
 type Scale = (typeof SCALE)[number];

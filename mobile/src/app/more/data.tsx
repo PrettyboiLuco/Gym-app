@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 
-import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -20,6 +19,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
+import { applyReminders } from '@/services/alerts';
 
 /**
  * Deine Daten (Register TECH-013/014, LAW-006): Sicherung als Datei, Wiederherstellen, alles löschen.

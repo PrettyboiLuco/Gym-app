@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton, Field } from '@/components/fields';
-import { extraLine, formatKcal, macroLine } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { deleteEvent, getEvent, updateEvent, type ConsumptionEvent } from '@/data/nutrition';
@@ -14,6 +13,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatNumber, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { extraLine, formatKcal, macroLine } from '@/services/nutrition-format';
 
 type EntryForm = { amount: string; meal: Meal | null; day: string };
 

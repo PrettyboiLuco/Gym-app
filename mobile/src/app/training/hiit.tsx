@@ -4,7 +4,6 @@ import { Button, Card } from '@/components/card';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { routineMinutes, templateName, withMinutes } from '@/components/timed';
 import type { Db } from '@/data/db';
 import { listRoutines, type RoutineSummary } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
@@ -12,6 +11,7 @@ import { HIIT_PROGRAMS } from '@/domain/routines';
 import { useLoad } from '@/hooks/use-load';
 import { t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
+import { routineMinutes, templateName, withMinutes } from '@/services/timed';
 
 async function loadHiit(db: Db) {
   const [list, exercises] = await Promise.all([listRoutines(db, 'hiit'), listExercises(db)]);

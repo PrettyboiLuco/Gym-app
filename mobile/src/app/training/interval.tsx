@@ -2,7 +2,6 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
-import { cancelRunAlerts, syncIntervalAlerts } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
 import { KeepAwake } from '@/components/keep-awake';
@@ -16,6 +15,7 @@ import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { cancelRunAlerts, syncIntervalAlerts } from '@/services/alerts';
 
 function parseConfig(work: string, rest: string, rounds: string): IntervalConfig | null {
   const w = parseWholeNumber(work);

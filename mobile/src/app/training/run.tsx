@@ -4,7 +4,6 @@ import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
-import { cancelRunAlerts, syncRunAlerts } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton } from '@/components/fields';
 import { KeepAwake } from '@/components/keep-awake';
@@ -21,6 +20,7 @@ import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t, tOptional } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { cancelRunAlerts, syncRunAlerts } from '@/services/alerts';
 
 type Outcome = { status: 'abgeschlossen' | 'abgebrochen'; minutes: number; kind: TimedRun['kind']; pain: boolean };
 

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice, Field } from '@/components/fields';
-import { readTarget, targetParams, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
@@ -34,6 +33,7 @@ import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { readTarget, targetParams, whenFor, type TargetParams } from '@/services/nutrition-format';
 
 /** Was gebucht wird: Lebensmittel (Menge in g/ml), Rezept (Portionen oder g), Vorlage (komplett) oder Wasser (ml). */
 type Candidate = {

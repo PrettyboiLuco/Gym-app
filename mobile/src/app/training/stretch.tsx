@@ -6,7 +6,6 @@ import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { routineMinutes, templateName, withMinutes } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { addFlexibilityTest, deleteFlexibilityTest, listFlexibilityTests, listRoutines, type FlexibilityTest, type RoutineSummary } from '@/data/routines';
@@ -19,6 +18,7 @@ import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatLength, t } from '@/i18n';
 import { useProfile, useUnits } from '@/providers/profile-provider';
+import { routineMinutes, templateName, withMinutes } from '@/services/timed';
 
 async function loadStretch(db: Db) {
   const [list, exercises, tests] = await Promise.all([listRoutines(db, 'dehnen'), listExercises(db), listFlexibilityTests(db)]);

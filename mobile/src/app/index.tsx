@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { Card } from '@/components/card';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
 import { ListRow } from '@/components/fields';
-import { diaryToday } from '@/components/nutrition-format';
 import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
@@ -29,6 +28,7 @@ import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatLongDate, formatNumber, formatVolume, formatWeight, t } from '@/i18n';
 import { useModules, useUnits } from '@/providers/profile-provider';
+import { diaryToday } from '@/services/nutrition-format';
 
 async function loadToday(db: Db) {
   const today = todayDay();

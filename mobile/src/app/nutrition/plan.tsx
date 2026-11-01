@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { diaryToday, formatKcal, whenFor } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -20,6 +19,7 @@ import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
+import { diaryToday, formatKcal, whenFor } from '@/services/nutrition-format';
 
 async function load(db: Db, monday: string) {
   await cleanEatenLinks(db);

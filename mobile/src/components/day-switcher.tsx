@@ -2,13 +2,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
-import { dayLabel } from '@/components/nutrition-format';
 import { ThemedText } from '@/components/themed-text';
 import { Radius } from '@/constants/theme';
 import { shiftDay } from '@/domain/dates';
 import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { dayLabel } from '@/services/nutrition-format';
 
 /**
  * ‹ Tag › als eine ruhige Leiste: runde Pfeil-Knöpfe, der Tag in der Mitte. In die Zukunft geht es nicht;

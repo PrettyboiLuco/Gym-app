@@ -3,7 +3,6 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow } from '@/components/fields';
-import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { expenditure, loadCheckinRules, saveCheckinRules, type ExpenditureData } from '@/data/adaptive';
@@ -21,6 +20,7 @@ import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
+import { formatKcal } from '@/services/nutrition-format';
 
 const QUALITY = ['keine', '1', '2', '3', '4', '5'] as const;
 

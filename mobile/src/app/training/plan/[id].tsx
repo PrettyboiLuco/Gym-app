@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
-import { blockSeconds as blockSecondsOf } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -31,6 +30,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { blockSeconds as blockSecondsOf } from '@/services/planner-helpers';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
 type ItemForm = {

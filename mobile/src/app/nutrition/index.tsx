@@ -7,7 +7,6 @@ import { MeterBar } from '@/components/charts';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, Field, ListRow, Presets } from '@/components/fields';
 import { Icon } from '@/components/icon';
-import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, microLine, whenFor } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -38,6 +37,7 @@ import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatVolume, t } from '@/i18n';
 import { useUnits } from '@/providers/profile-provider';
+import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, microLine, whenFor } from '@/services/nutrition-format';
 
 async function loadDiary(db: Db, day: string) {
   const [events, settings, goal, incomplete] = await Promise.all([

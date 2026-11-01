@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 
-import { syncRestAlert } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
 import { MeterBar } from '@/components/charts';
@@ -17,7 +16,6 @@ import { Screen } from '@/components/screen';
 import { SetCheck } from '@/components/set-check';
 import { RirChoice, SetDetails } from '@/components/set-details';
 import { ThemedText } from '@/components/themed-text';
-import { holdLookup, routineMinutes, startRoutineRun } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
@@ -71,6 +69,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
 import { useUnits } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
+import { syncRestAlert } from '@/services/alerts';
+import { holdLookup, routineMinutes, startRoutineRun } from '@/services/timed';
 
 type Inputs = Record<string, { weight: string; reps: string }>;
 

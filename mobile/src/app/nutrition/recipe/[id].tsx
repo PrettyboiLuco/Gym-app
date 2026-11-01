@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
-import { formatKcal, macroLine } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -17,6 +16,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatNumber, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { formatKcal, macroLine } from '@/services/nutrition-format';
 
 const EMPTY: RecipeForm = { name: '', endWeight: '', portions: '', ingredients: [] };
 

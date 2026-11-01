@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, Field, Presets } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -27,6 +26,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { applyReminders } from '@/services/alerts';
 
 /**
  * Mitteilungen und Erinnerungen (Register UX-006/007, TIME-011, HEALTH-012). Alles freiwillig und

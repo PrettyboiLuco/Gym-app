@@ -5,9 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
-import { goalProgressLines, goalTitle } from '@/components/goal-progress';
 import { Icon } from '@/components/icon';
-import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
@@ -30,6 +28,8 @@ import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
+import { goalProgressLines, goalTitle } from '@/services/goal-progress';
+import { formatKcal } from '@/services/nutrition-format';
 
 type GoalCard = { goal: GoalVersion; title: string; lines: string[] };
 

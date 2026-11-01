@@ -2,13 +2,13 @@ import { router } from 'expo-router';
 
 import { Button, Card } from '@/components/card';
 import { ListRow } from '@/components/fields';
-import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { listRecipes, type RecipeSummary } from '@/data/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { formatNumber, t } from '@/i18n';
+import { formatKcal } from '@/services/nutrition-format';
 
 export default function RecipesScreen() {
   const { data: recipes, loaded } = useLoad(listRecipes, [] as RecipeSummary[]);

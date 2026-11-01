@@ -1,12 +1,12 @@
 // Gemeinsame Hilfen für Plan-Editor und Planassistent: Aufwärm-/Cool-down-Dauer und Tagesnamen.
 
-import { holdLookup, routineMinutes } from '@/components/timed';
 import type { Exercise } from '@/data/training';
 import type { MuscleGroup } from '@/domain/exercises';
 import type { DayType } from '@/domain/planner';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import type { PlanItemDraft } from '@/domain/training';
 import { t } from '@/i18n';
+import { holdLookup, routineMinutes } from '@/services/timed';
 
 /** Dauer des vorgeschlagenen Aufwärmens bzw. Cool-downs in Sekunden (STRETCH-001: in der Zeitschätzung). */
 export function blockSeconds(items: Pick<PlanItemDraft, 'exerciseId'>[], exercises: Exercise[], kind: 'aufwaermen' | 'cooldown'): number {

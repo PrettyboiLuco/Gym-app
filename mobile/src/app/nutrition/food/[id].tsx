@@ -5,6 +5,16 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
+import { Screen } from '@/components/screen';
+import { ThemedText } from '@/components/themed-text';
+import { Spacing } from '@/constants/theme';
+import { archiveFood, DEFAULT_SETTINGS, foodFacts, getFood, loadNutritionSettings, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
+import { parseMicros, parsePortions, scaleMicros } from '@/domain/basis-foods';
+import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
+import { foodTitle } from '@/format/food-title';
+import { useLoad } from '@/hooks/use-load';
+import { useTheme } from '@/hooks/use-theme';
+import { formatNumber, t } from '@/i18n';
 import {
   dayLabel,
   formatAmount,
@@ -16,17 +26,7 @@ import {
   targetParams,
   whenFor,
   type TargetParams,
-} from '@/components/nutrition-format';
-import { Screen } from '@/components/screen';
-import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { archiveFood, DEFAULT_SETTINGS, foodFacts, getFood, loadNutritionSettings, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
-import { parseMicros, parsePortions, scaleMicros } from '@/domain/basis-foods';
-import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
-import { foodTitle } from '@/format/food-title';
-import { useLoad } from '@/hooks/use-load';
-import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, t } from '@/i18n';
+} from '@/services/nutrition-format';
 
 export default function FoodScreen() {
   const theme = useTheme();

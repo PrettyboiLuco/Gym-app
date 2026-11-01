@@ -6,7 +6,6 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
-import { extraLine, formatKcal, macroLine, readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -17,6 +16,7 @@ import { foodTitle } from '@/format/food-title';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { extraLine, formatKcal, macroLine, readTarget, targetParams, type TargetParams } from '@/services/nutrition-format';
 
 type Phase =
   | { kind: 'scan' }

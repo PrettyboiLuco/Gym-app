@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, RadioList } from '@/components/fields';
-import { goalProgressLines, goalTitle } from '@/components/goal-progress';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
@@ -22,6 +21,7 @@ import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
+import { goalProgressLines, goalTitle } from '@/services/goal-progress';
 
 function toForm(v: GoalVersion, units: Units): GoalForm {
   return {

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
-import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
@@ -44,6 +43,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t, tOptional } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
+import { dayLabel, extraSecondsFor } from '@/services/planner-helpers';
 
 type Mode = 'umbau' | 'vorlage';
 type Status = 'frei' | 'behalten' | 'ersetzen';

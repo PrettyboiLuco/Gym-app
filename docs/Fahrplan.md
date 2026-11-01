@@ -671,7 +671,7 @@ stehen in `docs/Ausbauplan.md`. Kurz:
 | A8 Programme | 5 Vorlagen, leichte Woche, Geräteprofile, Muskelkarte, Statistik | Fachprüfung (K) |
 | A9 Essen planen | Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep | Supermarkt-Test |
 | A10 Körper & Motivation | Foto-Überblendung, 8 Messstellen mit Zielen, ml/oz, Blutdruck, Meilensteine, Plan-Wochen, Teilen-Karten, Wissen | Gerätetest |
-| A11 Qualität | Module ein/aus, Barrierefreiheits-Test im Code, VoiceOver-Liste, vollständige Fachprüfungs-Mappe (A–L), Code aufgeräumt | VoiceOver am iPhone |
+| A11 Qualität | Module ein/aus, Barrierefreiheits-Test im Code, VoiceOver-Liste, vollständige Fachprüfungs-Mappe (A–L), Code aufgeräumt (`docs/Code_Struktur.md`) | VoiceOver am iPhone |
 
 Nächste Schritte: Gerätetests (`docs/Geraetetest.md`, Abschnitte „Ausbaupaket“ und „VoiceOver“), gebündelte
 Fachprüfung (`docs/Fachpruefung_Mappe.md`), dann Development Build mit Apple Health (D1–D4, ab MacBook).

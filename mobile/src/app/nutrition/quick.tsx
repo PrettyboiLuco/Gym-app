@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field } from '@/components/fields';
-import { dayLabel, readTarget, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -14,6 +13,7 @@ import { MEALS, parseNutrient, type Meal } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { dayLabel, readTarget, whenFor, type TargetParams } from '@/services/nutrition-format';
 
 /**
  * Schnelleintrag (A3): nur Kalorien, Makros freiwillig – für Kantine, Restaurant oder „ungefähr“. Ohne Lebensmittel,

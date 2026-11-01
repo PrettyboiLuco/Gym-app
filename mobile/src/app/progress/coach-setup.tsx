@@ -2,10 +2,8 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
-import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -40,6 +38,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatLength, formatNumber, formatWeight, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
+import { applyReminders } from '@/services/alerts';
+import { dayLabel, extraSecondsFor } from '@/services/planner-helpers';
 
 const STEPS = ['ziel', 'koerper', 'alltag', 'ergebnis', 'training', 'anbindungen'] as const;
 type Step = (typeof STEPS)[number];

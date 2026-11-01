@@ -2,7 +2,6 @@ import { useLocalSearchParams } from 'expo-router';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { diaryToday } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -13,6 +12,7 @@ import { DEPARTMENTS, shoppingText, type ShoppingItem } from '@/domain/meal-plan
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
+import { diaryToday } from '@/services/nutrition-format';
 
 async function load(db: Db, week: string) {
   const days = weekDays(week);

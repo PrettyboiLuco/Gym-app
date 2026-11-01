@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -29,6 +28,7 @@ import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
+import { applyReminders } from '@/services/alerts';
 
 const amountText = (s: Supplement) => (s.amount === null || s.unit === null ? '' : `${formatNumber(s.amount, 3)} ${t(`supplements.units.${s.unit}`)}`);
 

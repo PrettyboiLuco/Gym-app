@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice, Field } from '@/components/fields';
-import { dayLabel, formatKcal, macroLine, readTarget, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { DEFAULT_SETTINGS, getRecipeVersion, loadNutritionSettings, logRecipe, recipeFacts } from '@/data/nutrition';
@@ -13,6 +12,7 @@ import { fractionOf, MEALS, nutrientsForAmount, parseAmount, per100FromTotal, ty
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
+import { dayLabel, formatKcal, macroLine, readTarget, whenFor, type TargetParams } from '@/services/nutrition-format';
 
 type Mode = 'gramm' | 'portion';
 

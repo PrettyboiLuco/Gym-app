@@ -3,7 +3,6 @@ import { useState } from 'react';
 
 import { Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
@@ -13,6 +12,7 @@ import { weekAverage } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, t } from '@/i18n';
+import { formatKcal } from '@/services/nutrition-format';
 
 const RANGES = ['7', '30'] as const;
 
