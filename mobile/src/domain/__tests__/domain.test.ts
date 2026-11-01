@@ -4,9 +4,8 @@ import { describe, expect, test } from '@jest/globals';
 
 import { calorieTarget, daySummary, energyEstimate, restingEnergy } from '../energy';
 import { nutrientForAmount, recipePortion } from '../nutrition';
-import { routinePhases, totalSeconds } from '../routine';
 import { isCurrentAlarm, localDay, remainingMs } from '../time';
-import { parseWeight, weightTrend } from '../weight';
+import { weightTrend } from '../weight';
 
 describe('Nährwerte', () => {
   test('250 kcal/100 g × 60 g = 150', () => expect(nutrientForAmount(250, 60)).toBe(150));
@@ -72,33 +71,6 @@ describe('Gewicht', () => {
   });
   test('Messungen außerhalb des Fensters ignoriert', () =>
     expect(weightTrend([...week, { day: '2026-09-28', kg: 95 }], '2026-10-28')).toBeCloseTo(80.1));
-  test('Eingabe mit Komma', () => expect(parseWeight('80,5')).toBe(80.5));
-  test('unplausible Eingaben abgelehnt', () => {
-    expect(parseWeight('')).toBeNull();
-    expect(parseWeight('abc')).toBeNull();
-    expect(parseWeight('5')).toBeNull();
-    expect(parseWeight('80,555')).toBeNull();
-  });
-});
-
-describe('Dehnung und HIIT', () => {
-  const phases = routinePhases(
-    [
-      { name: 'beinbeuger', holdSeconds: 30, bothSides: true },
-      { name: 'brust', holdSeconds: 30, bothSides: false },
-    ],
-    5,
-    10
-  );
-  test('beidseitige Übung erzeugt links und rechts', () =>
-    expect(phases.filter((p) => p.kind === 'hold').map((p) => p.kind === 'hold' && p.label)).toEqual([
-      'beinbeuger:links',
-      'beinbeuger:rechts',
-      'brust',
-    ]));
-  test('Dauer 30+5+30+10+30 = 105 s', () => expect(totalSeconds(phases)).toBe(105));
-  test('Haltezeit 0 abgelehnt', () =>
-    expect(() => routinePhases([{ name: 'brust', holdSeconds: 0, bothSides: false }], 5, 10)).toThrow());
 });
 
 describe('Zeit und Timer', () => {

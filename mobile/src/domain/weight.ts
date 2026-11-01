@@ -25,14 +25,6 @@ export function weightTrend(
   return means.reduce((sum, d) => sum + d.kg, 0) / means.length;
 }
 
-/** Liest eine Gewichtseingabe wie „80,5“ oder „80.5“. Unplausible Werte ergeben null. */
-export function parseWeight(input: string): number | null {
-  const normalized = input.trim().replace(',', '.');
-  if (!/^\d{1,3}(\.\d{1,2})?$/.test(normalized)) return null;
-  const kg = Number(normalized);
-  return kg >= 20 && kg <= 400 ? kg : null;
-}
-
 /**
  * Veränderung des 7-Tage-Durchschnitts gegenüber der Woche davor. Ohne zwei gültige
  * Durchschnitte gibt es keine Aussage (null) statt einer erfundenen.

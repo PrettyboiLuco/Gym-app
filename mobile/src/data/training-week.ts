@@ -1,7 +1,7 @@
 // Trainingswoche Mo–So für „Heute“ und den Abschluss-Bildschirm: eine Quelle für Punkte und Zusammenfassung.
 
 import type { MuscleGroup } from '@/domain/exercises';
-import { weekStart } from '@/domain/dates';
+import { shiftDay, weekStart } from '@/domain/dates';
 import { trainedDays } from '@/domain/summary';
 import { localDay, timeZone } from '@/domain/time';
 
@@ -10,7 +10,6 @@ import { loadCoachSetup } from './coach';
 import { readState } from './app-state';
 import type { Db } from './db';
 import { listExercises, listSessions } from './training';
-import { shiftDay } from '@/domain/dates';
 
 export type TrainingWeek = { done: boolean[]; planned: boolean[]; goal: number | null; todayIndex: number };
 

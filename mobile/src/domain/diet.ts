@@ -63,7 +63,6 @@ export function dietFromOff(tags: unknown): FoodDiet | null {
 }
 
 export type DietPrefs = { allergies: Allergen[]; diet: Diet };
-export const EMPTY_DIET_PREFS: DietPrefs = { allergies: [], diet: 'alles' };
 
 export type FoodFacts = { allergens: Allergen[] | null; traces: Allergen[] | null; diet: FoodDiet | null };
 

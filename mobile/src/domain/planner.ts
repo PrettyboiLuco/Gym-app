@@ -45,8 +45,7 @@ export const DAY_TYPES = [
 ] as const;
 export type DayType = (typeof DAY_TYPES)[number];
 
-/** 2 bis 6 Trainingstage (TRAIN-004), 20 bis 180 Minuten je Einheit. */
-export const PLANNER_DAYS = [2, 3, 4, 5, 6] as const;
+/** 20 bis 180 Minuten je Einheit; Trainingstage 2 bis 6 (TRAIN-004, siehe inputConflicts). */
 export const MINUTES_RANGE = { min: 20, max: 180 };
 export const MINUTE_PRESETS = [30, 45, 60, 75, 90] as const;
 

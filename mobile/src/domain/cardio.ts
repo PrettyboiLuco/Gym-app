@@ -43,8 +43,6 @@ export const isCardioActivity = (v: unknown): v is CardioActivity =>
 export const CARDIO_MAX_MINUTES = 600;
 export const PLAN_CARDIO_MAX_MINUTES = 180;
 
-/** WHO-Orientierung für Erwachsene: 150–300 min moderate Ausdauer pro Woche (Information, kein Ziel der App). */
-export const WHO_MINUTES = { min: 150, max: 300 } as const;
 
 export type CardioForm = { minutes: string; distance: string; avgHr: string; effort: number | null; level: string; note: string };
 export type CardioValues = {

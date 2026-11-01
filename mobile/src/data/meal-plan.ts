@@ -36,10 +36,6 @@ export async function deletePlanEntry(db: Db, id: string) {
   await db.runAsync('DELETE FROM meal_plan WHERE id = ?', id);
 }
 
-export async function clearPlanDays(db: Db, from: string, to: string) {
-  await db.runAsync('DELETE FROM meal_plan WHERE day BETWEEN ? AND ? AND eaten_event_id IS NULL', from, to);
-}
-
 /** Nährwerte einer Portion: Buchrezept direkt, eigenes Rezept aus der aktiven Version (nur mit Portionsangabe). */
 export async function planNutrients(db: Db, entries: PlanEntry[]): Promise<Map<string, Nutrients | null>> {
   const out = new Map<string, Nutrients | null>();

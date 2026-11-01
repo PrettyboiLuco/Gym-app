@@ -1,5 +1,3 @@
-import { daysBetween, shiftDay } from './dates';
-import { mean } from './math';
 // Bereitschaft, Schlaf und Journal (Ausbauplan A6). Ohne KI: feste, prüfbare Regeln, verglichen mit den eigenen
 // Werten der letzten 28 Tage. Ergebnis ist ein Trainingsvorschlag, nie ein Befund. Alle Schwellen sind Vorschläge bis
 // zur Fachprüfung (docs/Fachpruefung_Mappe.md, Abschnitt I).
@@ -16,6 +14,9 @@ import { mean } from './math';
 //   anderen Tagen wird nicht gegengerechnet). Regelmäßigkeit = Streuung der Aufsteh- und Bettzeit in Minuten.
 // - Journal: Unterschiede erst ab je 5 Tagen mit und ohne Faktor und ab 0,5 Punkten bzw. 0,5 h – immer mit dem
 //   Hinweis, dass es Zufall sein kann.
+
+import { daysBetween } from './dates';
+import { mean } from './math';
 
 export const READINESS_RULES_VERSION = 1;
 export const BASELINE_DAYS = 28;

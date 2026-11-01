@@ -137,7 +137,6 @@ export function muscleLevel(sets: number): 0 | 1 | 2 | 3 | 4 {
 
 export const DELOAD_RULES_VERSION = 1;
 export const DELOAD_WEEKS_DEFAULT = 8;
-export const DELOAD_WEEKS_RANGE = { min: 6, max: 10 } as const;
 export const DELOAD_RIR = '3';
 
 /**

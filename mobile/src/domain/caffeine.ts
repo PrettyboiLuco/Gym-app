@@ -27,8 +27,6 @@ export const CAFFEINE_DRINKS: CaffeineDrink[] = [
   { id: 'colaZero', ml: 330, caffeineMg: 33, kcal: 1, carbs: 0, sugar: 0, drinkType: 'softdrink' },
 ];
 
-/** EFSA: bis 400 mg über den Tag verteilt gelten für gesunde Erwachsene als unbedenklich (Schwangere: 200 mg). */
-export const CAFFEINE_DAY_REFERENCE_MG = 400;
 
 /** Koffein nach einer Uhrzeit (Standard 14 Uhr) – für das Journal in A6 (Schlaf). */
 export function lateCaffeineMg(events: { caffeineMg: number | null; occurredAt: string }[], fromHourLocal = 14): number {

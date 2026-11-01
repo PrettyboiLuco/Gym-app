@@ -1,4 +1,3 @@
-import { normalize } from './text';
 // Freitext für den Planassistenten (Phase 8.7, Register TRAIN-020, TRAIN-021). Aus dem Text werden nur
 // feste Werte gelesen (Tage, Minuten, Aufteilung, Dauer, Geräte, bekannte Übungen) – der Text selbst
 // wird nie als Anweisung ausgeführt. Ein späteres Sprachmodell (vorerst nicht, Entscheidung 30.10.2026) muss genau dasselbe Schema
@@ -7,6 +6,7 @@ import { normalize } from './text';
 
 import { EQUIPMENT, type Equipment } from './exercises';
 import { MINUTES_RANGE, SPLITS, type SplitChoice } from './planner';
+import { normalize } from './text';
 
 export const DURATIONS = ['dauerhaft', 'woche', 'zwei_wochen'] as const;
 export type Duration = (typeof DURATIONS)[number];

@@ -163,14 +163,6 @@ export function barcodeVariants(code: string): string[] {
 export const MEALS = ['fruehstueck', 'mittag', 'abend', 'snack'] as const;
 export type Meal = (typeof MEALS)[number];
 
-/** Nur ein Vorschlag aus der Uhrzeit; die Kategorie bleibt frei wählbar (TIME-002). */
-export function suggestMeal(hour: number): Meal {
-  if (hour >= 4 && hour < 11) return 'fruehstueck';
-  if (hour >= 11 && hour < 15) return 'mittag';
-  if (hour >= 17 && hour < 22) return 'abend';
-  return 'snack';
-}
-
 // --------------------------------------------------------------------------------- Getränke
 
 export const DRINK_TYPES = ['wasser', 'kaffee_tee', 'milch', 'saft', 'softdrink', 'alkohol', 'sonstiges'] as const;

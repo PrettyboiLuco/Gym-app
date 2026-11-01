@@ -1,7 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { shiftDay } from '../dates';
-import { drinkTotals, fractionOf, barcodeVariants, isValidBarcode, productCodeFromScan, normalizeOffProduct, nutrientsForAmount, parseAmount, parseNutrient, per100FromTotal, suggestMeal, sumNutrients, totalOf, weekAverage, foodToForm, parseFoodForm, type FoodForm, parseRecipeForm, type RecipeForm, parseSettingsForm, type SettingsForm } from '../nutrition';
+import { drinkTotals, fractionOf, barcodeVariants, isValidBarcode, productCodeFromScan, normalizeOffProduct, nutrientsForAmount, parseAmount, parseNutrient, per100FromTotal, sumNutrients, totalOf, weekAverage, foodToForm, parseFoodForm, type FoodForm, parseRecipeForm, type RecipeForm, parseSettingsForm, type SettingsForm } from '../nutrition';
 
 const nutella = { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null };
 
@@ -60,12 +60,6 @@ describe('Eingaben', () => {
 });
 
 describe('Mahlzeit und Datum', () => {
-  test('Vorschläge aus der Uhrzeit', () => {
-    expect(suggestMeal(7)).toBe('fruehstueck');
-    expect(suggestMeal(12)).toBe('mittag');
-    expect(suggestMeal(19)).toBe('abend');
-    expect(suggestMeal(0)).toBe('snack');
-  });
   test('Tag zurück über Monatsgrenze', () => expect(shiftDay('2026-11-01', -1)).toBe('2026-10-31'));
   test('Tag zurück am Tag der Zeitumstellung', () => expect(shiftDay('2026-10-26', -1)).toBe('2026-10-25'));
 });
