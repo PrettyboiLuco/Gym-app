@@ -14,7 +14,7 @@ import { formatDay, t } from '@/i18n';
 
 const RANGES = ['7', '30'] as const;
 
-type DayRow = { day: string; kcal: number | null; entries: number; unknownKcal: number };
+type DayRow = { day: string; kcal: number | null; entries: number; unknownKcal: number; flagged?: number };
 
 async function loadRange(db: Db, endDay: string, days: number) {
   const from = shiftDay(endDay, -(days - 1));
@@ -63,7 +63,7 @@ export default function WeekScreen() {
           const status =
             r.entries === 0
               ? t('nutrition.week.emptyDay')
-              : r.kcal === null || r.unknownKcal > 0
+              : r.kcal === null || r.unknownKcal > 0 || r.flagged
                 ? t('nutrition.week.incompleteDay')
                 : null;
           const parts = data.hide

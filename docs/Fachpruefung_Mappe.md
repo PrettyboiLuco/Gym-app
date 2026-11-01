@@ -138,6 +138,21 @@ Trainingsvorschlag, nie Befund; Angebote nur für heute und nur nach Antippen.
 | I11 | Journal | Faktoren des Vortags (eigene + Tagebuch: Alkohol, Koffein ≥ 50 mg nach 14 Uhr, letzte Mahlzeit ab 21 Uhr, > 500 kcal über Ziel); Unterschied ab je 5 Tagen und ab 0,5 Punkten bzw. 0,5 h, Hinweis „kann Zufall sein“ | Schwellen freigeben? | | |
 | I12 | Atemübung | ruhig 4 s ein / 6 s aus oder 4-7-8; 1–4 min; Hinweis bei Schwindel aufzuhören | Freigeben? | | |
 
+## J. Adaptiver Energiebedarf (Ausbauplan A7)
+
+Fundstelle: `mobile/src/domain/adaptive.ts` (Fassung 1, `ADAPTIVE_RULES_VERSION`), Check-in Fassung 2 in
+`mobile/src/domain/checkin.ts` (`applyV2`). Fassung 2 ist **nicht** Standard: Sie muss im Check-in bewusst gewählt
+werden, bis diese Regeln freigegeben sind.
+
+| ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| J1 | Fenster und Datenmenge | 28 Tage bis gestern; ≥ 14 vollständig erfasste Tage; Gewichtstrend (7-Tage-Schnitt, ≥ 4 Messtage) am Anfang und am Ende | Freigeben? | | |
+| J2 | Formel | Verbrauch = Ø Aufnahme − Trendänderung × 7.700 kcal/kg ÷ 21 Tage | Energiewert 7.700 kcal/kg für gemischtes Gewebe angemessen? | | |
+| J3 | Unsicherheit | ± (7.700 × 0,3 kg ÷ 21 + 100), auf 50 gerundet → ± 200 kcal | Angemessen? | | |
+| J4 | Unvollständige Tage | vom Nutzer markierte Tage und Tage mit unbekannten kcal zählen nicht | Freigeben? | | |
+| J5 | Vorschlag Fassung 2 | Ziel = Verbrauch + Abstand aus der Coach-Einrichtung, auf 50 gerundet, höchstens ±200 kcal je Woche, unter 100 kcal Unterschied kein Vorschlag | Grenzen freigeben? Soll Fassung 2 Standard werden? | | |
+| J6 | Schutz | nie unter 1.200 kcal, kein Senken bei Untergewicht (BMI < 18,5), keine Zahlen bei sensibler Situation, „ohne Zahlen“ oder Status krank/verletzt/Pause | Weitere Ausschlüsse? | | |
+
 ## H. Beispielrechnungen zum Nachprüfen
 
 Mit dem echten Code der App berechnet (30.10.2026). Werte in kcal bzw. g pro Tag.
@@ -167,7 +182,7 @@ Eiweiß-Spanne 96–160 g.
 | | |
 |---|---|
 | Name, Qualifikation | |
-| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Bereitschaft 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
+| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Bereitschaft 1 · Energiebedarf 1 / Check-in 2 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
 | Geltungsbereich | gesunde Erwachsene 18+ (Kalorien 19–78 J.), Ausschlüsse siehe G2 |
 | Datum, Unterschrift | |
 

@@ -102,10 +102,12 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     top,
   };
 
-  // Ernährung: nur Tage mit Einträgen (leere Tage zählen nicht als 0)
+  // Ernährung: nur vollständig erfasste Tage (alle kcal bekannt, nicht als unvollständig markiert); leere Tage zählen nicht.
   const food = await db.getAllAsync<{ day: string; kcal: number | null; protein: number | null; carbs: number | null; fat: number | null }>(
-    `SELECT diary_date AS day, SUM(kcal) AS kcal, SUM(protein) AS protein, SUM(carbs) AS carbs, SUM(fat) AS fat
-     FROM consumption_event WHERE kind = 'essen' AND diary_date BETWEEN ? AND ? GROUP BY diary_date`,
+    `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal, SUM(e.protein) AS protein, SUM(e.carbs) AS carbs, SUM(e.fat) AS fat
+     FROM consumption_event e LEFT JOIN diary_day d ON d.day = e.diary_date
+     WHERE e.diary_date BETWEEN ? AND ? GROUP BY e.diary_date
+     HAVING SUM(CASE WHEN e.kcal IS NULL THEN 1 ELSE 0 END) = 0 AND COALESCE(MAX(d.incomplete), 0) = 0`,
     from,
     to
   );

@@ -6,7 +6,7 @@ import { Button, Card } from '@/components/card';
 import { MeterBar } from '@/components/charts';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Icon } from '@/components/icon';
-import { Field, ListRow, Presets } from '@/components/fields';
+import { Choice, Field, ListRow, Presets } from '@/components/fields';
 import { foodTitle } from '@/components/food-title';
 import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, microLine, whenFor } from '@/components/nutrition-format';
 import { parseMicros, sumMicros } from '@/domain/basis-foods';
@@ -19,6 +19,8 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import {
   copyDay,
+  isDayIncomplete,
+  setDayIncomplete,
   copyMeal,
   DEFAULT_SETTINGS,
   listDay,
@@ -36,8 +38,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 
 async function loadDiary(db: Db, day: string) {
-  const [events, settings, goal] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day)]);
-  return { events, settings, goal: goal?.kcal ?? null, estimated: goal?.source === 'rechner' };
+  const [events, settings, goal, incomplete] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day), isDayIncomplete(db, day)]);
+  return { events, settings, goal: goal?.kcal ?? null, estimated: goal?.source === 'rechner', incomplete };
 }
 
 export default function DiaryScreen() {
@@ -57,7 +59,7 @@ export default function DiaryScreen() {
     });
     return () => sub.remove();
   }, []);
-  const { data, reload, db } = useLoad((d) => loadDiary(d, day), { events: [] as ConsumptionEvent[], settings: DEFAULT_SETTINGS, goal: null as number | null, estimated: false }, day);
+  const { data, reload, db } = useLoad((d) => loadDiary(d, day), { events: [] as ConsumptionEvent[], settings: DEFAULT_SETTINGS, goal: null as number | null, estimated: false, incomplete: false }, day);
   const { events, settings, goal, estimated } = data;
   const hide = settings.hideNumbers;
 
@@ -193,6 +195,23 @@ export default function DiaryScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {estimated ? `${t('nutrition.summary.estimated')} ` : ''}
             {t('nutrition.summary.training')}
+          </ThemedText>
+        ) : null}
+        {events.length > 0 ? (
+          <Choice
+            label={t('adaptive.dayComplete')}
+            options={['ja', 'nein'] as const}
+            value={data.incomplete ? 'nein' : 'ja'}
+            onChange={async (v) => {
+              await setDayIncomplete(db, day, v === 'nein');
+              await reload();
+            }}
+            format={(v) => t(`adaptive.dayCompleteOption.${v}`)}
+          />
+        ) : null}
+        {data.incomplete ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('adaptive.dayIncompleteHint')}
           </ThemedText>
         ) : null}
       </Card>

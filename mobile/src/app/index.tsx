@@ -223,7 +223,7 @@ export default function TodayScreen() {
       {ready && ready.readiness.kind !== 'status' && !checkComplete ? (
         <MorningCheck key={today} db={db} day={today} check={ready.check} onSaved={reload} />
       ) : ready ? (
-        <ReadinessCard db={db} readiness={ready.readiness} today={today} onChanged={reload} />
+        <ReadinessCard db={db} readiness={ready.readiness} check={ready.check} today={today} onChanged={reload} />
       ) : null}
       <FigureStrip
         figures={[

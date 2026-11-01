@@ -10,7 +10,10 @@ import { checkinInput, deleteSleep, listCheckins, listSleep, loadCoachSetup, sav
 import { needsRecalc } from '@/domain/coach';
 import type { Db } from '@/data/db';
 import { useProfile } from '@/data/profile-provider';
-import { CHECKIN_RULES_VERSION, weekDays, weeklyCheckin, type CheckinResult } from '@/domain/checkin';
+import { expenditure, loadCheckinRules, saveCheckinRules, type ExpenditureData } from '@/data/adaptive';
+import { buildReport, reportSections } from '@/data/report';
+import { ADAPTIVE_RULES_VERSION, suggestV2 } from '@/domain/adaptive';
+import { applyV2, weekDays, weeklyCheckin, type CheckinResult } from '@/domain/checkin';
 import { shiftDay } from '@/domain/nutrition';
 import type { Profile } from '@/domain/profile';
 import { parseDecimal } from '@/domain/units';
@@ -23,16 +26,34 @@ const QUALITY = ['keine', '1', '2', '3', '4', '5'] as const;
 async function loadCheckin(db: Db, profile: Profile) {
   // Die Woche endet gestern: Heute ist meist noch nicht vollständig erfasst.
   const weekEnd = shiftDay(todayDay(), -1);
-  const [input, sleep, history, setup] = await Promise.all([
+  const [input, sleep, history, setup, energy, rules, month] = await Promise.all([
     checkinInput(db, weekEnd, profile, timeZone),
     listSleep(db, shiftDay(weekEnd, -13)),
     listCheckins(db),
     loadCoachSetup(db),
+    expenditure(db, weekEnd),
+    loadCheckinRules(db),
+    buildReport(db, shiftDay(weekEnd, -27), weekEnd),
   ]);
-  const result = weeklyCheckin(input);
+  const v1 = weeklyCheckin(input);
+  // Fassung 2 (A7.4) nur, wenn gewählt; ohne Schätzung bleibt Fassung 1.
+  const result =
+    rules === 2
+      ? applyV2(
+          v1,
+          suggestV2({
+            estimate: energy.estimate,
+            delta: setup?.delta ?? null,
+            currentGoal: input.currentGoal,
+            weightKg: v1.summary.weightAvg,
+            heightCm: profile.heightCm,
+          })
+        )
+      : { ...v1, rulesVersion: 1 as const };
+  const hideNumbers = input.sensitive || input.hideNumbers;
   // Schritte oder Gym-Tage deutlich anders als bei der Einrichtung → neu berechnen anbieten (C9).
   const recalc = setup !== null && needsRecalc(setup.steps, result.summary.stepsAvg, setup.gymDays, result.summary.workouts);
-  return { weekEnd, result, sleep, history, recalc };
+  return { weekEnd, result, sleep, history, recalc, energy, rules, hideNumbers, monthSections: reportSections(month).filter((sec) => !hideNumbers || sec.title !== t('report.nutrition')) };
 }
 
 /** Wöchentlicher Check-in (Phase 9.2, COACH-006, -008, -010): Überblick, ein Vorschlag, du entscheidest. */
@@ -41,11 +62,16 @@ export default function CheckinScreen() {
   const { profile } = useProfile();
   const { data, reload, db, loaded } = useLoad((d) => loadCheckin(d, profile), {
     weekEnd: '',
-    result: null as CheckinResult | null,
+    result: null as (CheckinResult & { rulesVersion: 1 | 2 }) | null,
     sleep: [] as SleepEntry[],
     history: [] as CheckinRecord[],
     recalc: false,
+    energy: null as ExpenditureData | null,
+    rules: 1 as 1 | 2,
+    hideNumbers: false,
+    monthSections: [] as { title: string; lines: string[] }[],
   });
+  const [showMonth, setShowMonth] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [sleepDay, setSleepDay] = useState(todayDay());
   const [hours, setHours] = useState('');
@@ -62,7 +88,7 @@ export default function CheckinScreen() {
 
   async function decide(decision: CheckinRecord['decision']) {
     if (!result) return;
-    await saveCheckin(db, { ...result, weekEnd, rulesVersion: CHECKIN_RULES_VERSION }, decision, todayDay());
+    await saveCheckin(db, { ...result, weekEnd, rulesVersion: result.rulesVersion }, decision, todayDay());
     setMessage(decision === 'angenommen' ? t('checkin.accepted') : decision === 'abgelehnt' ? t('checkin.declined') : t('checkin.saved'));
     await reload();
   }
@@ -167,8 +193,49 @@ export default function CheckinScreen() {
           )
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
-          {t('checkin.rules', { version: CHECKIN_RULES_VERSION })}
+          {t('checkin.rules', { version: result.rulesVersion })}
         </ThemedText>
+        {!data.hideNumbers ? (
+          <Choice
+            label={t('adaptive.rulesLabel')}
+            options={['1', '2'] as const}
+            value={String(data.rules) as '1' | '2'}
+            onChange={async (v) => {
+              await saveCheckinRules(db, v === '2' ? 2 : 1);
+              await reload();
+            }}
+            format={(v) => t(`adaptive.rulesOption.${v}`)}
+          />
+        ) : null}
+        {data.rules === 2 && result.rulesVersion === 1 && !data.hideNumbers ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('adaptive.fallbackV1')}
+          </ThemedText>
+        ) : null}
+      </Card>
+
+      {data.energy && !data.hideNumbers ? <ExpenditureCard data={data.energy} /> : null}
+
+      <Card title={t('adaptive.monthTitle')}>
+        {showMonth ? (
+          <>
+            {data.monthSections.map((sec) => (
+              <ThemedText key={sec.title} type="small">
+                <ThemedText type="smallBold">{sec.title}</ThemedText>
+                {'\n'}
+                {sec.lines.join('\n')}
+              </ThemedText>
+            ))}
+            {data.energy?.estimate.kind === 'schaetzung' && !data.hideNumbers ? (
+              <ThemedText type="small">
+                {t('adaptive.monthExpenditure', { kcal: formatKcal(data.energy.estimate.kcal), pm: formatKcal(data.energy.estimate.plusMinus) })}
+              </ThemedText>
+            ) : null}
+            <Button label={t('adaptive.monthPdf')} variant="secondary" onPress={() => router.push('/more/report')} />
+          </>
+        ) : (
+          <Button label={t('adaptive.monthShow')} variant="secondary" onPress={() => setShowMonth(true)} />
+        )}
       </Card>
 
       <Card title={t('checkin.sleepTitle')}>
@@ -208,5 +275,52 @@ export default function CheckinScreen() {
         </Card>
       ) : null}
     </Screen>
+  );
+}
+
+/** Geschätzter Verbrauch mit Rechenweg und Wochenverlauf (A7.3). */
+function ExpenditureCard({ data }: { data: ExpenditureData }) {
+  const e = data.estimate;
+  const kg = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${formatNumber(Math.abs(v), 2)} kg`;
+  return (
+    <Card title={t('adaptive.title')}>
+      {e.kind === 'schaetzung' ? (
+        <>
+          <ThemedText type="subtitle">{t('adaptive.value', { kcal: formatKcal(e.kcal), pm: formatKcal(e.plusMinus) })}</ThemedText>
+          <ThemedText type="small">{t('adaptive.intake', { kcal: formatKcal(Math.round(e.intakeAvg)), days: e.completeDays })}</ThemedText>
+          <ThemedText type="small">
+            {t('adaptive.trend', { start: formatNumber(e.trendStart, 1), end: formatNumber(e.trendEnd, 1), change: kg(e.change), span: e.spanDays })}
+          </ThemedText>
+          <ThemedText type="small">
+            {t('adaptive.formula', {
+              intake: formatKcal(Math.round(e.intakeAvg)),
+              change: formatNumber(e.change, 2),
+              span: e.spanDays,
+              kcal: formatKcal(e.kcal),
+            })}
+          </ThemedText>
+        </>
+      ) : (
+        <ThemedText type="small">
+          {t('adaptive.learning', { days: e.completeDays, needed: e.needed })}
+          {!e.weightStart || !e.weightEnd ? ` ${t('adaptive.learningWeight')}` : ''}
+        </ThemedText>
+      )}
+      {data.weeks.some((w) => w.completeDays > 0) ? <ThemedText type="smallBold">{t('adaptive.weeksTitle')}</ThemedText> : null}
+      {data.weeks.filter(() => data.weeks.some((w) => w.completeDays > 0)).map((w) => (
+        <ThemedText key={w.to} type="small">
+          {t('adaptive.weekLine', {
+            from: formatDay(w.from),
+            to: formatDay(w.to),
+            intake: w.intakeAvg === null ? '–' : formatKcal(Math.round(w.intakeAvg)),
+            days: w.completeDays,
+            out: w.expenditure === null ? '–' : formatKcal(w.expenditure),
+          })}
+        </ThemedText>
+      ))}
+      <ThemedText type="small" themeColor="textSecondary">
+        {t('adaptive.hint', { version: ADAPTIVE_RULES_VERSION })}
+      </ThemedText>
+    </Card>
   );
 }

@@ -11,6 +11,7 @@
 // - Schlaf ist nur Kontext (COACH-006): kurzer Schlaf ergibt einen Hinweis, nie eine Kalorienänderung.
 // - Status krank/verletzt/Pause in der Woche (A6.7): kein Kalorienvorschlag.
 
+import type { V2Result } from './adaptive';
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { weekAverage } from './nutrition';
 import { weightTrend, type WeightEntry } from './weight';
@@ -26,6 +27,8 @@ export type CheckinDay = {
   kcal: number | null;
   entries: number;
   unknownKcal: number;
+  /** Vom Nutzer als nicht vollständig erfasst markiert (A7.2). */
+  flagged?: number;
   goal: number | null;
   /** Eiweiß und Ballaststoffe gegessen (Summe der bekannten Werte) und Ziel des Tages (Coach, C9). */
   protein?: number | null;
@@ -79,7 +82,7 @@ export type CheckinSummary = {
 export type Missing = 'gewicht' | 'essen' | 'ziel' | 'richtung';
 
 export type CheckinSuggestion =
-  | { kind: 'kcal'; from: number; to: number; reason: 'keinFortschritt' | 'zuSchnell' | 'abweichung' }
+  | { kind: 'kcal'; from: number; to: number; reason: 'keinFortschritt' | 'zuSchnell' | 'abweichung' | 'verbrauch' }
   | { kind: 'zielEinhalten'; over: number }
   | { kind: 'mehrDaten'; missing: Missing[] }
   | { kind: 'passt' }
@@ -145,7 +148,7 @@ export function weeklyCheckin(input: CheckinInput): CheckinResult {
 
 /** Eiweiß und Ballaststoffe im Schnitt der vollständig erfassten Tage, mit Ziel (C9). */
 function macroAverages(days: CheckinDay[]) {
-  const complete = days.filter((d) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0);
+  const complete = days.filter((d) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0 && !d.flagged);
   const avg = (values: (number | null | undefined)[]) => {
     const known = values.filter((v): v is number => typeof v === 'number');
     return known.length ? known.reduce((s, v) => s + v, 0) / known.length : null;
@@ -201,4 +204,15 @@ function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
   const to = Math.max(CALORIE_FLOOR, goal + delta);
   if (to === goal) return { kind: 'passt' };
   return { kind: 'kcal', from: goal, to, reason };
+}
+
+/**
+ * Check-in Fassung 2 (A7.4): ersetzt den Kalorienvorschlag durch „Verbrauch + Ziel-Abstand“. Sperren (sensible
+ * Situation, ohne Zahlen, Status) bleiben; ohne Schätzung bleibt der Vorschlag nach Fassung 1.
+ */
+export function applyV2(result: CheckinResult, v2: V2Result): CheckinResult & { rulesVersion: 1 | 2 } {
+  const blocked = ['sensibel', 'ohneZahlen', 'pausiert'].includes(result.suggestion.kind);
+  if (blocked || v2.kind === 'ohne') return { ...result, rulesVersion: 1 };
+  const suggestion: CheckinSuggestion = v2.kind === 'kcal' ? { kind: 'kcal', from: v2.from, to: v2.to, reason: 'verbrauch' } : { kind: 'passt' };
+  return { ...result, suggestion, rulesVersion: 2 };
 }

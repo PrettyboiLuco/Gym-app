@@ -201,9 +201,10 @@ export function drinkTotals(drinks: { drinkType: DrinkType | null; amount: numbe
  * Durchschnitt nur über vollständig erfasste Tage; leere Tage und Tage mit unbekannten Werten
  * werden getrennt gezählt, damit sie den Schnitt nicht nach unten ziehen (TRACK-002, TRACK-004).
  */
-export function weekAverage(days: { day: string; kcal: number | null; entries: number; unknownKcal?: number }[]) {
-  const incomplete = days.filter((d) => d.entries > 0 && (d.kcal === null || (d.unknownKcal ?? 0) > 0));
-  const tracked = days.filter((d) => d.entries > 0 && d.kcal !== null && (d.unknownKcal ?? 0) === 0);
+export function weekAverage(days: { day: string; kcal: number | null; entries: number; unknownKcal?: number; flagged?: number | boolean }[]) {
+  // Vom Nutzer als „nicht vollständig erfasst“ markiert (A7.2) zählt wie ein unvollständiger Tag.
+  const incomplete = days.filter((d) => d.entries > 0 && (d.kcal === null || (d.unknownKcal ?? 0) > 0 || !!d.flagged));
+  const tracked = days.filter((d) => d.entries > 0 && d.kcal !== null && (d.unknownKcal ?? 0) === 0 && !d.flagged);
   const average = tracked.length ? tracked.reduce((s, d) => s + (d.kcal ?? 0), 0) / tracked.length : null;
   return {
     average,

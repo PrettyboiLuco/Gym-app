@@ -29,6 +29,17 @@ export function reasonText(r: Reason): string {
   return `${t(`readiness.reason.${r.key}`, { value })}${base ? ` ${base}` : ''}`;
 }
 
+/** „Heute: 7 h Schlaf · Qualität 4 · Energie 3 · Muskelkater 2“ – die Rohwerte hinter der Ampel. */
+export function todayLine(c: DailyCheck): string {
+  const parts = [
+    c.sleepHours !== null ? t('readiness.today.sleep', { value: formatNumber(c.sleepHours, 1) }) : null,
+    c.sleepQuality !== null ? t('readiness.today.quality', { value: c.sleepQuality }) : null,
+    c.energy !== null ? t('readiness.today.energy', { value: c.energy }) : null,
+    c.soreness !== null ? t('readiness.today.soreness', { value: c.soreness }) : null,
+  ].filter(Boolean);
+  return `${t('readiness.today.label')} ${parts.join(' · ')}`;
+}
+
 /**
  * Morgen-Check in 4 Antippen (A6.2): Schlaf, Schlafqualität, Energie, Muskelkater. Jede Wahl wird sofort gespeichert,
  * damit nichts verloren geht; genauer (Uhrzeiten, Faktoren, Notiz) geht es in den Details.
@@ -66,7 +77,19 @@ export function MorningCheck({ db, day, check, onSaved }: { db: Db; day: string;
 }
 
 /** Ampel mit Begründung und Angebot (A6.5/A6.6). Wortwahl: Trainingsvorschlag, nie Befund. */
-export function ReadinessCard({ db, readiness, today, onChanged }: { db: Db; readiness: Readiness; today: string; onChanged: () => void }) {
+export function ReadinessCard({
+  db,
+  readiness,
+  check,
+  today,
+  onChanged,
+}: {
+  db: Db;
+  readiness: Readiness;
+  check: DailyCheck | null;
+  today: string;
+  onChanged: () => void;
+}) {
   const theme = useTheme();
   const [busy, setBusy] = useState(false);
   if (readiness.kind === 'offen') return null;
@@ -106,15 +129,16 @@ export function ReadinessCard({ db, readiness, today, onChanged }: { db: Db; rea
           {t('readiness.learning', { checks: readiness.checks, needed: readiness.needed })}
         </ThemedText>
       ) : null}
+      {check ? <ThemedText type="small">{todayLine(check)}</ThemedText> : null}
       {readiness.reasons.length ? (
         readiness.reasons.map((r) => (
           <ThemedText key={r.key} type="small">
             {`· ${reasonText(r)}`}
           </ThemedText>
         ))
-      ) : (
+      ) : readiness.kind === 'ampel' ? (
         <ThemedText type="small">{t('readiness.noReasons')}</ThemedText>
-      )}
+      ) : null}
       {offers.includes('wenigerSaetze') ? (
         <Button label={t('readiness.offer.wenigerSaetze')} variant="secondary" disabled={busy} onPress={() => lighter('wenigerSaetze')} />
       ) : null}

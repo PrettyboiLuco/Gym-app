@@ -511,13 +511,29 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
 
 /** Summen pro Tag für die Wochenansicht. */
 export function daySums(db: Db, fromDate: string, toDate: string) {
-  return db.getAllAsync<{ day: string; kcal: number | null; entries: number; unknownKcal: number; protein: number | null; fiber: number | null }>(
-    `SELECT diary_date AS day, SUM(kcal) AS kcal, COUNT(*) AS entries, SUM(protein) AS protein, SUM(fiber) AS fiber,
-       SUM(CASE WHEN kcal IS NULL THEN 1 ELSE 0 END) AS unknownKcal
-     FROM consumption_event WHERE diary_date BETWEEN ? AND ? GROUP BY diary_date`,
+  return db.getAllAsync<{ day: string; kcal: number | null; entries: number; unknownKcal: number; protein: number | null; fiber: number | null; flagged: number }>(
+    `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal, COUNT(*) AS entries, SUM(e.protein) AS protein, SUM(e.fiber) AS fiber,
+       SUM(CASE WHEN e.kcal IS NULL THEN 1 ELSE 0 END) AS unknownKcal, COALESCE(MAX(d.incomplete), 0) AS flagged
+     FROM consumption_event e LEFT JOIN diary_day d ON d.day = e.diary_date
+     WHERE e.diary_date BETWEEN ? AND ? GROUP BY e.diary_date`,
     fromDate,
     toDate
   );
+}
+
+/** Tag bewusst als „nicht vollständig erfasst“ markieren (A7.2) – zählt dann nicht für Schnitt und Verbrauch. */
+export async function setDayIncomplete(db: Db, day: string, incomplete: boolean) {
+  await db.runAsync(
+    `INSERT INTO diary_day (day, incomplete, updated_at_utc) VALUES (?, ?, ?)
+     ON CONFLICT (day) DO UPDATE SET incomplete = excluded.incomplete, updated_at_utc = excluded.updated_at_utc`,
+    day,
+    incomplete ? 1 : 0,
+    nowUtc()
+  );
+}
+
+export async function isDayIncomplete(db: Db, day: string): Promise<boolean> {
+  return ((await db.getFirstAsync<{ incomplete: number }>('SELECT incomplete FROM diary_day WHERE day = ?', day))?.incomplete ?? 0) === 1;
 }
 
 // ------------------------------------------------------------------------------ Vorlagen

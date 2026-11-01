@@ -37,6 +37,7 @@ export const BACKUP_TABLES = [
   'sleep_entry',
   'daily_check',
   'status_period',
+  'diary_day',
   'checkin',
   'supplement',
   'supplement_log',

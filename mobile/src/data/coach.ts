@@ -99,6 +99,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
         kcal: s?.kcal ?? null,
         entries: s?.entries ?? 0,
         unknownKcal: s?.unknownKcal ?? 0,
+        flagged: s?.flagged ?? 0,
         goal: goals[i]?.kcal ?? null,
         protein: s?.protein ?? null,
         fiber: s?.fiber ?? null,

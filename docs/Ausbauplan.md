@@ -25,7 +25,8 @@ mit der Fachperson statt vieler einzelner.
 | A4 | **fertig** (01.11.2026) – Datenbank-Version 22, 441 Grundnahrungsmittel (USDA SR28); Gerätetest durch Luc offen |
 | A5 | **fertig** (01.11.2026) – CSV-Export, Import Strong/Hevy/Gewicht, PDF-Bericht, KI-Zusammenfassung; Test mit echten Strong-/Hevy-Dateien durch Luc offen |
 | A6 | **fertig** (01.11.2026) – Datenbank-Version 23, Regeln Bereitschaft v1 (Fachprüfung offen, Mappe Abschnitt I); 2 Wochen Morgen-Check durch Luc offen |
-| A7–A11 | offen |
+| A7 | **fertig** (01.11.2026) – Datenbank-Version 24, Schätzung Fassung 1, Check-in Fassung 2 wählbar (Fachprüfung offen, Mappe Abschnitt J); Test nach 3–4 Wochen Daten durch Luc offen |
+| A8–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -250,7 +251,8 @@ nur einmal am Tag · eine befristete Wochenfassung wäre nach dem leichten Tag v
 Schlaf aus dem Check-in und der Morgen-Check wären zwei Einträge pro Tag geworden → ein Eintrag je Tag · ältere
 Sicherungen hätten keinen Schlaf mehr gezeigt → werden übernommen · Cardio im Training wäre doppelt in die Last
 gezählt → nur Cardio außerhalb eines Trainings · Trainings-Ampel durfte das heutige Training nicht mitzählen → Last
-bis gestern · Morgen-Check verschwand nach dem ersten Antippen → bleibt, bis alle vier Werte da sind.
+bis gestern · Morgen-Check verschwand nach dem ersten Antippen → bleibt, bis alle vier Werte da sind · im Lernmodus stand
+„Alles im Bereich deiner üblichen Werte“, obwohl es noch keinen Schnitt gab → stattdessen die heutigen Rohwerte.
 
 ## A7 – Adaptiver Energiebedarf (Fachprüfung)
 
@@ -264,6 +266,28 @@ bis gestern · Morgen-Check verschwand nach dem ersten Antippen → bleibt, bis 
 | A7.6 | Schutzregeln bleiben (Untergrenzen, Untergewicht, „sensible Situation“ blendet Zahlen aus) |
 
 **Fertig, wenn:** nach 3–4 Wochen ein geschätzter Verbrauch mit Rechenweg erscheint und der Vorschlag nachvollziehbar ist.
+
+**Umgesetzt (A7, 01.11.2026):**
+- Migration 24: `diary_day`. Im Tagebuch lässt sich „Tag vollständig erfasst?“ auf „Nein“ stellen. Ein solcher Tag
+  zählt dann weder im Wochenschnitt noch im Check-in, im Bericht oder in der Schätzung.
+- Schätzung über 28 Tage mit Rechenweg („Ø Aufnahme − Trendänderung × 7.700 ÷ 21 Tage“) und Unsicherheit (± 200).
+  Dazu kommt ein Wochenverlauf „Aufnahme gegen Verbrauch“. Bei weniger als 14 vollständigen Tagen oder fehlendem
+  Gewichtstrend steht dort „noch am Lernen“.
+- Check-in mit wählbarer Regel:
+  - Fassung 1 (Gewichtsverlauf) bleibt Standard.
+  - Fassung 2 (Verbrauch + Ziel-Abstand) ist wählbar: höchstens ±200 kcal je Woche, auf 50 gerundet, unter 100 kcal
+    Unterschied kein Vorschlag.
+  - Ohne Schätzung oder ohne Coach-Einrichtung gilt automatisch wieder Fassung 1.
+- Monatsbericht im Check-in mit Gewicht, Maßen, Training (Top-Übungen mit geschätztem 1RM), Ernährung, Schlaf und
+  Verbrauch, auch als PDF.
+- Schutzregeln greifen auch in Fassung 2: Untergrenze, kein Senken bei Untergewicht, keine Zahlen bei sensibler
+  Situation oder „ohne Zahlen“, kein Vorschlag bei Status krank/verletzt/Pause.
+
+**Beim Lückencheck nach A7 gefunden und geschlossen:** Ein Vorschlag von +50 kcal wäre Rauschen → erst ab 100 kcal
+Unterschied · die Wochenübersicht zeigte markierte Tage nicht als unvollständig · der PDF-Bericht (A5) zählte
+Tage mit unbekannten oder markierten Werten in den Ernährungsschnitt → nur vollständige Tage, Getränke zählen mit ·
+der Monatsbericht hätte im Modus „ohne Zahlen“ Kalorien gezeigt → Ernährung ausgeblendet · leerer Wochenverlauf
+nur aus Strichen → erst sichtbar, wenn es erfasste Tage gibt.
 
 ## A8 – Programme und Auswertung im Training
 

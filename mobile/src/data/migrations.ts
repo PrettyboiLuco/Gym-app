@@ -650,6 +650,14 @@ export const MIGRATIONS: string[] = [
    );
    ALTER TABLE workout_session ADD COLUMN effort INTEGER CHECK (effort IS NULL OR effort BETWEEN 1 AND 10);
    ALTER TABLE workout_session ADD COLUMN feedback TEXT;`,
+
+  // Version 24: Adaptiver Energiebedarf (Ausbauplan A7). Tage, die bewusst nicht vollständig erfasst sind, zählen weder
+  // für die Verbrauchsschätzung noch im Check-in als vollständig.
+  `CREATE TABLE diary_day (
+     day TEXT PRIMARY KEY NOT NULL,
+     incomplete INTEGER NOT NULL DEFAULT 0 CHECK (incomplete IN (0, 1)),
+     updated_at_utc TEXT NOT NULL
+   );`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */
