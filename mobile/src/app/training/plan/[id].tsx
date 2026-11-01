@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { supersetLetters } from '@/domain/logger';
+import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
@@ -53,7 +54,8 @@ type ItemForm = {
   /** Supersatz mit der nächsten Übung (A1); daraus werden beim Speichern Gruppen-Nummern. */
   linkNext?: boolean;
 };
-type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean };
+type CardioForm = { activity: CardioActivity; minutes: string; atEnd: boolean };
+type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean; cardio?: CardioForm[] };
 type PlanForm = { name: string; days: DayForm[] };
 
 const NEW_ITEM = { sets: '3', repsMin: '8', repsMax: '12', rest: '90', seconds: '' };
@@ -67,6 +69,7 @@ function toForm(draft: PlanDraft): PlanForm {
       name: day.name,
       warmup: day.warmup !== false,
       cooldown: day.cooldown !== false,
+      cardio: (day.cardio ?? []).map((c) => ({ activity: c.activity, minutes: String(c.minutes), atEnd: c.atEnd !== false })),
       items: day.items.map((i, index) => ({
         exerciseId: i.exerciseId,
         sets: String(i.sets),
@@ -92,6 +95,7 @@ function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDr
       name: day.name,
       warmup: day.warmup,
       cooldown: day.cooldown,
+      ...(day.cardio?.length ? { cardio: day.cardio.map((c) => ({ activity: c.activity, minutes: num(c.minutes), atEnd: c.atEnd })) } : {}),
       items: day.items.map((i, index) => ({
         exerciseId: i.exerciseId,
         sets: num(i.sets),
@@ -141,6 +145,7 @@ export default function PlanEditorScreen() {
   // Aktive Fassung; ist sie befristet, bleibt sie es auch nach dem Bearbeiten (TRAIN-008).
   const [active, setActive] = useState<PlanVersionInfo | null>(null);
   const [pickingFor, setPickingFor] = useState<number | null>(null);
+  const [cardioPickFor, setCardioPickFor] = useState<number | null>(null);
   const [showProblems, setShowProblems] = useState(false);
 
   function apply(data: Awaited<ReturnType<typeof fetchEditor>>) {
@@ -180,6 +185,12 @@ export default function PlanEditorScreen() {
   function updateItem(dayIndex: number, itemIndex: number, change: Partial<ItemForm>) {
     updateDay(dayIndex, {
       items: form.days[dayIndex].items.map((item, i) => (i === itemIndex ? { ...item, ...change } : item)),
+    });
+  }
+
+  function updateCardio(dayIndex: number, cardioIndex: number, change: Partial<CardioForm>) {
+    updateDay(dayIndex, {
+      cardio: (form.days[dayIndex].cardio ?? []).map((c, i) => (i === cardioIndex ? { ...c, ...change } : c)),
     });
   }
 
@@ -376,21 +387,66 @@ export default function PlanEditorScreen() {
               {t('plan.warmupHint', { minutes: Math.round(blockSeconds(day, 'aufwaermen') / 60) })}
             </ThemedText>
           ) : null}
-          {day.items.length > 0 ? (
+          {(day.cardio ?? []).map((c, cardioIndex) => (
+            <View key={`cardio-${cardioIndex}`} style={[styles.item, { borderColor: theme.backgroundSelected }]}>
+              <ThemedText type="smallBold">{t(`cardio.activities.${c.activity}`)}</ThemedText>
+              <View style={styles.numbers}>
+                <Field
+                  label={t('cardio.minutes')}
+                  value={c.minutes}
+                  keyboardType="number-pad"
+                  style={styles.numberField}
+                  onChangeText={(minutes) => updateCardio(dayIndex, cardioIndex, { minutes })}
+                />
+              </View>
+              <Choice
+                label={t('plan.cardioWhen')}
+                options={['start', 'end'] as const}
+                value={c.atEnd ? 'end' : 'start'}
+                onChange={(v) => updateCardio(dayIndex, cardioIndex, { atEnd: v === 'end' })}
+                format={(v) => t(`plan.cardioAt.${v}`)}
+              />
+              <Button
+                label={t('common.remove')}
+                variant="danger"
+                size="compact"
+                onPress={() => updateDay(dayIndex, { cardio: (day.cardio ?? []).filter((_, i) => i !== cardioIndex) })}
+              />
+            </View>
+          ))}
+          {cardioPickFor === dayIndex ? (
+            <View style={styles.item}>
+              <Choice
+                chips
+                label={t('cardio.pick')}
+                options={CARDIO_ACTIVITIES}
+                value={null}
+                onChange={(activity) => {
+                  updateDay(dayIndex, { cardio: [...(day.cardio ?? []), { activity, minutes: '15', atEnd: true }] });
+                  setCardioPickFor(null);
+                }}
+                format={(a) => t(`cardio.activities.${a}`)}
+              />
+              <Button label={t('common.cancel')} variant="secondary" size="compact" onPress={() => setCardioPickFor(null)} />
+            </View>
+          ) : null}
+          {day.items.length > 0 || (day.cardio?.length ?? 0) > 0 ? (
             <ThemedText type="small" themeColor="textSecondary">
               {t('plan.duration', {
                 value: t('common.minutes', {
-                  value: estimateDayMinutes(
-                    draft.days[dayIndex].items.filter((i) => i.sets > 0 && i.restSeconds >= 0 && (i.targetSeconds ?? 0) >= 0),
-                    45,
-                    60,
-                    (day.warmup ? blockSeconds(day, 'aufwaermen') : 0) + (day.cooldown ? blockSeconds(day, 'cooldown') : 0)
-                  ),
+                  value:
+                    estimateDayMinutes(
+                      draft.days[dayIndex].items.filter((i) => i.sets > 0 && i.restSeconds >= 0 && (i.targetSeconds ?? 0) >= 0),
+                      45,
+                      60,
+                      (day.warmup ? blockSeconds(day, 'aufwaermen') : 0) + (day.cooldown ? blockSeconds(day, 'cooldown') : 0)
+                    ) + (draft.days[dayIndex].cardio ?? []).reduce((sum, c) => sum + Math.max(0, c.minutes), 0),
                 }),
               })}
             </ThemedText>
           ) : null}
           <Button label={t('plan.addExercise')} onPress={() => setPickingFor(dayIndex)} />
+          <Button label={t('plan.addCardio')} variant="secondary" onPress={() => setCardioPickFor(dayIndex)} />
           {form.days.length > 1 ? (
             <View style={styles.dayMoves}>
               {dayIndex > 0 ? (

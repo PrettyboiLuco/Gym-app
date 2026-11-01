@@ -20,7 +20,8 @@ mit der Fachperson statt vieler einzelner.
 | Phase | Status |
 |---|---|
 | A1 | **fertig** (01.11.2026) – Datenbank-Version 19, 552 Tests; Gerätetest durch Luc offen |
-| A2–A11 | offen |
+| A2 | **fertig** (01.11.2026) – Datenbank-Version 20; Gerätetest durch Luc offen |
+| A3–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -96,6 +97,18 @@ angezeigt · Gewichtsart für eigene Übungen fehlte · Trainingsnotiz fehlte im
 | A2.6 | Verlauf, Abschluss und Wochenpunkte zählen Cardio mit; **keine** Kalorien-Gutschrift (HEALTH-007) |
 
 **Fertig, wenn:** Luc nach dem Krafttraining 15 min Laufband einträgt und es in Woche und Verlauf auftaucht.
+
+**Umgesetzt (A2, 01.11.2026):** Cardio als eigene Tabellen (`plan_cardio`, `cardio_log`) statt neuer Übungsart – die
+Übungstabelle legt ihre Arten per CHECK fest, ein Neuaufbau hätte alle verknüpften Tabellen betroffen. 14 Aktivitäten,
+Stoppuhr (läuft weiter, auch wenn die App zu ist), Minuten, Strecke mit Tempo, Stufe/Steigung, Ø-Puls, Anstrengung 1–10,
+Notiz, Tag wählbar; im Plan je Tag mit Minuten und „am Anfang/am Ende“ (auch reine Cardio-Tage), im Training als
+eigene Karte, „Cardio hinzufügen“ im laufenden Training; Training-Tab mit Wochenminuten und WHO-Orientierung; Verlauf,
+Abschluss, Wochenpunkte und Gewohnheit „Training“ zählen Cardio mit; Plan-Dateien mit `"cardio"`; Sicherung enthält
+beide Tabellen. Keine Kalorien-Gutschrift (Hinweis im Formular).
+
+**Beim Lückencheck nach A2 gefunden und geschlossen:** Offene Einträge mit laufender Stoppuhr ohne Training waren
+nirgends sichtbar → stehen jetzt oben in der Cardio-Karte · Abschluss eines reinen Cardio-Tags zeigte „0 Sätze, 0 kg“
+→ zeigt jetzt Dauer, Cardio-Minuten und Strecke.
 
 ## A3 – Ernährung schneller eintragen
 

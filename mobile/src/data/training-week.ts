@@ -6,6 +6,7 @@ import { weekStart } from '@/domain/goals';
 import { trainedDays } from '@/domain/summary';
 import { localDay } from '@/domain/time';
 
+import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
 import { listExercises, listSessions } from './training';
@@ -15,7 +16,12 @@ export type TrainingWeek = { done: boolean[]; planned: boolean[]; goal: number |
 export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingWeek> {
   const [sessions, setup] = await Promise.all([listSessions(db, 30), loadCoachSetup(db)]);
   const monday = weekStart(today);
-  const days = sessions.filter((s) => s.status === 'abgeschlossen').map((s) => localDay(new Date(s.startedAt), timeZone));
+  const cardio = await cardioMinutesByDay(db, monday);
+  const days = [
+    ...sessions.filter((s) => s.status === 'abgeschlossen').map((s) => localDay(new Date(s.startedAt), timeZone)),
+    // Cardio für sich zählt als Trainingstag (A2).
+    ...cardio.map((c) => c.day),
+  ];
   return {
     done: trainedDays(days, monday),
     // Geplante Trainingstage aus dem Coach (ISO: 1 = Montag … 7 = Sonntag).

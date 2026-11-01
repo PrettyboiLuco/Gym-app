@@ -30,7 +30,11 @@ import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { formatNumber, t } from '@/i18n';
+import { CardioRow } from '@/components/cardio-row';
+import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
+import { weekStart } from '@/domain/goals';
+import { shiftDay } from '@/domain/nutrition';
 
 async function loadOverview(db: Db) {
   // Abgelaufene befristete Fassungen zuerst beenden (TRAIN-008), damit die Liste stimmt.
@@ -43,6 +47,11 @@ async function loadOverview(db: Db) {
     loadTrainingWeek(db, todayDay()),
   ]);
   const muscles = await loadWeekSetsByMuscle(db, todayDay());
+  // Cardio dieser Woche (A2): Minuten und die letzten Einträge.
+  const monday = weekStart(todayDay());
+  const cardioWeek = await listCardio(db, monday, todayDay());
+  const cardioRecent = await listCardio(db, shiftDay(todayDay(), -30), todayDay());
+  const cardioOpen = await listOpenCardio(db);
   const suggestions: Record<string, number> = {};
   for (const plan of plans) {
     if (plan.days.length > 0) {
@@ -51,7 +60,20 @@ async function loadOverview(db: Db) {
   }
   // Wiedereinstieg nach längerer Pause (TRAIN-015); Zeitpunkt beim Laden, nicht beim Rendern.
   const pauseDays = finished ? daysBetween(finished, Date.now()) : 0;
-  return { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished: finished !== null, muscles };
+  return {
+    active,
+    plans,
+    suggestions,
+    timed,
+    expired,
+    pauseDays,
+    week,
+    hasFinished: finished !== null,
+    muscles,
+    cardioMinutes: cardioWeek.reduce((sum, c) => sum + (c.minutes ?? 0), 0),
+    cardioRecent: cardioRecent.slice(0, 3),
+    cardioOpen,
+  };
 }
 
 export default function TrainingScreen() {
@@ -66,6 +88,9 @@ export default function TrainingScreen() {
     week: { done: [], planned: [], goal: null, todayIndex: 0 } as TrainingWeek,
     hasFinished: false,
     muscles: [] as { group: MuscleGroup; sets: number }[],
+    cardioMinutes: 0,
+    cardioRecent: [] as CardioEntry[],
+    cardioOpen: [] as CardioEntry[],
   });
   const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
   const dark = useColorScheme() === 'dark';
@@ -208,6 +233,16 @@ export default function TrainingScreen() {
           last
           onPress={() => router.push('/training/assistant')}
         />
+      </Card>
+
+      <Card title={t('cardio.weekTitle')} trailing={<ThemedText type="small" themeColor="textSecondary">{t('cardio.week', { minutes: formatNumber(data.cardioMinutes, 0) })}</ThemedText>}>
+        {[...data.cardioOpen, ...data.cardioRecent].map((c) => (
+          <CardioRow key={c.id} entry={c} onPress={() => router.push({ pathname: '/training/cardio', params: { id: c.id } })} />
+        ))}
+        <ListRow icon="plus" title={t('cardio.add')} accessory="›" onPress={() => router.push('/training/cardio')} last />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('cardio.whoHint')}
+        </ThemedText>
       </Card>
 
       <Card title={t('training.routinesTitle')}>

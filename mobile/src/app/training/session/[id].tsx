@@ -9,6 +9,8 @@ import { MeterBar } from '@/components/charts';
 import { haptic } from '@/components/haptics';
 import { SetCheck } from '@/components/set-check';
 import { RirChoice, SetDetails } from '@/components/set-details';
+import { CardioRow } from '@/components/cardio-row';
+import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import { exerciseName } from '@/components/exercise-name';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
@@ -125,6 +127,8 @@ export default function SessionScreen() {
   const [detailFor, setDetailFor] = useState<string | null>(null);
   const [askRirFor, setAskRirFor] = useState<string | null>(null);
   const [plateSetup, setPlateSetup] = useState<PlateSetup | null>(null);
+  // Cardio dieses Trainings (A2): geplant aus dem Plantag oder hinzugefügt.
+  const [cardio, setCardio] = useState<CardioEntry[]>([]);
   const holdNow = useNow(hold !== null);
   const holdLeftMs = hold ? Math.max(0, hold.endAtMs - holdNow) : 0;
 
@@ -140,6 +144,7 @@ export default function SessionScreen() {
     ]);
     setProgressionOn(progression);
     setPlateSetup(await loadPlateSetup(db));
+    setCardio(await listCardioForSession(db, id));
     setHints(await planHintsForSession(db, id));
     setBlocks(timed);
     setAlertsOff(NOTIFICATIONS_SUPPORTED && !(await loadReminders(db)).timerAlerts);
@@ -488,6 +493,23 @@ export default function SessionScreen() {
     };
   }
 
+  function cardioCard(entries: CardioEntry[]) {
+    if (entries.length === 0) return null;
+    return (
+      <Card title={t('cardio.title')}>
+        {entries.map((c, i) => (
+          <CardioRow
+            key={c.id}
+            entry={c}
+            active={active}
+            last={i === entries.length - 1}
+            onPress={active || c.completedAt ? () => router.push({ pathname: '/training/cardio', params: { id: c.id } }) : undefined}
+          />
+        ))}
+      </Card>
+    );
+  }
+
   if (picking) {
     return (
       <Screen withHeader>
@@ -561,6 +583,8 @@ export default function SessionScreen() {
       ) : null}
       {warmupDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.warmupDone')}</ThemedText> : null}
       {blockMessage ? <ThemedText>{blockMessage}</ThemedText> : null}
+
+      {cardioCard(cardio.filter((c) => c.atEnd === 0))}
 
       {order.map((exerciseId) => {
         const rows = sets.filter((s) => s.exerciseId === exerciseId);
@@ -866,6 +890,8 @@ export default function SessionScreen() {
         );
       })}
 
+      {cardioCard(cardio.filter((c) => c.atEnd === 1))}
+
       {showCooldown ? (
         <Card title={t('session.cooldownTitle')}>
           <ThemedText type="small" themeColor="textSecondary">
@@ -897,6 +923,11 @@ export default function SessionScreen() {
       {active ? (
         <>
           <Button label={t('session.addExercise')} onPress={() => setPicking(true)} />
+          <Button
+            label={t('cardio.addInSession')}
+            variant="secondary"
+            onPress={() => router.push({ pathname: '/training/cardio', params: { session: id } })}
+          />
           <Card>
             <Choice
               label={t('session.restAuto')}

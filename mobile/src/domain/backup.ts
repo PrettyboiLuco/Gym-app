@@ -14,6 +14,8 @@ export const BACKUP_TABLES = [
   'plan_item',
   'workout_session',
   'set_log',
+  'plan_cardio',
+  'cardio_log',
   'food',
   'recipe',
   'recipe_version',

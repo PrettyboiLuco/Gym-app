@@ -285,7 +285,12 @@ export async function trainingDays(db: Db, fromUtc: string, timeZone: string): P
     fromUtc,
     fromUtc
   );
-  return [...new Set(rows.map((r) => localDay(new Date(r.at), timeZone)))];
+  // Cardio (A2) zählt als Trainingstag; der Tag ist dort schon lokal gespeichert.
+  const cardio = await db.getAllAsync<{ day: string }>(
+    'SELECT DISTINCT day FROM cardio_log WHERE completed_at_utc IS NOT NULL AND day >= ?',
+    localDay(new Date(fromUtc), timeZone)
+  );
+  return [...new Set([...rows.map((r) => localDay(new Date(r.at), timeZone)), ...cardio.map((c) => c.day)])];
 }
 
 /** Tage mit abgeschlossener Dehnroutine oder Cool-down (Gewohnheit „dehnen“). */

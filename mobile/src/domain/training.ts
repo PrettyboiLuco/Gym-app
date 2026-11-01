@@ -1,5 +1,6 @@
 // Trainingslogik ohne Oberfläche (Register TRAIN-002, -004, -007, -013, -015, HEALTH-008–011).
 
+import { isCardioActivity, PLAN_CARDIO_MAX_MINUTES, type CardioActivity } from './cardio';
 import { LIFT_RANGE, parseWeightIn, type WeightUnit } from './units';
 
 export type PlanItemDraft = {
@@ -19,8 +20,10 @@ export type PlanItemDraft = {
   /** Supersatz: aufeinanderfolgende Übungen mit gleicher Nummer laufen im Wechsel (A1). */
   superset?: number | null;
 };
+/** Cardio im Plantag (A2): Aktivität, Ziel-Minuten, am Anfang oder Ende des Trainings. */
+export type PlanCardioDraft = { activity: CardioActivity; minutes: number; atEnd?: boolean; note?: string | null };
 /** Aufwärmen/Cool-down für diesen Tag vorschlagen (STRETCH-001/002). */
-export type PlanDayDraft = { name: string; items: PlanItemDraft[]; warmup?: boolean; cooldown?: boolean };
+export type PlanDayDraft = { name: string; items: PlanItemDraft[]; warmup?: boolean; cooldown?: boolean; cardio?: PlanCardioDraft[] };
 export type PlanDraft = { name: string; days: PlanDayDraft[] };
 
 export type PlanProblem =
@@ -32,7 +35,8 @@ export type PlanProblem =
   | 'invalidSets'
   | 'invalidReps'
   | 'invalidRest'
-  | 'invalidSeconds';
+  | 'invalidSeconds'
+  | 'invalidCardio';
 
 export const MAX_DAYS = 7;
 
@@ -44,7 +48,13 @@ export function validatePlan(plan: PlanDraft): PlanProblem[] {
   if (plan.days.length > MAX_DAYS) problems.add('tooManyDays');
   for (const day of plan.days) {
     if (!day.name.trim()) problems.add('dayNameMissing');
-    if (day.items.length === 0) problems.add('dayEmpty');
+    // Ein reiner Cardio-Tag ist erlaubt (A2).
+    if (day.items.length === 0 && !(day.cardio?.length ?? 0)) problems.add('dayEmpty');
+    for (const c of day.cardio ?? []) {
+      if (!isCardioActivity(c.activity) || !Number.isInteger(c.minutes) || c.minutes < 1 || c.minutes > PLAN_CARDIO_MAX_MINUTES) {
+        problems.add('invalidCardio');
+      }
+    }
     for (const item of day.items) {
       if (!Number.isInteger(item.sets) || item.sets < 1 || item.sets > 20) problems.add('invalidSets');
       const seconds = item.targetSeconds;

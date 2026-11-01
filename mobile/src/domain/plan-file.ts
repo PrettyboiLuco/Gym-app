@@ -14,6 +14,7 @@
 // "reps" ist [von, bis] oder eine Zahl; Zeit-Übungen nutzen "seconds" statt "reps". "rest" in Sekunden (Standard 120).
 
 import { EQUIPMENT, EXERCISE_KINDS, MUSCLE_GROUPS, SIDES, type Equipment, type ExerciseKind, type MuscleGroup, type Sides } from './exercises';
+import type { CardioActivity } from './cardio';
 import { ROUTINE_DEFAULTS, type RoutineDraft } from './routines';
 import { validatePlan, type PlanDraft, type PlanProblem } from './training';
 
@@ -102,8 +103,14 @@ export function parsePlanFile(text: string, knownExerciseIds: ReadonlySet<string
     name: f.name,
     days: (f.days as unknown[]).map((d) => {
       const day = d as Record<string, unknown>;
+      // Cardio je Tag (A2): { "activity": "laufband", "minutes": 15, "at": "end" | "start" }
+      const cardio = (Array.isArray(day.cardio) ? day.cardio : []).map((c) => {
+        const r = c as Record<string, unknown>;
+        return { activity: r.activity as CardioActivity, minutes: Number(r.minutes), atEnd: r.at !== 'start', note: str(r.note) };
+      });
       return {
         name: typeof day.name === 'string' ? day.name : '',
+        ...(cardio.length ? { cardio } : {}),
         items: (Array.isArray(day.items) ? day.items : []).map((i) => {
           const item = i as Record<string, unknown>;
           const reps = Array.isArray(item.reps) ? item.reps : [item.reps, item.reps];

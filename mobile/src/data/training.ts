@@ -4,7 +4,10 @@
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
 import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
+import { timeZone } from '@/components/nutrition-format';
+import type { CardioActivity } from '@/domain/cardio';
 import { estimateOneRepMax, setOrder, type LoadMode, type PlateSetup, type SetType } from '@/domain/logger';
+import { localDay } from '@/domain/time';
 import type { PastSession } from '@/domain/progression';
 import type { PreviousBest } from '@/domain/summary';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
@@ -168,7 +171,18 @@ async function loadVersionDraft(db: Db, versionId: string, name: string): Promis
       ...(label ? { label } : {}),
       ...(superset != null ? { superset } : {}),
     }));
-    draft.days.push({ name: day.name, items: clean, warmup: day.warmup === 1, cooldown: day.cooldown === 1 });
+    const cardio = await db.getAllAsync<{ activity: CardioActivity; minutes: number; atEnd: number; note: string | null }>(
+      'SELECT activity, minutes, at_end AS atEnd, note FROM plan_cardio WHERE plan_day_id = ? ORDER BY position',
+      day.id
+    );
+    draft.days.push({
+      name: day.name,
+      items: clean,
+      warmup: day.warmup === 1,
+      cooldown: day.cooldown === 1,
+      // Cardio nur mitgeben, wenn vorhanden – so bleibt ein Plan ohne Cardio unverändert.
+      ...(cardio.length ? { cardio: cardio.map((c) => ({ activity: c.activity, minutes: c.minutes, atEnd: c.atEnd === 1, ...(c.note ? { note: c.note } : {}) })) } : {}),
+    });
   }
   return draft;
 }
@@ -233,6 +247,18 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, 
           item.note?.trim() || null,
           item.label?.trim() || null,
           item.superset ?? null
+        );
+      }
+      for (const [position, c] of (day.cardio ?? []).entries()) {
+        await db.runAsync(
+          'INSERT INTO plan_cardio (id, plan_day_id, position, activity, minutes, at_end, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          newId(),
+          dayId,
+          position,
+          c.activity,
+          c.minutes,
+          c.atEnd === false ? 0 : 1,
+          c.note?.trim() || null
         );
       }
     }
@@ -408,6 +434,23 @@ export async function startSession(db: Db, planDayId: string | null): Promise<st
         slot.restSeconds,
         item.targetSeconds,
         slot.superset
+      );
+    }
+    // Geplantes Cardio als offene Einträge (A2).
+    const cardio = await db.getAllAsync<{ activity: string; minutes: number; atEnd: number }>(
+      'SELECT activity, minutes, at_end AS atEnd FROM plan_cardio WHERE plan_day_id = ? ORDER BY position',
+      planDayId
+    );
+    for (const c of cardio) {
+      await db.runAsync(
+        `INSERT INTO cardio_log (id, session_id, activity, day, planned_minutes, at_end, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        newId(),
+        id,
+        c.activity,
+        localDay(new Date(), timeZone),
+        c.minutes,
+        c.atEnd,
+        nowUtc()
       );
     }
   });

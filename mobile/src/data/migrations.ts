@@ -556,6 +556,38 @@ export const MIGRATIONS: string[] = [
    ALTER TABLE exercise ADD COLUMN load_mode TEXT
      CHECK (load_mode IS NULL OR load_mode IN ('normal', 'einseitig', 'unterstuetzt', 'zusatzgewicht'));
    ${catalogInserts((id) => CATALOG_ADDED[19].includes(id))}`,
+
+  // Version 20: Cardio (Ausbauplan A2) – eigene Tabellen statt Übungsart, weil die Übungstabelle ihre Arten per
+  // CHECK festlegt und ein Neuaufbau alle verknüpften Tabellen beträfe. Aktivitäten stehen in domain/cardio.ts.
+  `CREATE TABLE plan_cardio (
+     id TEXT PRIMARY KEY NOT NULL,
+     plan_day_id TEXT NOT NULL REFERENCES plan_day (id),
+     position INTEGER NOT NULL,
+     activity TEXT NOT NULL,
+     minutes INTEGER NOT NULL CHECK (minutes BETWEEN 1 AND 180),
+     at_end INTEGER NOT NULL DEFAULT 1 CHECK (at_end IN (0, 1)),
+     note TEXT
+   );
+   CREATE TABLE cardio_log (
+     id TEXT PRIMARY KEY NOT NULL,
+     session_id TEXT REFERENCES workout_session (id),
+     activity TEXT NOT NULL,
+     custom_name TEXT,
+     day TEXT NOT NULL,
+     planned_minutes INTEGER,
+     at_end INTEGER NOT NULL DEFAULT 1 CHECK (at_end IN (0, 1)),
+     minutes REAL CHECK (minutes IS NULL OR (minutes > 0 AND minutes <= 600)),
+     distance_km REAL CHECK (distance_km IS NULL OR (distance_km > 0 AND distance_km <= 300)),
+     avg_hr INTEGER CHECK (avg_hr IS NULL OR avg_hr BETWEEN 30 AND 240),
+     effort INTEGER CHECK (effort IS NULL OR effort BETWEEN 1 AND 10),
+     level TEXT,
+     note TEXT,
+     timer_started_at_utc TEXT,
+     completed_at_utc TEXT,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX cardio_log_day ON cardio_log (day);
+   CREATE INDEX cardio_log_session ON cardio_log (session_id);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */
