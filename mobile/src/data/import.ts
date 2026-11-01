@@ -2,8 +2,7 @@
 // Cardio-Sätze als Cardio-Einträge, Gewichte aus CSV. Doppelte werden übersprungen (gleiche Startzeit bzw. gleicher
 // Tag), daher kann man denselben Export gefahrlos zweimal einlesen.
 
-import { exerciseName, exerciseSynonyms } from '@/components/exercise-name';
-import { timeZone } from '@/components/nutrition-format';
+import { exerciseName, exerciseSynonyms } from '@/format/exercise-name';
 import {
   cardioActivityOf,
   equipmentHint,
@@ -14,7 +13,7 @@ import {
   type TrainingImport,
   type WeightRow,
 } from '@/domain/import-csv';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 
 import { newId, nowUtc, type Db } from './db';
 import { addCustomExercise, listExercises } from './training';

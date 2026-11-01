@@ -1,15 +1,16 @@
 // Bericht für Trainer oder Arzt (A5.5) und „Zusammenfassung für deine KI“ (A5.6): Zahlen eines Zeitraums, ohne
 // Bewertung. Gleiche Grundlage für PDF und Text, damit beide dasselbe sagen.
 
-import { exerciseName } from '@/components/exercise-name';
-import { timeZone } from '@/components/nutrition-format';
+import { exerciseName } from '@/format/exercise-name';
 import { estimateOneRepMax } from '@/domain/logger';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 import { formatDay, formatNumber, t } from '@/i18n';
 
 import type { Db } from './db';
 import { calorieGoalOn, listActiveGoals } from './goals';
 import { listExercises } from './training';
+import { daysBetween } from '@/domain/dates';
+import { mean } from '@/domain/math';
 
 export const REPORT_WEEKS = ['4', '8', '12', '26'] as const;
 export type ReportWeeks = (typeof REPORT_WEEKS)[number];
@@ -39,7 +40,6 @@ export function periodFor(weeks: number, today: string): { from: string; to: str
   return { from: d.toISOString().slice(0, 10), to: today };
 }
 
-const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 
 export async function buildReport(db: Db, from: string, to: string): Promise<Report> {
   const weights = await db.getAllAsync<{ day: string; kg: number }>(
@@ -91,7 +91,7 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     from,
     to
   );
-  const days = Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000) + 1;
+  const days = daysBetween(from, to) + 1;
   const training = {
     sessions: sessions.size,
     perWeek: Math.round((sessions.size / days) * 7 * 10) / 10,
@@ -115,10 +115,10 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
   const nutrition = food.length
     ? {
         days: food.length,
-        kcal: avg(food.map((f) => f.kcal ?? 0)),
-        protein: avg(food.map((f) => f.protein ?? 0)),
-        carbs: avg(food.map((f) => f.carbs ?? 0)),
-        fat: avg(food.map((f) => f.fat ?? 0)),
+        kcal: mean(food.map((f) => f.kcal ?? 0)),
+        protein: mean(food.map((f) => f.protein ?? 0)),
+        carbs: mean(food.map((f) => f.carbs ?? 0)),
+        fat: mean(food.map((f) => f.fat ?? 0)),
         goalKcal: goal?.baseKcal ?? null,
       }
     : null;
@@ -129,7 +129,7 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     to
   );
   const qualities = sleepRows.map((s) => s.quality).filter((q): q is number => q !== null);
-  const sleep = sleepRows.length ? { count: sleepRows.length, hours: avg(sleepRows.map((s) => s.hours))!, quality: avg(qualities) } : null;
+  const sleep = sleepRows.length ? { count: sleepRows.length, hours: mean(sleepRows.map((s) => s.hours))!, quality: mean(qualities) } : null;
 
   const goals = (await listActiveGoals(db)).map((g) => {
     const kind = t(`goals.kindOption.${g.kind}`);

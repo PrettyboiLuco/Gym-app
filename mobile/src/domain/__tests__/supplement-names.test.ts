@@ -4,7 +4,7 @@ import { describe, expect, test } from '@jest/globals';
 
 import { findClaims } from '../claims';
 import { NOT_SUGGESTED, SUPPLEMENT_NAMES, suggestSupplementNames } from '../supplement-names';
-import { normalize } from '../wish';
+import { normalize } from '../text';
 
 describe('Namensvorschläge Supplements', () => {
   test('alle 13 Vitamine der EU-Liste sind enthalten', () => {

@@ -145,3 +145,42 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | O11 | iPhone: Bedienungshilfen → Bewegung reduzieren an, App öffnen | keine Feder- und Aufsteige-Bewegungen, alles steht sofort |
 | O12 | iPhone: Textgröße sehr groß | Texte wachsen, Titel und große Zahlen begrenzt, nichts abgeschnitten |
 | O13 | Neues App-Symbol (erst mit TestFlight-Build) | 3D-Herz in Lime auf Schwarz |
+
+## Ausbaupaket A1–A11 (01.11.2026) – auf dem iPhone in Expo Go
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| X1 | Satzart über die Satznummer ändern, RIR setzen, Notiz | A/D/V-Kürzel sichtbar, RIR beim nächsten Mal angezeigt | Expo Go |
+| X2 | Cardio im Plan, Timer starten, App schließen, später öffnen | Timer läuft richtig weiter | Expo Go |
+| X3 | Schnelleintrag, Koffein-Getränk, „Ganzen Vortag übernehmen“ | Werte stimmen, Koffein nach 14 Uhr erkannt | Expo Go |
+| X4 | Ohne Internet „Haferflocken“, „Hühnchen“, „Haferflockn“ suchen, 2 EL eintragen | Grundnahrungsmittel gefunden, 20 g | Expo Go |
+| X5 | Strong-/Hevy-Export importieren, PDF-Bericht teilen, CSV in Numbers öffnen | Trainings im Verlauf, PDF lesbar, Spalten sauber | Expo Go |
+| X6 | Zwei Wochen Morgen-Check | Ampel ab Check 8 nachvollziehbar, „leichter heute“ nur einmal am Tag | Expo Go |
+| X7 | Status „krank“ setzen, am nächsten Tag Erinnerungen prüfen | Keine Trainingserinnerung, Wochenziel pausiert | Expo Go |
+| X8 | Nach 3–4 Wochen Check-in öffnen | Geschätzter Verbrauch mit Rechenweg | Expo Go |
+| X9 | Vorlage übernehmen, Geräteprofil „Zuhause“, „Gerät belegt“ | Nur Ersatz mit Kurzhanteln/Körpergewicht | Expo Go |
+| X10 | Woche planen, Einkaufsliste im Supermarkt abhaken und teilen | Häkchen bleiben, Text in Nachrichten lesbar | Expo Go |
+| X11 | Rezept per Link (z. B. eine große Rezeptseite) | Zutaten zugeordnet, Rezept gespeichert | Expo Go |
+| X12 | Foto-Vergleich überblenden, Schieber ziehen | Flüssig, Hilfslinien passen | Expo Go |
+| X13 | Teilen-Karte nach dem Training als Bild teilen | Bild in Nachrichten/Instagram, gut lesbar | Expo Go |
+| X14 | Mehr → Bereiche der App: Ernährung aus | Tab „Ernährung“ weg, „Heute“ ohne Kalorien/Trinken, Trink-Erinnerung aus | Expo Go |
+
+## VoiceOver – alle Hauptabläufe (A11.2)
+
+Einschalten: Einstellungen → Bedienungshilfen → VoiceOver (oder dreimal Seitentaste, wenn eingerichtet). Wischen
+nach rechts = nächstes Element, Doppeltippen = auslösen, mit zwei Fingern nach oben wischen = alles vorlesen.
+Im Code sorgt ein Test dafür, dass jedes tippbare Element eine Rolle hat (`accessibility-code.test.ts`); ob die
+Ansagen verständlich sind, kann nur der Test am Gerät zeigen.
+
+| # | Ablauf | Erwartet | Wo |
+|---|---|---|---|
+| VO1 | „Heute“ von oben nach unten durchwischen | Jede Kachel mit Zahl und Einheit angesagt, Ampel mit Text (nicht nur Farbe) | Expo Go |
+| VO2 | Morgen-Check mit VoiceOver ausfüllen | Jede Zahl als „Auswahl, 3 von 5“ o. ä., gewählte Zahl als ausgewählt | Expo Go |
+| VO3 | Training starten, Satz erledigen, Pause überspringen | Satz-Knöpfe beschriftet, Pausenende angesagt | Expo Go |
+| VO4 | Lebensmittel suchen und eintragen | Suchfeld beschriftet, Treffer mit Name und kcal | Expo Go |
+| VO5 | Wochenplan: Mahlzeit als gegessen markieren | Knopf „Gegessen“ der richtigen Mahlzeit zugeordnet | Expo Go |
+| VO6 | Einkaufsliste abhaken | „Kontrollkästchen, aktiviert/deaktiviert“ mit Name und Menge | Expo Go |
+| VO7 | Foto-Überblendung mit dem Schieber | „anpassbar“, mit einem Finger hoch/runter wischen ändert in 10-%-Schritten | Expo Go |
+| VO8 | Muskelkarte | Karte selbst still, Liste darunter mit Sätzen je Muskel | Expo Go |
+| VO9 | Check-in mit Vorschlag annehmen | Vorschlag vollständig vorgelesen, Knöpfe beschriftet | Expo Go |
+| VO10 | Große Schrift (Einstellungen → Anzeige & Textgröße) auf Maximum, Hauptseiten ansehen | Nichts abgeschnitten oder überlappend | Expo Go |

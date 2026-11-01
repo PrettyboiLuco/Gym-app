@@ -1,6 +1,6 @@
 # Fahrplan: von null bis App Store
 
-Für Luc: iPhone vorhanden, MacBook ab Ende November, Windows-PC mit Claude Code, keine klassische
+Für Luc (Stand 01.11.2026, Übersicht der Ausbauphasen am Ende unter „Ausbau A1–A11“): iPhone vorhanden, MacBook ab Ende November, Windows-PC mit Claude Code, keine klassische
 Programmiererfahrung. Technik: Expo / React Native mit TypeScript, lokale Datenbank, Deutsch zuerst mit
 Übersetzungsstruktur.
 
@@ -654,6 +654,27 @@ offline · A5 Export/Import/Berichte · A6 Bereitschaft, Schlaf, Status · A7 ad
 Auswertung · A9 Essen planen · A10 Körper und Motivation · A11 Qualität. Danach Development Build D1–D12, offene
 Entscheidungen E1–E5, bewusst weggelassen W. Jede Lücke aus dem Bericht ist dort einer Stelle zugeordnet.
 Übungsbilder macht Luc parallel mit Higgsfield. Grundlage: `docs/recherche/reports/Was Myhealth noch fehlt.md`.
+
+**Stand 01.11.2026: A1–A11 umgesetzt** (Datenbank-Version 26). Einzelheiten, „Umgesetzt“ und „Lückencheck“ je Phase
+stehen in `docs/Ausbauplan.md`. Kurz:
+
+| Phase | Ergebnis | Offen für Luc |
+|---|---|---|
+| Vorher (31.10.) | Plan-Import mit Lucs PDF-Plan (Anzeigenamen, Supersätze, Dehnroutine), Rezeptbuch mit 124 Rezepten, „vergessenes Training“ | – |
+| A1 Logger | Satzarten, RIR, Notizen, Supersätze, 1RM, Scheibenrechner, Aufwärmsätze | Gerätetest |
+| A2 Cardio | Cardio im Plan und frei, Timer, Minuten/Strecke/Puls/Anstrengung | Gerätetest |
+| A3 Ernährung schneller | Schnelleintrag, Zucker/Salz/ges. Fett, Koffein, Vortag übernehmen, Tagesgrenze | OFF-Test |
+| A4 Grundnahrungsmittel | 441 Lebensmittel offline (USDA SR28) mit Mikronährstoffen, Synonymen, Portionen | Gerätetest |
+| A5 Export/Import/Berichte | CSV je Bereich, Strong/Hevy/Gewicht-Import, PDF-Bericht, KI-Zusammenfassung | echte Exportdateien |
+| A6 Bereitschaft | Morgen-Check, Ampel v1, Status, Schlafschuld, Journal, Atemübung | 2 Wochen Morgen-Check, Fachprüfung (I) |
+| A7 Energiebedarf | geschätzter Verbrauch, Check-in Fassung 2 wählbar, Monatsbericht | nach 3–4 Wochen, Fachprüfung (J) |
+| A8 Programme | 5 Vorlagen, leichte Woche, Geräteprofile, Muskelkarte, Statistik | Fachprüfung (K) |
+| A9 Essen planen | Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep | Supermarkt-Test |
+| A10 Körper & Motivation | Foto-Überblendung, 8 Messstellen mit Zielen, ml/oz, Blutdruck, Meilensteine, Plan-Wochen, Teilen-Karten, Wissen | Gerätetest |
+| A11 Qualität | Module ein/aus, Barrierefreiheits-Test im Code, VoiceOver-Liste, vollständige Fachprüfungs-Mappe (A–L), Code aufgeräumt | VoiceOver am iPhone |
+
+Nächste Schritte: Gerätetests (`docs/Geraetetest.md`, Abschnitte „Ausbaupaket“ und „VoiceOver“), gebündelte
+Fachprüfung (`docs/Fachpruefung_Mappe.md`), dann Development Build mit Apple Health (D1–D4, ab MacBook).
 
 ## Phase 11 – Nach dem Start
 

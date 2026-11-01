@@ -8,14 +8,14 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { checkedKeys, resetChecked, setChecked, shoppingFor } from '@/data/meal-plan';
-import { weekStart } from '@/domain/goals';
-import { DEPARTMENTS, shoppingText, weekDaysFrom, type ShoppingItem } from '@/domain/meal-plan';
+import { weekDays, weekStart } from '@/domain/dates';
+import { DEPARTMENTS, shoppingText, type ShoppingItem } from '@/domain/meal-plan';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
 
 async function load(db: Db, week: string) {
-  const days = weekDaysFrom(week);
+  const days = weekDays(week);
   // Ab heute: Vergangenes ist schon eingekauft bzw. gegessen.
   const from = days[0] < diaryToday() ? diaryToday() : days[0];
   const [items, checked] = await Promise.all([shoppingFor(db, from, days[6]), checkedKeys(db, week)]);

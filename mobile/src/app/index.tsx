@@ -6,12 +6,13 @@ import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
-import { diaryToday, todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
+import { diaryToday } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { loadTimedRun } from '@/data/routines';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
-import { useUnits } from '@/data/profile-provider';
+import { useModules, useUnits } from '@/providers/profile-provider';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
 import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { readinessToday, type ReadinessToday } from '@/data/readiness';
@@ -133,6 +134,7 @@ export default function TodayScreen() {
     saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
   }, [openSetup, db]);
   const units = useUnits();
+  const modules = useModules();
   const hour = new Date().getHours();
   const greeting = hour < 11 ? t('today.greetingMorning') : hour < 18 ? t('today.greetingDay') : t('today.greetingEvening');
 
@@ -219,7 +221,7 @@ export default function TodayScreen() {
   }
   return (
     <Screen title={greeting} subtitle={subtitle}>
-      {checkin ? (
+      {checkin && modules.coach ? (
         <Card>
           <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         </Card>
@@ -245,14 +247,14 @@ export default function TodayScreen() {
         action={training.action}
         onPress={training.go}
       />
-      {ready && ready.readiness.kind !== 'status' && !checkComplete ? (
+      {!modules.bereitschaft ? null : ready && ready.readiness.kind !== 'status' && !checkComplete ? (
         <MorningCheck key={today} db={db} day={today} check={ready.check} onSaved={reload} />
       ) : ready ? (
         <ReadinessCard db={db} readiness={ready.readiness} check={ready.check} today={today} onChanged={reload} />
       ) : null}
       <FigureStrip
         figures={[
-          {
+          ...(modules.ernaehrung ? [{
             label: t('today.tileKcal'),
             ...kcalFigure,
             accessibilityLabel: [t('today.tileKcal'), kcalFigure.value, kcalFigure.unit, kcalFigure.sub].filter(Boolean).join(' '),
@@ -264,7 +266,7 @@ export default function TodayScreen() {
             sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: volume(food.drinkGoalMl) }) : null,
             accessibilityLabel: `${t('today.tileDrinks')} ${volume(food.drinksMl)}`,
             onPress: () => router.push('/nutrition'),
-          },
+          }] : []),
           {
             label: t('today.tileWeight'),
             value: weightValue,
@@ -275,7 +277,7 @@ export default function TodayScreen() {
           },
         ]}
       />
-      {coach ? <CoachToday data={coach} /> : null}
+      {coach && modules.coach ? <CoachToday data={coach} /> : null}
     </Screen>
   );
 }

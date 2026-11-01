@@ -14,6 +14,8 @@
 
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI } from './energy';
 import { weightTrend, type WeightEntry } from './weight';
+import { shiftDay } from './dates';
+import { roundTo } from './math';
 
 export const ADAPTIVE_RULES_VERSION = 1;
 export const WINDOW_DAYS = 28;
@@ -44,20 +46,13 @@ export type Estimate =
     }
   | { kind: 'lernen'; completeDays: number; needed: number; weightStart: boolean; weightEnd: boolean; from: string; to: string };
 
-export function shift(day: string, delta: number): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
-}
-
 export const isComplete = (d: IntakeDay) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0 && !d.flagged;
-const round = (v: number, to: number) => Math.round(v / to) * to;
 
 /** Geschätzter Verbrauch für das Fenster bis `endDay` (meist gestern). */
 export function estimateExpenditure(days: IntakeDay[], weights: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string, windowDays = WINDOW_DAYS): Estimate {
-  const from = shift(endDay, -(windowDays - 1));
+  const from = shiftDay(endDay, -(windowDays - 1));
   const complete = days.filter((d) => d.day >= from && d.day <= endDay && isComplete(d));
-  const trendStart = weightTrend(weights, shift(from, 6));
+  const trendStart = weightTrend(weights, shiftDay(from, 6));
   const trendEnd = weightTrend(weights, endDay);
   if (complete.length < MIN_COMPLETE_DAYS || trendStart === null || trendEnd === null) {
     return { kind: 'lernen', completeDays: complete.length, needed: MIN_COMPLETE_DAYS, weightStart: trendStart !== null, weightEnd: trendEnd !== null, from, to: endDay };
@@ -65,8 +60,8 @@ export function estimateExpenditure(days: IntakeDay[], weights: Pick<WeightEntry
   const spanDays = windowDays - 7;
   const intakeAvg = complete.reduce((s, d) => s + (d.kcal ?? 0), 0) / complete.length;
   const change = trendEnd - trendStart;
-  const kcal = round(intakeAvg - (change * KCAL_PER_KG) / spanDays, 10);
-  const plusMinus = round((KCAL_PER_KG * TREND_NOISE_KG) / spanDays + BASE_UNCERTAINTY, ROUND_TO);
+  const kcal = roundTo(intakeAvg - (change * KCAL_PER_KG) / spanDays, 10);
+  const plusMinus = roundTo((KCAL_PER_KG * TREND_NOISE_KG) / spanDays + BASE_UNCERTAINTY, ROUND_TO);
   return { kind: 'schaetzung', kcal, plusMinus, intakeAvg, completeDays: complete.length, trendStart, trendEnd, change, spanDays, from, to: endDay };
 }
 
@@ -79,14 +74,14 @@ export type WeekBalance = { from: string; to: string; intakeAvg: number | null; 
 export function weeklyBalance(days: IntakeDay[], weights: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string, weeks = 4): WeekBalance[] {
   const out: WeekBalance[] = [];
   for (let w = weeks - 1; w >= 0; w--) {
-    const to = shift(endDay, -7 * w);
-    const from = shift(to, -6);
+    const to = shiftDay(endDay, -7 * w);
+    const from = shiftDay(to, -6);
     const complete = days.filter((d) => d.day >= from && d.day <= to && isComplete(d));
     const intakeAvg = complete.length ? complete.reduce((s, d) => s + (d.kcal ?? 0), 0) / complete.length : null;
     const end = weightTrend(weights, to);
-    const start = weightTrend(weights, shift(to, -7));
+    const start = weightTrend(weights, shiftDay(to, -7));
     const change = end !== null && start !== null ? end - start : null;
-    const expenditure = intakeAvg !== null && change !== null && complete.length >= 4 ? round(intakeAvg - (change * KCAL_PER_KG) / 7, 10) : null;
+    const expenditure = intakeAvg !== null && change !== null && complete.length >= 4 ? roundTo(intakeAvg - (change * KCAL_PER_KG) / 7, 10) : null;
     out.push({ from, to, intakeAvg, completeDays: complete.length, change, expenditure });
   }
   return out;
@@ -108,9 +103,9 @@ export function suggestV2(i: V2Input): V2Result {
   if (i.estimate.kind !== 'schaetzung') return { kind: 'ohne', why: 'lernen' };
   if (i.delta === null) return { kind: 'ohne', why: 'keineEinrichtung' };
   if (i.currentGoal === null) return { kind: 'ohne', why: 'keinZiel' };
-  const target = Math.max(CALORIE_FLOOR, round(i.estimate.kcal + i.delta, ROUND_TO));
+  const target = Math.max(CALORIE_FLOOR, roundTo(i.estimate.kcal + i.delta, ROUND_TO));
   let to = Math.max(i.currentGoal - MAX_WEEKLY_CHANGE, Math.min(i.currentGoal + MAX_WEEKLY_CHANGE, target));
-  to = Math.max(CALORIE_FLOOR, round(to, ROUND_TO));
+  to = Math.max(CALORIE_FLOOR, roundTo(to, ROUND_TO));
   const underweight = i.weightKg !== null && i.heightCm !== null && bmi(i.weightKg, i.heightCm) < UNDERWEIGHT_BMI;
   if (to < i.currentGoal && underweight) return { kind: 'passt', target };
   if (Math.abs(to - i.currentGoal) < MIN_CHANGE) return { kind: 'passt', target };

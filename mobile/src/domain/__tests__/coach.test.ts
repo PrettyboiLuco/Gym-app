@@ -2,22 +2,8 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import {
-  buildPlan,
-  coachEnergy,
-  dailyTips,
-  dayTarget,
-  daySplit,
-  gymPal,
-  isoWeekday,
-  macroSettings,
-  macrosFor,
-  needsRecalc,
-  palFromSteps,
-  proteinTarget,
-  rescalePlan,
-  type CoachInput,
-} from '../coach';
+import { isoWeekday } from '../dates';
+import { buildPlan, coachEnergy, dailyTips, dayTarget, daySplit, gymPal, macroSettings, macrosFor, needsRecalc, palFromSteps, proteinTarget, rescalePlan, type CoachInput } from '../coach';
 import { restingEnergy } from '../energy';
 
 const base: CoachInput = { weightKg: 80, heightCm: 180, age: 30, term: '+5', steps: 8000, gymDays: 4, goal: 'zunehmen', delta: 250, sensitive: false };

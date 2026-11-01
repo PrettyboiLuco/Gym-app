@@ -4,9 +4,9 @@
 import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 
-import { loadTimedRun } from './routines';
+import { loadTimedRun } from '@/data/routines';
 import { useDb } from './store-provider';
-import { getActiveSession, loadRestTimer, type SessionInfo } from './training';
+import { getActiveSession, loadRestTimer, type SessionInfo } from '@/data/training';
 import type { RestTimer } from '@/domain/training';
 
 export type LiveTraining = { session: SessionInfo | null; timer: RestTimer; timedTitle: string | null };

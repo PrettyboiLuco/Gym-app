@@ -9,8 +9,9 @@ import {
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
 import { MiniPlayer } from '@/components/mini-player';
+import { useModules } from '@/providers/profile-provider';
 import { TabIcon, type TabIconName } from '@/components/tab-icon';
-import { useLiveTraining } from '@/data/live-training';
+import { useLiveTraining } from '@/providers/live-training';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
@@ -27,6 +28,7 @@ const TABS = [
 ] as const;
 
 export default function AppTabs() {
+  const modules = useModules();
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
@@ -35,7 +37,10 @@ export default function AppTabs() {
         <TabBar>
           {TABS.map((tab) => (
             <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-              <TabButton icon={tab.name}>{t(tab.label)}</TabButton>
+              {/* Ausgeschaltetes Modul (A11.1): Trigger bleibt (Route muss bekannt sein), Knopf ist unsichtbar. */}
+              <TabButton icon={tab.name} hidden={tab.name === 'nutrition' && !modules.ernaehrung}>
+                {t(tab.label)}
+              </TabButton>
             </TabTrigger>
           ))}
         </TabBar>
@@ -61,12 +66,12 @@ function TabBar(props: TabListProps) {
   );
 }
 
-function TabButton({ children, isFocused, icon, ...props }: TabTriggerSlotProps & { icon: TabIconName }) {
+function TabButton({ children, isFocused, icon, hidden, ...props }: TabTriggerSlotProps & { icon: TabIconName; hidden?: boolean }) {
   const theme = useTheme();
   const color = isFocused ? theme.text : theme.textSecondary;
   // TabTrigger braucht ref und onPress; die ref-Typen von expo-router/ui und Pressable weichen ab.
   return (
-    <Pressable {...(props as PressableProps)} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
+    <Pressable {...(props as PressableProps)} style={({ pressed }) => [styles.button, pressed && styles.pressed, hidden && styles.hidden]}>
       <ThemedView type={isFocused ? 'backgroundSelected' : 'backgroundElement'} style={styles.buttonInner}>
         <TabIcon name={icon} color={color} contrastColor={theme.backgroundSelected} selected={!!isFocused} />
         <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'} numberOfLines={1} style={styles.label}>
@@ -78,6 +83,7 @@ function TabButton({ children, isFocused, icon, ...props }: TabTriggerSlotProps 
 }
 
 const styles = StyleSheet.create({
+  hidden: { display: 'none' },
   bar: {
     position: 'absolute',
     bottom: 0,

@@ -12,7 +12,7 @@ import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifica
 import { loadSleepGoal, loadWakeTime, saveSleepGoal, saveWakeTime } from '@/data/readiness';
 import { loadReminders, saveReminders } from '@/data/reminders';
 import { bedtimeFor, SLEEP_GOAL_RANGE } from '@/domain/readiness';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { BEDTIME_LEAD_MINUTES, DEFAULT_REMINDERS, drinkTimes, formatTime, parseTime, validateReminders, WEEKDAYS, type ReminderProblem, type ReminderSettings } from '@/domain/reminders';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';

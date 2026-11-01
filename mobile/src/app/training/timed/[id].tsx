@@ -1,7 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { Card } from '@/components/card';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { ConfirmButton } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';

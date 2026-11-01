@@ -171,13 +171,6 @@ export function suggestMeal(hour: number): Meal {
   return 'snack';
 }
 
-/** Tag verschieben (YYYY-MM-DD), ohne Zeitzonen-Effekte. */
-export function shiftDay(day: string, delta: number): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
-}
-
 // --------------------------------------------------------------------------------- Getränke
 
 export const DRINK_TYPES = ['wasser', 'kaffee_tee', 'milch', 'saft', 'softdrink', 'alkohol', 'sonstiges'] as const;

@@ -14,6 +14,7 @@ export default function MoreLayout() {
       screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ title: t('reminders.title') }} />
+      <Stack.Screen name="modules" options={{ title: t('modules.title') }} />
       <Stack.Screen name="data" options={{ title: t('dataScreen.title') }} />
       <Stack.Screen name="import" options={{ title: t('importCsv.title') }} />
       <Stack.Screen name="report" options={{ title: t('report.screenTitle') }} />

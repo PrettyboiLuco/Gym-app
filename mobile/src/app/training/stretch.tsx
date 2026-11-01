@@ -4,13 +4,13 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { routineMinutes, templateName, withMinutes } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useProfile, useUnits } from '@/data/profile-provider';
+import { useProfile, useUnits } from '@/providers/profile-provider';
 import {
   addFlexibilityTest,
   deleteFlexibilityTest,

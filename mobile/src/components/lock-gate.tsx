@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { unlock } from '@/data/app-lock';
 import { loadAppLock } from '@/data/reminders';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { t } from '@/i18n';
 
 /** Nach so langer Zeit im Hintergrund wird wieder gesperrt. */

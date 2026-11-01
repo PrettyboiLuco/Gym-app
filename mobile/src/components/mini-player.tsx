@@ -4,14 +4,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import type { LiveTraining } from '@/data/live-training';
+import type { LiveTraining } from '@/providers/live-training';
 import { formatClock, isRestVisible, isStaleSession, restRemainingMs } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
-import { localDay } from '@/domain/time';
-import { timeZone } from '@/components/nutrition-format';
+import { localDay, timeZone } from '@/domain/time';
 
 /**
  * Mini-Player über der Tab-Leiste, solange ein Training oder Ablauf läuft (wie der Musik-Player in Apple Music):

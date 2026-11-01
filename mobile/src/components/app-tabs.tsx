@@ -2,7 +2,8 @@ import { NativeTabs } from 'expo-router/native-tabs';
 
 import { MiniPlayer } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
-import { useLiveTraining } from '@/data/live-training';
+import { useLiveTraining } from '@/providers/live-training';
+import { useModules } from '@/providers/profile-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
 
@@ -11,6 +12,7 @@ export default function AppTabs() {
   const colors = Colors[scheme];
   const live = useLiveTraining();
   const running = !!live.session || !!live.timedTitle;
+  const modules = useModules();
 
   return (
     <NativeTabs
@@ -33,7 +35,7 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>{t('tabs.training')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="dumbbell.fill" md="fitness_center" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="nutrition">
+      <NativeTabs.Trigger name="nutrition" hidden={!modules.ernaehrung}>
         <NativeTabs.Trigger.Label>{t('tabs.nutrition')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="fork.knife" md="restaurant" />
       </NativeTabs.Trigger>

@@ -4,7 +4,7 @@
 
 import { portionGrams, type Portion } from './basis-foods';
 import type { DrinkType } from './nutrition';
-import { normalize } from './wish';
+import { normalize } from './text';
 
 export const TEXT_UNITS = ['g', 'ml', 'stueck', 'scheibe', 'portion', 'el', 'tl', 'glas', 'tasse'] as const;
 export type TextUnit = (typeof TEXT_UNITS)[number];

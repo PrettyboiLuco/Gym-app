@@ -3,6 +3,7 @@
 // Name, Menge und Einheit stammen ausschließlich von dir.
 
 import { parseTime } from './reminders';
+import { DAY_MS } from './dates';
 
 export const SUPPLEMENT_UNITS = ['g', 'mg', 'mcg', 'ie', 'ml', 'kapsel', 'tablette', 'tropfen', 'messloeffel', 'portion'] as const;
 export type SupplementUnit = (typeof SUPPLEMENT_UNITS)[number];
@@ -63,7 +64,7 @@ export function parseSupplementForm(
 /** An wie vielen der `days` Tage bis einschließlich `today` etwas abgehakt wurde. */
 export function takenOnDays(loggedDays: string[], today: string, days = 7): number {
   const end = Date.parse(`${today}T12:00:00Z`);
-  const start = end - (days - 1) * 86_400_000;
+  const start = end - (days - 1) * DAY_MS;
   return new Set(loggedDays.filter((d) => {
     const t = Date.parse(`${d}T12:00:00Z`);
     return t >= start && t <= end;

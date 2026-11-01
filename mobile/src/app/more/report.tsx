@@ -6,12 +6,12 @@ import { Platform } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { buildReport, periodFor, REPORT_WEEKS, reportHtml, reportSections, reportText, type Report, type ReportWeeks } from '@/data/report';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
 

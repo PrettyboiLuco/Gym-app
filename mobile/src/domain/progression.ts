@@ -15,6 +15,7 @@
 import type { Equipment } from './exercises';
 import type { LoadMode } from './logger';
 import { kgToUnit, unitToKg, type WeightUnit } from './units';
+import { DAY_MS } from './dates';
 
 export const PROGRESSION_RULES_VERSION = 1;
 
@@ -183,8 +184,8 @@ export function adviceValues(advice: Advice): { weightKg: number | null; reps: n
 }
 
 /** Ganze Tage zwischen zwei Zeitpunkten (für „letzte Einheit vor … Tagen“). */
-export function daysBetween(fromIso: string, toMs: number): number {
-  return Math.floor((toMs - Date.parse(fromIso)) / 86_400_000);
+export function daysSince(fromIso: string, toMs: number): number {
+  return Math.floor((toMs - Date.parse(fromIso)) / DAY_MS);
 }
 
 /** Pause seit dem letzten Training groß genug für einen Hinweis zum Wiedereinstieg (TRAIN-015)? */

@@ -7,7 +7,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { canLock, unlock } from '@/data/app-lock';
 import { loadAppLock, saveAppLock } from '@/data/reminders';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 

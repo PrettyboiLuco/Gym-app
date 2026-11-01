@@ -4,10 +4,10 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { Button, Card } from "@/components/card";
 import { Field } from "@/components/fields";
-import { exerciseName } from "@/components/exercise-name";
+import { exerciseName } from "@/format/exercise-name";
 import { haptic } from "@/components/haptics";
 import { Icon } from "@/components/icon";
-import { todayDay } from "@/components/nutrition-format";
+import { todayDay } from "@/domain/time";
 import { Screen } from "@/components/screen";
 import { ThemedText } from "@/components/themed-text";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/components/today-widgets";
 import { DisplayFont, Spacing } from "@/constants/theme";
 import type { Db } from "@/data/db";
-import { useUnits } from "@/data/profile-provider";
+import { useModules, useUnits } from "@/providers/profile-provider";
 import { timedSessionsForWorkout } from "@/data/routines";
 import {
   getSession,
@@ -153,6 +153,7 @@ export default function SummaryScreen() {
   } = data;
   const [note, setNote] = useState<string | null>(null);
   const [showShare, setShowShare] = useState(false);
+  const modules = useModules();
 
   useEffect(() => {
     if (!loaded) return;
@@ -346,11 +347,11 @@ export default function SummaryScreen() {
         </Card>
       ) : null}
 
-      <SessionFeedback
+      {modules.bereitschaft ? <SessionFeedback
         db={db}
         sessionId={id}
         muscleGroups={data.muscleGroups}
-      />
+      /> : null}
 
       <Card title={t("shareCard.title")}>
         {showShare ? (

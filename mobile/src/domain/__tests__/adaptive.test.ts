@@ -2,7 +2,8 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { estimateExpenditure, shift, suggestV2, weeklyBalance, type IntakeDay } from '../adaptive';
+import { shiftDay as shift } from '../dates';
+import { estimateExpenditure, suggestV2, weeklyBalance, type IntakeDay } from '../adaptive';
 import { applyV2, type CheckinResult } from '../checkin';
 
 const END = '2026-10-31';

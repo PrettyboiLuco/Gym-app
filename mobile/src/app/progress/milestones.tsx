@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { Choice, ListRow } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ShareCard, type ShareCardContent } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';

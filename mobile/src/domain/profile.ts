@@ -2,6 +2,7 @@
 // Volljährigkeit für den Start, Geburtsmonat/Größe/Formelvariante nur für den Kalorienrechner.
 // Alles ist optional außer der Bestätigung „mindestens 18“.
 
+import { DEFAULT_MODULES, type Modules } from './modules';
 import type { ActivityLevel, FormulaTerm } from './energy';
 import { EQUIPMENT, type Equipment, type Level } from './exercises';
 import { MINUTES_RANGE, type TrainingGoal } from './planner';
@@ -35,6 +36,8 @@ export type Profile = {
   /** Vorhandene Geräte; null = keine Angabe (dann alle). Körpergewicht geht immer. */
   equipment: Equipment[] | null;
   sessionMinutes: number | null;
+  /** Eingeschaltete Bereiche der App (A11.1); fehlt = alle an. */
+  modules: Modules;
 };
 
 export const EMPTY_PROFILE: Profile = {
@@ -51,6 +54,7 @@ export const EMPTY_PROFILE: Profile = {
   trainingGoal: null,
   equipment: null,
   sessionMinutes: null,
+  modules: DEFAULT_MODULES,
 };
 
 /** Volle Lebensjahre am Tag `today` (YYYY-MM-DD); Geburtstag wird am Monatsersten angenommen. */

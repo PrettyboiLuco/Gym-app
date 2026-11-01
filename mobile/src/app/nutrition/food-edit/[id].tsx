@@ -10,7 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { findFoodByBarcode, foodFacts, getFood, per100, saveFood } from '@/data/nutrition';
 import { ALLERGENS } from '@/domain/diet';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { foodToForm, parseFoodForm, PREPS, type FoodForm, type FoodProblem } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';

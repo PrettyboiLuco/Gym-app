@@ -4,8 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import { Appearance, Platform, useColorScheme as useSystemColorScheme } from 'react-native';
 
-export const APPEARANCES = ['system', 'hell', 'dunkel'] as const;
-export type AppearanceChoice = (typeof APPEARANCES)[number];
+import { APPEARANCES, type AppearanceChoice } from '@/domain/appearance';
 
 let choice: AppearanceChoice = 'system';
 const listeners = new Set<() => void>();

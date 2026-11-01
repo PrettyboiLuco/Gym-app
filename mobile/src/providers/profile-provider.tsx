@@ -1,3 +1,4 @@
+import type { Modules } from '@/domain/modules';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { EMPTY_PROFILE, type Profile } from '@/domain/profile';
@@ -5,8 +6,8 @@ import type { Units } from '@/domain/units';
 
 import { setAppearance } from '@/hooks/use-color-scheme';
 
-import { loadAppearance } from './appearance';
-import { loadOnboardingDone, loadProfile, saveOnboardingDone, saveProfile } from './profile';
+import { loadAppearance } from '@/data/appearance';
+import { loadOnboardingDone, loadProfile, saveOnboardingDone, saveProfile } from '@/data/profile';
 import { useDb } from './store-provider';
 
 type ProfileState = {
@@ -66,6 +67,11 @@ export function useProfile(): ProfileState {
   const value = useContext(ProfileContext);
   if (!value) throw new Error('useProfile outside ProfileProvider');
   return value;
+}
+
+/** Eingeschaltete Module (A11.1). */
+export function useModules(): Modules {
+  return useProfile().profile.modules;
 }
 
 export function useUnits(): Units {

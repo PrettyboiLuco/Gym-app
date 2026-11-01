@@ -1,10 +1,9 @@
 // Daten für Meilensteine und Wochenbilanz (Ausbauplan A10.5/A10.6).
 
-import { timeZone } from '@/components/nutrition-format';
 import { loadModeOf } from '@/domain/logger';
 import { balance, milestones, newMilestones, weekResults, type Balance, type Milestone, type WeekResult } from '@/domain/motivation';
 import { statusOn } from '@/domain/readiness';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
 import { loadCoachSetup } from './coach';
@@ -13,6 +12,7 @@ import { loadProfile } from './profile';
 import { listStatus } from './readiness';
 import { listActivePlans, listExercises } from './training';
 import { allSets, loadPreferredWeekdays } from './training-stats';
+import { shiftDay } from '@/domain/dates';
 
 export type Motivation = {
   milestones: Milestone[];
@@ -68,7 +68,7 @@ export async function loadMotivation(db: Db, today: string): Promise<Motivation>
     weeks,
   });
   const monthStart = `${today.slice(0, 7)}-01`;
-  const four = new Date(Date.parse(`${today}T12:00:00Z`) - 27 * 86_400_000).toISOString().slice(0, 10);
+  const four = shiftDay(today, -27);
   return {
     milestones: all,
     fresh: newMilestones(all, seen),

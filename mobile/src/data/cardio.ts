@@ -1,9 +1,8 @@
 // Cardio-Einträge (Ausbauplan A2): im Training (geplant oder hinzugefügt) oder für sich. Gespeichert wird in der
 // lokalen Zeit des Tages, damit Wochensummen zum Kalender passen.
 
-import { timeZone } from '@/components/nutrition-format';
 import type { CardioActivity, CardioValues } from '@/domain/cardio';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 
 import { newId, nowUtc, type Db } from './db';
 

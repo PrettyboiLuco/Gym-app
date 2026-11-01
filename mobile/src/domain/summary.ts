@@ -2,6 +2,7 @@
 // Aufwärmsätze zählen nicht mit (A1); Gewichtsart je Übung bestimmt Volumen und Richtung der Bestleistung.
 
 import { countsAsWork, setVolume, type LoadMode, type SetType } from './logger';
+import { DAY_MS } from './dates';
 
 export type DoneSet = {
   exerciseId: string;
@@ -91,7 +92,7 @@ export function trainedDays(days: string[], monday: string): boolean[] {
   const week = Array.from({ length: 7 }, () => false);
   const start = Date.parse(`${monday}T12:00:00Z`);
   for (const day of days) {
-    const index = Math.round((Date.parse(`${day}T12:00:00Z`) - start) / 86_400_000);
+    const index = Math.round((Date.parse(`${day}T12:00:00Z`) - start) / DAY_MS);
     if (index >= 0 && index < 7) week[index] = true;
   }
   return week;

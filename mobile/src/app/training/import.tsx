@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { Choice, Field } from '@/components/fields';
 import { Icon } from '@/components/icon';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';

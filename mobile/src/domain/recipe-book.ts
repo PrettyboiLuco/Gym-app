@@ -6,6 +6,8 @@ import type { Allergen, FoodDiet } from './diet';
 import type { Meal, NutrientBasis, Nutrients } from './nutrition';
 import { BOOK_INGREDIENTS, BOOK_RECIPES } from './recipe-book-data';
 import { MORE_BOOK_RECIPES } from './recipe-book-more';
+import { foldText } from './text';
+import { roundDigits } from './math';
 
 export const BOOK_GOALS = ['diaet_hart', 'diaet', 'erhalt', 'aufbau', 'masse'] as const;
 export type BookGoal = (typeof BOOK_GOALS)[number];
@@ -66,7 +68,6 @@ export type BookRecipeView = BookRecipe & {
   tags: BookTag[];
 };
 
-const round = (v: number, digits = 1) => Math.round(v * 10 ** digits) / 10 ** digits;
 
 export function ingredient(id: string): BookIngredient {
   const ing = BOOK_INGREDIENTS[id];
@@ -82,7 +83,7 @@ export function perPortion(recipe: BookRecipe): Nutrients {
     for (let i = 0; i < 5; i++) sum[i] += (values[i] * amount) / 100;
   }
   const [kcal, protein, carbs, fat, fiber] = sum.map((v) => v / recipe.portions);
-  return { kcal: Math.round(kcal), protein: round(protein), carbs: round(carbs), fat: round(fat), fiber: round(fiber) };
+  return { kcal: Math.round(kcal), protein: roundDigits(protein), carbs: roundDigits(carbs), fat: roundDigits(fat), fiber: roundDigits(fiber) };
 }
 
 /** Ernährungsweise des Rezepts: die „strengste“ Zutat entscheidet. */
@@ -134,17 +135,15 @@ export type BookFilter = {
   query?: string;
 };
 
-const fold = (s: string) => s.toLocaleLowerCase('de-DE').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
-
 export function filterBook(recipes: readonly BookRecipeView[], filter: BookFilter): BookRecipeView[] {
-  const words = fold(filter.query ?? '').split(/\s+/).filter(Boolean);
+  const words = foldText(filter.query ?? '').split(/\s+/).filter(Boolean);
   return recipes.filter((r) => {
     if (filter.goal !== null && r.goal !== filter.goal) return false;
     if (filter.meal !== null && r.meal !== filter.meal) return false;
     if (filter.diet !== 'alles' && (filter.diet === 'vegetarisch' ? r.diet === 'nicht_vegetarisch' : r.diet !== 'vegan')) return false;
     if (filter.tag && !r.tags.includes(filter.tag)) return false;
     if (words.length === 0) return true;
-    const text = fold([r.name, ...r.ingredients.map(([id]) => ingredient(id).name)].join(' '));
+    const text = foldText([r.name, ...r.ingredients.map(([id]) => ingredient(id).name)].join(' '));
     return words.every((w) => text.includes(w));
   });
 }

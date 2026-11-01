@@ -3,11 +3,11 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, MultiChoice } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { CalculatorFields, UnitFields } from '@/components/profile-fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { useProfile } from '@/data/profile-provider';
+import { useProfile } from '@/providers/profile-provider';
 import { parseProfileForm, profileToForm, type ProfileForm, type ProfileProblem } from '@/domain/profile';
 import { EQUIPMENT } from '@/domain/exercises';
 import { GOALS, LEVELS } from '@/domain/planner';

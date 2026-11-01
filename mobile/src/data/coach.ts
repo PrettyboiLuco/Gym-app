@@ -15,6 +15,7 @@ import { daySums, loadNutritionSettings } from './nutrition';
 import { listSteps } from './steps';
 import { listActivePlans } from './training';
 import { listWeights } from './weights';
+import { shiftDay } from '@/domain/dates';
 
 // --------------------------------------------------------------------------- Einrichtung (C1)
 
@@ -72,7 +73,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
   const days = weekDays(weekEnd);
   const from = days[0];
   // Der Vorschlag bezieht sich auf das Ziel, das ab heute gilt (der Tag nach der Woche).
-  const today = new Date(Date.parse(`${weekEnd}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+  const today = shiftDay(weekEnd, 1);
   const [weights, sums, steps, sleep, plans, weightGoal, trained, current, settings] = await Promise.all([
     listWeights(db),
     daySums(db, from, weekEnd),
@@ -81,7 +82,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     listActivePlans(db),
     activeWeightGoal(db),
     // Etwas früher anfangen, damit Zeitzonen den ersten Tag nicht abschneiden; gezählt wird nach lokalem Tag.
-    trainingDays(db, new Date(Date.parse(`${from}T00:00:00Z`) - 86_400_000).toISOString(), timeZone),
+    trainingDays(db, `${shiftDay(from, -1)}T00:00:00.000Z`, timeZone),
     calorieGoalOn(db, today),
     loadNutritionSettings(db),
   ]);

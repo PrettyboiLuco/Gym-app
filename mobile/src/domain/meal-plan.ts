@@ -7,6 +7,7 @@ import { dietCheck, type DietPrefs } from './diet';
 import type { Meal, NutrientBasis, Nutrients } from './nutrition';
 import { BOOK_TO_BASIS } from './recipe-book-basis';
 import { ingredient, type BookRecipeView } from './recipe-book';
+import { daysBetween, weekDays } from './dates';
 
 export type PlanSource = 'buch' | 'eigen';
 export type PlanEntry = { id: string; day: string; meal: Meal; source: PlanSource; ref: string; name: string; portions: number; eatenEventId: string | null };
@@ -15,14 +16,6 @@ export type NewPlanEntry = Omit<PlanEntry, 'id' | 'eatenEventId'>;
 /** Anteil am Tagesziel je Mahlzeit für den Vorschlag. */
 export const MEAL_SHARE: Record<Meal, number> = { fruehstueck: 0.25, mittag: 0.35, abend: 0.3, snack: 0.1 };
 export const PORTION_STEPS = [0.5, 1, 1.5, 2] as const;
-
-export function weekDaysFrom(monday: string): string[] {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(`${monday}T12:00:00Z`);
-    d.setUTCDate(d.getUTCDate() + i);
-    return d.toISOString().slice(0, 10);
-  });
-}
 
 /** Passt ein Buchrezept zu Ernährungsweise und Allergien? */
 export function fitsPrefs(recipe: BookRecipeView, prefs: DietPrefs): boolean {
@@ -54,7 +47,7 @@ export function suggestWeek(input: SuggestInput): NewPlanEntry[] {
   const pool = input.recipes.filter((r) => fitsPrefs(r, input.prefs));
   const planned = [...input.existing];
   const out: NewPlanEntry[] = [];
-  const near = (a: string, b: string) => Math.abs(Date.parse(`${a}T12:00:00Z`) - Date.parse(`${b}T12:00:00Z`)) <= 2 * 86_400_000;
+  const near = (a: string, b: string) => Math.abs(daysBetween(a, b)) <= 2;
   for (const day of input.days) {
     for (const meal of meals) {
       if (planned.some((e) => e.day === day && e.meal === meal)) continue;
@@ -103,7 +96,7 @@ export function dayTotals(entries: PlanEntry[], perPortion: (e: PlanEntry) => Nu
 
 /** N Portionen eines Rezepts auf N aufeinanderfolgende Tage (je 1 Portion) zur gleichen Mahlzeit. */
 export function mealPrep(entry: Omit<NewPlanEntry, 'day' | 'portions'>, startDay: string, portions: number): NewPlanEntry[] {
-  return weekDaysFrom(startDay)
+  return weekDays(startDay)
     .slice(0, Math.max(1, Math.min(7, Math.round(portions))))
     .map((day) => ({ ...entry, day, portions: 1 }));
 }

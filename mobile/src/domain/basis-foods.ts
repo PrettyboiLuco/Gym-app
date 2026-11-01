@@ -3,6 +3,7 @@
 // Umrechnung: Kohlenhydrate wie auf EU-Etiketten ohne Ballaststoffe (USDA rechnet sie mit), Salz = Natrium × 2,5.
 
 import type { Allergen, FoodDiet } from './diet';
+import { foldText } from './text';
 
 export const MICRO_KEYS = ['calcium', 'iron', 'magnesium', 'potassium', 'zinc', 'vitC', 'vitD', 'vitB12', 'folate', 'vitA', 'vitE'] as const;
 export type MicroKey = (typeof MICRO_KEYS)[number];
@@ -58,18 +59,6 @@ export type BasisFood = {
 
 /** Stand der mitgelieferten Liste; höher = beim nächsten Start werden Werte aktualisiert. */
 export const BASIS_VERSION = 1;
-
-/** Für Suche und Vergleich: klein, ohne Umlaute/ß, ohne Klammern und Satzzeichen. */
-export function foldText(s: string): string {
-  return s
-    .toLocaleLowerCase('de-DE')
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss')
-    .replace(/[^a-z0-9%]+/g, ' ')
-    .trim();
-}
 
 export function searchTermsOf(food: Pick<BasisFood, 'name' | 'synonyms'>): string {
   return ` ${[food.name, ...food.synonyms].map(foldText).join(' | ')} `;

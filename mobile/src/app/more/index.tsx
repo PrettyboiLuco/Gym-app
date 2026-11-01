@@ -9,8 +9,9 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { saveAppearance } from '@/data/appearance';
-import { useDb } from '@/data/store-provider';
-import { APPEARANCES, setAppearance, useAppearance, type AppearanceChoice } from '@/hooks/use-color-scheme';
+import { useDb } from '@/providers/store-provider';
+import { type AppearanceChoice, APPEARANCES } from '@/domain/appearance';
+import { setAppearance, useAppearance } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
 
 type InfoKey = 'privacy' | 'sources' | 'language';
@@ -60,6 +61,7 @@ export default function MoreScreen() {
       </Card>
       <Card title={t('more.settingsTitle')}>
         <ListRow icon="person" title={t('progress.profileOpen')} subtitle={t('progress.profileTitle')} accessory="›" onPress={() => router.push('/progress/profile')} />
+        <ListRow icon="list" title={t('modules.title')} subtitle={t('modules.subtitle')} accessory="›" onPress={() => router.push('/more/modules')} />
         <ListRow icon="bell" title={t('reminders.title')} subtitle={t('more.remindersSubtitle')} accessory="›" onPress={() => router.push('/more/notifications')} />
         <ListRow icon="database" title={t('dataScreen.title')} subtitle={t('more.dataSubtitle')} accessory="›" onPress={() => router.push('/more/data')} />
         <ListRow icon="lock" title={t('security.title')} subtitle={t('more.securitySubtitle')} accessory="›" onPress={() => router.push('/more/security')} last />

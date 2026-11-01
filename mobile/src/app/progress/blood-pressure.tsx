@@ -3,14 +3,13 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field } from '@/components/fields';
-import { timeZone, todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { addBloodPressure, deleteBloodPressure, listBloodPressure, type BloodPressure } from '@/data/blood-pressure';
 import { bpAverage, parseBloodPressure, type BpProblem } from '@/domain/blood-pressure';
-import { shiftDay } from '@/domain/nutrition';
-import { localDay } from '@/domain/time';
+import { shiftDay } from '@/domain/dates';
+import { localDay, timeZone, todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';

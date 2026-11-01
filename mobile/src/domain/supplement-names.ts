@@ -7,7 +7,7 @@
 // Stoffe mit unklarem oder fehlendem Lebensmittelstatus, Warnungen oder Arzneimittel-/Dopingbezug stehen in
 // NOT_SUGGESTED und werden nicht vorgeschlagen, bis die Rechtsprüfung entschieden hat (docs/Rechtspruefung_Mappe.md).
 
-import { normalize } from './wish';
+import { normalize } from './text';
 
 export type SupplementGroup = 'vitamin' | 'mineral' | 'weitere';
 export type SupplementName = { name: string; group: SupplementGroup; aliases?: string[] };

@@ -4,7 +4,8 @@ import { describe, expect, test } from '@jest/globals';
 
 import { comparePair, latestBySite } from '../body';
 import { bmi, calculate, CALORIE_FLOOR, proteinRange, underweightLimitKg, type CalculatorInput } from '../energy';
-import { EMPTY_GOAL_FORM, habitWeeks, parseGoalForm, strengthProgress, weekStart, weightProgress } from '../goals';
+import { weekStart } from '../dates';
+import { EMPTY_GOAL_FORM, habitWeeks, parseGoalForm, strengthProgress, weightProgress } from '../goals';
 import { ageOn, EMPTY_PROFILE, parseBirthMonth, parseProfileForm, profileToForm } from '../profile';
 import { parseSetInput } from '../training';
 import { BODY_WEIGHT_RANGE, kgToUnit, parseLengthIn, parseWeightIn, unitToKg, weightInputText } from '../units';

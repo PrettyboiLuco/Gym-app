@@ -7,7 +7,8 @@ import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { goalProgressLines, goalTitle } from '@/components/goal-progress';
 import { Icon } from '@/components/icon';
-import { formatKcal, todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
+import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { showToast } from '@/components/toast';
@@ -16,13 +17,13 @@ import { WeightChart } from '@/components/weight-chart';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn, listActiveGoals, listMeasurements, type CalorieGoal, type GoalVersion } from '@/data/goals';
-import { useProfile } from '@/data/profile-provider';
+import { useProfile } from '@/providers/profile-provider';
 import { listPhotos } from '@/data/photos';
 import { listSteps } from '@/data/steps';
 import { listExercises } from '@/data/training';
 import { addWeight, deleteWeight, listWeights } from '@/data/weights';
 import { latestBySite, MEASURE_SITES, type Measurement } from '@/domain/body';
-import { shiftDay } from '@/domain/nutrition';
+import { shiftDay } from '@/domain/dates';
 import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
 import { stepsForDay } from '@/domain/steps';
 import { dailyMeans, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
@@ -56,6 +57,7 @@ const SHOWN = 10;
 export default function ProgressScreen() {
   const theme = useTheme();
   const { profile } = useProfile();
+  const modules = profile.modules;
   const units = profile.units;
   const { data, reload, db, loaded } = useLoad((d) => loadProgress(d, units, profile.sensitive), {
     weights: [] as WeightEntry[],
@@ -194,7 +196,9 @@ export default function ProgressScreen() {
       {/* Alles Weitere zum Körper als eine ruhige Liste statt sechs kleiner Karten; Werte stehen rechts. */}
       <Card title={t('progress.bodyTitle')}>
         <ListRow icon="target" title={t('milestones.screenTitle')} subtitle={t('milestones.listSubtitle')} accessory="›" onPress={() => router.push('/progress/milestones')} />
-        <ListRow icon="heart" title={t('readiness.title')} subtitle={t('readiness.listSubtitle')} accessory="›" onPress={() => router.push('/progress/readiness')} />
+        {modules.bereitschaft ? (
+          <ListRow icon="heart" title={t('readiness.title')} subtitle={t('readiness.listSubtitle')} accessory="›" onPress={() => router.push('/progress/readiness')} />
+        ) : null}
         <ListRow icon="calendar" title={t('checkin.open')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         <ListRow
           icon="flame"

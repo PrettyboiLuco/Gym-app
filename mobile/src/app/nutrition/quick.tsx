@@ -10,7 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { logQuick } from '@/data/nutrition';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { MEALS, parseNutrient, type Meal } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';

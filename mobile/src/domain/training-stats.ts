@@ -4,6 +4,7 @@
 import type { Equipment } from './exercises';
 import { setVolume, type LoadMode, type SetType } from './logger';
 import type { PlanDraft } from './training';
+import { shiftDay, weekStart } from './dates';
 
 // --------------------------------------------------------------------------- Eigene Satzzeit
 
@@ -139,13 +140,6 @@ export const DELOAD_WEEKS_DEFAULT = 8;
 export const DELOAD_WEEKS_RANGE = { min: 6, max: 10 } as const;
 export const DELOAD_RIR = '3';
 
-/** Montag der Woche eines Tages (ISO-Woche). */
-export function weekStart(day: string): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
-  return d.toISOString().slice(0, 10);
-}
-
 /**
  * Trainingswochen am Stück seit dem letzten Deload: Wochen mit mindestens einem Training, rückwärts ab der
  * aktuellen Woche; eine Woche ganz ohne Training beendet den Block (das war die Pause).
@@ -155,18 +149,12 @@ export function trainingWeeksInBlock(trainingDays: string[], today: string, last
   let count = 0;
   let cursor = weekStart(today);
   // Die laufende Woche zählt, auch wenn noch kein Training war.
-  if (!weeks.has(cursor)) cursor = shiftDays(cursor, -7);
+  if (!weeks.has(cursor)) cursor = shiftDay(cursor, -7);
   while (weeks.has(cursor)) {
     count++;
-    cursor = shiftDays(cursor, -7);
+    cursor = shiftDay(cursor, -7);
   }
   return count;
-}
-
-function shiftDays(day: string, delta: number): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
 }
 
 /** Angebot einer leichten Woche? Nur Angebot; „später“ verschiebt um eine Woche. */

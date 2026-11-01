@@ -1,16 +1,16 @@
 // Trainingswoche Mo–So für „Heute“ und den Abschluss-Bildschirm: eine Quelle für Punkte und Zusammenfassung.
 
-import { timeZone } from '@/components/nutrition-format';
 import type { MuscleGroup } from '@/domain/exercises';
-import { weekStart } from '@/domain/goals';
+import { weekStart } from '@/domain/dates';
 import { trainedDays } from '@/domain/summary';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
 import { readState } from './app-state';
 import type { Db } from './db';
 import { listExercises, listSessions } from './training';
+import { shiftDay } from '@/domain/dates';
 
 export type TrainingWeek = { done: boolean[]; planned: boolean[]; goal: number | null; todayIndex: number };
 
@@ -40,7 +40,7 @@ export async function loadWeekSetsByMuscle(db: Db, today: string): Promise<{ gro
     `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
      WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ?`,
-    new Date(Date.parse(`${monday}T00:00:00Z`) - 86_400_000).toISOString()
+    `${shiftDay(monday, -1)}T00:00:00.000Z`
   );
   const exercises = new Map((await listExercises(db)).map((e) => [e.id, e]));
   const counts = new Map<MuscleGroup, number>();

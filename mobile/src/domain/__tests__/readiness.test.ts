@@ -3,22 +3,8 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { breathPhaseAt, cycleSeconds } from '../breathing';
-import {
-  autoFactors,
-  bedtimeFor,
-  hoursBetween,
-  journalFindings,
-  lighterSets,
-  loadRatio,
-  offersFor,
-  readiness,
-  sessionLoad,
-  shiftDay,
-  sleepStats,
-  statusOn,
-  type DailyCheck,
-  type Factor,
-} from '../readiness';
+import { shiftDay } from '../dates';
+import { autoFactors, bedtimeFor, hoursBetween, journalFindings, lighterSets, loadRatio, offersFor, readiness, sessionLoad, sleepStats, statusOn, type DailyCheck, type Factor } from '../readiness';
 
 const TODAY = '2026-11-01';
 const check = (day: string, v: Partial<DailyCheck> = {}): DailyCheck => ({

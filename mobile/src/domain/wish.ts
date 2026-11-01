@@ -1,3 +1,4 @@
+import { normalize } from './text';
 // Freitext für den Planassistenten (Phase 8.7, Register TRAIN-020, TRAIN-021). Aus dem Text werden nur
 // feste Werte gelesen (Tage, Minuten, Aufteilung, Dauer, Geräte, bekannte Übungen) – der Text selbst
 // wird nie als Anweisung ausgeführt. Ein späteres Sprachmodell (vorerst nicht, Entscheidung 30.10.2026) muss genau dasselbe Schema
@@ -92,18 +93,6 @@ export function validateWish(raw: unknown, knownExercises: ReadonlySet<string>):
 
 // ------------------------------------------------------------------------- lokaler Auswerter
 
-/** Kleinschreibung, Umlaute als ae/oe/ue/ss, Satzzeichen als Leerzeichen. */
-export function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss')
-    .replace(/[^a-z0-9/,.\- ]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 const NUMBER_WORDS: Record<string, number> = { zwei: 2, drei: 3, vier: 4, fuenf: 5, sechs: 6, sieben: 7 };
 const NUM = '\\b(\\d{1,2}|zwei|drei|vier|fuenf|sechs|sieben)';

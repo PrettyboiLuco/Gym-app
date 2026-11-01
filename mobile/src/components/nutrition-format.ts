@@ -3,24 +3,10 @@
 import { cachedDayEnd, cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
 import { MICRO_KEYS, MICRO_UNITS, type Micros } from '@/domain/basis-foods';
 import { suggestMealAt } from '@/domain/diet';
-import { localDay } from '@/domain/time';
-import {
-  DRINK_TYPES,
-  MEALS,
-  NUTRIENT_KEYS,
-  shiftDay,
-  type DrinkType,
-  type Meal,
-  type NutrientTotals,
-  type Nutrients,
-} from '@/domain/nutrition';
+import { localDay, timeZone, todayDay } from '@/domain/time';
+import { shiftDay } from '@/domain/dates';
+import { DRINK_TYPES, MEALS, NUTRIENT_KEYS, type DrinkType, type Meal, type NutrientTotals, type Nutrients } from '@/domain/nutrition';
 import { formatDay, formatNumber, t } from '@/i18n';
-
-export const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-export function todayDay() {
-  return localDay(new Date(), timeZone);
-}
 
 /**
  * Heutiger Ernährungstag (A3): Endet der Tag laut Einstellung z. B. um 4 Uhr, zählt ein Eintrag um 1 Uhr noch zum

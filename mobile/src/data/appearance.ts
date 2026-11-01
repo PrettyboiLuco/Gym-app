@@ -1,6 +1,6 @@
 // Gespeicherte Darstellung (Hell/Dunkel/wie iPhone).
 
-import { APPEARANCES, type AppearanceChoice } from '@/hooks/use-color-scheme';
+import { type AppearanceChoice, APPEARANCES } from '@/domain/appearance';
 
 import type { Db } from './db';
 import { readState, writeState } from './app-state';

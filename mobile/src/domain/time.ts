@@ -1,5 +1,8 @@
 // Tagebuchdatum und Timer (Register TIME-001, TIME-003, HEALTH-011; Referenztests T-018 bis T-023).
 
+/** Zeitzone des Geräts (IANA, z. B. „Europe/Berlin“). */
+export const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 /** Lokales Kalenderdatum (YYYY-MM-DD) eines Zeitpunkts in einer IANA-Zeitzone. */
 export function localDay(at: Date, timeZone: string): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -8,6 +11,11 @@ export function localDay(at: Date, timeZone: string): string {
     month: '2-digit',
     day: '2-digit',
   }).format(at);
+}
+
+/** Heutiges Kalenderdatum in der Zeitzone des Geräts. */
+export function todayDay(): string {
+  return localDay(new Date(), timeZone);
 }
 
 /** Verbleibende Timerzeit aus gespeicherter Endzeit; abgelaufen ergibt 0, nie negativ. */

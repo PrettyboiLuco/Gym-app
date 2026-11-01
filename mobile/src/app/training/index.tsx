@@ -14,7 +14,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { StyleSheet, View } from 'react-native';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import {
   expireTemporaryPlans,
   getActiveSession,
@@ -24,7 +24,7 @@ import {
   startSession,
   type PlanSummary,
 } from '@/data/training';
-import { COMEBACK_DAYS, daysBetween } from '@/domain/progression';
+import { COMEBACK_DAYS, daysSince } from '@/domain/progression';
 import { loadTimedRun } from '@/data/routines';
 import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
@@ -33,9 +33,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t, tOptional } from '@/i18n';
 import { CardioRow } from '@/components/cardio-row';
 import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
-import { weekStart } from '@/domain/goals';
-import { shiftDay } from '@/domain/nutrition';
+import { shiftDay, weekStart } from '@/domain/dates';
 import { loadProfile } from '@/data/profile';
+import { useModules } from '@/providers/profile-provider';
 import type { EquipmentProfile } from '@/domain/training-stats';
 import { activeEquipment, deloadOffer, saveDeloadState, startDeload, type DeloadState } from '@/data/training-stats';
 import { EQUIPMENT } from '@/domain/exercises';
@@ -67,7 +67,7 @@ async function loadOverview(db: Db) {
     }
   }
   // Wiedereinstieg nach längerer Pause (TRAIN-015); Zeitpunkt beim Laden, nicht beim Rendern.
-  const pauseDays = finished ? daysBetween(finished, Date.now()) : 0;
+  const pauseDays = finished ? daysSince(finished, Date.now()) : 0;
   return {
     active,
     plans,
@@ -88,6 +88,7 @@ async function loadOverview(db: Db) {
 
 export default function TrainingScreen() {
   const theme = useTheme();
+  const modules = useModules();
   const { data, db, loaded, reload } = useLoad(loadOverview, {
     active: null,
     plans: [] as PlanSummary[],
@@ -283,10 +284,10 @@ export default function TrainingScreen() {
         </ThemedText>
       </Card>
 
-      <Card title={t('training.routinesTitle')}>
+      {modules.routinen ? <Card title={t('training.routinesTitle')}>
         <ListRow icon="stretch" title={t('training.stretchTitle')} subtitle={t('training.stretchSubtitle')} accessory="›" onPress={() => router.push('/training/stretch')} />
         <ListRow icon="bolt" title={t('training.hiitTitle')} subtitle={t('training.hiitSubtitle')} accessory="›" onPress={() => router.push('/training/hiit')} last />
-      </Card>
+      </Card> : null}
 
       <Card>
         <ListRow icon="clock" title={t('training.historyTitle')} accessory="›" onPress={() => router.push('/training/history')} />

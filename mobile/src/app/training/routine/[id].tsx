@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -18,7 +18,7 @@ import {
   saveRoutine,
   type RoutineVersionInfo,
 } from '@/data/routines';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { listExercises, type Exercise } from '@/data/training';
 import {
   findTemplate,

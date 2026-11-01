@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, ListRow, MultiChoice } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { levelColor, reasonText } from '@/components/readiness';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -28,19 +28,8 @@ import {
 } from '@/data/readiness';
 import { loadReminders } from '@/data/reminders';
 import { formatTime, parseTime } from '@/domain/reminders';
-import {
-  hoursBetween,
-  journalFindings,
-  MANUAL_FACTORS,
-  shiftDay,
-  sleepStats,
-  STATUSES,
-  type DailyCheck,
-  type Factor,
-  type JournalFinding,
-  type SleepStats,
-  type Status,
-} from '@/domain/readiness';
+import { shiftDay } from '@/domain/dates';
+import { hoursBetween, journalFindings, MANUAL_FACTORS, sleepStats, STATUSES, type DailyCheck, type Factor, type JournalFinding, type SleepStats, type Status } from '@/domain/readiness';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';

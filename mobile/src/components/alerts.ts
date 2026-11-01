@@ -4,7 +4,8 @@ import type { Db } from '@/data/db';
 import { cancelAlerts, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
 import { loadReminders } from '@/data/reminders';
 import { supplementReminders } from '@/data/supplements';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
+import { loadProfile } from '@/data/profile';
 import { loadSleepGoal, loadWakeTime, statusToday } from '@/data/readiness';
 import { bedtimeFor } from '@/domain/readiness';
 import { BEDTIME_LEAD_MINUTES, drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
@@ -87,7 +88,8 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
       });
     }
   }
-  if (settings.drink.enabled) {
+  const modules = (await loadProfile(db)).modules;
+  if (settings.drink.enabled && modules.ernaehrung) {
     for (const at of drinkTimes(settings.drink.from, settings.drink.to, settings.drink.everyHours)) {
       list.push({
         id: `trinken-${at}`,
@@ -100,7 +102,7 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
     }
   }
   const morningAt = parseTime(settings.morning.time);
-  if (settings.morning.enabled && morningAt !== null) {
+  if (settings.morning.enabled && morningAt !== null && modules.bereitschaft) {
     list.push({ id: 'morgen-check', kind: 'daily', hour: Math.floor(morningAt / 60), minute: morningAt % 60, title: t('alerts.morningTitle'), body: t('alerts.morningBody') });
   }
   const wake = await loadWakeTime(db);

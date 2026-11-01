@@ -4,14 +4,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field } from '@/components/fields';
-import { foodTitle } from '@/components/food-title';
+import { foodTitle } from '@/format/food-title';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { fetchPage, saveImportedRecipe } from '@/data/meal-plan';
 import { searchFoods, type Food } from '@/data/nutrition';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { parsePortions } from '@/domain/basis-foods';
 import { parseAmount } from '@/domain/nutrition';
 import { extractRecipe, lineGrams, parseIngredientLine, type IngredientLine } from '@/domain/recipe-import';

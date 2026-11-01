@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice, Field } from '@/components/fields';
-import { foodTitle } from '@/components/food-title';
+import { foodTitle } from '@/format/food-title';
 import { readTarget, targetParams, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -26,7 +26,7 @@ import {
   type MealTemplate,
   type RecipeSummary,
 } from '@/data/nutrition';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import type { FoodFacts } from '@/domain/diet';
 import { parsePortions } from '@/domain/basis-foods';
 import { guessDrinkType, isPlainWater, matchScore, MAX_FOOD_TEXT, parseFoodText, resolveAmount, type FoodTextItem } from '@/domain/food-text';

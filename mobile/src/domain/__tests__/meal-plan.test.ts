@@ -3,11 +3,12 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { BASIS_FOODS } from '../basis-foods-data';
-import { bookShopping, departmentFor, mealPrep, shoppingList, shoppingText, suggestWeek, weekDaysFrom, MEAL_SHARE } from '../meal-plan';
+import { weekDays } from '../dates';
+import { bookShopping, departmentFor, mealPrep, shoppingList, shoppingText, suggestWeek, MEAL_SHARE } from '../meal-plan';
 import { ALL_BOOK_RECIPES, findBookRecipe } from '../recipe-book';
 import { extractRecipe, lineGrams, parseIngredientLine, parseYield } from '../recipe-import';
 
-const DAYS = weekDaysFrom('2026-11-02');
+const DAYS = weekDays('2026-11-02');
 
 describe('Wochenvorschlag', () => {
   const base = { days: DAYS, recipes: ALL_BOOK_RECIPES, prefs: { diet: 'alles' as const, allergies: [] }, goalKcal: 2400, goalProtein: 160, existing: [], snacks: false };

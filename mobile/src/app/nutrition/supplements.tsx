@@ -4,14 +4,14 @@ import { StyleSheet, View } from 'react-native';
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
 import { loadReminders } from '@/data/reminders';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { archiveSupplement, listSupplements, loggedDays, saveSupplement, setTaken } from '@/data/supplements';
 import {
   EMPTY_SUPPLEMENT_FORM,
@@ -28,6 +28,7 @@ import {
 import { suggestSupplementNames } from '@/domain/supplement-names';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
+import { shiftDay } from '@/domain/dates';
 
 const amountText = (s: Supplement) =>
   s.amount === null || s.unit === null ? '' : `${formatNumber(s.amount, 3)} ${t(`supplements.units.${s.unit}`)}`;
@@ -49,7 +50,7 @@ export default function SupplementsScreen() {
   const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    const weekAgo = new Date(Date.parse(`${today}T12:00:00Z`) - 6 * 86_400_000).toISOString().slice(0, 10);
+    const weekAgo = shiftDay(today, -6);
     return Promise.all([listSupplements(db), loggedDays(db, weekAgo)]);
   }, [db, today]);
 

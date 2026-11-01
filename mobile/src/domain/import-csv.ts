@@ -7,6 +7,7 @@ import { csvNumber, csvObjects } from './csv';
 import type { CardioActivity } from './cardio';
 import type { Equipment } from './exercises';
 import type { SetType } from './logger';
+import { foldText } from './text';
 
 export type ImportSource = 'strong' | 'hevy';
 export type ImportedSet = { exercise: string; setType: SetType; weightKg: number | null; reps: number | null; seconds: number | null; distanceKm: number | null; rir: number | null; note: string | null };
@@ -164,16 +165,8 @@ export function parseWeightCsv(text: string): WeightRow[] | { error: ImportError
 
 // --------------------------------------------------------------------------- Übungen zuordnen
 
-const fold = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/\(.*?\)/g, ' ')
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
+/** Vergleichstext ohne Gerät in Klammern („Bench Press (Barbell)“ → „bench press“). */
+const fold = (s: string) => foldText(s.replace(/\(.*?\)/g, ' '));
 
 /** Ähnlichkeit zweier Namen (0–1) über gemeinsame Wörter; Gerät in Klammern zählt extra. */
 export function nameSimilarity(a: string, b: string): number {

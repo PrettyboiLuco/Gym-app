@@ -1,10 +1,9 @@
 // Daten für die Auswertung im Training (Ausbauplan A8): Satzzeiten, Statistik, Muskelkarte, Deload, Geräteprofile,
 // bevorzugte Wochentage.
 
-import { timeZone } from '@/components/nutrition-format';
 import type { Equipment } from '@/domain/exercises';
 import { loadModeOf } from '@/domain/logger';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 import {
   DEFAULT_PROFILES,
   DELOAD_WEEKS_DEFAULT,

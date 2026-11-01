@@ -5,17 +5,17 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { supersetLetters } from '@/domain/logger';
 import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
 import { loadSecondsPerSet } from '@/data/training-stats';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { blockSeconds as blockSecondsOf } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import {
   activatePlanVersion,
   activeVersion,

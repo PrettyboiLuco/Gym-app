@@ -3,12 +3,13 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { formatKcal, todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
+import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { activeWeightGoal, adjustCalorieGoal, listCalorieGoals, type CalorieGoal } from '@/data/goals';
-import { useProfile } from '@/data/profile-provider';
+import { useProfile } from '@/providers/profile-provider';
 import { listWeights } from '@/data/weights';
 import { calculate, DELTA_OPTIONS, type CalculatorInput, type Goal } from '@/domain/energy';
 import { DIRECTIONS } from '@/domain/goals';

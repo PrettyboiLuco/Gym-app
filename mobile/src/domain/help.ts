@@ -2,7 +2,7 @@
 // stehen hier als Schlüssel, die Texte in der Sprachdatei (help.q.<id>.q / .a), damit weitere Sprachen nur
 // Übersetzungen brauchen.
 
-import { normalize } from './wish';
+import { normalize } from './text';
 
 export const HELP_SECTIONS = [
   { id: 'start', questions: ['wasKann', 'coachStart', 'coachAendern', 'keinKonto'] },

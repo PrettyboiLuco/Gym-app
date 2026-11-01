@@ -20,6 +20,7 @@ import {
   type FormulaTerm,
   type Goal,
 } from './energy';
+import { isoWeekday } from './dates';
 
 export const COACH_RULES_VERSION = 1;
 
@@ -203,12 +204,6 @@ export type GoalPlan = {
   trainingWeekdays: number[] | null;
   macros: Macros | null;
 };
-
-/** Wochentag 1 (Montag) bis 7 (Sonntag) eines Tages YYYY-MM-DD. */
-export function isoWeekday(day: string): number {
-  const d = new Date(`${day}T12:00:00Z`).getUTCDay();
-  return d === 0 ? 7 : d;
-}
 
 export type DayTarget = { kcal: number; trainingDay: boolean | null; macros: Macros | null };
 

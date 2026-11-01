@@ -9,7 +9,7 @@ import { Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { loadIntervalRun, saveIntervalRun } from '@/data/training';
 import {
   formatClock,

@@ -1,7 +1,7 @@
 // Texte und Fortschritt der Ziele für Übersicht und Zielseite (Register GOAL-001–006).
 
-import { exerciseName } from '@/components/exercise-name';
-import { timeZone } from '@/components/nutrition-format';
+import { exerciseName } from '@/format/exercise-name';
+import { timeZone } from '@/domain/time';
 import type { Db } from '@/data/db';
 import { drinkGoalDays, liftSets, stretchDays, trainingDays, type GoalVersion } from '@/data/goals';
 import { listFlexibilityTests } from '@/data/routines';
@@ -10,8 +10,8 @@ import { stepGoalDays } from '@/domain/steps';
 import { loadNutritionSettings } from '@/data/nutrition';
 import type { Exercise } from '@/data/training';
 import { listWeights } from '@/data/weights';
-import { flexibilityProgress, habitWeeks, strengthProgress, weekStart, weightProgress } from '@/domain/goals';
-import { shiftDay } from '@/domain/nutrition';
+import { flexibilityProgress, habitWeeks, strengthProgress, weightProgress } from '@/domain/goals';
+import { shiftDay, weekStart } from '@/domain/dates';
 import type { Units } from '@/domain/units';
 import { weightTrend } from '@/domain/weight';
 import { formatDay, formatLength, formatWeight, t } from '@/i18n';

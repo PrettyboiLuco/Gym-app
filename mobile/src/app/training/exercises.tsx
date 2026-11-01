@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, type ScrollViewInstance } from 'react-native';
 import { LOAD_MODES, type LoadMode } from '@/domain/logger';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName, exerciseTarget, matchesExercise } from '@/components/exercise-name';
+import { exerciseName, exerciseTarget, matchesExercise } from '@/format/exercise-name';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';

@@ -1,7 +1,7 @@
 // Meilensteine und Wochenbilanz (Ausbauplan A10.5/A10.6). Bewusst ohne Serien: Ruhetage gehören zum Plan, eine
 // verpasste Woche nimmt nichts weg, Wochen mit Status krank/verletzt/Pause zählen gar nicht.
 
-import { weekStart } from './training-stats';
+import { shiftDay, weekStart } from './dates';
 
 export const MILESTONES = [
   'training_1',
@@ -58,12 +58,6 @@ export function milestones(input: MotivationInput): Milestone[] {
 export type WeekStatus = 'geschafft' | 'offen' | 'pausiert' | 'laeuft';
 export type WeekResult = { start: string; end: string; trained: number; goal: number; status: WeekStatus };
 
-const addDays = (day: string, n: number) => {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-};
-
 /**
  * Plan-Wochen von der ersten Trainingswoche bis heute. Geschafft = an mindestens `goal` Tagen trainiert (Ruhetage
  * zählen also mit). Die laufende Woche ist „läuft“, solange sie nicht geschafft ist. Status-Wochen zählen nicht.
@@ -72,12 +66,12 @@ export function weekResults(trainingDays: string[], goal: number, today: string,
   if (!trainingDays.length || goal < 1) return [];
   const days = new Set(trainingDays);
   const out: WeekResult[] = [];
-  for (let start = weekStart([...trainingDays].sort()[0]); start <= today; start = addDays(start, 7)) {
-    const end = addDays(start, 6);
+  for (let start = weekStart([...trainingDays].sort()[0]); start <= today; start = shiftDay(start, 7)) {
+    const end = shiftDay(start, 6);
     let trained = 0;
     let paused = false;
     for (let i = 0; i < 7; i++) {
-      const d = addDays(start, i);
+      const d = shiftDay(start, i);
       if (days.has(d)) trained++;
       if (d <= today && pausedDay(d)) paused = true;
     }

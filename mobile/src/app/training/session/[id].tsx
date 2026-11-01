@@ -11,7 +11,7 @@ import { SetCheck } from '@/components/set-check';
 import { RirChoice, SetDetails } from '@/components/set-details';
 import { CardioRow } from '@/components/cardio-row';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow } from '@/components/fields';
@@ -20,14 +20,14 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
-import { useUnits } from '@/data/profile-provider';
+import { useUnits } from '@/providers/profile-provider';
 import { loadProfile } from '@/data/profile';
 import { activeEquipment } from '@/data/training-stats';
 import { loadReminders } from '@/data/reminders';
 import { timedSessionsForWorkout, type TimedSession } from '@/data/routines';
 import { syncRestAlert } from '@/components/alerts';
 import { holdLookup, routineMinutes, startRoutineRun } from '@/components/timed';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import {
   addSet,
   completeSet,

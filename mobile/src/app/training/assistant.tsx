@@ -2,16 +2,16 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName, exerciseSynonyms } from '@/components/exercise-name';
+import { exerciseName, exerciseSynonyms } from '@/format/exercise-name';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { loadPlannerPrefs, savePlannerPrefs, type PlannerPrefs } from '@/data/planner';
-import { useProfile } from '@/data/profile-provider';
-import { useDb } from '@/data/store-provider';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 import {
   activatePlanVersion,
   activeVersion,
@@ -43,6 +43,7 @@ import { activeEquipment, loadPreferredWeekdays, loadSecondsPerSet, savePreferre
 import { DURATIONS, isEmptyWish, parseWish, validateWish, type Duration, type Wish } from '@/domain/wish';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t, tOptional } from '@/i18n';
+import { shiftDay } from '@/domain/dates';
 
 type Mode = 'umbau' | 'vorlage';
 type Status = 'frei' | 'behalten' | 'ersetzen';
@@ -364,7 +365,7 @@ export default function AssistantScreen() {
             />
             {endDate ? (
               <ThemedText type="small" themeColor="textSecondary">
-                {t('assistant.durationHint', { date: formatDay(nextDay(endDate)) })}
+                {t('assistant.durationHint', { date: formatDay(shiftDay(endDate, 1)) })}
               </ThemedText>
             ) : null}
           </>
@@ -577,8 +578,3 @@ function dropInvalid(wish: Wish): Wish {
   return copy;
 }
 
-function nextDay(day: string): string {
-  const date = new Date(`${day}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName, matchesExercise } from '@/components/exercise-name';
+import { exerciseName, matchesExercise } from '@/format/exercise-name';
 import { Field, ListRow } from '@/components/fields';
 import { ThemedText } from '@/components/themed-text';
 import type { Exercise } from '@/data/training';

@@ -13,9 +13,9 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { addPlanEntries, cleanEatenLinks, deletePlanEntry, listPlan, logPlanEntry, planNutrients } from '@/data/meal-plan';
 import { listRecipes, loadNutritionSettings, type RecipeSummary } from '@/data/nutrition';
-import { weekStart } from '@/domain/goals';
-import { dayTotals, suggestWeek, weekDaysFrom, type PlanEntry } from '@/domain/meal-plan';
-import { MEALS, shiftDay, type Nutrients } from '@/domain/nutrition';
+import { dayTotals, suggestWeek, type PlanEntry } from '@/domain/meal-plan';
+import { shiftDay, weekDays, weekStart } from '@/domain/dates';
+import { MEALS, type Nutrients } from '@/domain/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -23,7 +23,7 @@ import { formatDay, formatNumber, t } from '@/i18n';
 
 async function load(db: Db, monday: string) {
   await cleanEatenLinks(db);
-  const days = weekDaysFrom(monday);
+  const days = weekDays(monday);
   const [entries, settings, goals, own] = await Promise.all([
     listPlan(db, days[0], days[6]),
     loadNutritionSettings(db),

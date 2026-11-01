@@ -118,6 +118,28 @@ Fundstelle: `mobile/src/domain/routines.ts`.
 | G4 | Tipps auf „Heute“ | nur auf Klick; nie Aufforderung zu „mehr“ nach Zielerreichung; über Ziel (> 200 kcal) „ohne Druck“ | Texte (`i18n/de.ts` → `coach.tips`) freigeben? | | |
 | G5 | Trinkziel | frei 250–10 000 ml, kein gewichtsabhängiger Vorschlag | Gewichtsabhängige Grenzen gewünscht? (O3) | | |
 
+## H. Beispielrechnungen zum Nachprüfen
+
+Mit dem echten Code der App berechnet (30.10.2026). Werte in kcal bzw. g pro Tag.
+
+| Person | Ruhe­energie | PAL (Schritte + Gym) | Erhalt | Ziel | Trainings-/Ruhetag | Makros Standard (E/F/KH/Bal.) | Makros Lean |
+|---|---|---|---|---|---|---|---|
+| A: Mann, 30 J., 80 kg, 180 cm, 8000 Schritte, 3 Gym-Tage, Abnehmen −500 | 1780 | 1,6 + 0,195 = 1,795 | 3200 | 2700 | 2900 / 2550 | 160 / 90 / 313 / 30 | 176 / 60 / 364 / 30 |
+| B: Frau, 25 J., 60 kg, 165 cm, 6000 Schritte, 4 Gym-Tage, Zunehmen +250 | 1345 | 1,5 + 0,26 = 1,76 | 2370 | 2620 | 2820 / 2350 | 96 / 87 / 363 / 30 | 120 / 58 / 404 / 30 |
+| C: Frau, 55 J., 70 kg, 160 cm, 4000 Schritte, 0 Gym-Tage, Halten | 1264 | 1,4 + 0 = 1,4 | 1770 | 1770 | – | 56 / 59 / 254 / 30 | **140** / 39 / 214 / 30 |
+| D: Frau, 40 J., 52 kg, 158 cm, 3000 Schritte, 2 Gym-Tage, Abnehmen −500 | 1147 | 1,4 + 0,13 = 1,53 | 1750 | 1250 | 1380 / **1200** | 104 / 42 / 115 / 30 | 114 / 28 / 136 / 30 |
+
+Rechner (ohne Coach) für Person A mit „sitzend, bewegt“ und Sport: Faktor 1,95, Bedarf 3471, Ziel 2970,
+Eiweiß-Spanne 96–160 g.
+
+**Auffälligkeiten zur Bewertung:**
+1. Person A: Erhalt 3200 kcal bei 8000 Schritten und 3 Gym-Tagen – ist die Summe aus Schritt-PAL und Gym-Zuschlag
+   zu hoch (A4/A5)?
+2. Person C mit „Lean“: 140 g Eiweiß (2,0 g/kg) ohne Training – sinnvoll (B2)?
+3. Person D: Ruhetag landet genau auf 1200 kcal (Untergrenze) – vertretbar (A7/B7)?
+4. Rechner und Coach rechnen Aktivität verschieden (Alltagsstufe vs. Schritte) und kommen für dieselbe Person auf
+   unterschiedliche Ziele (A 2970 vs. 2700). Soll ein Weg der maßgebliche sein?
+
 ## I. Bereitschaft, Schlaf und Journal (Ausbauplan A6)
 
 Fundstelle: `mobile/src/domain/readiness.ts` (Regeln Fassung 1, `READINESS_RULES_VERSION`). Wortwahl in der App:
@@ -166,27 +188,17 @@ Fundstellen: `mobile/src/domain/training-stats.ts` (Deload Fassung 1, `DELOAD_RU
 | K4 | Eigene Satzzeit | Median über die letzten 10 Trainings (mind. 3): Dauer − geplante Pausen − 60 s Wechsel je Übung, geteilt durch die Sätze; Grenzen 20–150 s | Freigeben? | | |
 | K5 | Programm-Vorlagen | Ganzkörper 3×, Kraft-Basis 3× (feste 5 Wdh. = lineare Steigerung über die vorhandene Steigerungsregel), Zuhause mit Kurzhanteln 3×, Ober/Unter 4×, Drücken/Ziehen/Beine 6×; Sätze, Wiederholungen, Pausen und RIR je Übung in den Dateien | Volumen und Pausen der Vorlagen freigeben? | | |
 
-## H. Beispielrechnungen zum Nachprüfen
+## L. Logger: Steigerung Fassung 2, 1RM, Aufwärmen (Ausbauplan A1)
 
-Mit dem echten Code der App berechnet (30.10.2026). Werte in kcal bzw. g pro Tag.
+Fundstellen: `mobile/src/domain/progression.ts` (Fassung 2, `PROGRESSION_V2_ENABLED = false`),
+`mobile/src/domain/logger.ts` (1RM-Schätzung, Aufwärmsätze, Scheibenrechner).
 
-| Person | Ruhe­energie | PAL (Schritte + Gym) | Erhalt | Ziel | Trainings-/Ruhetag | Makros Standard (E/F/KH/Bal.) | Makros Lean |
-|---|---|---|---|---|---|---|---|
-| A: Mann, 30 J., 80 kg, 180 cm, 8000 Schritte, 3 Gym-Tage, Abnehmen −500 | 1780 | 1,6 + 0,195 = 1,795 | 3200 | 2700 | 2900 / 2550 | 160 / 90 / 313 / 30 | 176 / 60 / 364 / 30 |
-| B: Frau, 25 J., 60 kg, 165 cm, 6000 Schritte, 4 Gym-Tage, Zunehmen +250 | 1345 | 1,5 + 0,26 = 1,76 | 2370 | 2620 | 2820 / 2350 | 96 / 87 / 363 / 30 | 120 / 58 / 404 / 30 |
-| C: Frau, 55 J., 70 kg, 160 cm, 4000 Schritte, 0 Gym-Tage, Halten | 1264 | 1,4 + 0 = 1,4 | 1770 | 1770 | – | 56 / 59 / 254 / 30 | **140** / 39 / 214 / 30 |
-| D: Frau, 40 J., 52 kg, 158 cm, 3000 Schritte, 2 Gym-Tage, Abnehmen −500 | 1147 | 1,4 + 0,13 = 1,53 | 1750 | 1250 | 1380 / **1200** | 104 / 42 / 115 / 30 | 114 / 28 / 136 / 30 |
-
-Rechner (ohne Coach) für Person A mit „sitzend, bewegt“ und Sport: Faktor 1,95, Bedarf 3471, Ziel 2970,
-Eiweiß-Spanne 96–160 g.
-
-**Auffälligkeiten zur Bewertung:**
-1. Person A: Erhalt 3200 kcal bei 8000 Schritten und 3 Gym-Tagen – ist die Summe aus Schritt-PAL und Gym-Zuschlag
-   zu hoch (A4/A5)?
-2. Person C mit „Lean“: 140 g Eiweiß (2,0 g/kg) ohne Training – sinnvoll (B2)?
-3. Person D: Ruhetag landet genau auf 1200 kcal (Untergrenze) – vertretbar (A7/B7)?
-4. Rechner und Coach rechnen Aktivität verschieden (Alltagsstufe vs. Schritte) und kommen für dieselbe Person auf
-   unterschiedliche Ziele (A 2970 vs. 2700). Soll ein Weg der maßgebliche sein?
+| ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| L1 | Steigerung mit RIR (a) | alle Sätze im Bereich und jeder mit RIR ≥ 3 → mehr Gewicht, auch vor dem oberen Ende | Freigeben? Schwelle RIR 3 passend? | | ausgeschaltet bis zur Freigabe |
+| L2 | Steigerung mit RIR (b) | ein Satz unter dem Bereich mit RIR 0 → Gewicht halten | Freigeben? | | ausgeschaltet bis zur Freigabe |
+| L3 | Geschätztes 1RM | Epley: Gewicht × (1 + Wdh./30), nur bis 12 Wiederholungen, Aufwärmsätze zählen nicht | Formel und Grenze freigeben? | | nur Anzeige |
+| L4 | Aufwärmsätze | ab 2× Stangengewicht: 50 % × 8, 70 % × 5, 85 % × 3; darunter 50 % × 8, 75 % × 4; auf den kleinsten Schritt gerundet | Freigeben? | | nur auf Wunsch eingefügt |
 
 ---
 
@@ -195,10 +207,11 @@ Eiweiß-Spanne 96–160 g.
 | | |
 |---|---|
 | Name, Qualifikation | |
-| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Bereitschaft 1 · Energiebedarf 1 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
+| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 (Fassung 2 vorbereitet) · Bereitschaft 1 · Energiebedarf 1 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
 | Geltungsbereich | gesunde Erwachsene 18+ (Kalorien 19–78 J.), Ausschlüsse siehe G2 |
 | Datum, Unterschrift | |
 
 Nach der Freigabe: Werte im Code anpassen, Regelfassungen erhöhen, Hinweise „noch nicht fachlich geprüft“ in der
-App (`calculator.intro`, `coach.resultHint`, `checkin.rules`, `hiit.note`, `help.q.fachlichGeprueft`) und die
+App (`calculator.intro`, `coach.resultHint`, `checkin.rules`, `hiit.note`, `help.q.fachlichGeprueft`, `readiness.disclaimer`,
+`adaptive.hint`, `deload.hint`, `learn.articles.deload.body`) sowie `PROGRESSION_V2_ENABLED`, die Standardregel des Check-ins (Fassung 1/2) und die
 Prüfregel `geprueft` in `domain/claims.ts` auf den neuen Stand bringen, Register-Einträge auf „freigegeben“ setzen.

@@ -2,18 +2,8 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import {
-  DEFAULT_PROFILES,
-  deloadDraft,
-  deloadDue,
-  muscleLevel,
-  periodStats,
-  personalSecondsPerSet,
-  trainingWeeksInBlock,
-  usableEquipment,
-  weekStart,
-  type StatSet,
-} from '../training-stats';
+import { weekStart } from '../dates';
+import { DEFAULT_PROFILES, deloadDraft, deloadDue, muscleLevel, periodStats, personalSecondsPerSet, trainingWeeksInBlock, usableEquipment, type StatSet } from '../training-stats';
 
 describe('Satzzeit', () => {
   const session = (minutes: number) => ({

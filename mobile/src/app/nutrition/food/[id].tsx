@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
-import { foodTitle } from '@/components/food-title';
+import { foodTitle } from '@/format/food-title';
 import {
   dayLabel,
   formatAmount,

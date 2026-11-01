@@ -4,16 +4,16 @@
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
 import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
-import { timeZone } from '@/components/nutrition-format';
 import type { CardioActivity } from '@/domain/cardio';
 import { estimateOneRepMax, setOrder, type LoadMode, type PlateSetup, type SetType } from '@/domain/logger';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 import type { PastSession } from '@/domain/progression';
 import type { PreviousBest } from '@/domain/summary';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
+import { daysSince } from '@/domain/progression';
 
 // ------------------------------------------------------------------------------------ Übungen
 
@@ -664,7 +664,7 @@ export async function exerciseHistory(
       s.sessionId,
       exerciseId
     );
-    result.push({ daysAgo: Math.floor((nowMs - Date.parse(s.at)) / 86_400_000), sets });
+    result.push({ daysAgo: daysSince(s.at, nowMs), sets });
   }
   return result;
 }

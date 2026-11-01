@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
+import { useModules } from '@/providers/profile-provider';
 import { lighterPlanToday, saveCheck } from '@/data/readiness';
 import { offersFor, type DailyCheck, type Level, type Readiness, type Reason } from '@/domain/readiness';
 import { useTheme } from '@/hooks/use-theme';
@@ -92,6 +93,7 @@ export function ReadinessCard({
 }) {
   const theme = useTheme();
   const [busy, setBusy] = useState(false);
+  const modules = useModules();
   if (readiness.kind === 'offen') return null;
 
   async function lighter(offer: 'wenigerSaetze' | 'leicht') {
@@ -115,7 +117,8 @@ export function ReadinessCard({
   }
 
   const title = readiness.kind === 'lernen' ? t('readiness.learningTitle') : t(`readiness.level.${readiness.level}`);
-  const offers = offersFor(readiness);
+  // Ohne Modul „Dehnen & HIIT“ kein Dehn-Angebot (A11.1).
+  const offers = offersFor(readiness).filter((o) => o !== 'dehnen' || modules.routinen);
   return (
     <Card title={t('readiness.cardTitle')}>
       <View style={styles.head}>

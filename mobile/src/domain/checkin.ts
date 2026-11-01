@@ -15,6 +15,7 @@ import type { V2Result } from './adaptive';
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { weekAverage } from './nutrition';
 import { weightTrend, type WeightEntry } from './weight';
+import { daysBetween, shiftDay } from './dates';
 
 export const CHECKIN_RULES_VERSION = 1;
 export const CHECKIN_EVERY_DAYS = 7;
@@ -94,26 +95,20 @@ export type CheckinHint = 'trainingWeniger' | 'trainingOk' | 'schlafKurz' | 'eiw
 
 export type CheckinResult = { summary: CheckinSummary; suggestion: CheckinSuggestion; hints: CheckinHint[] };
 
-function shift(day: string, delta: number): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
-}
-
 /** Die 7 Tage bis einschließlich weekEnd, älteste zuerst. */
 export function weekDays(weekEnd: string): string[] {
-  return Array.from({ length: 7 }, (_, i) => shift(weekEnd, i - 6));
+  return Array.from({ length: 7 }, (_, i) => shiftDay(weekEnd, i - 6));
 }
 
 /** Ist ein neuer Check-in fällig (letzter vor ≥ 7 Tagen oder noch keiner)? */
 export function checkinDue(lastWeekEnd: string | null, today: string): boolean {
   if (!lastWeekEnd) return true;
-  return Date.parse(`${today}T12:00:00Z`) - Date.parse(`${lastWeekEnd}T12:00:00Z`) >= CHECKIN_EVERY_DAYS * 86_400_000;
+  return daysBetween(lastWeekEnd, today) >= CHECKIN_EVERY_DAYS;
 }
 
 export function weeklyCheckin(input: CheckinInput): CheckinResult {
   const weightAvg = weightTrend(input.weights, input.weekEnd);
-  const weightAvgPrev = weightTrend(input.weights, shift(input.weekEnd, -7));
+  const weightAvgPrev = weightTrend(input.weights, shiftDay(input.weekEnd, -7));
   const change = weightAvg !== null && weightAvgPrev !== null ? weightAvg - weightAvgPrev : null;
   const week = weekAverage(input.days);
   const goals = input.days.filter((d) => d.goal !== null).map((d) => d.goal as number);

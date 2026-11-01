@@ -36,7 +36,8 @@ export function AnimatedSplashOverlay() {
     },
   });
 
-  const image = <Image style={styles.image} source={require('@/assets/images/splash-icon.png')} />;
+  // Rein dekorativ: für VoiceOver ausgeblendet.
+  const image = <Image style={styles.image} source={require('@/assets/images/splash-icon.png')} accessibilityElementsHidden importantForAccessibility="no" />;
 
   return animate ? (
     <Animated.View

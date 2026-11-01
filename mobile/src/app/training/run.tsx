@@ -7,13 +7,13 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { cancelRunAlerts, syncRunAlerts } from '@/components/alerts';
-import { exerciseName } from '@/components/exercise-name';
+import { exerciseName } from '@/format/exercise-name';
 import { Choice, ConfirmButton } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { finishTimedSession, loadTimedRun, loadVoice, saveTimedRun, saveVoice } from '@/data/routines';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { listExercises, type Exercise } from '@/data/training';
 import {
   pauseRun,

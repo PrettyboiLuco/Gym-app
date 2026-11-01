@@ -7,7 +7,7 @@ import { MeterBar } from '@/components/charts';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Icon } from '@/components/icon';
 import { Choice, Field, ListRow, Presets } from '@/components/fields';
-import { foodTitle } from '@/components/food-title';
+import { foodTitle } from '@/format/food-title';
 import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, microLine, whenFor } from '@/components/nutrition-format';
 import { parseMicros, sumMicros } from '@/domain/basis-foods';
 import { showToast } from '@/components/toast';
@@ -30,12 +30,13 @@ import {
   saveTemplateFromMeal,
   type ConsumptionEvent,
 } from '@/data/nutrition';
-import { drinkTotals, MEALS, shiftDay, sumNutrients, type Meal } from '@/domain/nutrition';
+import { shiftDay } from '@/domain/dates';
+import { drinkTotals, MEALS, sumNutrients, type Meal } from '@/domain/nutrition';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { useUnits } from '@/data/profile-provider';
+import { useUnits } from '@/providers/profile-provider';
 import { formatNumber, formatVolume, t } from '@/i18n';
 
 async function loadDiary(db: Db, day: string) {

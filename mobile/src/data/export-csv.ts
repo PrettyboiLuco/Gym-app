@@ -1,10 +1,9 @@
 // Export als CSV (Ausbauplan A5): je Bereich eine Datei zum Anschauen und Weiterverwenden (Excel, Numbers).
 // Die Komplettsicherung (JSON, data/backup.ts) bleibt der Weg für Umzug und Wiederherstellung.
 
-import { exerciseName } from '@/components/exercise-name';
-import { timeZone } from '@/components/nutrition-format';
+import { exerciseName } from '@/format/exercise-name';
 import { toCsv, type Cell } from '@/domain/csv';
-import { localDay } from '@/domain/time';
+import { localDay, timeZone } from '@/domain/time';
 import { t } from '@/i18n';
 
 import type { CardioEntry } from './cardio';

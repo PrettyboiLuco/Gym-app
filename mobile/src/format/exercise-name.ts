@@ -1,7 +1,7 @@
 import type { Exercise } from '@/data/training';
 import { patternOf } from '@/domain/exercises';
 import { targetOf, type Target } from '@/domain/targets';
-import { normalize } from '@/domain/wish';
+import { normalize } from '@/domain/text';
 import { t, tOptional } from '@/i18n';
 
 /** Anzeigename: Startübungen kommen aus der Sprachdatei, eigene Übungen aus der Eingabe. */

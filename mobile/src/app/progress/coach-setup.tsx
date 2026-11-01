@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -14,9 +14,9 @@ import { loadCoachSetup, saveCoachPending, saveCoachSetup, type CoachSetup } fro
 import { loadNutritionSettings } from '@/data/nutrition';
 import { activeWeightGoal, saveGoal, setCalorieGoal } from '@/data/goals';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
-import { useProfile } from '@/data/profile-provider';
+import { useProfile } from '@/providers/profile-provider';
 import { loadReminders, saveReminders } from '@/data/reminders';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { listActivePlans, listExercises, savePlan, type Exercise } from '@/data/training';
 import { addWeight, listWeights } from '@/data/weights';
 import {

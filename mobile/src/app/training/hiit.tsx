@@ -6,7 +6,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { routineMinutes, templateName, withMinutes } from '@/components/timed';
 import type { Db } from '@/data/db';
-import { useProfile } from '@/data/profile-provider';
+import { useProfile } from '@/providers/profile-provider';
 import { listRoutines, type RoutineSummary } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
 import { HIIT_PROGRAMS } from '@/domain/routines';

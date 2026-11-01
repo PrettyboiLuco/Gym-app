@@ -6,14 +6,14 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
-import { foodTitle } from '@/components/food-title';
+import { foodTitle } from '@/format/food-title';
 import { extraLine, formatKcal, macroLine, readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { findFoodByBarcode, saveFood } from '@/data/nutrition';
 import { fetchProduct, type OffError } from '@/data/off';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { isValidBarcode, productCodeFromScan, type FoodDraft } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';

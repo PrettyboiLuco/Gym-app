@@ -6,6 +6,7 @@ import { bmi, underweightLimitKg, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { parseSteps } from './steps';
 import { parseWholeNumber } from './training';
 import { BODY_WEIGHT_RANGE, LIFT_RANGE, parseLengthIn, parseWeightIn, type LengthUnit, type WeightUnit } from './units';
+import { weekStart } from './dates';
 
 /** Bereich des Finger-Boden-Abstands in cm (0 = Boden erreicht). */
 export const FLEX_RANGE = { min: 0, max: 100 } as const;
@@ -186,14 +187,6 @@ export function flexibilityProgress(tests: { day: string; cm: number }[], target
   const current = tests[0];
   const start = tests[tests.length - 1];
   return { start, current, reached: current.cm <= targetCm };
-}
-
-/** Montag der Woche (YYYY-MM-DD), in der `day` liegt. */
-export function weekStart(day: string): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  const offset = (d.getUTCDay() + 6) % 7;
-  d.setUTCDate(d.getUTCDate() - offset);
-  return d.toISOString().slice(0, 10);
 }
 
 /**

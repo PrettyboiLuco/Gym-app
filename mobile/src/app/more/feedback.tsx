@@ -4,12 +4,12 @@ import { Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, Presets, RadioList } from '@/components/fields';
-import { todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { loadFeedbackDraft, saveFeedbackDraft, usageSummary } from '@/data/feedback';
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import { AREAS, EMPTY_FEEDBACK, feedbackText, isEmptyFeedback, PAY_OPTIONS, type FeedbackAnswers, type UsageSummary } from '@/domain/feedback';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';

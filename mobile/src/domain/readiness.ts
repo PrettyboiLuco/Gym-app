@@ -1,3 +1,5 @@
+import { daysBetween, shiftDay } from './dates';
+import { mean } from './math';
 // Bereitschaft, Schlaf und Journal (Ausbauplan A6). Ohne KI: feste, prüfbare Regeln, verglichen mit den eigenen
 // Werten der letzten 28 Tage. Ergebnis ist ein Trainingsvorschlag, nie ein Befund. Alle Schwellen sind Vorschläge bis
 // zur Fachprüfung (docs/Fachpruefung_Mappe.md, Abschnitt I).
@@ -61,14 +63,6 @@ export type Readiness =
 export type LoadDay = { day: string; load: number };
 export type LoadRatio = { acute: number; chronicWeekly: number; ratio: number | null; historyDays: number };
 
-export function shiftDay(day: string, delta: number): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
-}
-
-const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
-const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null);
 
 /** Last einer Einheit: Dauer × Anstrengung (sRPE). Ohne Anstrengung oder Dauer keine Last. */
 export function sessionLoad(minutes: number | null, effort: number | null): number | null {

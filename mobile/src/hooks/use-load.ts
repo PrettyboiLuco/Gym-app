@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 
-import { useDb } from '@/data/store-provider';
+import { useDb } from '@/providers/store-provider';
 import type { Db } from '@/data/db';
 
 /**

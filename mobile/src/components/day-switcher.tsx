@@ -2,10 +2,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
-import { dayLabel, todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
+import { dayLabel } from '@/components/nutrition-format';
 import { ThemedText } from '@/components/themed-text';
 import { Radius } from '@/constants/theme';
-import { shiftDay } from '@/domain/nutrition';
+import { shiftDay } from '@/domain/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 

@@ -2444,6 +2444,19 @@ export const de = {
       'Die Daten liegen im geschützten App-Bereich des iPhones (iOS verschlüsselt das Gerät, solange es gesperrt ist). ' +
       'Eine zusätzlich verschlüsselte Datenbank kommt mit der eigenen App-Version (Development Build).',
   },
+  modules: {
+    title: 'Bereiche der App',
+    subtitle: 'Ernährung, Coach, Dehnen & HIIT, Bereitschaft ein- oder ausblenden',
+    intro: 'Blende aus, was du nicht nutzt. Deine Daten bleiben beim Ausschalten erhalten und sind beim Einschalten wieder da.',
+    names: { ernaehrung: 'Ernährung', coach: 'Coach (Kalorien und Check-in)', routinen: 'Dehnen & HIIT', bereitschaft: 'Bereitschaft (Morgen-Check, Ampel)' },
+    hints: {
+      ernaehrung: 'Aus: kein Ernährungs-Tab, keine Kalorien- und Trink-Kacheln auf „Heute“, keine Trink-Erinnerungen.',
+      coach: 'Aus: keine Coach-Karte und kein Hinweis auf den Wochen-Check-in auf „Heute“.',
+      routinen: 'Aus: keine Dehn- und HIIT-Abläufe im Training, kein Dehn-Angebot der Ampel.',
+      bereitschaft: 'Aus: kein Morgen-Check, keine Ampel, keine Frage nach der Anstrengung nach dem Training.',
+    },
+    coachNeedsNutrition: 'Der Coach braucht die Ernährung und ist deshalb gerade mit aus.',
+  },
   milestones: {
     screenTitle: 'Meilensteine & Bilanz',
     listSubtitle: 'Erreichtes und Plan-Wochen – ohne Serien',
@@ -2604,7 +2617,7 @@ export const de = {
         title: 'Aufwärmen in 5–10 Minuten',
         body:
           'Ein kurzes allgemeines Aufwärmen (z. B. einige Minuten locker auf dem Rad) und dann Aufwärmsätze der ersten Übung mit leichterem Gewicht bereiten Gelenke und Bewegung vor.\n\n' +
-          'Die App kann Aufwärmsätze automatisch einfügen (z. B. 40 %, 60 %, 80 % des Arbeitsgewichts). Langes statisches Dehnen direkt vor schwerem Training ist nicht nötig; Dehnen passt gut ans Ende oder an Ruhetage.',
+          'Die App kann Aufwärmsätze automatisch einfügen (z. B. 50 %, 70 % und 85 % des Arbeitsgewichts). Langes statisches Dehnen direkt vor schwerem Training ist nicht nötig; Dehnen passt gut ans Ende oder an Ruhetage.',
       },
       mythen: {
         title: 'Drei hartnäckige Mythen',

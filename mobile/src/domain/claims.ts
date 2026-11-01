@@ -4,7 +4,7 @@
 // Geprüft wird je Satz. Ein Satz mit Verneinung („kann keine Übung“, „nie allergenfrei zusichern“) oder eine Frage
 // ist erlaubt: Genau so klären die Texte Mythen auf. Die Liste ersetzt keine rechtliche Prüfung (10.2).
 
-import { normalize } from './wish';
+import { normalize } from './text';
 
 export const CLAIM_RULES = [
   { id: 'bauchfett', pattern: /(bauch|fett|problemzonen?)\w* .*(weg|verbrenn|abbau|schmelz|los ?werden)|gezielt.* fett/ },

@@ -1,25 +1,9 @@
 // Datenbankzugriffe für Morgen-Check, Status, Trainingslast, Journal und das Angebot „leichter heute“ (Ausbauplan A6).
 
-import { timeZone } from '@/components/nutrition-format';
 import { lateCaffeineMg } from '@/domain/caffeine';
-import {
-  autoFactors,
-  BASELINE_DAYS,
-  lighterSets,
-  loadRatio,
-  MANUAL_FACTORS,
-  readiness,
-  SLEEP_GOAL_DEFAULT,
-  sessionLoad,
-  shiftDay,
-  statusOn,
-  type DailyCheck,
-  type Factor,
-  type LoadDay,
-  type Readiness,
-  type Status,
-} from '@/domain/readiness';
-import { localDay } from '@/domain/time';
+import { shiftDay } from '@/domain/dates';
+import { autoFactors, BASELINE_DAYS, lighterSets, loadRatio, MANUAL_FACTORS, readiness, SLEEP_GOAL_DEFAULT, sessionLoad, statusOn, type DailyCheck, type Factor, type LoadDay, type Readiness, type Status } from '@/domain/readiness';
+import { localDay, timeZone } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';

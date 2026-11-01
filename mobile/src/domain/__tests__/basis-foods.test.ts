@@ -5,7 +5,8 @@ import { describe, expect, test } from '@jest/globals';
 import { BASIS_FOODS } from '../basis-foods-data';
 import { BOOK_INGREDIENTS } from '../recipe-book-data';
 import { BOOK_TO_BASIS } from '../recipe-book-basis';
-import { MICRO_KEYS, editDistance, foldText, fuzzyBasis, scaleMicros, sumMicros } from '../basis-foods';
+import { MICRO_KEYS, editDistance, fuzzyBasis, scaleMicros, sumMicros } from '../basis-foods';
+import { foldText } from '../text';
 
 // Abweichung von Atwater (4/4/9 + 2 für Ballaststoffe) ist hier echt: Alkohol (7 kcal/g), Backtriebmittel,
 // Kakao und Haferkleie (USDA rechnet mit eigenen Faktoren).

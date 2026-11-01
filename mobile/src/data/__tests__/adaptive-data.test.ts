@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
-import { shift } from '@/domain/adaptive';
+import { shiftDay as shift } from '@/domain/dates';
 import { weeklyCheckin } from '@/domain/checkin';
 import { EMPTY_PROFILE } from '@/domain/profile';
 

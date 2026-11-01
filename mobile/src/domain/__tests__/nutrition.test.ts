@@ -1,29 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
-import {
-  drinkTotals,
-  fractionOf,
-  barcodeVariants,
-  isValidBarcode,
-  productCodeFromScan,
-  normalizeOffProduct,
-  nutrientsForAmount,
-  parseAmount,
-  parseNutrient,
-  per100FromTotal,
-  shiftDay,
-  suggestMeal,
-  sumNutrients,
-  totalOf,
-  weekAverage,
-  foodToForm,
-  parseFoodForm,
-  type FoodForm,
-  parseRecipeForm,
-  type RecipeForm,
-  parseSettingsForm,
-  type SettingsForm,
-} from '../nutrition';
+import { shiftDay } from '../dates';
+import { drinkTotals, fractionOf, barcodeVariants, isValidBarcode, productCodeFromScan, normalizeOffProduct, nutrientsForAmount, parseAmount, parseNutrient, per100FromTotal, suggestMeal, sumNutrients, totalOf, weekAverage, foodToForm, parseFoodForm, type FoodForm, parseRecipeForm, type RecipeForm, parseSettingsForm, type SettingsForm } from '../nutrition';
 
 const nutella = { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null };
 

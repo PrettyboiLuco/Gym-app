@@ -19,7 +19,8 @@ import {
 } from '@/domain/nutrition';
 
 import { BASIS_FOODS } from '@/domain/basis-foods-data';
-import { foldText, fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
+import { fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
+import { foldText } from '@/domain/text';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';

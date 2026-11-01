@@ -3,12 +3,14 @@ import { useState } from 'react';
 
 import { Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { formatKcal, todayDay } from '@/components/nutrition-format';
+import { todayDay } from '@/domain/time';
+import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { daySums, DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
-import { shiftDay, weekAverage } from '@/domain/nutrition';
+import { shiftDay } from '@/domain/dates';
+import { weekAverage } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, t } from '@/i18n';
 
