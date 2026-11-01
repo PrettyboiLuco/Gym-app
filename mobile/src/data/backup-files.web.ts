@@ -18,6 +18,13 @@ export async function pickBackup(): Promise<string | null> {
   return asset.file ? asset.file.text() : (await fetch(asset.uri)).text();
 }
 
+export async function pickTextFile(): Promise<string | null> {
+  const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/plain', '.csv'] });
+  if (result.canceled || !result.assets?.[0]) return null;
+  const asset = result.assets[0];
+  return asset.file ? asset.file.text() : (await fetch(asset.uri)).text();
+}
+
 export async function readPhotoBase64(_fileName: string): Promise<string | null> {
   return null;
 }

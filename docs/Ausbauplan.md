@@ -23,7 +23,8 @@ mit der Fachperson statt vieler einzelner.
 | A2 | **fertig** (01.11.2026) – Datenbank-Version 20; Gerätetest durch Luc offen |
 | A3 | **fertig** (01.11.2026) – Datenbank-Version 21, 566 Tests; OFF-Test (50 Produkte) durch Luc offen |
 | A4 | **fertig** (01.11.2026) – Datenbank-Version 22, 441 Grundnahrungsmittel (USDA SR28); Gerätetest durch Luc offen |
-| A5–A11 | offen |
+| A5 | **fertig** (01.11.2026) – CSV-Export, Import Strong/Hevy/Gewicht, PDF-Bericht, KI-Zusammenfassung; Test mit echten Strong-/Hevy-Dateien durch Luc offen |
+| A6–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -189,6 +190,22 @@ fehlten die Grundnahrungsmittel bis zum nächsten Start.
 
 **Fertig, wenn:** ein Strong- oder Hevy-Export im Verlauf erscheint, der CSV in Numbers sauber aufgeht und der
 PDF-Bericht lesbar ist.
+
+**Umgesetzt (A5, 01.11.2026):** „Mehr → Deine Daten“: CSV je Bereich (Training mit Satzart/RIR/Notizen, Cardio,
+Tagebuch mit Zucker/Salz/Koffein, Gewicht, Maße, Schlaf, Ziele) – Semikolon, Dezimalkomma, UTF-8 mit BOM, über das
+Teilen-Menü. „Aus anderen Apps übernehmen“: Strong und Hevy (Format wird erkannt, kg/lb, Satzarten, RPE → RIR,
+Notizen, Dauer), reine Zeit-/Strecken-Sätze werden Cardio-Einträge, Übungsnamen werden mit Katalog und englischen
+Namen abgeglichen – das Gerät in der Klammer entscheidet mit („Bench Press (Dumbbell)“ → Kurzhantel); unklare zum
+Antippen, „eigene Übung anlegen“ oder „weglassen“; Doppelte (gleiche Startzeit) werden übersprungen. Gewichts-CSV
+(Datum + Gewicht, kg oder lb; vorhandene Tage bleiben). Bericht 4/8/12/26 Wochen als PDF (expo-print) und als Text in
+die Zwischenablage (expo-clipboard) – gleiche Zahlen, ohne Bewertung, leere Tage nicht als 0. Trainer-Rückweg als
+Hinweis auf derselben Seite. Testdateien im Aufbau der Exporte: `mobile/src/domain/testing/import-samples.ts`.
+
+**Beim Lückencheck nach A5 gefunden und geschlossen:** Dateiauswahl fehlte in der Browser-Vorschau (eigene
+Web-Fassung) · Strong schreibt „0“ für nicht erfasste Wiederholungen/Sekunden → als „unbekannt“ gelesen ·
+Kurzhantel- und Langhantel-Varianten wurden derselben Übung zugeordnet → Gerät aus der Klammer · Export-Bausteine
+hingen an UI-Code und waren nicht testbar → getrennt · Texte wie „1 Cardio-Einträge“ → Zählform ohne Plural ·
+Zeitraum-Schalter abgeschnitten → Chips · „Hähnchenbrustfilet (roh), roh“ in Suchlisten → Zustand nicht doppelt.
 
 ## A6 – Bereitschaft Stufe 1, Schlaf und Status (Fachprüfung)
 

@@ -31,3 +31,13 @@ export async function writePhotoBase64(fileName: string, base64: string) {
   file.create({ intermediates: true });
   await file.write(base64, { encoding: 'base64' });
 }
+
+/** CSV- oder Textdatei wählen (Import aus anderen Apps, A5). null = abgebrochen. */
+export async function pickTextFile(): Promise<string | null> {
+  const result = await DocumentPicker.getDocumentAsync({
+    type: ['text/csv', 'text/comma-separated-values', 'text/plain', 'public.comma-separated-values-text', '*/*'],
+    copyToCacheDirectory: true,
+  });
+  if (result.canceled || !result.assets?.[0]) return null;
+  return new File(result.assets[0].uri).text();
+}

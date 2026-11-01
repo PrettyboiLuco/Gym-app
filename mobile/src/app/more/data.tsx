@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
@@ -6,6 +7,8 @@ import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '@/data/backup';
+import { EXPORT_AREAS, type ExportArea } from '@/data/export-csv';
+import { shareCsv } from '@/data/export';
 import { pickBackup, readPhotoBase64, shareBackup, writePhotoBase64 } from '@/data/backup-files';
 import { applyReminders } from '@/components/alerts';
 import { cancelEverything, notificationPermission } from '@/data/notifications';
@@ -30,6 +33,19 @@ export default function DataScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [pending, setPending] = useState<BackupManifest | null>(null);
+  const [area, setArea] = useState<ExportArea>('training');
+
+  async function exportCsv() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      await shareCsv(db, area, todayDay());
+    } catch {
+      setMessage({ text: t('exportCsv.failed'), error: true });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function exportNow() {
     setBusy(true);
@@ -125,6 +141,25 @@ export default function DataScreen() {
           </>
         ) : null}
         <Button label={t('dataScreen.export')} disabled={busy} onPress={exportNow} />
+      </Card>
+
+      <Card title={t('exportCsv.title')}>
+        <ThemedText type="small">{t('exportCsv.text')}</ThemedText>
+        <Choice label={t('exportCsv.area')} options={EXPORT_AREAS} value={area} onChange={setArea} format={(a) => t(`exportCsv.areas.${a}`)} chips />
+        <Button label={t('exportCsv.share')} variant="secondary" disabled={busy} onPress={exportCsv} />
+      </Card>
+
+      <Card title={t('importCsv.cardTitle')}>
+        <ThemedText type="small">{t('importCsv.cardText')}</ThemedText>
+        <Button label={t('importCsv.open')} variant="secondary" onPress={() => router.push('/more/import')} />
+      </Card>
+
+      <Card title={t('report.cardTitle')}>
+        <ThemedText type="small">{t('report.cardText')}</ThemedText>
+        <Button label={t('report.open')} variant="secondary" onPress={() => router.push('/more/report')} />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('dataScreen.trainerText')}
+        </ThemedText>
       </Card>
 
       <Card title={t('dataScreen.restoreTitle')}>
