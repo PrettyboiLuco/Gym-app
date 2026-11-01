@@ -2,7 +2,7 @@
 // Kurzanleitungen (Texte in i18n/de-exercises.ts), keine fremden Texte oder Medien. Wie die Startliste: Vorschläge
 // ohne Fachprüfung (Phase 10.1). Ersatzübungen werden aus Muster, Messart und Gerät abgeleitet.
 
-import { ROWS_V15, STRETCH_ROWS_V15 } from './exercise-catalog-v15';
+import { ROWS_V15, ROWS_V19, STRETCH_ROWS_V15 } from './exercise-catalog-v15';
 import type { Equipment, ExerciseKind, Level, Measure, MovementPattern, MuscleGroup, Sides } from './exercises';
 import { registerTargets, type Target } from './targets';
 
@@ -388,6 +388,7 @@ export const CATALOG_ADDED: Record<number, readonly string[]> = {
   13: ['cable_flys_sitzend', 'cable_flys_flachbank', 'cable_flys_schraegbank', 'cable_flys_einarmig'],
   14: ROWS_V14.map((r) => r[0]),
   16: ROWS_V15.map((r) => r[0]),
+  19: ROWS_V19.map((r) => r[0]),
 };
 
 /** Später ergänzte Dehnübungen je Datenbank-Version (Version 14 = Rest). */
@@ -405,7 +406,7 @@ export const CATALOG_EXERCISES: CatalogExercise[] = [
     sides,
     measure,
   })),
-  ...ROWS_V15.map(([id, equipment, muscleGroup, , pattern, level, sides = BOTH, measure = 'wdh']) => ({
+  ...[...ROWS_V15, ...ROWS_V19].map(([id, equipment, muscleGroup, , pattern, level, sides = BOTH, measure = 'wdh']) => ({
     id,
     equipment,
     muscleGroup,
@@ -416,7 +417,7 @@ export const CATALOG_EXERCISES: CatalogExercise[] = [
   })),
 ];
 
-registerTargets(ROWS_V15.filter((r) => r[3] !== null).map((r): [string, Target] => [r[0], r[3] as Target]));
+registerTargets([...ROWS_V15, ...ROWS_V19].filter((r) => r[3] !== null).map((r): [string, Target] => [r[0], r[3] as Target]));
 
 // ------------------------------------------------------------------------------ Dehnen und Mobilität
 

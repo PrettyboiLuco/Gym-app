@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -32,6 +32,7 @@ export function RestTimerBar({
   next = null,
   focus = false,
   onFocusChange,
+  ask = null,
 }: {
   timer: RestTimer;
   onStart: (seconds: number) => void;
@@ -40,6 +41,8 @@ export function RestTimerBar({
   next?: NextUp;
   focus?: boolean;
   onFocusChange?: (focus: boolean) => void;
+  /** Frage zum gerade erledigten Satz (z. B. RIR), im Vollbild über „Als Nächstes“ (A1). */
+  ask?: ReactNode;
 }) {
   const theme = useTheme();
   const visible = isRestVisible(timer);
@@ -126,6 +129,7 @@ export function RestTimerBar({
         remaining={remaining}
         progress={progress}
         next={next}
+        ask={ask}
         onExtend={onExtend}
         onSkip={() => {
           onFocusChange?.(false);
@@ -143,6 +147,7 @@ function RestFocus({
   remaining,
   progress,
   next,
+  ask,
   onExtend,
   onSkip,
   onClose,
@@ -151,6 +156,7 @@ function RestFocus({
   remaining: number;
   progress: number;
   next: NextUp;
+  ask: ReactNode;
   onExtend: () => void;
   onSkip: () => void;
   onClose: () => void;
@@ -178,6 +184,7 @@ function RestFocus({
             <ThemedText style={styles.focusClock}>{formatClock(remaining)}</ThemedText>
           </ProgressRing>
         </View>
+        {ask}
         {next ? (
           <View style={[styles.next, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
             <ThemedText type="small" themeColor="textSecondary">

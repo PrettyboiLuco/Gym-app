@@ -266,7 +266,8 @@ export async function activeWeightGoal(db: Db) {
 export async function liftSets(db: Db, exerciseId: string, timeZone: string): Promise<LiftSet[]> {
   const rows = await db.getAllAsync<{ weightKg: number; reps: number; at: string }>(
     `SELECT weight_kg AS weightKg, reps, completed_at_utc AS at FROM set_log
-     WHERE exercise_id = ? AND completed_at_utc IS NOT NULL AND weight_kg IS NOT NULL AND reps IS NOT NULL`,
+     WHERE exercise_id = ? AND completed_at_utc IS NOT NULL AND weight_kg IS NOT NULL AND reps IS NOT NULL
+       AND set_type <> 'aufwaermen'`,
     exerciseId
   );
   return rows.map((r) => ({ weightKg: r.weightKg, reps: r.reps, day: localDay(new Date(r.at), timeZone) }));

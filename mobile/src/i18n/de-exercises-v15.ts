@@ -67,6 +67,7 @@ export const CATALOG_TEXTS_V15: Record<string, Text> = {
   latzug_doppel: ['Latzug am Doppelkabelzug', 'Vor dem Doppelkabelzug knien, Einzelgriffe oben. Beide Ellbogen zur Hüfte ziehen, langsam zurück.', 'Functional Trainer Pulldown'],
   latzug_crossover_kniend: ['Kniender Latzug zwischen den Kabeltürmen', 'Mittig zwischen beiden Türmen knien, Rollen oben, Kabel gekreuzt. Ellbogen nach unten zur Seite ziehen.', 'Kneeling Cable Crossover Pulldown'],
   latzug_maschine_iso: ['Iso-lateraler Latzug (Maschine)', 'Scheibenbeladene Latzug-Maschine mit getrennten Griffen. Nach unten ziehen, beide Seiten arbeiten unabhängig.', 'Iso Lateral Pulldown'],
+  klimmzuege_maschine: ['Klimmzüge an der Maschine (Gegengewicht)', 'Knie oder Füße auf die Plattform, Gegengewicht wählen. Hochziehen, bis das Kinn über den Griffen ist, langsam senken. Weniger Gegengewicht ist schwerer.', 'Assisted Pull-up Machine'],
   latzug_maschine_einarmig: ['Einarmiger Latzug (Maschine)', 'An der Latzug-Maschine nur einen Griff ziehen, Ellbogen zur Hüfte. Seite wechseln.', 'Single Arm Pulldown Machine'],
   latzug_band_einarmig: ['Einarmiger Latzug mit Band', 'Band oben befestigt, kniend. Mit einem Arm Ellbogen zur Hüfte ziehen. Seite wechseln.', 'Single Arm Band Pulldown'],
   ueberzuege_seil: ['Überzüge am Kabel mit Seil', 'Seil oben, leicht vorgebeugt. Mit fast gestreckten Armen bogenförmig bis zu den Oberschenkeln ziehen.', 'Rope Straight Arm Pulldown'],

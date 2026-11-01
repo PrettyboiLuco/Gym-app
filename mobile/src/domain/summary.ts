@@ -1,20 +1,43 @@
 // Zusammenfassung nach einem Training und Bestleistungen (nur aus echten, erledigten Sätzen).
+// Aufwärmsätze zählen nicht mit (A1); Gewichtsart je Übung bestimmt Volumen und Richtung der Bestleistung.
 
-export type DoneSet = { exerciseId: string; weightKg: number | null; reps: number | null; seconds: number | null };
+import { countsAsWork, setVolume, type LoadMode, type SetType } from './logger';
+
+export type DoneSet = {
+  exerciseId: string;
+  weightKg: number | null;
+  reps: number | null;
+  seconds: number | null;
+  setType?: SetType | null;
+};
+
+type ModeOf = (exerciseId: string) => LoadMode;
+const normalMode: ModeOf = () => 'normal';
 
 /** Bisher Bestes einer Übung aus früheren, nicht abgebrochenen Trainings. */
-export type PreviousBest = { exerciseId: string; maxKg: number | null; repsAtMaxKg: number | null; maxReps: number | null; maxSeconds: number | null };
+export type PreviousBest = {
+  exerciseId: string;
+  maxKg: number | null;
+  /** Kleinstes Gewicht mit Wiederholungen – bei Gegengewicht-Übungen ist weniger besser (A1). */
+  minKg?: number | null;
+  repsAtMaxKg: number | null;
+  maxReps: number | null;
+  maxSeconds: number | null;
+};
 
 export type Record =
   | { exerciseId: string; kind: 'gewicht'; weightKg: number; reps: number; previousKg: number }
   | { exerciseId: string; kind: 'wiederholungen'; weightKg: number; reps: number; previousReps: number }
-  | { exerciseId: string; kind: 'zeit'; seconds: number; previousSeconds: number };
+  | { exerciseId: string; kind: 'zeit'; seconds: number; previousSeconds: number }
+  /** Gegengewicht-Übung: weniger Unterstützung als je zuvor. */
+  | { exerciseId: string; kind: 'weniger'; weightKg: number; reps: number; previousKg: number };
 
 export type Summary = { sets: number; exercises: number; volumeKg: number; minutes: number | null };
 
 /** Sätze, Übungen, bewegtes Gewicht (Gewicht × Wiederholungen) und Dauer in Minuten. */
-export function summarize(sets: DoneSet[], startedAt: string, finishedAt: string | null): Summary {
-  const volumeKg = sets.reduce((sum, s) => sum + (s.weightKg ?? 0) * (s.reps ?? 0), 0);
+export function summarize(all: DoneSet[], startedAt: string, finishedAt: string | null, modeOf: ModeOf = normalMode): Summary {
+  const sets = all.filter((s) => countsAsWork(s.setType));
+  const volumeKg = sets.reduce((sum, s) => sum + setVolume(s.weightKg, s.reps, modeOf(s.exerciseId)), 0);
   const minutes = finishedAt ? Math.max(1, Math.round((Date.parse(finishedAt) - Date.parse(startedAt)) / 60_000)) : null;
   return { sets: sets.length, exercises: new Set(sets.map((s) => s.exerciseId)).size, volumeKg: Math.round(volumeKg), minutes };
 }
@@ -24,7 +47,8 @@ export function summarize(sets: DoneSet[], startedAt: string, finishedAt: string
  * (das erste Mal ist ein Anfang, kein Rekord). Je Übung höchstens eine Meldung, die stärkste:
  * mehr Gewicht → bei gleichem Höchstgewicht mehr Wiederholungen → bei Zeitübungen länger gehalten.
  */
-export function findRecords(sets: DoneSet[], previous: PreviousBest[]): Record[] {
+export function findRecords(all: DoneSet[], previous: PreviousBest[], modeOf: ModeOf = normalMode): Record[] {
+  const sets = all.filter((s) => countsAsWork(s.setType));
   const prevById = new Map(previous.map((p) => [p.exerciseId, p]));
   const records: Record[] = [];
   for (const exerciseId of [...new Set(sets.map((s) => s.exerciseId))]) {
@@ -39,6 +63,13 @@ export function findRecords(sets: DoneSet[], previous: PreviousBest[]): Record[]
     }
     const lifted = mine.filter((s) => s.reps != null && s.reps > 0);
     if (lifted.length === 0) continue;
+    if (modeOf(exerciseId) === 'unterstuetzt') {
+      // Gegengewicht: weniger Unterstützung bei mindestens einer Wiederholung ist die Bestleistung.
+      const minKg = Math.min(...lifted.map((s) => s.weightKg ?? 0));
+      const reps = Math.max(...lifted.filter((s) => (s.weightKg ?? 0) === minKg).map((s) => s.reps ?? 0));
+      if (prev.minKg != null && minKg < prev.minKg - 1e-9) records.push({ exerciseId, kind: 'weniger', weightKg: minKg, reps, previousKg: prev.minKg });
+      continue;
+    }
     const maxKg = Math.max(...lifted.map((s) => s.weightKg ?? 0));
     const repsAtMax = Math.max(...lifted.filter((s) => (s.weightKg ?? 0) === maxKg).map((s) => s.reps ?? 0));
     if (maxKg > 0) {

@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { Field } from '@/components/fields';
 import { exerciseName } from '@/components/exercise-name';
 import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
@@ -14,7 +15,8 @@ import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { useUnits } from '@/data/profile-provider';
 import { timedSessionsForWorkout } from '@/data/routines';
-import { getSession, listExercises, listSessionSets, planHintsForSession, previousBests, type Exercise, type PlanHint, type SessionInfo } from '@/data/training';
+import { getSession, listExercises, listSessionSets, planHintsForSession, previousBests, setSessionNote, type Exercise, type PlanHint, type SessionInfo } from '@/data/training';
+import { bestOneRepMax, loadModeOf } from '@/domain/logger';
 import { loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
 import { findRecords, summarize, type Record } from '@/domain/summary';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -38,6 +40,11 @@ async function loadSummary(db: Db, id: string) {
     planHintsForSession(db, id),
   ]);
   const done = sets.filter((s) => s.completedAt);
+  const byId = new Map(exercises.map((e) => [e.id, e]));
+  const modeOf = (exerciseId: string) => {
+    const e = byId.get(exerciseId);
+    return e ? loadModeOf(e) : 'normal';
+  };
   const records = session
     ? findRecords(
         done,
@@ -46,11 +53,27 @@ async function loadSummary(db: Db, id: string) {
           [...new Set(done.map((s) => s.exerciseId))],
           id,
           session.startedAt
-        )
+        ),
+        modeOf
       )
     : [];
+  // Geschätztes 1RM je Übung dieses Trainings (A1), für die Bestleistungen.
+  const e1rm: { [exerciseId: string]: number | null } = {};
+  for (const exerciseId of new Set(done.map((s) => s.exerciseId))) {
+    e1rm[exerciseId] = bestOneRepMax(done.filter((s) => s.exerciseId === exerciseId), modeOf(exerciseId));
+  }
   const cooldownOffered = session?.cooldown !== 0 && !blocks.some((b) => b.kind === 'cooldown');
-  return { session, summary: session ? summarize(done, session.startedAt, session.finishedAt) : null, records, exercises, hints, week, cooldownOffered, loaded: true };
+  return {
+    session,
+    summary: session ? summarize(done, session.startedAt, session.finishedAt, modeOf) : null,
+    records,
+    e1rm,
+    exercises,
+    hints,
+    week,
+    cooldownOffered,
+    loaded: true,
+  };
 }
 
 export default function SummaryScreen() {
@@ -58,17 +81,19 @@ export default function SummaryScreen() {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
   const units = useUnits();
-  const { data } = useLoad((db) => loadSummary(db, id), {
+  const { data, db } = useLoad((d) => loadSummary(d, id), {
     session: null as SessionInfo | null,
     summary: null as ReturnType<typeof summarize> | null,
     records: [] as Record[],
+    e1rm: {} as { [exerciseId: string]: number | null },
     exercises: [] as Exercise[],
     hints: {} as { [exerciseId: string]: PlanHint },
     week: { done: [], planned: [], goal: null, todayIndex: 0 } as TrainingWeek,
     cooldownOffered: false,
     loaded: false,
   }, id);
-  const { session, summary, records, exercises, hints, week, cooldownOffered, loaded } = data;
+  const { session, summary, records, e1rm, exercises, hints, week, cooldownOffered, loaded } = data;
+  const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loaded) return;
@@ -92,7 +117,13 @@ export default function SummaryScreen() {
             value: r.weightKg > 0 ? `${formatWeight(r.weightKg, units.weight, 2)} × ${r.reps}` : t('summary.reps', { count: r.reps }),
             before: r.previousReps,
           })
-        : t('summary.recordTime', { seconds: r.seconds, before: r.previousSeconds });
+        : r.kind === 'weniger'
+          ? t('summary.recordAssist', { value: `${formatWeight(r.weightKg, units.weight, 2)} × ${r.reps}`, before: formatWeight(r.previousKg, units.weight, 2) })
+          : t('summary.recordTime', { seconds: r.seconds, before: r.previousSeconds });
+  const e1rmText = (r: Record) =>
+    (r.kind === 'gewicht' || r.kind === 'wiederholungen') && e1rm[r.exerciseId]
+      ? ` · ${t('summary.e1rm', { value: formatWeight(e1rm[r.exerciseId]!, units.weight, 1) })}`
+      : '';
 
   return (
     <Screen withHeader>
@@ -143,6 +174,7 @@ export default function SummaryScreen() {
                 <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {recordText(r)}
+                  {e1rmText(r)}
                 </ThemedText>
               </View>
               <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
@@ -150,6 +182,17 @@ export default function SummaryScreen() {
           ))}
         </Card>
       ) : null}
+
+      <Card title={t('summary.noteTitle')}>
+        <Field
+          label={t('summary.noteLabel')}
+          value={note ?? session.note ?? ''}
+          onChangeText={setNote}
+          onEndEditing={() => (note !== null ? setSessionNote(db, id, note) : undefined)}
+          placeholder={t('summary.notePlaceholder')}
+          multiline
+        />
+      </Card>
 
       <Card title={t('summary.weekTitle')}>
         <WeekStrip days={days} summary={weekSummary} celebrateToday />

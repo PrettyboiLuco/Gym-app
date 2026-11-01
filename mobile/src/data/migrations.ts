@@ -543,6 +543,19 @@ export const MIGRATIONS: string[] = [
    ALTER TABLE plan_item ADD COLUMN note TEXT;`,
   // Version 18: Anzeigename je Plan-Übung (z. B. „Cable Flys“ statt des Katalognamens „Cable Crossover“).
   `ALTER TABLE plan_item ADD COLUMN label TEXT;`,
+
+  // Version 19: Logger-Paket (Ausbauplan A1) – Satzart, RIR und Notiz je Satz, Notiz je Training, Supersätze
+  // (gleiche Gruppennummer innerhalb eines Plantags bzw. Trainings), Gewichtsart je Übung und eine neue Katalog-Übung.
+  `ALTER TABLE set_log ADD COLUMN set_type TEXT NOT NULL DEFAULT 'arbeit'
+     CHECK (set_type IN ('arbeit', 'aufwaermen', 'drop', 'versagen'));
+   ALTER TABLE set_log ADD COLUMN rir INTEGER CHECK (rir IS NULL OR rir BETWEEN 0 AND 5);
+   ALTER TABLE set_log ADD COLUMN note TEXT;
+   ALTER TABLE set_log ADD COLUMN superset INTEGER;
+   ALTER TABLE workout_session ADD COLUMN note TEXT;
+   ALTER TABLE plan_item ADD COLUMN superset INTEGER;
+   ALTER TABLE exercise ADD COLUMN load_mode TEXT
+     CHECK (load_mode IS NULL OR load_mode IN ('normal', 'einseitig', 'unterstuetzt', 'zusatzgewicht'));
+   ${catalogInserts((id) => CATALOG_ADDED[19].includes(id))}`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

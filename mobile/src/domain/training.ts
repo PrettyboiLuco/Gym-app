@@ -16,6 +16,8 @@ export type PlanItemDraft = {
   note?: string | null;
   /** Eigener Name im Plan (z. B. „Cable Flys“); Verlauf und Bestleistungen hängen weiter an der Katalog-Übung. */
   label?: string | null;
+  /** Supersatz: aufeinanderfolgende Übungen mit gleicher Nummer laufen im Wechsel (A1). */
+  superset?: number | null;
 };
 /** Aufwärmen/Cool-down für diesen Tag vorschlagen (STRETCH-001/002). */
 export type PlanDayDraft = { name: string; items: PlanItemDraft[]; warmup?: boolean; cooldown?: boolean };
@@ -106,17 +108,19 @@ export function parseSetInput(
  * je Übung fällt weg, dafür kommt ein Wechsel dazu. Nur Schätzung (TRAIN-007).
  */
 export function estimateDayMinutes(
-  items: Pick<PlanItemDraft, 'sets' | 'restSeconds' | 'targetSeconds'>[],
+  items: Pick<PlanItemDraft, 'sets' | 'restSeconds' | 'targetSeconds' | 'superset'>[],
   secondsPerSet = 45,
   changeSeconds = 60,
   /** Aufwärmen/Cool-down in Sekunden, falls für den Tag eingeschaltet (STRETCH-001). */
   extraSeconds = 0
 ): number {
-  const seconds = items.reduce(
-    (sum, item) =>
-      sum + item.sets * (item.targetSeconds ?? secondsPerSet) + (item.sets - 1) * item.restSeconds + changeSeconds,
-    extraSeconds
-  );
+  const seconds = items.reduce((sum, item, i) => {
+    // Supersatz (A1): zwischen den Übungen einer Runde keine Pause und kein Gerätewechsel-Zuschlag –
+    // nur die letzte Übung der Gruppe zählt ihre Pause.
+    const inGroupBeforeLast = item.superset != null && items[i + 1]?.superset === item.superset;
+    const rest = inGroupBeforeLast ? 0 : (item.sets - 1) * item.restSeconds;
+    return sum + item.sets * (item.targetSeconds ?? secondsPerSet) + rest + (inGroupBeforeLast ? 0 : changeSeconds);
+  }, extraSeconds);
   return Math.round(seconds / 60);
 }
 

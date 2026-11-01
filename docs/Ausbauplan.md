@@ -15,6 +15,13 @@ Migration mit Test „alte Daten bleiben erhalten“ und landet in Sicherung und
 (**Fachprüfung**) laufen versioniert und werden gesammelt in `docs/Fachpruefung_Mappe.md` nachgetragen – ein Termin
 mit der Fachperson statt vieler einzelner.
 
+## Stand
+
+| Phase | Status |
+|---|---|
+| A1 | **fertig** (01.11.2026) – Datenbank-Version 19, 552 Tests; Gerätetest durch Luc offen |
+| A2–A11 | offen |
+
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
 | A1 | Logger-Paket: Satztypen, RIR pro Satz, Notizen, Supersätze, Übungsvarianten, 1RM, Scheibenrechner | Steigerung v2 (vorbereitet, aus) |
@@ -59,6 +66,23 @@ Developer-Konto, App-Name, Datenschutz-URL (R7).
 
 **Fertig, wenn:** Luc ein Training mit Aufwärmsätzen, RIR, Notiz und einem Supersatz loggt, die Bestleistungen stimmen
 und der Scheibenrechner im Gym richtig rechnet.
+
+**Umgesetzt (A1, 01.11.2026):** Satzart über die Satznummer (A/D/V-Kürzel, Hinweis je Art), kein Pausentimer vor
+Drop-Sätzen; RIR-Frage in der Vollbild-Pause bzw. direkt unter dem Satz, Ziel-RIR aus dem Plan als Hinweis (bewusst
+**nicht** vorausgewählt – sonst stünde ein Wert drin, den niemand bestätigt hat); Notiz je Satz und je Training
+(Abschluss, Training, Verlauf); Aufwärmsätze zählen nirgends mit (Bestleistung, Volumen, Steigerung, Wochensätze,
+Kraftziele, Kraftverlauf, letzte Leistung); Aufwärm-Vorschlag ab 20 kg; Supersätze im Plan-Editor und in
+Plan-Dateien (`"superset": "A"`), im Training im Wechsel mit Pause nach der Runde, Dauer-Schätzung berücksichtigt
+das; Gewichtsart je Übung (automatisch oder bei eigenen Übungen wählbar) mit eigener Eingabe-Hilfe, Volumen
+(einseitig ×2, Gegengewicht 0), Bestleistung und Steigerung bei Gegengewicht in umgekehrter Richtung; neue
+Katalog-Übung „Klimmzüge an der Maschine (Gegengewicht)“; geschätztes 1RM im Kraftverlauf und bei Bestleistungen;
+Scheibenrechner mit Stange und vorhandenen Scheiben; Steigerungsregel v2 mit RIR gebaut und getestet, aber aus.
+
+**Beim Lückencheck nach A1 gefunden und geschlossen:** Ziel-Zeile zeigte Aufwärm-Wiederholungen · Satzart-Auswahl
+abgeschnitten · Übungsnamen im Plan-Editor brachen mitten im Wort · Chips im Satz-Feld unsichtbar · RIR-Frage fehlte
+ohne Vollbild-Pause · Dauer-Schätzung ignorierte Supersätze · Scheiben nicht auswählbar · 1,25 kg wurde als „1,3“
+angezeigt · Gewichtsart für eigene Übungen fehlte · Trainingsnotiz fehlte im Verlauf.
+**Verschoben:** Der Planassistent bildet beim Kürzen noch keine Supersätze von selbst → A8.3.
 
 ## A2 – Cardio
 
@@ -157,7 +181,7 @@ PDF-Bericht lesbar ist.
 |---|---|
 | A8.1 | **Programm-Vorlagen** als `myhealth-plan`-Dateien in der App: z. B. Ganzkörper 3×, Oberkörper/Unterkörper 4×, Push/Pull/Beine 6×, Kraft-Basis 3× (lineare Steigerung), Zuhause mit Kurzhanteln; eigene Namen (keine geschützten Programmnamen ohne Rechtsprüfung) |
 | A8.2 | **Geplanter Deload** (Fachprüfung): alle 6–10 Wochen eine leichte Woche anbieten (halbe Sätze, gleiche Gewichte, RIR 3) – wie in Lucs Plan; als befristete Planfassung, nie automatisch |
-| A8.3 | **Zeitschätzung aus eigenen Satzzeiten** statt fester 45 s; **bevorzugte Wochentage** im Planassistenten |
+| A8.3 | **Zeitschätzung aus eigenen Satzzeiten** statt fester 45 s; **bevorzugte Wochentage** im Planassistenten; Planassistent bietet beim Kürzen **Supersätze** an (z. B. Drücken + Ziehen), statt Übungen zu streichen (aus A1 verschoben) |
 | A8.4 | **Geräteprofile** (Studio, Zuhause, Hotel): Planassistent und „Gerät belegt“ nutzen das gewählte Profil |
 | A8.5 | **Muskel-Körperkarte** (SVG, vorne/hinten): Wochensätze je Muskelgruppe farbig – nur Menge, keine „Erholung in %“ |
 | A8.6 | **Monats- und Jahresstatistik:** Trainings, Sätze, Volumen, Cardio-Minuten, Bestleistungen je Zeitraum; Volumen je Übung |

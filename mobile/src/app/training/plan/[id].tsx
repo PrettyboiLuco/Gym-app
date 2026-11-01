@@ -1,8 +1,9 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { supersetLetters } from '@/domain/logger';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
@@ -39,7 +40,19 @@ import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
-type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string; seconds: string; rir?: string; note?: string; label?: string };
+type ItemForm = {
+  exerciseId: string;
+  sets: string;
+  repsMin: string;
+  repsMax: string;
+  rest: string;
+  seconds: string;
+  rir?: string;
+  note?: string;
+  label?: string;
+  /** Supersatz mit der nächsten Übung (A1); daraus werden beim Speichern Gruppen-Nummern. */
+  linkNext?: boolean;
+};
 type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean };
 type PlanForm = { name: string; days: DayForm[] };
 
@@ -54,7 +67,7 @@ function toForm(draft: PlanDraft): PlanForm {
       name: day.name,
       warmup: day.warmup !== false,
       cooldown: day.cooldown !== false,
-      items: day.items.map((i) => ({
+      items: day.items.map((i, index) => ({
         exerciseId: i.exerciseId,
         sets: String(i.sets),
         repsMin: String(i.repsMin),
@@ -64,6 +77,7 @@ function toForm(draft: PlanDraft): PlanForm {
         rir: i.rir ?? '',
         note: i.note ?? '',
         label: i.label ?? '',
+        linkNext: i.superset != null && day.items[index + 1]?.superset === i.superset,
       })),
     })),
   };
@@ -78,7 +92,7 @@ function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDr
       name: day.name,
       warmup: day.warmup,
       cooldown: day.cooldown,
-      items: day.items.map((i) => ({
+      items: day.items.map((i, index) => ({
         exerciseId: i.exerciseId,
         sets: num(i.sets),
         // Zeit-Übungen (UX-011): Sekunden statt Wiederholungen.
@@ -89,9 +103,23 @@ function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDr
         rir: i.rir?.trim() || null,
         note: i.note?.trim() || null,
         label: i.label?.trim() || null,
+        superset: supersetGroups(day.items)[index],
       })),
     })),
   };
+}
+
+/** Gruppen-Nummern aus „mit nächster verbunden“: aufeinanderfolgende verbundene Übungen bilden einen Supersatz. */
+function supersetGroups(items: ItemForm[]): (number | null)[] {
+  const groups: (number | null)[] = items.map(() => null);
+  let next = 1;
+  for (let i = 0; i < items.length - 1; i++) {
+    if (!items[i].linkNext) continue;
+    const group = groups[i] ?? next++;
+    groups[i] = group;
+    groups[i + 1] = group;
+  }
+  return groups;
 }
 
 async function fetchEditor(db: Db, id: string, isNew: boolean) {
@@ -230,16 +258,26 @@ export default function PlanEditorScreen() {
             onChangeText={(name) => updateDay(dayIndex, { name })}
           />
           {day.items.map((item, itemIndex) => (
-            <View key={itemIndex} style={[styles.item, { borderColor: theme.backgroundSelected }]}>
+            <Fragment key={itemIndex}>
+            <View style={[styles.item, { borderColor: theme.backgroundSelected }]}>
+              {supersetGroups(day.items)[itemIndex] != null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('plan.supersetBadge', {
+                    letter: supersetLetters(supersetGroups(day.items)).get(supersetGroups(day.items)[itemIndex]!),
+                  })}
+                </ThemedText>
+              ) : null}
+              {/* Name über volle Breite, Knöpfe darunter – sonst bricht ein langer Name mitten im Wort. */}
+              <View>
+                <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
+                {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {exerciseName(byId.get(item.exerciseId))}
+                  </ThemedText>
+                ) : null}
+              </View>
               <View style={styles.itemHeader}>
-                <View style={styles.flex}>
-                  <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
-                  {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {exerciseName(byId.get(item.exerciseId))}
-                    </ThemedText>
-                  ) : null}
-                </View>
+                <View style={styles.flex} />
                 {itemIndex > 0 ? (
                   <Button
                     label="↑"
@@ -309,6 +347,15 @@ export default function PlanEditorScreen() {
                 onChange={(s) => updateItem(dayIndex, itemIndex, { rest: String(s) })}
               />
             </View>
+            {itemIndex < day.items.length - 1 ? (
+              <Button
+                label={item.linkNext ? t('plan.supersetUnlink') : t('plan.supersetLink')}
+                variant="secondary"
+                size="compact"
+                onPress={() => updateItem(dayIndex, itemIndex, { linkNext: !item.linkNext })}
+              />
+            ) : null}
+            </Fragment>
           ))}
           <Choice
             label={t('plan.warmup')}

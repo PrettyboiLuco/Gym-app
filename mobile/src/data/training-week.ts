@@ -32,7 +32,7 @@ export async function loadWeekSetsByMuscle(db: Db, today: string): Promise<{ gro
   const rows = await db.getAllAsync<{ startedAt: string; exerciseId: string }>(
     `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
-     WHERE l.completed_at_utc IS NOT NULL AND s.started_at_utc >= ?`,
+     WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ?`,
     new Date(Date.parse(`${monday}T00:00:00Z`) - 86_400_000).toISOString()
   );
   const exercises = new Map((await listExercises(db)).map((e) => [e.id, e]));

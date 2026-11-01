@@ -1,7 +1,9 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { Choice } from '@/components/fields';
 import { exerciseName } from '@/components/exercise-name';
 import { timeZone } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
@@ -11,6 +13,7 @@ import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { useUnits } from '@/data/profile-provider';
 import { exerciseBests, listExercises, type Exercise, type ExerciseBest } from '@/data/training';
+import { loadModeOf } from '@/domain/logger';
 import { localDay } from '@/domain/time';
 import { kgToUnit } from '@/domain/units';
 import { useLoad } from '@/hooks/use-load';
@@ -22,8 +25,9 @@ import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
  * Leitfrage „Werde ich stärker?“ – oben groß die aktuelle Bestleistung, darunter der Verlauf und die letzten Einheiten.
  */
 async function loadProgress(db: Db, id: string) {
-  const [bests, exercises] = await Promise.all([exerciseBests(db, id), listExercises(db)]);
-  return { bests, exercise: exercises.find((e) => e.id === id) ?? null };
+  const exercise = (await listExercises(db)).find((e) => e.id === id) ?? null;
+  const bests = await exerciseBests(db, id, exercise ? loadModeOf(exercise) : 'normal');
+  return { bests, exercise };
 }
 
 export default function ExerciseProgressScreen() {
@@ -32,21 +36,37 @@ export default function ExerciseProgressScreen() {
   const theme = useTheme();
   const { data, loaded } = useLoad((db) => loadProgress(db, id), { bests: [] as ExerciseBest[], exercise: null as Exercise | null }, id);
   const { bests, exercise } = data;
+  const [metricChoice, setMetric] = useState<'gewicht' | 'e1rm'>('gewicht');
   const timed = bests.some((b) => b.seconds != null);
   const bodyweight = !timed && bests.every((b) => b.weightKg === 0);
-  // Messgröße je nach Übung: Sekunden, Wiederholungen (Körpergewicht) oder Gewicht.
-  const value = (b: ExerciseBest) => (timed ? (b.seconds ?? 0) : bodyweight ? (b.reps ?? 0) : kgToUnit(b.weightKg, units.weight));
+  // Gegengewicht-Maschine: weniger ist besser (A1).
+  const assisted = exercise ? loadModeOf(exercise) === 'unterstuetzt' : false;
+  const canE1rm = !timed && !bodyweight && !assisted && bests.some((b) => b.e1rm != null);
+  const metric = canE1rm ? metricChoice : 'gewicht';
+  const shownBests = metric === 'e1rm' ? bests.filter((b) => b.e1rm != null) : bests;
+  // Messgröße je nach Übung: Sekunden, Wiederholungen (Körpergewicht), geschätztes 1RM oder Gewicht.
+  const value = (b: ExerciseBest) =>
+    timed
+      ? (b.seconds ?? 0)
+      : bodyweight
+        ? (b.reps ?? 0)
+        : metric === 'e1rm'
+          ? kgToUnit(b.e1rm ?? 0, units.weight)
+          : kgToUnit(b.weightKg, units.weight);
+  const better = (a: number, b: number) => (assisted && metric === 'gewicht' && !timed && !bodyweight ? a < b : a > b);
   const text = (b: ExerciseBest) =>
     timed
       ? t('session.setDoneSeconds', { seconds: b.seconds })
       : bodyweight
         ? t('summary.reps', { count: b.reps ?? 0 })
-        : `${formatWeight(b.weightKg, units.weight, 2)} × ${b.reps ?? '–'}`;
+        : metric === 'e1rm'
+          ? t('exerciseProgress.e1rmValue', { value: formatWeight(b.e1rm ?? 0, units.weight, 1) })
+          : `${formatWeight(b.weightKg, units.weight, 2)} × ${b.reps ?? '–'}`;
   // Gleichmäßig je Training (mehrere Trainings an einem Tag liegen nebeneinander, nicht übereinander).
-  const points = bests.map((b) => ({ day: b.sessionId, value: value(b) }));
+  const points = shownBests.map((b) => ({ day: b.sessionId, value: value(b) }));
   // Bestleistungen: jeder Punkt, der alle früheren übertrifft (der erste zählt nicht).
-  const records = points.filter((p, i) => i > 0 && points.slice(0, i).every((q) => p.value > q.value));
-  const best = bests.reduce<ExerciseBest | null>((m, b) => (!m || value(b) > value(m) ? b : m), null);
+  const records = points.filter((p, i) => i > 0 && points.slice(0, i).every((q) => better(p.value, q.value)));
+  const best = shownBests.reduce<ExerciseBest | null>((m, b) => (!m || better(value(b), value(m)) ? b : m), null);
   const firstDay = bests.length ? localDay(new Date(bests[0].at), timeZone) : '';
   const lastDay = bests.length ? localDay(new Date(bests[bests.length - 1].at), timeZone) : '';
 
@@ -60,6 +80,15 @@ export default function ExerciseProgressScreen() {
       ) : null}
       {best ? (
         <Card title={t('exerciseProgress.bestTitle')}>
+          {canE1rm ? (
+            <Choice
+              label={t('exerciseProgress.metric')}
+              options={['gewicht', 'e1rm'] as const}
+              value={metric}
+              onChange={setMetric}
+              format={(m) => t(`exerciseProgress.metrics.${m}`)}
+            />
+          ) : null}
           <View style={styles.big}>
             <ThemedText style={styles.bigValue}>{text(best)}</ThemedText>
           </View>
@@ -80,6 +109,16 @@ export default function ExerciseProgressScreen() {
           {records.length > 0 ? (
             <ThemedText type="small" themeColor="textSecondary">
               {t('exerciseProgress.legend', { count: records.length })}
+            </ThemedText>
+          ) : null}
+          {metric === 'e1rm' ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('exerciseProgress.e1rmHint')}
+            </ThemedText>
+          ) : null}
+          {assisted ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('exerciseProgress.assistHint')}
             </ThemedText>
           ) : null}
         </Card>

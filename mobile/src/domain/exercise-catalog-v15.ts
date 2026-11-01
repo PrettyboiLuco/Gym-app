@@ -502,3 +502,6 @@ void F;
 void ONE;
 void BOTH;
 void ZEIT;
+
+/** Ergänzung mit Datenbank-Version 19 (Logger-Paket): Gegengewichts-Maschine für Klimmzüge. */
+export const ROWS_V19: Row15[] = [['klimmzuege_maschine', 'maschine', 'ruecken', 'lat', 'ziehen_vertikal', E]];

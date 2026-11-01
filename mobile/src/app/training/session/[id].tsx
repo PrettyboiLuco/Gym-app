@@ -8,10 +8,11 @@ import { Button, Card } from '@/components/card';
 import { MeterBar } from '@/components/charts';
 import { haptic } from '@/components/haptics';
 import { SetCheck } from '@/components/set-check';
+import { RirChoice, SetDetails } from '@/components/set-details';
 import { exerciseName } from '@/components/exercise-name';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { Choice, ConfirmButton, ListRow } from '@/components/fields';
+import { Choice, ConfirmButton, Field, ListRow } from '@/components/fields';
 import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -27,6 +28,7 @@ import {
   addSet,
   completeSet,
   completeTimedSet,
+  addWarmupSets,
   deleteOpenSet,
   exerciseHistory,
   finishSession,
@@ -34,8 +36,12 @@ import {
   lastPerformance,
   listExercises,
   listSessionSets,
+  loadPlateSetup,
   loadProgressionOn,
   planHintsForSession,
+  savePlateSetup,
+  setSessionNote,
+  updateSetDetails,
   type PlanHint,
   loadRestAuto,
   loadRestTimer,
@@ -52,9 +58,10 @@ import {
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import type { MuscleGroup } from '@/domain/exercises';
 import { replacementOptions } from '@/domain/planner';
-import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, type Advice, type PastSession } from '@/domain/progression';
+import { defaultPlateSetup, loadModeOf, setLabels, supersetLetters, usesPlates, warmupSets, type LoadMode, type PlateSetup } from '@/domain/logger';
+import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep, type Advice, type PastSession } from '@/domain/progression';
 import { extendRest, formatClock, isStaleSession, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
-import { kgToUnit, type WeightUnit } from '@/domain/units';
+import { kgToUnit, parseDecimal, type WeightUnit } from '@/domain/units';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
@@ -114,6 +121,10 @@ export default function SessionScreen() {
   const [loadedAtMs, setLoadedAtMs] = useState(0);
   // Countdown für einen Zeit-Satz (UX-011, z. B. Plank): läuft im Vordergrund, trägt am Ende die Sekunden ein.
   const [hold, setHold] = useState<{ rowId: string; index: number; seconds: number; endAtMs: number } | null>(null);
+  // A1: Detail-Feld eines Satzes (Satzart, RIR, Notiz, Scheiben), RIR-Frage in der Pause, Scheiben-Einstellung.
+  const [detailFor, setDetailFor] = useState<string | null>(null);
+  const [askRirFor, setAskRirFor] = useState<string | null>(null);
+  const [plateSetup, setPlateSetup] = useState<PlateSetup | null>(null);
   const holdNow = useNow(hold !== null);
   const holdLeftMs = hold ? Math.max(0, hold.endAtMs - holdNow) : 0;
 
@@ -128,6 +139,7 @@ export default function SessionScreen() {
       loadProgressionOn(db),
     ]);
     setProgressionOn(progression);
+    setPlateSetup(await loadPlateSetup(db));
     setHints(await planHintsForSession(db, id));
     setBlocks(timed);
     setAlertsOff(NOTIFICATIONS_SUPPORTED && !(await loadReminders(db)).timerAlerts);
@@ -170,9 +182,18 @@ export default function SessionScreen() {
    * Vorschlag fürs Eingabefeld: eigene Werte (wieder geöffneter Satz), sonst voriger Satz in diesem
    * Training, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg.
    */
-  function suggestion(row: SetRow, indexInExercise: number) {
+  function suggestion(row: SetRow) {
+    // Aufwärmsätze: nur eigene Werte bzw. die geplanten Wiederholungen; das Gewicht kommt aus dem Vorschlag.
+    if (row.setType === 'aufwaermen') {
+      return {
+        weight: row.weightKg != null ? shown(row.weightKg) : '',
+        reps: row.reps != null ? String(row.reps) : row.plannedRepsMin != null ? String(row.plannedRepsMin) : '',
+      };
+    }
+    const work = sets.filter((s) => s.exerciseId === row.exerciseId && s.setType !== 'aufwaermen');
+    const indexInExercise = Math.max(0, work.indexOf(row));
     if (isTimed(row.exerciseId)) {
-      const own = sets.filter((s) => s.exerciseId === row.exerciseId && s.completedAt && s.position < row.position);
+      const own = work.filter((s) => s.completedAt && s.position < row.position);
       const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
       const seconds = row.seconds ?? own.at(-1)?.seconds ?? row.plannedSeconds ?? lastTime?.seconds ?? null;
       return { weight: '0', reps: seconds === null ? '' : String(seconds) };
@@ -181,7 +202,7 @@ export default function SessionScreen() {
       return { weight: shown(row.weightKg), reps: String(row.reps) };
     }
     const bodyweight = exercises.find((e) => e.id === row.exerciseId)?.equipment === 'koerpergewicht';
-    const own = sets.filter((s) => s.exerciseId === row.exerciseId && s.completedAt && s.position < row.position);
+    const own = work.filter((s) => s.completedAt && s.position < row.position);
     const previous = own[own.length - 1];
     const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
     return {
@@ -226,7 +247,7 @@ export default function SessionScreen() {
   }
 
   async function complete(row: SetRow, indexInExercise: number, secondsOverride?: string) {
-    const value = secondsOverride ? { weight: '0', reps: secondsOverride } : (inputs[row.id] ?? suggestion(row, indexInExercise));
+    const value = secondsOverride ? { weight: '0', reps: secondsOverride } : (inputs[row.id] ?? suggestion(row));
     if (isTimed(row.exerciseId)) {
       // Zeit-Satz (UX-011): im Feld stehen die Sekunden.
       const seconds = parseSecondsInput(value.reps);
@@ -249,8 +270,13 @@ export default function SessionScreen() {
     const openLeft = sets.filter((s) => s.exerciseId === row.exerciseId && !s.completedAt && s.id !== row.id).length;
     if (openLeft === 0) haptic.success();
     const anyOpenElsewhere = sets.some((s) => !s.completedAt && s.id !== row.id);
+    // Vor einem Drop-Satz gibt es keine Pause (A1).
+    const nextOfExercise = sets.find((s) => s.exerciseId === row.exerciseId && !s.completedAt && s.id !== row.id && s.position > row.position);
+    const beforeDrop = nextOfExercise?.setType === 'drop';
+    // In der Pause fragen, wie viele Wiederholungen noch gegangen wären (nicht bei Zeit- und Aufwärmsätzen).
+    setAskRirFor(!isTimed(row.exerciseId) && row.setType !== 'aufwaermen' ? row.id : null);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
-    if (restAuto && row.restSeconds > 0) {
+    if (restAuto && row.restSeconds > 0 && !beforeDrop) {
       try {
         await updateTimer(startRest(timer, row.restSeconds, nowMs()));
         // Pause im Vollbild, solange noch etwas zu tun ist.
@@ -316,16 +342,17 @@ export default function SessionScreen() {
 
   /** Vorschlag nach den Steigerungsregeln für die offenen Sätze einer Übung (nur im laufenden Training). */
   function adviceFor(exerciseId: string): Advice | null {
-    const open = sets.filter((s) => s.exerciseId === exerciseId && !s.completedAt);
+    const planned = sets.filter((s) => s.exerciseId === exerciseId && s.setType !== 'aufwaermen');
+    const open = planned.filter((s) => !s.completedAt);
     const exercise = byIdAll.get(exerciseId);
-    if (!progressionOn || open.length === 0 || !exercise) return null;
-    const planned = sets.filter((s) => s.exerciseId === exerciseId);
+    if (!progressionOn || open.length === 0 || planned.length === 0 || !exercise) return null;
     const first = planned[0];
     return progressionAdvice(
       history[exerciseId] ?? [],
       { sets: planned.length, repsMin: first.plannedRepsMin, repsMax: first.plannedRepsMax, seconds: first.plannedSeconds },
       exercise.equipment,
-      units.weight
+      units.weight,
+      loadModeOf(exercise)
     );
   }
 
@@ -349,16 +376,48 @@ export default function SessionScreen() {
     const v = adviceValues(advice);
     const next: Inputs = {};
     sets
-      .filter((s) => s.exerciseId === exerciseId && !s.completedAt)
+      .filter((s) => s.exerciseId === exerciseId && !s.completedAt && s.setType !== 'aufwaermen')
       .forEach((row) => {
-        const index = sets.filter((s) => s.exerciseId === exerciseId).indexOf(row);
-        const base = inputs[row.id] ?? suggestion(row, index);
+        const base = inputs[row.id] ?? suggestion(row);
         next[row.id] = {
           weight: v.weightKg !== null ? shown(v.weightKg) : base.weight,
           reps: v.seconds !== null ? String(v.seconds) : v.reps !== null ? String(v.reps) : base.reps,
         };
       });
     setInputs((i) => ({ ...i, ...next }));
+  }
+
+  /** Aufwärmsätze aus dem Arbeitsgewicht vorschlagen und vor dem ersten Satz einfügen (A1). */
+  function warmupPlan(exerciseId: string) {
+    const exercise = byIdAll.get(exerciseId);
+    const firstWork = sets.find((s) => s.exerciseId === exerciseId && s.setType !== 'aufwaermen');
+    if (!exercise || !firstWork || isTimed(exerciseId)) return [];
+    if (sets.some((s) => s.exerciseId === exerciseId && (s.completedAt || s.setType === 'aufwaermen'))) return [];
+    const mode = loadModeOf(exercise);
+    if (mode === 'unterstuetzt' || mode === 'zusatzgewicht') return [];
+    const work = parseDecimal((inputs[firstWork.id] ?? suggestion(firstWork)).weight);
+    return work === null ? [] : warmupSets(work, weightStep(exercise.equipment, units.weight), units.weight);
+  }
+
+  async function addWarmups(exerciseId: string) {
+    const plan = warmupPlan(exerciseId);
+    if (plan.length === 0) return;
+    const ids = await addWarmupSets(db, id, exerciseId, plan.map((p) => p.reps));
+    setInputs((i) => ({
+      ...i,
+      ...Object.fromEntries(ids.map((setId, k) => [setId, { weight: formatNumber(plan[k].weight, 2), reps: String(plan[k].reps) }])),
+    }));
+    await load();
+  }
+
+  async function changeSet(setId: string, change: Parameters<typeof updateSetDetails>[2]) {
+    await updateSetDetails(db, setId, change);
+    await load();
+  }
+
+  async function changePlates(setup: PlateSetup) {
+    setPlateSetup(setup);
+    await savePlateSetup(db, setup);
   }
 
   async function replaceWith(fromId: string, toId: string) {
@@ -384,15 +443,38 @@ export default function SessionScreen() {
     session.cooldown !== 0 && !cooldownDone && session.status !== 'abgebrochen' && (active ? doneCountOf(sets) > 0 : recentlyFinished);
   const order = [...new Set(sets.map((s) => s.exerciseId))];
   const doneCount = sets.filter((s) => s.completedAt).length;
-  // Die Übung, die gerade dran ist: die erste mit offenem Satz.
-  const currentId = order.find((exerciseId) => sets.some((s) => s.exerciseId === exerciseId && !s.completedAt)) ?? null;
-  // Was nach der Pause kommt, für die Vollbild-Pause.
-  const nextRow = currentId ? sets.find((s) => s.exerciseId === currentId && !s.completedAt) : undefined;
+  // Was gerade dran ist: der erste offene Satz in Trainingsreihenfolge (bei Supersätzen im Wechsel).
+  const nextRow = sets.find((s) => !s.completedAt);
+  const currentId = nextRow?.exerciseId ?? null;
+  const modeOf = (exerciseId: string): LoadMode => {
+    const e = byIdAll.get(exerciseId);
+    return e ? loadModeOf(e) : 'normal';
+  };
+  const letters = supersetLetters(sets.map((s) => s.superset));
+  const askRow = askRirFor ? sets.find((s) => s.id === askRirFor) : undefined;
+  const ask = askRow ? (
+    <View style={[styles.ask, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+      <RirChoice
+        label={t('logger.rirAsk')}
+        allowEmpty={false}
+        value={askRow.rir}
+        onChange={async (rir) => {
+          setAskRirFor(null);
+          await changeSet(askRow.id, { rir });
+        }}
+      />
+      {hints[askRow.exerciseId]?.rir ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('logger.rirTarget', { rir: hints[askRow.exerciseId]?.rir })}
+        </ThemedText>
+      ) : null}
+    </View>
+  ) : null;
   let nextUp: NextUp = null;
   if (nextRow) {
     const rowsOfNext = sets.filter((s) => s.exerciseId === nextRow.exerciseId);
     const index = rowsOfNext.indexOf(nextRow);
-    const value = inputs[nextRow.id] ?? suggestion(nextRow, index);
+    const value = inputs[nextRow.id] ?? suggestion(nextRow);
     const what = isTimed(nextRow.exerciseId)
       ? value.reps
         ? t('session.setDoneSeconds', { seconds: value.reps })
@@ -402,7 +484,7 @@ export default function SessionScreen() {
         : '';
     nextUp = {
       title: nameOf(nextRow.exerciseId),
-      detail: [t('session.setOf', { n: index + 1, total: rowsOfNext.length }), what].filter(Boolean).join(' · '),
+      detail: [t('session.setOf', { n: setLabels(rowsOfNext.map((r) => r.setType))[index], total: rowsOfNext.length }), what].filter(Boolean).join(' · '),
     };
   }
 
@@ -437,6 +519,7 @@ export default function SessionScreen() {
             next={nextUp}
             focus={restFocus}
             onFocusChange={setRestFocus}
+            ask={ask}
           />
         ) : null
       }>
@@ -486,6 +569,8 @@ export default function SessionScreen() {
         const hasOpen = rows.some((r) => !r.completedAt);
         const exercise = byId.get(exerciseId);
         const allDone = rows.every((r) => r.completedAt);
+        // Ziel aus dem ersten Arbeitssatz (Aufwärmsätze haben eigene Wiederholungen).
+        const target = rows.find((r) => r.setType !== 'aufwaermen') ?? rows[0];
         // Fertige Übungen klappen im laufenden Training zu einer Zeile zusammen; Tippen klappt sie wieder auf.
         if (active && allDone && !openDone.has(exerciseId)) {
           return (
@@ -546,9 +631,9 @@ export default function SessionScreen() {
                 ) : null}
               </>
             ) : null}
-            {rows[0].plannedSeconds != null ? (
+            {target.plannedSeconds != null ? (
               <ThemedText type="small" themeColor="textSecondary">
-                {t('session.targetSeconds', { seconds: rows[0].plannedSeconds })}
+                {t('session.targetSeconds', { seconds: target.plannedSeconds })}
               </ThemedText>
             ) : null}
             {isTimed(exerciseId) && active ? (
@@ -556,31 +641,54 @@ export default function SessionScreen() {
                 {t('session.holdHint')}
               </ThemedText>
             ) : null}
-            {rows[0].plannedSeconds == null && rows[0].plannedRepsMin != null ? (
+            {target.plannedSeconds == null && target.plannedRepsMin != null ? (
               <ThemedText type="small" themeColor="textSecondary">
-                {t('session.target', { min: rows[0].plannedRepsMin, max: rows[0].plannedRepsMax })}
+                {t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })}
                 {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
               </ThemedText>
             ) : null}
             {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
+            {rows[0].superset != null ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('logger.supersetWith', {
+                  letter: letters.get(rows[0].superset) ?? '',
+                  names: [...new Set(sets.filter((s) => s.superset === rows[0].superset && s.exerciseId !== exerciseId).map((s) => nameOf(s.exerciseId)))].join(', '),
+                })}
+              </ThemedText>
+            ) : null}
+            {modeOf(exerciseId) !== 'normal' && !isTimed(exerciseId) ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t(`logger.load.${modeOf(exerciseId) as 'einseitig' | 'unterstuetzt' | 'zusatzgewicht'}`)}
+              </ThemedText>
+            ) : null}
             {rows.map((row, index) => {
-              const value = inputs[row.id] ?? suggestion(row, index);
+              const value = inputs[row.id] ?? suggestion(row);
+              const label = setLabels(rows.map((r) => r.setType))[index];
               return (
-                <View key={row.id} style={styles.setRow}>
-                  <ThemedText type="smallBold" themeColor={row.completedAt ? 'textSecondary' : 'text'} style={styles.setNumber}>
-                    {index + 1}
-                  </ThemedText>
+                <View key={row.id}>
+                <View style={styles.setRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('logger.details', { n: label })}
+                    accessibilityState={{ expanded: detailFor === row.id }}
+                    onPress={() => setDetailFor((d) => (d === row.id ? null : row.id))}
+                    style={styles.setNumberHit}>
+                    <ThemedText type="smallBold" themeColor={row.completedAt ? 'textSecondary' : 'text'} style={styles.setNumber}>
+                      {label}
+                    </ThemedText>
+                  </Pressable>
                   {row.completedAt ? (
                     <>
                       <ThemedText style={[styles.flex, styles.doneText]}>
                         {row.seconds != null
                           ? t('session.setDoneSeconds', { seconds: row.seconds })
                           : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
+                        {row.rir != null ? ` · ${t('logger.rirShort', { rir: row.rir === 4 ? '4+' : row.rir })}` : ''}
                       </ThemedText>
                       {active ? (
                         <SetCheck
                           done
-                          accessibilityLabel={`${t('session.undo')} ${index + 1}`}
+                          accessibilityLabel={`${t('session.undo')} ${label}`}
                           onPress={async () => {
                             await reopenSet(db, row.id);
                             await load();
@@ -594,10 +702,10 @@ export default function SessionScreen() {
                       <TextInput
                         value={value.weight}
                         onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...value, weight } }))}
-                        placeholder={units.weight}
+                        placeholder={t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
                         placeholderTextColor={theme.textSecondary}
                         keyboardType="decimal-pad"
-                        accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${index + 1}`}
+                        accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
                       )}
@@ -607,30 +715,30 @@ export default function SessionScreen() {
                         placeholder={isTimed(exerciseId) ? t('session.seconds') : t('session.reps')}
                         placeholderTextColor={theme.textSecondary}
                         keyboardType="number-pad"
-                        accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${index + 1}`}
+                        accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${label}`}
                         style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
                       />
                       {isTimed(exerciseId) ? (
                         hold?.rowId === row.id ? (
                           <Button
                             label={`■ ${formatClock(holdLeftMs)}`}
-                            accessibilityLabel={`${t('session.holdStop')} ${index + 1}`}
+                            accessibilityLabel={`${t('session.holdStop')} ${label}`}
                             onPress={stopHold}
                           />
                         ) : (
                           <Button
                             label="▶"
-                            accessibilityLabel={`${t('session.holdStart')} ${index + 1}`}
+                            accessibilityLabel={`${t('session.holdStart')} ${label}`}
                             variant="secondary"
                             disabled={hold !== null}
                             onPress={() => startHold(row, index, value)}
                           />
                         )
                       ) : null}
-                      <SetCheck done={false} accessibilityLabel={`${t('session.done')} ${index + 1}`} onPress={() => complete(row, index)} />
+                      <SetCheck done={false} accessibilityLabel={`${t('session.done')} ${label}`} onPress={() => complete(row, index)} />
                       <Button
                         label="−"
-                        accessibilityLabel={`${t('session.removeSet')} ${index + 1}`}
+                        accessibilityLabel={`${t('session.removeSet')} ${label}`}
                         variant="secondary"
                         onPress={async () => {
                           await deleteOpenSet(db, row.id);
@@ -644,12 +752,66 @@ export default function SessionScreen() {
                     </ThemedText>
                   )}
                 </View>
+                {askRirFor === row.id && !restFocus && row.completedAt ? (
+                  <View style={styles.inlineAsk}>
+                    <RirChoice
+                      label={t('logger.rirAsk')}
+                      allowEmpty={false}
+                      value={row.rir}
+                      onChange={async (rir) => {
+                        setAskRirFor(null);
+                        await changeSet(row.id, { rir });
+                      }}
+                    />
+                  </View>
+                ) : null}
+                {row.note && detailFor !== row.id ? (
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.setNote}>
+                    {row.note}
+                  </ThemedText>
+                ) : null}
+                {detailFor === row.id ? (
+                  <SetDetails
+                    setType={row.setType}
+                    rir={row.rir}
+                    note={row.note}
+                    targetRir={hints[exerciseId]?.rir ?? null}
+                    onChange={(change) => changeSet(row.id, change)}
+                    plates={
+                      exercise && usesPlates(exercise.equipment) && !isTimed(exerciseId)
+                        ? {
+                            weightText: row.completedAt ? shown(row.weightKg ?? 0) : value.weight,
+                            unit: units.weight,
+                            setup: plateSetup ?? defaultPlateSetup(units.weight),
+                            onSetup: changePlates,
+                          }
+                        : null
+                    }
+                  />
+                ) : null}
+                </View>
               );
             })}
             {invalid && rows.some((r) => r.id === invalid) ? (
               <ThemedText style={{ color: theme.danger }}>
                 {isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}
               </ThemedText>
+            ) : null}
+            {active && warmupPlan(exerciseId).length > 0 ? (
+              <>
+                <Button
+                  label={t('logger.warmup', { count: warmupPlan(exerciseId).length })}
+                  variant="secondary"
+                  onPress={() => addWarmups(exerciseId)}
+                />
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('logger.warmupHint', {
+                    list: warmupPlan(exerciseId)
+                      .map((w) => `${formatNumber(w.weight, 2)} ${units.weight} × ${w.reps}`)
+                      .join(' · '),
+                  })}
+                </ThemedText>
+              </>
             ) : null}
             {active ? (
               <Button
@@ -713,6 +875,16 @@ export default function SessionScreen() {
         </Card>
       ) : null}
       {cooldownDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.cooldownDone')}</ThemedText> : null}
+
+      <Card>
+        <Field
+          label={t('logger.sessionNote')}
+          defaultValue={session.note ?? ''}
+          placeholder={t('logger.sessionNotePlaceholder')}
+          multiline
+          onEndEditing={(e) => setSessionNote(db, id, e.nativeEvent.text)}
+        />
+      </Card>
 
       {active && alertsOff ? (
         <Card>
@@ -779,7 +951,9 @@ function doneCountOf(rows: SetRow[]) {
 
 const styles = StyleSheet.create({
   setRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
-  setNumber: { width: 20, fontVariant: ['tabular-nums'] },
+  setNumber: { minWidth: 20, fontVariant: ['tabular-nums'] },
+  setNote: { marginLeft: 44, marginTop: -Spacing.one },
+  inlineAsk: { marginLeft: 44 },
   doneText: { fontVariant: ['tabular-nums'] },
   nowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: -Spacing.one },
   nowDot: { width: 8, height: 8, borderRadius: 4 },
@@ -798,4 +972,6 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   busy: { gap: Spacing.two },
+  ask: { borderRadius: 20, borderWidth: 1, padding: Spacing.three, gap: Spacing.one },
+  setNumberHit: { minWidth: 36, minHeight: 44, justifyContent: 'center' },
 });

@@ -13,11 +13,21 @@
 // 6. Sonst: gleiches Gewicht, eine Wiederholung mehr.
 
 import type { Equipment } from './exercises';
+import type { LoadMode } from './logger';
 import { kgToUnit, unitToKg, type WeightUnit } from './units';
 
 export const PROGRESSION_RULES_VERSION = 1;
 
-export type DoneSet = { weightKg: number; reps: number | null; seconds: number | null };
+/**
+ * Fassung 2 (A1, vorbereitet, **ausgeschaltet** bis zur fachlichen Freigabe): wie Fassung 1, zusätzlich mit
+ * Wiederholungen in Reserve (RIR) je Satz:
+ * a) Alle Sätze im Bereich und jeder mit RIR ≥ 3 → mehr Gewicht, auch wenn das obere Ende noch nicht erreicht ist.
+ * b) Ein Satz unter dem Bereich mit RIR 0 → Gewicht halten (Grenze erreicht, nicht steigern).
+ * Ohne RIR-Angaben verhält sich Fassung 2 genau wie Fassung 1.
+ */
+export const PROGRESSION_V2_ENABLED = false;
+
+export type DoneSet = { weightKg: number; reps: number | null; seconds: number | null; rir?: number | null };
 /** Eine frühere Einheit dieser Übung (gleiche Übung, TRAIN-014), neueste zuerst. */
 export type PastSession = { daysAgo: number; sets: DoneSet[] };
 export type Target = { sets: number; repsMin: number | null; repsMax: number | null; seconds: number | null };
@@ -59,8 +69,40 @@ export function progressionAdvice(
   history: PastSession[],
   target: Target,
   equipment: Equipment,
-  unit: WeightUnit
+  unit: WeightUnit,
+  /** Gegengewicht-Maschine: mehr Gewicht heißt mehr Unterstützung – die Richtung wird umgedreht (A1). */
+  loadMode: LoadMode = 'normal',
+  version: 1 | 2 = PROGRESSION_V2_ENABLED ? 2 : 1
 ): Advice | null {
+  const advice = adviceV1(history, target, equipment, unit, version);
+  return advice && loadMode === 'unterstuetzt' ? invertForAssist(advice, history, equipment, unit) : advice;
+}
+
+/** Bei Gegengewicht: Steigern = weniger Unterstützung, Zurücknehmen = mehr Unterstützung. */
+function invertForAssist(advice: Advice, history: PastSession[], equipment: Equipment, unit: WeightUnit): Advice {
+  const last = history.find((h) => h.sets.length > 0);
+  if (!last) return advice;
+  const step = weightStep(equipment, unit);
+  const assist = Math.min(...last.sets.map((s) => s.weightKg));
+  switch (advice.kind) {
+    case 'mehrGewicht':
+      if (assist <= 0) return { kind: 'variante', reps: advice.reps };
+      return { ...advice, weightKg: roundToStep(Math.max(0, assist - unitToKg(step, unit)), step, unit) };
+    case 'stagnation':
+      return { ...advice, weightKg: roundToStep(assist * 1.1 + unitToKg(step, unit), step, unit) };
+    case 'wiedereinstieg':
+      return advice.seconds !== null
+        ? advice
+        : { ...advice, weightKg: roundToStep(assist * (1 + advice.percent / 100) + unitToKg(step, unit), step, unit) };
+    case 'halten':
+    case 'mehrWdh':
+      return { ...advice, weightKg: assist };
+    default:
+      return advice;
+  }
+}
+
+function adviceV1(history: PastSession[], target: Target, equipment: Equipment, unit: WeightUnit, version: 1 | 2): Advice | null {
   const last = history.find((h) => h.sets.length > 0);
   if (!last) return null;
   const step = weightStep(equipment, unit);
@@ -97,6 +139,15 @@ export function progressionAdvice(
   if (allTop) {
     if (weight === 0 && (equipment === 'koerpergewicht' || equipment === 'band' || equipment === 'gymnastikball')) return { kind: 'variante', reps: target.repsMax };
     return { kind: 'mehrGewicht', weightKg: roundToStep(weight + unitToKg(step, unit), step, unit), reps: target.repsMin };
+  }
+
+  if (version === 2) {
+    const inRange = atWeight.length >= target.sets && atWeight.every((s) => (s.reps ?? 0) >= target.repsMin!);
+    const easy = atWeight.length > 0 && atWeight.every((s) => s.rir != null && s.rir >= 3);
+    if (inRange && easy && weight > 0) {
+      return { kind: 'mehrGewicht', weightKg: roundToStep(weight + unitToKg(step, unit), step, unit), reps: target.repsMin };
+    }
+    if (last.sets.some((s) => (s.reps ?? 0) < target.repsMin! && s.rir === 0)) return { kind: 'halten', weightKg: weight, reps: target.repsMin };
   }
 
   const below = last.sets.filter((s) => (s.reps ?? 0) < target.repsMin!).length;

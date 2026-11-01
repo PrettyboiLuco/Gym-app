@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Fragment, useRef, useState } from 'react';
 import { Pressable, StyleSheet, type ScrollViewInstance } from 'react-native';
+import { LOAD_MODES, type LoadMode } from '@/domain/logger';
 
 import { Button, Card } from '@/components/card';
 import { exerciseName, exerciseTarget, matchesExercise } from '@/components/exercise-name';
@@ -61,6 +62,8 @@ export default function ExercisesScreen() {
   const [kind, setKind] = useState<ExerciseKind>('kraft');
   const [measure, setMeasure] = useState<Measure>('wdh');
   const [sides, setSides] = useState<Sides>('beidseitig');
+  // Gewichtsart (A1): „auto“ leitet sie aus Gerät und Seite ab.
+  const [loadMode, setLoadMode] = useState<LoadMode | 'auto'>('auto');
   const [hold, setHold] = useState('30');
   // Bewegungsmuster für den Planassistenten (Phase 8.1); „auto“ = aus der Muskelgruppe.
   const [pattern, setPattern] = useState<MovementPattern | 'auto'>('auto');
@@ -76,6 +79,7 @@ export default function ExercisesScreen() {
   const [equipmentFilter, setEquipmentFilter] = useState<Equipment | 'alle'>('alle');
 
   function reset() {
+    setLoadMode('auto');
     setEditing(null);
     setName('');
     setKind('kraft');
@@ -94,6 +98,7 @@ export default function ExercisesScreen() {
     setKind(e.kind);
     setMeasure(e.measure);
     setSides(e.sides);
+    setLoadMode(e.loadMode ?? 'auto');
     setHold(String(e.holdSeconds ?? 30));
     setPattern(e.pattern ?? 'auto');
     setError(null);
@@ -112,7 +117,14 @@ export default function ExercisesScreen() {
       return;
     }
     // Dehn- und Mobilitätsübungen laufen immer auf Zeit (STRETCH-007).
-    const fields = { kind, sides, holdSeconds, measure: stretch ? ('zeit' as const) : measure, pattern: pattern === 'auto' ? null : pattern };
+    const fields = {
+      kind,
+      sides,
+      holdSeconds,
+      measure: stretch ? ('zeit' as const) : measure,
+      pattern: pattern === 'auto' ? null : pattern,
+      loadMode: loadMode === 'auto' ? null : loadMode,
+    };
     if (editing) await updateCustomExercise(db, editing, name, equipment, muscle, fields);
     else await addCustomExercise(db, name, equipment, muscle, fields);
     reset();
@@ -196,6 +208,14 @@ export default function ExercisesScreen() {
           <>
             <Choice label={t('exercises.measure')} options={MEASURES} value={measure} onChange={setMeasure} format={(v) => t(`exercises.measureOption.${v}`)} />
             <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
+            <Choice
+              chips
+              label={t('logger.loadMode')}
+              options={['auto', ...LOAD_MODES] as const}
+              value={loadMode}
+              onChange={setLoadMode}
+              format={(v) => t(`logger.loadModes.${v}`)}
+            />
             <Choice
               label={t('exercises.pattern')}
               options={['auto', ...MOVEMENT_PATTERNS] as const}

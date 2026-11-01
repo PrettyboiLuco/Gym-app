@@ -4,6 +4,7 @@
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
 import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
+import { estimateOneRepMax, setOrder, type LoadMode, type PlateSetup, type SetType } from '@/domain/logger';
 import type { PastSession } from '@/domain/progression';
 import type { PreviousBest } from '@/domain/summary';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
@@ -25,13 +26,17 @@ export type Exercise = {
   measure: Measure;
   /** Bewegungsmuster einer eigenen Übung (Phase 8.1); Startübungen: siehe domain/exercises.ts. */
   pattern: MovementPattern | null;
+  /** Gewichtsart (A1): null = aus der Übung abgeleitet (siehe domain/logger.ts loadModeOf). */
+  loadMode: LoadMode | null;
 };
 
 /** Eigenschaften einer eigenen Übung (UX-013, STRETCH-007, UX-011). */
-export type ExerciseFields = Pick<Exercise, 'equipment' | 'muscleGroup' | 'kind' | 'sides' | 'holdSeconds' | 'measure' | 'pattern'>;
+export type ExerciseFields = Pick<Exercise, 'equipment' | 'muscleGroup' | 'kind' | 'sides' | 'holdSeconds' | 'measure' | 'pattern'> & {
+  loadMode?: LoadMode | null;
+};
 
 const EXERCISE_COLUMNS = `id, name_key AS nameKey, custom_name AS customName, equipment, muscle_group AS muscleGroup,
-  kind, sides, hold_seconds AS holdSeconds, measure, pattern`;
+  kind, sides, hold_seconds AS holdSeconds, measure, pattern, load_mode AS loadMode`;
 
 export function listExercises(db: Db) {
   return db.getAllAsync<Exercise>(`SELECT ${EXERCISE_COLUMNS} FROM exercise`);
@@ -49,8 +54,8 @@ export async function addCustomExercise(
   const id = newId();
   const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
-    `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure, pattern)
-     VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure, pattern,
+     load_mode) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     name.trim(),
     equipment,
@@ -60,7 +65,8 @@ export async function addCustomExercise(
     f.sides,
     f.holdSeconds,
     f.measure,
-    f.kind === 'kraft' ? f.pattern : null
+    f.kind === 'kraft' ? f.pattern : null,
+    f.kind === 'kraft' ? (f.loadMode ?? null) : null
   );
   return id;
 }
@@ -80,7 +86,7 @@ export async function updateCustomExercise(
   const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
     `UPDATE exercise SET custom_name = ?, equipment = ?, muscle_group = ?, kind = ?, sides = ?, hold_seconds = ?, measure = ?,
-     pattern = ? WHERE id = ? AND name_key IS NULL`,
+     pattern = ?, load_mode = ? WHERE id = ? AND name_key IS NULL`,
     name.trim(),
     equipment,
     muscleGroup,
@@ -89,6 +95,7 @@ export async function updateCustomExercise(
     f.holdSeconds,
     f.measure,
     f.kind === 'kraft' ? f.pattern : null,
+    f.kind === 'kraft' ? (f.loadMode ?? null) : null,
     id
   );
 }
@@ -147,17 +154,19 @@ async function loadVersionDraft(db: Db, versionId: string, name: string): Promis
       rir: string | null;
       note: string | null;
       label: string | null;
+      superset: number | null;
     }>(
       `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds,
-       target_seconds AS targetSeconds, rir, note, label FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
+       target_seconds AS targetSeconds, rir, note, label, superset FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
       day.id
     );
     // RIR, Hinweis und Anzeigename nur mitgeben, wenn gesetzt – so bleibt ein Plan ohne diese Angaben unverändert.
-    const clean = items.map(({ rir, note, label, ...rest }) => ({
+    const clean = items.map(({ rir, note, label, superset, ...rest }) => ({
       ...rest,
       ...(rir ? { rir } : {}),
       ...(note ? { note } : {}),
       ...(label ? { label } : {}),
+      ...(superset != null ? { superset } : {}),
     }));
     draft.days.push({ name: day.name, items: clean, warmup: day.warmup === 1, cooldown: day.cooldown === 1 });
   }
@@ -209,8 +218,8 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, 
       for (const [itemIndex, item] of day.items.entries()) {
         const timed = item.targetSeconds != null;
         await db.runAsync(
-          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds, rir, note, label)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds, rir, note, label, superset)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           newId(),
           dayId,
           itemIndex,
@@ -222,7 +231,8 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, 
           item.targetSeconds ?? null,
           item.rir?.trim() || null,
           item.note?.trim() || null,
-          item.label?.trim() || null
+          item.label?.trim() || null,
+          item.superset ?? null
         );
       }
     }
@@ -316,9 +326,11 @@ export type SessionInfo = {
   /** Aufwärmen/Cool-down vorschlagen (vom Plantag; freies Training: ja). */
   warmup: number | null;
   cooldown: number | null;
+  /** Notiz zum ganzen Training (A1). */
+  note: string | null;
 };
 
-const SESSION_SELECT = `SELECT s.id, s.status, s.abort_reason AS abortReason, s.started_at_utc AS startedAt,
+const SESSION_SELECT = `SELECT s.id, s.status, s.abort_reason AS abortReason, s.started_at_utc AS startedAt, s.note,
   s.finished_at_utc AS finishedAt, v.name AS planName, d.name AS dayName, d.position AS dayPosition, v.plan_id AS planId,
   d.warmup AS warmup, d.cooldown AS cooldown
   FROM workout_session s
@@ -374,28 +386,29 @@ export async function startSession(db: Db, planDayId: string | null): Promise<st
       repsMax: number;
       restSeconds: number;
       targetSeconds: number | null;
+      superset: number | null;
     }>(
       `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds,
-       target_seconds AS targetSeconds FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
+       target_seconds AS targetSeconds, superset FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
       planDayId
     );
-    let position = 0;
-    for (const item of items) {
+    // Supersätze laufen im Wechsel, Pause erst nach der Runde (domain/logger.ts setOrder).
+    for (const [position, slot] of setOrder(items).entries()) {
+      const item = items[slot.itemIndex];
       const timed = item.targetSeconds !== null;
-      for (let s = 0; s < item.sets; s++) {
-        await db.runAsync(
-          `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds,
-           planned_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          newId(),
-          id,
-          item.exerciseId,
-          position++,
-          timed ? null : item.repsMin,
-          timed ? null : item.repsMax,
-          item.restSeconds,
-          item.targetSeconds
-        );
-      }
+      await db.runAsync(
+        `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds,
+         planned_seconds, superset) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        newId(),
+        id,
+        item.exerciseId,
+        position,
+        timed ? null : item.repsMin,
+        timed ? null : item.repsMax,
+        slot.restSeconds,
+        item.targetSeconds,
+        slot.superset
+      );
     }
   });
   return id;
@@ -414,13 +427,19 @@ export type SetRow = {
   plannedSeconds: number | null;
   seconds: number | null;
   completedAt: string | null;
+  /** A1: Satzart, Wiederholungen in Reserve (0–5), Notiz, Supersatz-Gruppe. */
+  setType: SetType;
+  rir: number | null;
+  note: string | null;
+  superset: number | null;
 };
 
 export function listSessionSets(db: Db, sessionId: string) {
   return db.getAllAsync<SetRow>(
     `SELECT id, exercise_id AS exerciseId, position, planned_reps_min AS plannedRepsMin,
        planned_reps_max AS plannedRepsMax, rest_seconds AS restSeconds, weight_kg AS weightKg, reps,
-       planned_seconds AS plannedSeconds, seconds, completed_at_utc AS completedAt
+       planned_seconds AS plannedSeconds, seconds, completed_at_utc AS completedAt,
+       set_type AS setType, rir, note, superset
      FROM set_log WHERE session_id = ? ORDER BY position`,
     sessionId
   );
@@ -451,12 +470,56 @@ export async function reopenSet(db: Db, setId: string) {
   await db.runAsync('UPDATE set_log SET completed_at_utc = NULL WHERE id = ?', setId);
 }
 
+/** Satzart, RIR oder Notiz eines Satzes ändern (auch nach dem Abhaken). */
+export async function updateSetDetails(db: Db, setId: string, change: { setType?: SetType; rir?: number | null; note?: string | null }) {
+  if (change.setType !== undefined) await db.runAsync('UPDATE set_log SET set_type = ? WHERE id = ?', change.setType, setId);
+  if (change.rir !== undefined) await db.runAsync('UPDATE set_log SET rir = ? WHERE id = ?', change.rir, setId);
+  if (change.note !== undefined) await db.runAsync('UPDATE set_log SET note = ? WHERE id = ?', change.note?.trim() || null, setId);
+}
+
+/** Notiz zum ganzen Training. */
+export async function setSessionNote(db: Db, sessionId: string, note: string | null) {
+  await db.runAsync('UPDATE workout_session SET note = ? WHERE id = ?', note?.trim() || null, sessionId);
+}
+
+/**
+ * Aufwärmsätze vor dem ersten Satz einer Übung einfügen (A1). Gibt die neuen Satz-IDs in Reihenfolge zurück,
+ * damit die Oberfläche die vorgeschlagenen Gewichte in die Felder schreiben kann (gespeichert wird erst mit ✓).
+ */
+export async function addWarmupSets(db: Db, sessionId: string, exerciseId: string, reps: number[]): Promise<string[]> {
+  const ids = reps.map(() => newId());
+  await db.withTransactionAsync(async () => {
+    const first = await db.getFirstAsync<{ position: number; superset: number | null }>(
+      'SELECT position, superset FROM set_log WHERE session_id = ? AND exercise_id = ? ORDER BY position LIMIT 1',
+      sessionId,
+      exerciseId
+    );
+    const at = first?.position ?? 0;
+    // Platz schaffen: alle Sätze ab dieser Stelle rücken nach hinten.
+    await db.runAsync('UPDATE set_log SET position = position + ? WHERE session_id = ? AND position >= ?', reps.length, sessionId, at);
+    for (const [i, r] of reps.entries()) {
+      await db.runAsync(
+        `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds, set_type)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'aufwaermen')`,
+        ids[i],
+        sessionId,
+        exerciseId,
+        at + i,
+        r,
+        r,
+        60
+      );
+    }
+  });
+  return ids;
+}
+
 /** Zusätzlicher Satz für eine Übung, übernimmt Pause und Zielbereich des letzten Satzes. */
 export async function addSet(db: Db, sessionId: string, exerciseId: string) {
   const last = await db.getFirstAsync<{ restSeconds: number; repsMin: number | null; repsMax: number | null; plannedSeconds: number | null }>(
     `SELECT rest_seconds AS restSeconds, planned_reps_min AS repsMin, planned_reps_max AS repsMax,
      planned_seconds AS plannedSeconds
-     FROM set_log WHERE session_id = ? AND exercise_id = ? ORDER BY position DESC LIMIT 1`,
+     FROM set_log WHERE session_id = ? AND exercise_id = ? AND set_type <> 'aufwaermen' ORDER BY position DESC LIMIT 1`,
     sessionId,
     exerciseId
   );
@@ -502,7 +565,7 @@ export type LastPerformance = { weightKg: number; reps: number | null; seconds: 
 export async function lastPerformance(db: Db, exerciseId: string, excludeSessionId: string): Promise<LastPerformance> {
   const last = await db.getFirstAsync<{ sessionId: string }>(
     `SELECT session_id AS sessionId FROM set_log
-     WHERE exercise_id = ? AND session_id <> ? AND completed_at_utc IS NOT NULL
+     WHERE exercise_id = ? AND session_id <> ? AND completed_at_utc IS NOT NULL AND set_type <> 'aufwaermen'
      ORDER BY completed_at_utc DESC LIMIT 1`,
     exerciseId,
     excludeSessionId
@@ -510,7 +573,7 @@ export async function lastPerformance(db: Db, exerciseId: string, excludeSession
   if (!last) return [];
   return db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null }>(
     `SELECT weight_kg AS weightKg, reps, seconds FROM set_log
-     WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL ORDER BY position`,
+     WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL AND set_type <> 'aufwaermen' ORDER BY position`,
     last.sessionId,
     exerciseId
   );
@@ -544,6 +607,7 @@ export async function exerciseHistory(
     `SELECT l.session_id AS sessionId, MAX(l.completed_at_utc) AS at FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
      WHERE l.exercise_id = ? AND l.session_id <> ? AND l.completed_at_utc IS NOT NULL AND s.status <> 'abgebrochen'
+       AND l.set_type <> 'aufwaermen'
      GROUP BY l.session_id ORDER BY at DESC, s.rowid DESC LIMIT ?`,
     exerciseId,
     excludeSessionId,
@@ -551,9 +615,9 @@ export async function exerciseHistory(
   );
   const result: PastSession[] = [];
   for (const s of sessions) {
-    const sets = await db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null }>(
-      `SELECT weight_kg AS weightKg, reps, seconds FROM set_log
-       WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL ORDER BY position`,
+    const sets = await db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null; rir: number | null }>(
+      `SELECT weight_kg AS weightKg, reps, seconds, rir FROM set_log
+       WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL AND set_type <> 'aufwaermen' ORDER BY position`,
       s.sessionId,
       exerciseId
     );
@@ -604,7 +668,7 @@ export async function previousBests(db: Db, exerciseIds: string[], excludeSessio
       `SELECT l.weight_kg AS weightKg, l.reps, l.seconds FROM set_log l
        JOIN workout_session s ON s.id = l.session_id
        WHERE l.exercise_id = ? AND l.session_id <> ? AND l.completed_at_utc IS NOT NULL
-         AND s.status <> 'abgebrochen' AND s.started_at_utc < ?`,
+         AND s.status <> 'abgebrochen' AND s.started_at_utc < ? AND l.set_type <> 'aufwaermen'`,
       exerciseId,
       excludeSessionId,
       beforeIso
@@ -612,9 +676,11 @@ export async function previousBests(db: Db, exerciseIds: string[], excludeSessio
     if (rows.length === 0) continue;
     const lifted = rows.filter((r) => r.reps != null && r.reps > 0);
     const maxKg = lifted.length ? Math.max(...lifted.map((r) => r.weightKg ?? 0)) : null;
+    const minKg = lifted.length ? Math.min(...lifted.map((r) => r.weightKg ?? 0)) : null;
     result.push({
       exerciseId,
       maxKg,
+      minKg,
       repsAtMaxKg: maxKg === null ? null : Math.max(...lifted.filter((r) => (r.weightKg ?? 0) === maxKg).map((r) => r.reps ?? 0)),
       maxReps: lifted.length ? Math.max(...lifted.map((r) => r.reps ?? 0)) : null,
       maxSeconds: rows.some((r) => r.seconds != null) ? Math.max(...rows.map((r) => r.seconds ?? 0)) : null,
@@ -624,24 +690,38 @@ export async function previousBests(db: Db, exerciseIds: string[], excludeSessio
 }
 
 /** Bester Satz je abgeschlossenem Training einer Übung (für den Kraftverlauf), älteste zuerst. */
-export type ExerciseBest = { sessionId: string; at: string; weightKg: number; reps: number | null; seconds: number | null };
+export type ExerciseBest = {
+  sessionId: string;
+  at: string;
+  weightKg: number;
+  reps: number | null;
+  seconds: number | null;
+  /** Bestes geschätztes 1RM dieses Trainings (A1), null ohne passenden Satz. */
+  e1rm: number | null;
+};
 
-export async function exerciseBests(db: Db, exerciseId: string): Promise<ExerciseBest[]> {
+export async function exerciseBests(db: Db, exerciseId: string, loadMode?: LoadMode): Promise<ExerciseBest[]> {
   const rows = await db.getAllAsync<{ sessionId: string; at: string; weightKg: number | null; reps: number | null; seconds: number | null }>(
     `SELECT l.session_id AS sessionId, s.started_at_utc AS at, l.weight_kg AS weightKg, l.reps, l.seconds
      FROM set_log l JOIN workout_session s ON s.id = l.session_id
-     WHERE l.exercise_id = ? AND l.completed_at_utc IS NOT NULL AND s.status <> 'abgebrochen'
+     WHERE l.exercise_id = ? AND l.completed_at_utc IS NOT NULL AND s.status <> 'abgebrochen' AND l.set_type <> 'aufwaermen'
      ORDER BY s.started_at_utc`,
     exerciseId
   );
+  const mode = loadMode ?? 'normal';
   const bySession = new Map<string, ExerciseBest>();
   for (const r of rows) {
     const prev = bySession.get(r.sessionId);
     const kg = r.weightKg ?? 0;
+    const e1rm = mode === 'unterstuetzt' || r.reps == null ? null : estimateOneRepMax(kg, r.reps);
+    const bestE1rm = e1rm !== null && (prev?.e1rm == null || e1rm > prev.e1rm) ? e1rm : (prev?.e1rm ?? null);
+    // Gegengewicht: weniger ist besser.
+    const heavier = mode === 'unterstuetzt' ? kg < (prev?.weightKg ?? Infinity) : kg > (prev?.weightKg ?? -Infinity);
     const better =
       !prev ||
-      (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : kg > prev.weightKg || (kg === prev.weightKg && (r.reps ?? 0) > (prev.reps ?? 0)));
-    if (better) bySession.set(r.sessionId, { sessionId: r.sessionId, at: r.at, weightKg: kg, reps: r.reps, seconds: r.seconds });
+      (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : heavier || (kg === prev.weightKg && (r.reps ?? 0) > (prev.reps ?? 0)));
+    if (better) bySession.set(r.sessionId, { sessionId: r.sessionId, at: r.at, weightKg: kg, reps: r.reps, seconds: r.seconds, e1rm: bestE1rm });
+    else if (prev) prev.e1rm = bestE1rm;
   }
   return [...bySession.values()].sort((a, b) => a.at.localeCompare(b.at));
 }
@@ -661,3 +741,7 @@ export async function planHintsForSession(db: Db, sessionId: string): Promise<Re
   for (const r of rows) if (!result[r.exerciseId]) result[r.exerciseId] = { rir: r.rir, note: r.note, label: r.label };
   return result;
 }
+
+/** Stange und vorhandene Scheiben für den Scheibenrechner (A1), in der Anzeigeeinheit. */
+export const loadPlateSetup = (db: Db) => readState<PlateSetup | null>(db, 'plate_setup', null);
+export const savePlateSetup = (db: Db, setup: PlateSetup) => writeState(db, 'plate_setup', setup);

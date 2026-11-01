@@ -91,6 +91,7 @@ export function Choice<T extends string>({
   value,
   onChange,
   format,
+  chips = false,
 }: {
   label: string;
   options: readonly T[];
@@ -98,8 +99,10 @@ export function Choice<T extends string>({
   value: T | null;
   onChange: (value: T) => void;
   format: (value: T) => string;
+  /** Immer als Chips (z. B. wenn der Platz für einen Segment-Schalter zu knapp ist). */
+  chips?: boolean;
 }) {
-  const segmented = options.length >= 2 && options.length <= 4 && options.every((o) => format(o).length <= 14);
+  const segmented = !chips && options.length >= 2 && options.length <= 4 && options.every((o) => format(o).length <= 14);
   return (
     <View style={styles.field}>
       <ThemedText type="small" themeColor="textSecondary">

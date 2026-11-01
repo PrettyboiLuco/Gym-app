@@ -5,7 +5,7 @@
 //   "weekdays": [7, 1, 3, 5],                       // Trainingstage ISO (1 = Mo … 7 = So), optional
 //   "days": [ { "name": "…", "items": [
 //       { "exercise": "<Übungs-ID oder eigen:schlüssel>", "name": "Anzeigename (optional)", "sets": 3, "reps": [8, 12],
-//         "rest": 240, "rir": "1–2", "note": "…" } ] } ],
+//         "rest": 240, "rir": "1–2", "note": "…", "superset": "A" } ] } ],   // gleicher Buchstabe = Supersatz
 //   "customExercises": [ { "key": "…", "name": "…", "equipment": "koerpergewicht", "muscleGroup": "ruecken",
 //                          "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 30 } ],   // optional
 //   "routines": [ { "name": "…", "kind": "dehnen", "items": [ { "exercise": "…", "seconds": 40 } ] } ],  // optional
@@ -47,6 +47,9 @@ export type PlanFileResult =
   | { ok: false; error: 'invalid'; problems: PlanProblem[] };
 
 const DEFAULT_REST = 120;
+/** Supersatz als Buchstabe („A“) oder Zahl; gleiche Angabe bei aufeinanderfolgenden Übungen = Supersatz. */
+const supersetOf = (v: unknown) =>
+  typeof v === 'string' && /^[A-Za-z]$/.test(v.trim()) ? v.trim().toUpperCase().charCodeAt(0) - 64 : typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : null;
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
@@ -115,6 +118,7 @@ export function parsePlanFile(text: string, knownExerciseIds: ReadonlySet<string
             rir: str(item.rir),
             note: str(item.note),
             label: str(item.name),
+            superset: supersetOf(item.superset),
           };
         }),
       };

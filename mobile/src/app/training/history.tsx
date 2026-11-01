@@ -38,7 +38,7 @@ export default function HistoryScreen() {
               title={row.session.dayName ? `${row.session.planName} – ${row.session.dayName}` : t('session.free')}
               subtitle={`${formatDay(row.at.slice(0, 10))} · ${t(`history.status.${row.session.status}`)} · ${t('history.sets', {
                 count: row.session.doneSets ?? 0,
-              })}`}
+              })}${row.session.note ? `\n${row.session.note}` : ''}`}
               accessory="›"
               onPress={() => router.push(`/training/session/${row.session.id}`)}
             />
