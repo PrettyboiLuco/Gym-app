@@ -39,7 +39,7 @@ import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
-type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string; seconds: string };
+type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string; seconds: string; rir?: string; note?: string };
 type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean };
 type PlanForm = { name: string; days: DayForm[] };
 
@@ -61,6 +61,8 @@ function toForm(draft: PlanDraft): PlanForm {
         repsMax: String(i.repsMax),
         rest: String(i.restSeconds),
         seconds: i.targetSeconds == null ? '' : String(i.targetSeconds),
+        rir: i.rir ?? '',
+        note: i.note ?? '',
       })),
     })),
   };
@@ -83,6 +85,8 @@ function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDr
         repsMax: timed(i.exerciseId) ? 1 : num(i.repsMax),
         restSeconds: num(i.rest),
         targetSeconds: timed(i.exerciseId) ? num(i.seconds) : null,
+        rir: i.rir?.trim() || null,
+        note: i.note?.trim() || null,
       })),
     })),
   };
@@ -268,6 +272,22 @@ export default function PlanEditorScreen() {
                   {t('plan.timedHint')}
                 </ThemedText>
               ) : null}
+              <View style={styles.numbers}>
+                <Field
+                  label={t('plan.rir')}
+                  value={item.rir ?? ''}
+                  placeholder="1–2"
+                  style={styles.numberField}
+                  onChangeText={(rir) => updateItem(dayIndex, itemIndex, { rir })}
+                />
+                <Field
+                  label={t('plan.note')}
+                  value={item.note ?? ''}
+                  placeholder={t('plan.notePlaceholder')}
+                  style={styles.noteField}
+                  onChangeText={(note) => updateItem(dayIndex, itemIndex, { note })}
+                />
+              </View>
               <Presets
                 label={t('plan.rest')}
                 options={REST_PRESETS}
@@ -397,5 +417,6 @@ const styles = StyleSheet.create({
   numbers: { flexDirection: 'row', gap: Spacing.two },
   flex: { flex: 1 },
   numberField: { flex: 1, minWidth: 0 },
+  noteField: { flex: 3, minWidth: 160 },
   dayMoves: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
 });

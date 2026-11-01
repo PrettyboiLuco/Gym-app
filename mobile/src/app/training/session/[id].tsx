@@ -35,6 +35,7 @@ import {
   listExercises,
   listSessionSets,
   loadProgressionOn,
+  planHintsForSession,
   loadRestAuto,
   loadRestTimer,
   reopenSet,
@@ -97,6 +98,8 @@ export default function SessionScreen() {
   // Pause im Vollbild (öffnet sich nach einem erledigten Satz von selbst) und wieder aufgeklappte fertige Übungen.
   const [restFocus, setRestFocus] = useState(false);
   const [openDone, setOpenDone] = useState<Set<string>>(new Set());
+  // RIR und Hinweise aus dem Plan (z. B. „Becken bleibt am Polster“).
+  const [hints, setHints] = useState<Record<string, { rir: string | null; note: string | null }>>({});
   const [restAuto, setRestAuto] = useState(true);
   // Steigerungsvorschläge (TRAIN-018) und Ersatz bei belegtem Gerät (TRAIN-016).
   const [progressionOn, setProgressionOn] = useState(true);
@@ -124,6 +127,7 @@ export default function SessionScreen() {
       loadProgressionOn(db),
     ]);
     setProgressionOn(progression);
+    setHints(await planHintsForSession(db, id));
     setBlocks(timed);
     setAlertsOff(NOTIFICATIONS_SUPPORTED && !(await loadReminders(db)).timerAlerts);
     setLoadedAtMs(nowMs());
@@ -547,8 +551,10 @@ export default function SessionScreen() {
             {rows[0].plannedSeconds == null && rows[0].plannedRepsMin != null ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {t('session.target', { min: rows[0].plannedRepsMin, max: rows[0].plannedRepsMax })}
+                {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
               </ThemedText>
             ) : null}
+            {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
             {rows.map((row, index) => {
               const value = inputs[row.id] ?? suggestion(row, index);
               return (

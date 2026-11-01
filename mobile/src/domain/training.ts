@@ -10,6 +10,10 @@ export type PlanItemDraft = {
   restSeconds: number;
   /** Zeit-Übung (UX-011, z. B. Plank): Sekunden je Satz; Wiederholungen sind dann 1/1 Platzhalter. */
   targetSeconds?: number | null;
+  /** Wiederholungen in Reserve als Text (z. B. „0–1“), wird im Training angezeigt. */
+  rir?: string | null;
+  /** Kurzer Hinweis zur Ausführung, wird im Training angezeigt. */
+  note?: string | null;
 };
 /** Aufwärmen/Cool-down für diesen Tag vorschlagen (STRETCH-001/002). */
 export type PlanDayDraft = { name: string; items: PlanItemDraft[]; warmup?: boolean; cooldown?: boolean };

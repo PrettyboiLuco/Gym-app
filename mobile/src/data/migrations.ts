@@ -537,6 +537,10 @@ export const MIGRATIONS: string[] = [
   // Version 16: dritte Erweiterung – Varianten je Muskel nach Gerät, Kabel-Aufbau, Aufsatz, Position, Winkel und Griff.
   `${catalogInserts((id) => CATALOG_ADDED[16].includes(id))}
    ${catalogStretchInserts((id) => STRETCH_ADDED[16].includes(id))}`,
+
+  // Version 17: Plan-Übungen mit Anstrengung (RIR, Text wie „0–1“) und kurzem Hinweis (z. B. „Becken bleibt am Polster“).
+  `ALTER TABLE plan_item ADD COLUMN rir TEXT;
+   ALTER TABLE plan_item ADD COLUMN note TEXT;`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */
