@@ -7,7 +7,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
 import { foodTitle } from '@/components/food-title';
-import { formatKcal, macroLine, readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
+import { extraLine, formatKcal, macroLine, readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -142,7 +142,12 @@ export default function ScanScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {macroLine(phase.draft.per100)}
           </ThemedText>
-          {Object.values(phase.draft.per100).some((v) => v === null) ? (
+          {extraLine(phase.draft.per100) ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {extraLine(phase.draft.per100)}
+            </ThemedText>
+          ) : null}
+          {(['kcal', 'protein', 'carbs', 'fat'] as const).some((k) => phase.draft.per100[k] === null) ? (
             <ThemedText type="small" style={{ color: theme.danger }}>
               {t('nutrition.food.unknownHint')}
             </ThemedText>

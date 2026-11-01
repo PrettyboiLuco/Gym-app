@@ -6,7 +6,7 @@ import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
-import { todayDay } from '@/components/nutrition-format';
+import { diaryToday, todayDay } from '@/components/nutrition-format';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { loadTimedRun } from '@/data/routines';
@@ -28,13 +28,15 @@ async function loadToday(db: Db) {
   const today = todayDay();
   // Abgelaufene befristete Planfassungen beenden, damit „Nächstes Training“ stimmt (TRAIN-008).
   await expireTemporaryPlans(db, today);
-  const [weights, active, plans, events, settings, goal] = await Promise.all([
+  // Ernährung nach dem Ernährungstag (A3: Tag kann z. B. erst um 4 Uhr enden) – wie im Tab „Ernährung“.
+  const settings = await loadNutritionSettings(db);
+  const diaryDay = diaryToday();
+  const [weights, active, plans, events, goal] = await Promise.all([
     listWeights(db),
     getActiveSession(db),
     listActivePlans(db),
-    listDay(db, today),
-    loadNutritionSettings(db),
-    calorieGoalOn(db, today),
+    listDay(db, diaryDay),
+    calorieGoalOn(db, diaryDay),
   ]);
   const [timed, setup, pending, sleep, trainingWeek] = await Promise.all([
     loadTimedRun(db),

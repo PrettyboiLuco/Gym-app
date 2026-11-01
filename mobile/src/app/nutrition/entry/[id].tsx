@@ -5,7 +5,7 @@ import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton, Field } from '@/components/fields';
 import { foodTitle } from '@/components/food-title';
-import { formatKcal, macroLine } from '@/components/nutrition-format';
+import { extraLine, formatKcal, macroLine } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { deleteEvent, getEvent, updateEvent, type ConsumptionEvent } from '@/data/nutrition';
@@ -97,6 +97,16 @@ export default function EntryScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               {macroLine(preview)}
             </ThemedText>
+            {extraLine(preview) ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {extraLine(preview)}
+              </ThemedText>
+            ) : null}
+            {event.caffeineMg != null && amount !== null ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('caffeine.amount', { mg: formatNumber((event.caffeineMg * amount) / event.amount, 0) })}
+              </ThemedText>
+            ) : null}
           </>
         ) : null}
         {event.kind === 'essen' && form.meal ? (

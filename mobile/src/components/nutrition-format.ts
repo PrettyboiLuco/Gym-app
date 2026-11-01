@@ -1,6 +1,6 @@
 // Gemeinsame Anzeige- und Navigationshilfen für den Ernährungsbereich.
 
-import { cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
+import { cachedDayEnd, cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
 import { suggestMealAt } from '@/domain/diet';
 import { localDay } from '@/domain/time';
 import {
@@ -19,6 +19,17 @@ export const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export function todayDay() {
   return localDay(new Date(), timeZone);
+}
+
+/**
+ * Heutiger Ernährungstag (A3): Endet der Tag laut Einstellung z. B. um 4 Uhr, zählt ein Eintrag um 1 Uhr noch zum
+ * Vortag. Ohne Einstellung ist das der Kalendertag.
+ */
+export function diaryToday(nowMs = Date.now()) {
+  const end = cachedDayEnd();
+  const now = new Date(nowMs);
+  const today = localDay(now, timeZone);
+  return end > 0 && now.getHours() < end ? shiftDay(today, -1) : today;
 }
 
 /** Jetzt erfasst, aber auf den gewählten Tag gebucht (Nachtrag, TIME-001). */
@@ -47,6 +58,22 @@ export function macroLine(n: Nutrients) {
     // Ballaststoffe nur, wenn bekannt – ältere Einträge haben dafür keinen Wert.
     ...(n.fiber !== null ? [`${t('nutrition.fiber')} ${formatGram(n.fiber)}`] : []),
   ].join(' · ');
+}
+
+/** Zucker, gesättigte Fettsäuren, Salz (A3) – nur die bekannten; null, wenn keiner bekannt ist. */
+export function extraLine(n: Nutrients) {
+  const parts = (['sugar', 'satFat', 'salt'] as const)
+    .filter((key) => n[key] != null)
+    .map((key) => `${t(`nutrition.${key}`)} ${formatGram(n[key] ?? null)}`);
+  return parts.length ? parts.join(' · ') : null;
+}
+
+/** Tagessumme der Zusatzwerte; „≥“, wenn bei manchen Einträgen der Wert fehlt. Null, wenn nichts bekannt ist. */
+export function extraSumLine(totals: NutrientTotals) {
+  const parts = (['sugar', 'satFat', 'salt'] as const)
+    .filter((key) => totals.values[key] > 0)
+    .map((key) => `${t(`nutrition.${key}`)} ${totals.unknown[key] > 0 ? '≥ ' : ''}${formatGram(totals.values[key])}`);
+  return parts.length ? parts.join(' · ') : null;
 }
 
 /**
@@ -89,7 +116,7 @@ export function dayLabel(day: string) {
 export type TargetParams = { day?: string; meal?: string; drink?: string };
 
 export function readTarget(params: TargetParams): { day: string; target: Target } {
-  const day = params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : todayDay();
+  const day = params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : diaryToday();
   if (params.drink !== undefined) {
     const drinkType = (DRINK_TYPES as readonly string[]).includes(params.drink) ? (params.drink as DrinkType) : 'sonstiges';
     return { day, target: { kind: 'getraenk', drinkType } };

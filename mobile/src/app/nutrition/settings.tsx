@@ -27,7 +27,8 @@ function toForm(s: typeof DEFAULT_SETTINGS, kcalGoal: number | null): SettingsFo
 }
 
 /** Allergien, Ernährungsweise, Essenszeiten (COACH-007/-009); Uhrzeiten als Text, leer = keine. */
-type Extras = { allergies: Allergen[]; diet: Diet; times: Record<keyof MealTimes, string> };
+type Extras = { allergies: Allergen[]; diet: Diet; times: Record<keyof MealTimes, string>; dayEndsAt: number };
+const DAY_ENDS = ['0', '1', '2', '3', '4', '5'] as const;
 const MAIN_MEALS = ['fruehstueck', 'mittag', 'abend'] as const;
 
 function toExtras(s: typeof DEFAULT_SETTINGS): Extras {
@@ -36,6 +37,7 @@ function toExtras(s: typeof DEFAULT_SETTINGS): Extras {
     allergies: s.allergies,
     diet: s.diet,
     times: { fruehstueck: text(s.mealTimes.fruehstueck), mittag: text(s.mealTimes.mittag), abend: text(s.mealTimes.abend) },
+    dayEndsAt: s.dayEndsAt,
   };
 }
 
@@ -99,6 +101,7 @@ export default function NutritionSettingsScreen() {
       allergies: extras.allergies,
       diet: extras.diet,
       mealTimes: { fruehstueck, mittag, abend },
+      dayEndsAt: extras.dayEndsAt,
     });
     // Neues Ziel gilt ab heute; frühere Tage behalten ihr Ziel (GOAL-002).
     // Makros und Trainings-/Ruhetage des Coaches werden für den neuen Wert neu berechnet.
@@ -171,6 +174,17 @@ export default function NutritionSettingsScreen() {
         </View>
         <ThemedText type="small" themeColor="textSecondary">
           {t('diet.mealTimesHint')}
+        </ThemedText>
+        <Choice
+          chips
+          label={t('nutrition.settings.dayEndsAt')}
+          options={DAY_ENDS}
+          value={String(extras.dayEndsAt) as (typeof DAY_ENDS)[number]}
+          onChange={(v) => setExtras((e) => ({ ...e, dayEndsAt: Number(v) }))}
+          format={(v) => (v === '0' ? t('nutrition.settings.midnight') : t('nutrition.settings.hourOption', { hour: v }))}
+        />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('nutrition.settings.dayEndsHint')}
         </ThemedText>
       </Card>
       <Card title={t('diet.title')}>

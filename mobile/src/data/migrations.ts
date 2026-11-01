@@ -588,6 +588,21 @@ export const MIGRATIONS: string[] = [
    );
    CREATE INDEX cardio_log_day ON cardio_log (day);
    CREATE INDEX cardio_log_session ON cardio_log (session_id);`,
+
+  // Version 21: Ernährung schneller (Ausbauplan A3) – Zucker, gesättigte Fettsäuren und Salz (Pflichtangaben auf
+  // EU-Etiketten), Packungsgröße und Koffein (mg je 100 g/ml) am Lebensmittel; Koffein in mg am Eintrag.
+  `ALTER TABLE food ADD COLUMN sugar REAL CHECK (sugar IS NULL OR sugar >= 0);
+   ALTER TABLE food ADD COLUMN sat_fat REAL CHECK (sat_fat IS NULL OR sat_fat >= 0);
+   ALTER TABLE food ADD COLUMN salt REAL CHECK (salt IS NULL OR salt >= 0);
+   ALTER TABLE food ADD COLUMN package_amount REAL CHECK (package_amount IS NULL OR package_amount > 0);
+   ALTER TABLE food ADD COLUMN caffeine REAL CHECK (caffeine IS NULL OR caffeine >= 0);
+   ALTER TABLE consumption_event ADD COLUMN sugar REAL CHECK (sugar IS NULL OR sugar >= 0);
+   ALTER TABLE consumption_event ADD COLUMN sat_fat REAL CHECK (sat_fat IS NULL OR sat_fat >= 0);
+   ALTER TABLE consumption_event ADD COLUMN salt REAL CHECK (salt IS NULL OR salt >= 0);
+   ALTER TABLE consumption_event ADD COLUMN caffeine_mg REAL CHECK (caffeine_mg IS NULL OR caffeine_mg >= 0);
+   ALTER TABLE recipe_ingredient ADD COLUMN sugar REAL CHECK (sugar IS NULL OR sugar >= 0);
+   ALTER TABLE recipe_ingredient ADD COLUMN sat_fat REAL CHECK (sat_fat IS NULL OR sat_fat >= 0);
+   ALTER TABLE recipe_ingredient ADD COLUMN salt REAL CHECK (salt IS NULL OR salt >= 0);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

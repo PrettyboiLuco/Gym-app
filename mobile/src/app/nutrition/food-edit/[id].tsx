@@ -27,11 +27,15 @@ const EMPTY: FoodForm = {
   carbs: '',
   fat: '',
   fiber: '',
+  sugar: '',
+  satFat: '',
+  salt: '',
+  package: '',
   serving: '',
   allergens: null,
 };
 
-const NUTRIENT_FIELDS = ['kcal', 'protein', 'carbs', 'fat', 'fiber'] as const;
+const NUTRIENT_FIELDS = ['kcal', 'protein', 'carbs', 'fat', 'fiber', 'sugar', 'satFat', 'salt'] as const;
 
 export default function FoodEditScreen() {
   const params = useLocalSearchParams<TargetParams & { id: string; name?: string; barcode?: string }>();
@@ -111,6 +115,11 @@ export default function FoodEditScreen() {
         />
       </Card>
 
+      {isNew && params.barcode ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('nutrition.edit.fromLabel')}
+        </ThemedText>
+      ) : null}
       <Card>
         <Choice
           label={t('nutrition.edit.basis')}
@@ -124,7 +133,7 @@ export default function FoodEditScreen() {
             <Field
               key={key}
               label={key === 'kcal' ? 'kcal' : `${t(`nutrition.${key}`)} (g)`}
-              value={form[key]}
+              value={form[key] ?? ''}
               onChangeText={(v) => set(key, v)}
               keyboardType="decimal-pad"
               placeholder={t('nutrition.unknown')}
@@ -137,6 +146,13 @@ export default function FoodEditScreen() {
           value={form.serving}
           onChangeText={(v) => set('serving', v)}
           keyboardType="decimal-pad"
+        />
+        <Field
+          label={`${t('nutrition.edit.package')} (${form.basis})`}
+          value={form.package ?? ''}
+          onChangeText={(v) => set('package', v)}
+          keyboardType="decimal-pad"
+          placeholder="500"
         />
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.edit.hint')}

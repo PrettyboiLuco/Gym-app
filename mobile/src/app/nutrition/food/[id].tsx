@@ -9,6 +9,7 @@ import {
   dayLabel,
   formatAmount,
   formatKcal,
+  extraLine,
   macroLine,
   readTarget,
   targetParams,
@@ -50,7 +51,19 @@ export default function FoodScreen() {
   const amount = parseAmount(shownAmount);
   const values = per100(food);
   const forAmount = amount === null ? null : nutrientsForAmount(values, amount, unit, unit);
-  const amountPresets = [...new Set([...(food.servingAmount ? [food.servingAmount] : []), 50, 100, 150, 200, 250])];
+  // Portion und Packung (A3) zuerst, dann übliche Mengen.
+  const packageAmount = food.packageAmount;
+  const amountPresets = [
+    ...new Set([
+      ...(food.servingAmount ? [food.servingAmount] : []),
+      ...(packageAmount ? [packageAmount / 2, packageAmount] : []),
+      50,
+      100,
+      150,
+      200,
+      250,
+    ]),
+  ];
 
   async function log() {
     if (amount === null || !food) {
@@ -93,7 +106,18 @@ export default function FoodScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {macroLine(values)}
         </ThemedText>
-        {Object.values(values).some((v) => v === null) ? (
+        {extraLine(values) ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {extraLine(values)}
+          </ThemedText>
+        ) : null}
+        {food.caffeine != null ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('nutrition.food.caffeine', { mg: formatNumber(food.caffeine, 0), unit })}
+          </ThemedText>
+        ) : null}
+        {/* Hinweis nur für die Grundwerte – Zucker/Salz fehlen bei älteren Produkten oft und sind freiwillig. */}
+        {(['kcal', 'protein', 'carbs', 'fat'] as const).some((k) => values[k] === null) ? (
           <ThemedText type="small" style={{ color: theme.danger }}>
             {t('nutrition.food.unknownHint')}
           </ThemedText>
@@ -116,7 +140,13 @@ export default function FoodScreen() {
           value={amount ?? undefined}
           onChange={(v) => setAmountText(formatNumber(v))}
           format={(v) =>
-            v === food.servingAmount ? t('nutrition.food.serving', { value: formatAmount(v, unit) }) : formatAmount(v, unit)
+            v === food.servingAmount
+              ? t('nutrition.food.serving', { value: formatAmount(v, unit) })
+              : v === packageAmount
+                ? t('nutrition.food.package', { value: formatAmount(v, unit) })
+                : packageAmount && v === packageAmount / 2
+                  ? t('nutrition.food.halfPackage', { value: formatAmount(v, unit) })
+                  : formatAmount(v, unit)
           }
         />
         {error ? <ThemedText style={{ color: theme.danger }}>{t('nutrition.food.amountInvalid')}</ThemedText> : null}
@@ -128,6 +158,11 @@ export default function FoodScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               {macroLine(forAmount)}
             </ThemedText>
+            {extraLine(forAmount) ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {extraLine(forAmount)}
+              </ThemedText>
+            ) : null}
           </View>
         ) : null}
 

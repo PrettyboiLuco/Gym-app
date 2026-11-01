@@ -8,17 +8,21 @@ import { DaySwitcher } from '@/components/day-switcher';
 import { Icon } from '@/components/icon';
 import { Field, ListRow, Presets } from '@/components/fields';
 import { foodTitle } from '@/components/food-title';
-import { formatAmount, formatKcal, formatKcalSum, macroSumLine, todayDay, whenFor } from '@/components/nutrition-format';
+import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, whenFor } from '@/components/nutrition-format';
+import { showToast } from '@/components/toast';
+import { CAFFEINE_DRINKS, type CaffeineDrink } from '@/domain/caffeine';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import {
+  copyDay,
   copyMeal,
   DEFAULT_SETTINGS,
   listDay,
   loadNutritionSettings,
+  logCaffeineDrink,
   logWater,
   saveTemplateFromMeal,
   type ConsumptionEvent,
@@ -39,12 +43,12 @@ export default function DiaryScreen() {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
   const dataColor = dark ? theme.accent : theme.tint;
-  const [day, setDay] = useState(todayDay);
+  const [day, setDay] = useState(diaryToday);
   // App über Mitternacht offen: Wer „Heute“ angesehen hat, sieht nach dem Zurückkehren den neuen Tag.
-  const shownToday = useRef(todayDay());
+  const shownToday = useRef(diaryToday());
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      const now = todayDay();
+      const now = diaryToday();
       if (state !== 'active' || now === shownToday.current) return;
       const previous = shownToday.current;
       shownToday.current = now;
@@ -60,12 +64,14 @@ export default function DiaryScreen() {
   const [notice, setNotice] = useState<{ meal: Meal; text: string } | null>(null);
   const [templateFor, setTemplateFor] = useState<Meal | null>(null);
   const [templateName, setTemplateName] = useState('');
+  const [dayNotice, setDayNotice] = useState<string | null>(null);
 
   // Kalorienhaltige Getränke zählen bei den Kalorien mit – derselbe Eintrag, einmal gezählt (TIME-005).
   const sums = sumNutrients(events);
   const drinks = events.filter((e) => e.kind === 'getraenk');
   const { waterMl, allMl } = drinkTotals(drinks);
   const left = goal === null ? null : goal - sums.values.kcal;
+  const caffeineMg = events.reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
 
   function changeDay(next: string) {
     setDay(next);
@@ -85,6 +91,19 @@ export default function DiaryScreen() {
     setTemplateFor(null);
     setTemplateName('');
     setNotice({ meal, text: t('nutrition.templateSaved') });
+  }
+
+  async function copyWholeDay() {
+    const count = await copyDay(db, shiftDay(day, -1), whenFor(day));
+    setDayNotice(count > 0 ? t('nutrition.copiedDay', { count }) : t('nutrition.copyDayNone'));
+    await reload();
+  }
+
+  async function addCaffeine(drink: CaffeineDrink) {
+    const name = t(`caffeine.drinks.${drink.id}`);
+    await logCaffeineDrink(db, { ...drink, name }, whenFor(day));
+    showToast(t('caffeine.saved', { name }));
+    await reload();
   }
 
   async function addWater(ml: number) {
@@ -108,7 +127,12 @@ export default function DiaryScreen() {
 
       <Card title={t('nutrition.summary.title')}>
         {events.length === 0 ? (
-          <ThemedText themeColor="textSecondary">{t('nutrition.summary.empty')}</ThemedText>
+          <>
+            <ThemedText themeColor="textSecondary">{t('nutrition.summary.empty')}</ThemedText>
+            {/* Ganzen Vortag übernehmen (A3) – nur für einen leeren Tag, damit nichts doppelt wird. */}
+            <Button label={t('nutrition.copyDay')} variant="secondary" onPress={copyWholeDay} />
+            {dayNotice ? <ThemedText type="small">{dayNotice}</ThemedText> : null}
+          </>
         ) : hide ? (
           <ThemedText>{t('nutrition.summary.hidden', { count: events.length })}</ThemedText>
         ) : (
@@ -132,6 +156,7 @@ export default function DiaryScreen() {
             </View>
             <ThemedText type="small" themeColor="textSecondary">
               {macroSumLine(sums)}
+              {extraSumLine(sums) ? `\n${extraSumLine(sums)}` : ''}
             </ThemedText>
           </>
         )}
@@ -224,6 +249,20 @@ export default function DiaryScreen() {
           onChange={addWater}
           format={(ml) => t('nutrition.drinks.addGlass', { ml })}
         />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('caffeine.title')}
+        </ThemedText>
+        <Presets
+          label={t('caffeine.title')}
+          options={CAFFEINE_DRINKS.map((d) => d.id)}
+          onChange={(id) => addCaffeine(CAFFEINE_DRINKS.find((d) => d.id === id)!)}
+          format={(id) => t('caffeine.chip', { name: t(`caffeine.drinks.${id}`), ml: CAFFEINE_DRINKS.find((d) => d.id === id)!.ml })}
+        />
+        {caffeineMg > 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('caffeine.today', { mg: formatNumber(caffeineMg, 0) })} · {t('caffeine.reference')}
+          </ThemedText>
+        ) : null}
         <Button
           label={t('nutrition.drinks.other')}
           variant="secondary"

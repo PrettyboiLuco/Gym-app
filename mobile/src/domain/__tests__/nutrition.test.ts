@@ -58,6 +58,9 @@ describe('Summen', () => {
     protein: null,
     carbs: 0,
     fat: 10,
+    sugar: null,
+    satFat: null,
+    salt: null,
   }));
 });
 
@@ -141,8 +144,10 @@ describe('Open Food Facts einlesen', () => {
       barcode: '3017620422003',
       basis: 'g',
       prep: null,
-      per100: nutella,
+      per100: { ...nutella, sugar: null, satFat: null, salt: null },
       servingAmount: 15,
+      packageAmount: null,
+      caffeine: null,
       allergens: null,
       traces: null,
       diet: null,
@@ -186,7 +191,7 @@ describe('Open Food Facts einlesen', () => {
       '4000000000000'
     );
     expect(food?.basis).toBe('ml');
-    expect(food?.per100).toEqual({ kcal: 44, protein: null, carbs: 10.5, fat: 0, fiber: null });
+    expect(food?.per100).toEqual({ kcal: 44, protein: null, carbs: 10.5, fat: 0, fiber: null, sugar: null, satFat: null, salt: null });
   });
   test('nicht gefunden ergibt null', () => {
     expect(normalizeOffProduct({ status: 'failure', product: null }, '1')).toBeNull();
@@ -218,8 +223,9 @@ describe('Formular Lebensmittel', () => {
         barcode: null,
         basis: 'g',
         prep: null,
-        per100: { kcal: 370, protein: 13.5, carbs: null, fat: 7, fiber: null },
+        per100: { kcal: 370, protein: 13.5, carbs: null, fat: 7, fiber: null, sugar: null, satFat: null, salt: null },
         servingAmount: null,
+        packageAmount: null,
         allergens: null,
       },
       problems: [],

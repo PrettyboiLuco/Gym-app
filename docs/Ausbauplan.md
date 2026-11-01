@@ -21,7 +21,8 @@ mit der Fachperson statt vieler einzelner.
 |---|---|
 | A1 | **fertig** (01.11.2026) – Datenbank-Version 19, 552 Tests; Gerätetest durch Luc offen |
 | A2 | **fertig** (01.11.2026) – Datenbank-Version 20; Gerätetest durch Luc offen |
-| A3–A11 | offen |
+| A3 | **fertig** (01.11.2026) – Datenbank-Version 21, 566 Tests; OFF-Test (50 Produkte) durch Luc offen |
+| A4–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -124,6 +125,19 @@ nirgends sichtbar → stehen jetzt oben in der Cardio-Karte · Abschluss eines r
 | A3.8 | **OFF-Test** `docs/OFF_Test.md`: 50 typische Produkte (Liste von Claude), Luc scannt, Trefferquote und Werte dokumentiert |
 
 **Fertig, wenn:** ein Kantinenessen in unter 10 Sekunden eingetragen ist und der OFF-Test dokumentiert ist.
+
+**Umgesetzt (A3, 01.11.2026):** Schnelleintrag (kcal Pflicht, Makros und Name freiwillig) über „Hinzufügen“; Zucker,
+gesättigte Fettsäuren und Salz als Nährwerte (aus OFF, im Formular, in Produkt, Eintrag, Scan-Vorschau und
+Tagessumme – ältere Einträge bleiben „unbekannt“); Packungsinhalt aus OFF bzw. Formular mit „1 Packung“/„½ Packung“;
+„Ganzen Vortag übernehmen“ für einen leeren Tag; Ernährungstag endet wählbar zwischen Mitternacht und 5 Uhr
+(gilt für Ernährung, Heute und Rezeptbuch); Hinweis „Etikett abtippen“ nach erfolglosem Scan (Barcode war schon
+vorausgefüllt); Koffein: aus OFF je 100 g/ml, Schnellwahl mit 9 Getränken (EFSA-Richtwerte), Tagessumme mit
+EFSA-Einordnung, Koffein nach 14 Uhr als Grundlage fürs Journal (A6); Testliste `docs/OFF_Test.md`.
+
+**Beim Lückencheck nach A3 gefunden und geschlossen:** Tagesgrenze galt nur im Ernährungs-Tab („Heute“ zeigte nach
+Mitternacht einen anderen Tag) · Warnung „Werte unbekannt“ wäre wegen fehlender Zucker-/Salzangaben bei fast allen
+älteren Produkten erschienen → nur noch für kcal und Makros · Zucker/Salz/Koffein fehlten in Eintrag, Scan-Vorschau
+und Produktansicht · alte Tests erwarteten die alte Form der Nährwerte.
 
 ## A4 – Grundnahrungsmittel offline
 

@@ -146,6 +146,14 @@ export default function AddScreen() {
 
       {target.kind === 'essen' ? (
         <ListRow
+          title={t('quick.open')}
+          subtitle={t('quick.openHint')}
+          accessory="›"
+          onPress={() => router.push({ pathname: '/nutrition/quick', params: passOn })}
+        />
+      ) : null}
+      {target.kind === 'essen' ? (
+        <ListRow
           title={t('foodText.open')}
           subtitle={t('foodText.openHint')}
           accessory="›"

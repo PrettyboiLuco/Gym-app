@@ -36,7 +36,13 @@ export type Food = {
   carbs: number | null;
   fat: number | null;
   fiber: number | null;
+  sugar: number | null;
+  satFat: number | null;
+  salt: number | null;
   servingAmount: number | null;
+  /** Packungsinhalt in g/ml, Koffein in mg je 100 g/ml (A3). */
+  packageAmount: number | null;
+  caffeine: number | null;
   favorite: number;
   /** JSON-Listen bzw. Angabe laut Produkt (COACH-009); null = unbekannt. Lesen mit `foodFacts`. */
   allergensJson: string | null;
@@ -44,7 +50,8 @@ export type Food = {
   diet: FoodDiet | null;
 };
 
-const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, fiber,
+const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, fiber, sugar, sat_fat AS satFat, salt,
+  package_amount AS packageAmount, caffeine,
   serving_amount AS servingAmount, favorite, allergens AS allergensJson, traces AS tracesJson, diet`;
 
 function parseList(value: string | null): Allergen[] | null {
@@ -83,8 +90,17 @@ export async function recipeFacts(db: Db, versionId: string): Promise<FoodFacts>
 
 const listText = (list: Allergen[] | null | undefined) => (list == null ? null : JSON.stringify(list));
 
-export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat' | 'fiber'>): Nutrients {
-  return { kcal: food.kcal, protein: food.protein, carbs: food.carbs, fat: food.fat, fiber: food.fiber };
+export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat' | 'fiber'> & Partial<Pick<Food, 'sugar' | 'satFat' | 'salt'>>): Nutrients {
+  return {
+    kcal: food.kcal,
+    protein: food.protein,
+    carbs: food.carbs,
+    fat: food.fat,
+    fiber: food.fiber,
+    sugar: food.sugar ?? null,
+    satFat: food.satFat ?? null,
+    salt: food.salt ?? null,
+  };
 }
 
 /** Lokale Suche über Name und Marke; Favoriten zuerst. Gleichnamige Produkte bleiben getrennt (FOOD-018). */
@@ -135,6 +151,7 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   const now = nowUtc();
   const foodId = id ?? newId();
   const { kcal, protein, carbs, fat, fiber } = draft.per100;
+  const extra = [draft.per100.sugar ?? null, draft.per100.satFat ?? null, draft.per100.salt ?? null, draft.packageAmount ?? null, draft.caffeine ?? null];
   if (id) {
     // Allergene nur ändern, wenn der Entwurf sie mitbringt (z. B. aus dem Formular); sonst bleiben sie.
     if (draft.allergens !== undefined) await db.runAsync('UPDATE food SET allergens = ? WHERE id = ?', listText(draft.allergens), id);
@@ -157,6 +174,7 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       now,
       id
     );
+    await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?', ...extra, id);
   } else {
     await db.runAsync(
       `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
@@ -182,6 +200,7 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       draft.diet ?? null,
       fiber
     );
+    await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?', ...extra, foodId);
   }
   return foodId;
 }
@@ -217,6 +236,11 @@ export type ConsumptionEvent = {
   carbs: number | null;
   fat: number | null;
   fiber: number | null;
+  sugar: number | null;
+  satFat: number | null;
+  salt: number | null;
+  /** Koffein in mg (A3), null = unbekannt. */
+  caffeineMg: number | null;
   diaryDate: string;
   occurredAt: string;
   prep: Prep | null;
@@ -224,7 +248,8 @@ export type ConsumptionEvent = {
 
 // Die Zubereitung (roh/gekocht) kommt nur zur Anzeige vom Lebensmittel; Nährwerte bleiben Schnappschuss.
 const EVENT_COLUMNS = `id, kind, meal, drink_type AS drinkType, food_id AS foodId, recipe_version_id AS recipeVersionId,
-  name, brand, amount, unit, kcal, protein, carbs, fat, fiber, diary_date AS diaryDate, occurred_at_utc AS occurredAt,
+  name, brand, amount, unit, kcal, protein, carbs, fat, fiber, sugar, sat_fat AS satFat, salt, caffeine_mg AS caffeineMg,
+  diary_date AS diaryDate, occurred_at_utc AS occurredAt,
   (SELECT prep FROM food WHERE food.id = consumption_event.food_id) AS prep`;
 
 /** Wann und wo: Tagebuchdatum ist frei wählbar (Nachtrag für gestern), Zeitzone wird mitgespeichert. */
@@ -236,13 +261,24 @@ export async function insertEvent(
   db: Db,
   target: Target,
   when: When,
-  data: { foodId: string | null; recipeVersionId: string | null; name: string; brand: string | null; amount: number; unit: EventUnit; nutrients: Nutrients }
+  data: {
+    foodId: string | null;
+    recipeVersionId: string | null;
+    name: string;
+    brand: string | null;
+    amount: number;
+    unit: EventUnit;
+    nutrients: Nutrients;
+    /** Koffein in mg (A3); fehlt = unbekannt. */
+    caffeineMg?: number | null;
+  }
 ) {
   const id = newId();
   await db.runAsync(
     `INSERT INTO consumption_event (id, kind, meal, drink_type, food_id, recipe_version_id, name, brand, amount, unit,
-     kcal, protein, carbs, fat, fiber, occurred_at_utc, recorded_at_utc, time_zone, utc_offset_min, diary_date)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     kcal, protein, carbs, fat, fiber, sugar, sat_fat, salt, caffeine_mg, occurred_at_utc, recorded_at_utc, time_zone,
+     utc_offset_min, diary_date)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     target.kind,
     target.kind === 'essen' ? target.meal : null,
@@ -258,6 +294,10 @@ export async function insertEvent(
     data.nutrients.carbs,
     data.nutrients.fat,
     data.nutrients.fiber,
+    data.nutrients.sugar ?? null,
+    data.nutrients.satFat ?? null,
+    data.nutrients.salt ?? null,
+    data.caffeineMg ?? null,
     when.at.toISOString(),
     nowUtc(),
     when.timeZone,
@@ -280,7 +320,68 @@ export async function logFood(db: Db, foodId: string, amount: number, target: Ta
     amount,
     unit: food.basis,
     nutrients,
+    caffeineMg: food.caffeine == null ? null : (food.caffeine * amount) / 100,
   });
+}
+
+/** Schnelleintrag (A3): nur kcal und optional Makros, ohne Lebensmittel – z. B. Kantine oder Restaurant. */
+export async function logQuick(
+  db: Db,
+  entry: { name: string; kcal: number; protein: number | null; carbs: number | null; fat: number | null },
+  meal: Meal,
+  when: When
+) {
+  return insertEvent(db, { kind: 'essen', meal }, when, {
+    foodId: null,
+    recipeVersionId: null,
+    name: entry.name,
+    brand: null,
+    amount: 1,
+    unit: 'portion',
+    nutrients: { kcal: entry.kcal, protein: entry.protein, carbs: entry.carbs, fat: entry.fat, fiber: null },
+  });
+}
+
+/** Getränk mit bekanntem Koffein (Schnellwahl Kaffee, Espresso, Tee …), A3. */
+export async function logCaffeineDrink(
+  db: Db,
+  drink: { name: string; ml: number; kcal: number; carbs: number; sugar: number; caffeineMg: number; drinkType: DrinkType },
+  when: When
+) {
+  return insertEvent(db, { kind: 'getraenk', drinkType: drink.drinkType }, when, {
+    foodId: null,
+    recipeVersionId: null,
+    name: drink.name,
+    brand: null,
+    amount: drink.ml,
+    unit: 'ml',
+    nutrients: { kcal: drink.kcal, protein: 0, carbs: drink.carbs, fat: 0, fiber: 0, sugar: drink.sugar, satFat: 0, salt: 0 },
+    caffeineMg: drink.caffeineMg,
+  });
+}
+
+/** Ganzen Tag kopieren (A3): alle Einträge – Essen und Getränke – auf einen anderen Tag. */
+export async function copyDay(db: Db, fromDate: string, when: When) {
+  const source = await db.getAllAsync<ConsumptionEvent>(
+    `SELECT ${EVENT_COLUMNS} FROM consumption_event WHERE diary_date = ? ORDER BY occurred_at_utc`,
+    fromDate
+  );
+  await db.withTransactionAsync(async () => {
+    for (const e of source) {
+      const target: Target = e.kind === 'essen' ? { kind: 'essen', meal: e.meal ?? 'snack' } : { kind: 'getraenk', drinkType: e.drinkType ?? 'sonstiges' };
+      await insertEvent(db, target, when, {
+        foodId: e.foodId,
+        recipeVersionId: e.recipeVersionId,
+        name: e.name,
+        brand: e.brand,
+        amount: e.amount,
+        unit: e.unit,
+        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
+        caffeineMg: e.caffeineMg,
+      });
+    }
+  });
+  return source.length;
 }
 
 /** Reines Wasser oder Getränk ohne Produkt (0 kcal, sonst unbekannt ist nicht nötig). */
@@ -292,7 +393,8 @@ export async function logWater(db: Db, amountMl: number, when: When, name: strin
     brand: null,
     amount: amountMl,
     unit: 'ml',
-    nutrients: { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+    nutrients: { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, satFat: 0, salt: 0 },
+    caffeineMg: 0,
   });
 }
 
@@ -317,7 +419,8 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
   const factor = change.amount / event.amount;
   const scale = (v: number | null) => (v === null ? null : v * factor);
   await db.runAsync(
-    `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, kcal = ?, protein = ?, carbs = ?, fat = ?, fiber = ? WHERE id = ?`,
+    `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, kcal = ?, protein = ?, carbs = ?, fat = ?, fiber = ?,
+     sugar = ?, sat_fat = ?, salt = ?, caffeine_mg = ? WHERE id = ?`,
     change.amount,
     event.kind === 'essen' ? change.meal : null,
     change.diaryDate,
@@ -326,6 +429,10 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
     scale(event.carbs),
     scale(event.fat),
     scale(event.fiber),
+    scale(event.sugar),
+    scale(event.satFat),
+    scale(event.salt),
+    scale(event.caffeineMg),
     id
   );
 }
@@ -350,7 +457,8 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
         brand: e.brand,
         amount: e.amount,
         unit: e.unit,
-        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber },
+        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
+        caffeineMg: e.caffeineMg,
       });
     }
   });
@@ -484,8 +592,9 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
       if (!food) throw new Error('food not found');
       const n = nutrientsForAmount(per100(food), ing.amount, food.basis, food.basis);
       await db.runAsync(
-        `INSERT INTO recipe_ingredient (id, recipe_version_id, position, food_id, name, amount, unit, kcal, protein, carbs, fat, fiber)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO recipe_ingredient (id, recipe_version_id, position, food_id, name, amount, unit, kcal, protein, carbs, fat, fiber,
+         sugar, sat_fat, salt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         newId(),
         versionId,
         position,
@@ -497,7 +606,10 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
         n.protein,
         n.carbs,
         n.fat,
-        n.fiber
+        n.fiber,
+        n.sugar ?? null,
+        n.satFat ?? null,
+        n.salt ?? null
       );
     }
   });
@@ -506,7 +618,7 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
 
 async function versionTotal(db: Db, versionId: string): Promise<Nutrients> {
   const rows = await db.getAllAsync<Nutrients>(
-    'SELECT kcal, protein, carbs, fat, fiber FROM recipe_ingredient WHERE recipe_version_id = ?',
+    'SELECT kcal, protein, carbs, fat, fiber, sugar, sat_fat AS satFat, salt FROM recipe_ingredient WHERE recipe_version_id = ?',
     versionId
   );
   return totalOf(rows);
@@ -609,6 +721,8 @@ export type NutritionSettings = {
   diet: Diet;
   /** Eigene Essenszeiten für den Mahlzeit-Vorschlag (COACH-007). */
   mealTimes: MealTimes;
+  /** Der Ernährungstag endet um diese Stunde (0 = Mitternacht, bis 5 Uhr) – Essen um 1 Uhr zählt dann noch zum Vortag (A3). */
+  dayEndsAt: number;
 };
 
 export const DEFAULT_SETTINGS: NutritionSettings = {
@@ -618,11 +732,14 @@ export const DEFAULT_SETTINGS: NutritionSettings = {
   allergies: [],
   diet: 'alles',
   mealTimes: DEFAULT_MEAL_TIMES,
+  dayEndsAt: 0,
 };
 
 // Zuletzt geladene Essenszeiten, damit der Mahlzeit-Vorschlag ohne Datenbankzugriff auskommt.
 let lastMealTimes: MealTimes = DEFAULT_MEAL_TIMES;
 export const cachedMealTimes = () => lastMealTimes;
+let lastDayEnd = 0;
+export const cachedDayEnd = () => lastDayEnd;
 
 export async function loadNutritionSettings(db: Db): Promise<NutritionSettings> {
   const stored = await readState<Partial<NutritionSettings> & { kcalGoal?: unknown }>(db, 'nutrition_settings', {});
@@ -630,10 +747,12 @@ export async function loadNutritionSettings(db: Db): Promise<NutritionSettings> 
   const { kcalGoal: _old, ...rest } = stored;
   const settings = { ...DEFAULT_SETTINGS, ...rest, mealTimes: { ...DEFAULT_MEAL_TIMES, ...rest.mealTimes } };
   lastMealTimes = settings.mealTimes;
+  lastDayEnd = settings.dayEndsAt;
   return settings;
 }
 
 export async function saveNutritionSettings(db: Db, settings: NutritionSettings) {
   await writeState(db, 'nutrition_settings', settings);
   lastMealTimes = settings.mealTimes;
+  lastDayEnd = settings.dayEndsAt;
 }

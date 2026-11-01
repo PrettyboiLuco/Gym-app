@@ -293,6 +293,7 @@ describe('Einstellungen', () => {
       allergies: [],
       diet: 'alles',
       mealTimes: { fruehstueck: 7, mittag: 12, abend: 18 },
+      dayEndsAt: 0,
     });
   });
   test('eigene Vorgabe bleibt erhalten (TIME-010)', async () => {

@@ -27,29 +27,33 @@ export function recipePortion(total: number, endWeight: number | null, portion: 
 // ------------------------------------------------------------------------- Nährwert-Sätze
 
 /** Ballaststoffe seit dem Coach (C4); ältere Einträge haben dafür „unbekannt“. */
-export const NUTRIENT_KEYS = ['kcal', 'protein', 'carbs', 'fat', 'fiber'] as const;
+/** Zucker, gesättigte Fettsäuren und Salz seit A3 (EU-Pflichtangaben); ältere Einträge: „unbekannt“. */
+export const NUTRIENT_KEYS = ['kcal', 'protein', 'carbs', 'fat', 'fiber', 'sugar', 'satFat', 'salt'] as const;
 export type NutrientKey = (typeof NUTRIENT_KEYS)[number];
-export type Nutrients = Record<NutrientKey, number | null>;
+/** Zusatzwerte (A3): optional – fehlt der Wert, gilt er als unbekannt. */
+export type ExtraNutrientKey = 'sugar' | 'satFat' | 'salt';
+export type Nutrients = Record<Exclude<NutrientKey, ExtraNutrientKey>, number | null> & Partial<Record<ExtraNutrientKey, number | null>>;
 
-export const EMPTY_NUTRIENTS: Nutrients = { kcal: null, protein: null, carbs: null, fat: null, fiber: null };
+export const EMPTY_NUTRIENTS: Nutrients = { kcal: null, protein: null, carbs: null, fat: null, fiber: null, sugar: null, satFat: null, salt: null };
 
 /** Alle Nährwerte für eine Menge (z. B. 60 g eines Produkts mit Werten pro 100 g). */
 export function nutrientsForAmount(per100: Nutrients, amount: number, basis: NutrientBasis, unit: NutrientBasis): Nutrients {
-  const result = { ...EMPTY_NUTRIENTS };
-  for (const key of NUTRIENT_KEYS) result[key] = nutrientForAmount(per100[key], amount, basis, unit);
+  const result = nutrientResult();
+  for (const key of NUTRIENT_KEYS) result[key] = nutrientForAmount(per100[key] ?? null, amount, basis, unit);
   return result;
 }
 
 export type NutrientTotals = { values: Record<NutrientKey, number>; unknown: Record<NutrientKey, number> };
+const nutrientResult = (): Record<NutrientKey, number | null> => ({ ...EMPTY_NUTRIENTS }) as Record<NutrientKey, number | null>;
 
 /** Summe über Einträge. Unbekannte Werte werden gezählt statt als 0 versteckt (TRACK-002). */
 export function sumNutrients(items: Nutrients[]): NutrientTotals {
-  const values = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
-  const unknown = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
+  const values = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, satFat: 0, salt: 0 };
+  const unknown = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, satFat: 0, salt: 0 };
   for (const item of items) {
     for (const key of NUTRIENT_KEYS) {
       const v = item[key];
-      if (v === null) unknown[key] += 1;
+      if (v == null) unknown[key] += 1;
       else values[key] += v;
     }
   }
@@ -59,10 +63,10 @@ export function sumNutrients(items: Nutrients[]): NutrientTotals {
 /** Werte pro 100 g eines gekochten Gerichts aus Gesamtwerten und Endgewicht (FOOD-017). */
 export function per100FromTotal(total: Nutrients, endWeight: number): Nutrients {
   if (endWeight <= 0) throw new Error('end weight required');
-  const result = { ...EMPTY_NUTRIENTS };
+  const result = nutrientResult();
   for (const key of NUTRIENT_KEYS) {
     const v = total[key];
-    result[key] = v === null ? null : (v * 100) / endWeight;
+    result[key] = v == null ? null : (v * 100) / endWeight;
   }
   return result;
 }
@@ -70,10 +74,10 @@ export function per100FromTotal(total: Nutrients, endWeight: number): Nutrients 
 /** Ein Anteil eines Gesamtwerts, z. B. 1 von 4 Portionen. */
 export function fractionOf(total: Nutrients, fraction: number): Nutrients {
   if (fraction <= 0) throw new Error('fraction must be positive');
-  const result = { ...EMPTY_NUTRIENTS };
+  const result = nutrientResult();
   for (const key of NUTRIENT_KEYS) {
     const v = total[key];
-    result[key] = v === null ? null : v * fraction;
+    result[key] = v == null ? null : v * fraction;
   }
   return result;
 }
@@ -81,7 +85,7 @@ export function fractionOf(total: Nutrients, fraction: number): Nutrients {
 /** Summiert Zutaten zu Gesamtwerten. Ist eine Zutat unbekannt, ist auch die Summe unbekannt. */
 export function totalOf(items: Nutrients[]): Nutrients {
   const sum = sumNutrients(items);
-  const result = { ...EMPTY_NUTRIENTS };
+  const result = nutrientResult();
   for (const key of NUTRIENT_KEYS) result[key] = sum.unknown[key] > 0 ? null : sum.values[key];
   return result;
 }
@@ -223,6 +227,10 @@ export type FoodDraft = {
   prep?: Prep | null;
   per100: Nutrients;
   servingAmount: number | null;
+  /** Packungsinhalt in g/ml (A3); fehlt = unbekannt. */
+  packageAmount?: number | null;
+  /** Koffein in mg je 100 g/ml (A3). */
+  caffeine?: number | null;
   /**
    * Allergene und Spuren laut Angabe (COACH-009); null = unbekannt, [] = keine angegeben.
    * Fehlt das Feld (undefined), bleibt beim Speichern der bisherige Wert.
@@ -276,8 +284,15 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
       carbs: num(nutriments.carbohydrates_100g),
       fiber: num(nutriments.fiber_100g),
       fat: num(nutriments.fat_100g),
+      sugar: num(nutriments.sugars_100g),
+      satFat: num(nutriments['saturated-fat_100g']),
+      salt: num(nutriments.salt_100g),
     },
     servingAmount: num(product.serving_quantity),
+    // Packungsinhalt (z. B. 500 g) nur, wenn er in derselben Einheit wie die Nährwerte angegeben ist.
+    packageAmount: num(product.product_quantity),
+    // Koffein: OFF speichert g je 100 g/ml → mg.
+    caffeine: num(nutriments.caffeine_100g) === null ? null : Math.round(num(nutriments.caffeine_100g)! * 1000 * 10) / 10,
     allergens: allergensFromOff(product.allergens_tags),
     traces: allergensFromOff(product.traces_tags),
     diet: dietFromOff(product.ingredients_analysis_tags),
@@ -299,6 +314,12 @@ export type FoodForm = {
   fat: string;
   /** Ballaststoffe in g pro 100 g/ml; leer = unbekannt (C4). */
   fiber: string;
+  /** Zucker, gesättigte Fettsäuren, Salz in g pro 100 g/ml (A3). */
+  sugar?: string;
+  satFat?: string;
+  salt?: string;
+  /** Packungsinhalt in g/ml (A3). */
+  package?: string;
   serving: string;
   /** null = keine Angabe zu Allergenen (COACH-009). */
   allergens: Allergen[] | null;
@@ -319,6 +340,10 @@ export function foodToForm(food: FoodDraft): FoodForm {
     carbs: text(food.per100.carbs),
     fat: text(food.per100.fat),
     fiber: text(food.per100.fiber),
+    sugar: text(food.per100.sugar ?? null),
+    satFat: text(food.per100.satFat ?? null),
+    salt: text(food.per100.salt ?? null),
+    package: text(food.packageAmount ?? null),
     serving: text(food.servingAmount),
     allergens: food.allergens ?? null,
   };
@@ -331,13 +356,16 @@ export function foodToForm(food: FoodDraft): FoodForm {
 export function parseFoodForm(form: FoodForm): { draft: FoodDraft | null; problems: FoodProblem[] } {
   const problems: FoodProblem[] = [];
   if (!form.name.trim()) problems.push('name');
-  const values = [form.kcal, form.protein, form.carbs, form.fat, form.fiber].map(parseNutrient);
+  const values = [form.kcal, form.protein, form.carbs, form.fat, form.fiber, form.sugar ?? '', form.satFat ?? '', form.salt ?? ''].map(parseNutrient);
   if (values.includes('invalid')) problems.push('nutrient');
   const serving = form.serving.trim() === '' ? null : parseAmount(form.serving);
   if (form.serving.trim() !== '' && serving === null) problems.push('serving');
   const barcode = form.barcode.trim();
   if (barcode && !isValidBarcode(barcode)) problems.push('barcode');
-  const [kcal, protein, carbs, fat, fiber] = values as (number | null)[];
+  const [kcal, protein, carbs, fat, fiber, sugar, satFat, salt] = values as (number | null)[];
+  const packageText = (form.package ?? '').trim();
+  const packageAmount = packageText === '' ? null : parseAmount(packageText);
+  if (packageText !== '' && packageAmount === null) problems.push('serving');
   if (form.basis === 'g' && !values.includes('invalid') && (protein ?? 0) + (carbs ?? 0) + (fat ?? 0) > 100) {
     problems.push('macros');
   }
@@ -349,8 +377,9 @@ export function parseFoodForm(form: FoodForm): { draft: FoodDraft | null; proble
       barcode: barcode || null,
       basis: form.basis,
       prep: form.prep === 'keine' ? null : form.prep,
-      per100: { kcal, protein, carbs, fat, fiber },
+      per100: { kcal, protein, carbs, fat, fiber, sugar, satFat, salt },
       servingAmount: serving,
+      packageAmount,
       allergens: form.allergens,
     },
     problems,

@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice } from '@/components/fields';
-import { todayDay, whenFor } from '@/components/nutrition-format';
+import { diaryToday, whenFor } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -31,7 +31,7 @@ export default function BookRecipeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const recipe = findBookRecipe(id);
   const { data, db } = useLoad(
-    async (d) => ({ settings: await loadNutritionSettings(d), goal: (await calorieGoalOn(d, todayDay()))?.kcal ?? null }),
+    async (d) => ({ settings: await loadNutritionSettings(d), goal: (await calorieGoalOn(d, diaryToday()))?.kcal ?? null }),
     { settings: DEFAULT_SETTINGS, goal: null as number | null }
   );
   const [servings, setServings] = useState<(typeof SERVINGS)[number] | null>(null);
@@ -50,7 +50,7 @@ export default function BookRecipeScreen() {
     if (!recipe) return;
     setBusy(true);
     try {
-      await logBookRecipe(db, recipe, Number(logAmount), meal, whenFor(todayDay()));
+      await logBookRecipe(db, recipe, Number(logAmount), meal, whenFor(diaryToday()));
       showToast(t('book.logged', { meal: t(`nutrition.meals.${meal}`) }));
       router.dismissTo('/nutrition');
     } finally {
