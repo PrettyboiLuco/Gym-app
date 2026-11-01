@@ -25,6 +25,7 @@ import {
 } from '@/data/nutrition';
 import { drinkTotals, MEALS, shiftDay, sumNutrients, type Meal } from '@/domain/nutrition';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
@@ -235,6 +236,7 @@ export default function DiaryScreen() {
 
       <Card>
         <ListRow icon="calendar" title={t('nutrition.weekLink')} subtitle={t('nutrition.weekLinkSub')} accessory="›" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
+        <ListRow icon="book" title={t('book.title')} subtitle={t('book.linkSub', { count: ALL_BOOK_RECIPES.length })} accessory="›" onPress={() => router.push('/nutrition/book')} />
         <ListRow icon="book" title={t('nutrition.recipesLink')} accessory="›" onPress={() => router.push('/nutrition/recipes')} />
         <ListRow icon="pill" title={t('supplements.link')} accessory="›" onPress={() => router.push('/nutrition/supplements')} />
         <ListRow icon="target" title={t('nutrition.settingsLink')} subtitle={t('nutrition.settingsLinkSub')} accessory="›" onPress={() => router.push('/nutrition/settings')} last />

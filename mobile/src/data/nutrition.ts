@@ -232,7 +232,7 @@ export type When = { diaryDate: string; at: Date; timeZone: string };
 
 export type Target = { kind: 'essen'; meal: Meal } | { kind: 'getraenk'; drinkType: DrinkType };
 
-async function insertEvent(
+export async function insertEvent(
   db: Db,
   target: Target,
   when: When,

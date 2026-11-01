@@ -6,6 +6,7 @@ import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { listRecipes, type RecipeSummary } from '@/data/nutrition';
+import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { formatNumber, t } from '@/i18n';
 
@@ -15,6 +16,7 @@ export default function RecipesScreen() {
   return (
     <Screen withHeader>
       <Button label={t('nutrition.recipe.new')} onPress={() => router.push({ pathname: '/nutrition/recipe/[id]', params: { id: 'neu' } })} />
+      <Button label={t('book.open', { count: ALL_BOOK_RECIPES.length })} variant="secondary" onPress={() => router.push('/nutrition/book')} />
       <Card>
         {loaded && recipes.length === 0 ? <ThemedText themeColor="textSecondary">{t('nutrition.recipe.empty')}</ThemedText> : null}
         {recipes.map((r) => (
