@@ -5,6 +5,7 @@ import { BACKUP_APP, BACKUP_FORMAT, BACKUP_TABLES, TRANSIENT_STATE, type BackupM
 
 import { syncBasisFoods } from './basis-foods';
 import { nowUtc, type Db, type SqlValue } from './db';
+import { adoptSleepEntries } from './readiness';
 
 async function schemaVersion(db: Db) {
   return (await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version'))?.user_version ?? 0;
@@ -78,6 +79,8 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
   });
   // Sicherung von vor den Grundnahrungsmitteln (A4): Liste gleich wieder einspielen, nicht erst beim nächsten Start.
   await syncBasisFoods(db);
+  // Sicherung von vor dem Morgen-Check (A6): Schlafeinträge übernehmen.
+  await adoptSleepEntries(db);
 }
 
 /** Löscht alle eigenen Daten auf diesem Gerät; danach startet die App wie neu (LAW-006). */

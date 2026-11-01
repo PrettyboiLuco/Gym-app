@@ -32,6 +32,7 @@ import {
 } from "@/data/training";
 import { bestOneRepMax, loadModeOf } from "@/domain/logger";
 import { CardioRow } from "@/components/cardio-row";
+import { SessionFeedback } from "@/components/session-feedback";
 import { listCardioForSession, type CardioEntry } from "@/data/cardio";
 import { loadTrainingWeek, type TrainingWeek } from "@/data/training-week";
 import { findRecords, summarize, type Record } from "@/domain/summary";
@@ -98,6 +99,14 @@ async function loadSummary(db: Db, id: string) {
     hints,
     week,
     cooldownOffered,
+    // Muskelgruppen dieses Trainings für die Rückmeldung (A6.3)
+    muscleGroups: [
+      ...new Set(
+        done
+          .map((s) => byId.get(s.exerciseId)?.muscleGroup)
+          .filter((m): m is NonNullable<typeof m> => !!m),
+      ),
+    ] as string[],
     loaded: true,
   };
 }
@@ -124,6 +133,7 @@ export default function SummaryScreen() {
         todayIndex: 0,
       } as TrainingWeek,
       cooldownOffered: false,
+      muscleGroups: [] as string[],
       loaded: false,
     },
     id,
@@ -333,6 +343,12 @@ export default function SummaryScreen() {
           ))}
         </Card>
       ) : null}
+
+      <SessionFeedback
+        db={db}
+        sessionId={id}
+        muscleGroups={data.muscleGroups}
+      />
 
       <Card title={t("summary.noteTitle")}>
         <Field

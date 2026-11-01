@@ -616,6 +616,40 @@ export const MIGRATIONS: string[] = [
    ALTER TABLE consumption_event ADD COLUMN micros TEXT;
    CREATE UNIQUE INDEX food_catalog ON food (catalog_id) WHERE catalog_id IS NOT NULL;
    CREATE INDEX food_catalog_origin ON food (catalog_origin);`,
+
+  // Version 23: Bereitschaft (Ausbauplan A6). Ein Morgen-Check je Tag (Tag des Aufwachens) mit Schlaf, Energie,
+  // Muskelkater und den Faktoren des Vortags; ersetzt sleep_entry (wird übernommen, Tabelle bleibt für alte
+  // Sicherungen). HRV und Ruhepuls sind angelegt, bleiben aber leer bis zur Anbindung an Health (D4).
+  // Status krank/verletzt/Pause als Zeitraum; Anstrengung (1–10) und Rückmeldung je Muskelgruppe am Training.
+  `CREATE TABLE daily_check (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL UNIQUE,
+     bed_time TEXT,
+     wake_time TEXT,
+     sleep_hours REAL CHECK (sleep_hours IS NULL OR (sleep_hours > 0 AND sleep_hours <= 16)),
+     sleep_quality INTEGER CHECK (sleep_quality IS NULL OR sleep_quality BETWEEN 1 AND 5),
+     energy INTEGER CHECK (energy IS NULL OR energy BETWEEN 1 AND 5),
+     soreness INTEGER CHECK (soreness IS NULL OR soreness BETWEEN 1 AND 5),
+     factors TEXT,
+     note TEXT,
+     hrv_ms REAL CHECK (hrv_ms IS NULL OR hrv_ms > 0),
+     resting_hr INTEGER CHECK (resting_hr IS NULL OR resting_hr BETWEEN 25 AND 220),
+     recorded_at_utc TEXT NOT NULL
+   );
+   INSERT INTO daily_check (id, day, sleep_hours, sleep_quality, recorded_at_utc)
+     SELECT id, day, hours, quality, recorded_at_utc FROM sleep_entry s
+     WHERE s.recorded_at_utc = (SELECT MAX(recorded_at_utc) FROM sleep_entry WHERE day = s.day)
+     GROUP BY day;
+   CREATE TABLE status_period (
+     id TEXT PRIMARY KEY NOT NULL,
+     status TEXT NOT NULL CHECK (status IN ('krank', 'verletzt', 'pause')),
+     from_day TEXT NOT NULL,
+     to_day TEXT,
+     note TEXT,
+     created_at_utc TEXT NOT NULL
+   );
+   ALTER TABLE workout_session ADD COLUMN effort INTEGER CHECK (effort IS NULL OR effort BETWEEN 1 AND 10);
+   ALTER TABLE workout_session ADD COLUMN feedback TEXT;`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

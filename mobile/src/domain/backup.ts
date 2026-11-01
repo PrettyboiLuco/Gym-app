@@ -35,6 +35,8 @@ export const BACKUP_TABLES = [
   'flexibility_test',
   'steps_entry',
   'sleep_entry',
+  'daily_check',
+  'status_period',
   'checkin',
   'supplement',
   'supplement_log',

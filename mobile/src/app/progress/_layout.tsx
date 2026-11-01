@@ -20,6 +20,8 @@ export default function ProgressLayout() {
       <Stack.Screen name="photos" options={{ title: t('photos.title') }} />
       <Stack.Screen name="steps" options={{ title: t('steps.title') }} />
       <Stack.Screen name="checkin" options={{ title: t('checkin.title') }} />
+      <Stack.Screen name="readiness" options={{ title: t('readiness.title') }} />
+      <Stack.Screen name="breathe" options={{ title: t('breathe.title') }} />
       <Stack.Screen name="coach-setup" options={{ title: t('coach.setupTitle') }} />
     </Stack>
   );

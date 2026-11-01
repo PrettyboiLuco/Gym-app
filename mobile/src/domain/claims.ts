@@ -15,6 +15,8 @@ export const CLAIM_RULES = [
   { id: 'allergenfrei', pattern: /allergenfrei|frei von allergenen/ },
   { id: 'entgiften', pattern: /entgift|detox|stoffwechsel ankurbeln/ },
   { id: 'superlativ', pattern: /beste app|\bnr\.? ?1\b|nummer (1|eins)/ },
+  // Bereitschaft (A6): Ampel und Schlaf sind Trainingsvorschläge aus eigenen Angaben, keine Messung des Körpers.
+  { id: 'befund', pattern: /uebertrain|erholung\w* (gemessen|messen|erkannt)|nervensystem|(krankheit|infekt)\w* (erkannt|erkennt|frueh)|stress\w* gemessen|schlaf ?score/ },
 ] as const;
 
 export type ClaimRule = (typeof CLAIM_RULES)[number]['id'];

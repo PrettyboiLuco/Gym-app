@@ -4,7 +4,10 @@ import type { Db } from '@/data/db';
 import { cancelAlerts, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
 import { loadReminders } from '@/data/reminders';
 import { supplementReminders } from '@/data/supplements';
-import { drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
+import { todayDay } from '@/components/nutrition-format';
+import { loadSleepGoal, loadWakeTime, statusToday } from '@/data/readiness';
+import { bedtimeFor } from '@/domain/readiness';
+import { BEDTIME_LEAD_MINUTES, drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
 import { runElapsedMs, type TimedRun } from '@/domain/timeline';
 import type { IntervalConfig, RestTimer } from '@/domain/training';
 import { t } from '@/i18n';
@@ -63,11 +66,15 @@ export async function cancelRunAlerts() {
   await cancelAlerts(RUN);
 }
 
-/** Wiederkehrende Erinnerungen neu planen (Training an Wochentagen, Trinken im Zeitfenster, Supplements). */
+/**
+ * Wiederkehrende Erinnerungen neu planen (Training an Wochentagen, Trinken im Zeitfenster, Morgen-Check, Bettzeit,
+ * Supplements). Bei Status krank/verletzt/Pause (A6.7) entfallen die Trainingserinnerungen, bis der Status endet.
+ */
 export async function applyReminders(db: Db, settings: ReminderSettings) {
   const list: Repeating[] = [];
   const trainingAt = parseTime(settings.training.time);
-  if (settings.training.enabled && trainingAt !== null) {
+  const paused = (await statusToday(db, todayDay())) !== null;
+  if (settings.training.enabled && trainingAt !== null && !paused) {
     for (const weekday of settings.training.weekdays) {
       list.push({
         id: `training-${weekday}`,
@@ -91,6 +98,16 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
         body: t('alerts.drinkBody'),
       });
     }
+  }
+  const morningAt = parseTime(settings.morning.time);
+  if (settings.morning.enabled && morningAt !== null) {
+    list.push({ id: 'morgen-check', kind: 'daily', hour: Math.floor(morningAt / 60), minute: morningAt % 60, title: t('alerts.morningTitle'), body: t('alerts.morningBody') });
+  }
+  const wake = await loadWakeTime(db);
+  const bed = settings.bedtime.enabled && wake ? bedtimeFor(wake, await loadSleepGoal(db)) : null;
+  if (bed !== null) {
+    const at = (bed - BEDTIME_LEAD_MINUTES + 1440) % 1440;
+    list.push({ id: 'bettzeit', kind: 'daily', hour: Math.floor(at / 60), minute: at % 60, title: t('alerts.bedtimeTitle'), body: t('alerts.bedtimeBody') });
   }
   for (const s of await supplementReminders(db)) {
     const at = parseTime(s.reminderTime ?? '');

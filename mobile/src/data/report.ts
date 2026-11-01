@@ -121,7 +121,11 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
       }
     : null;
 
-  const sleepRows = await db.getAllAsync<{ hours: number; quality: number | null }>('SELECT hours, quality FROM sleep_entry WHERE day BETWEEN ? AND ?', from, to);
+  const sleepRows = await db.getAllAsync<{ hours: number; quality: number | null }>(
+    'SELECT sleep_hours AS hours, sleep_quality AS quality FROM daily_check WHERE sleep_hours IS NOT NULL AND day BETWEEN ? AND ?',
+    from,
+    to
+  );
   const qualities = sleepRows.map((s) => s.quality).filter((q): q is number => q !== null);
   const sleep = sleepRows.length ? { count: sleepRows.length, hours: avg(sleepRows.map((s) => s.hours))!, quality: avg(qualities) } : null;
 

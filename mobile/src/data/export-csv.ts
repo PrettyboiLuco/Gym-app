@@ -120,8 +120,31 @@ async function measurementCsv(db: Db) {
 }
 
 async function sleepCsv(db: Db) {
-  const rows = await db.getAllAsync<{ day: string; hours: number; quality: number | null }>('SELECT day, hours, quality FROM sleep_entry ORDER BY day');
-  return toCsv(['Datum', 'Stunden', 'Qualität (1–5)'], rows.map((r) => [r.day, r.hours, r.quality]));
+  const rows = await db.getAllAsync<{
+    day: string;
+    bed: string | null;
+    wake: string | null;
+    hours: number | null;
+    quality: number | null;
+    energy: number | null;
+    soreness: number | null;
+    factors: string | null;
+    note: string | null;
+  }>(
+    `SELECT day, bed_time AS bed, wake_time AS wake, sleep_hours AS hours, sleep_quality AS quality, energy, soreness, factors, note
+     FROM daily_check ORDER BY day`
+  );
+  const factorText = (json: string | null) => {
+    try {
+      return (JSON.parse(json ?? '[]') as string[]).map((f) => t(`readiness.factors.${f}`)).join(', ');
+    } catch {
+      return '';
+    }
+  };
+  return toCsv(
+    ['Datum', 'Ins Bett', 'Aufgestanden', 'Schlaf (h)', 'Schlafqualität (1–5)', 'Energie (1–5)', 'Muskelkater (1–5)', 'Faktoren am Vortag', 'Notiz'],
+    rows.map((r): Cell[] => [r.day, r.bed, r.wake, r.hours, r.quality, r.energy, r.soreness, factorText(r.factors), r.note])
+  );
 }
 
 async function goalsCsv(db: Db) {

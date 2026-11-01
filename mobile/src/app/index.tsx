@@ -13,6 +13,8 @@ import { loadTimedRun } from '@/data/routines';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { useUnits } from '@/data/profile-provider';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
+import { MorningCheck, ReadinessCard } from '@/components/readiness';
+import { readinessToday, type ReadinessToday } from '@/data/readiness';
 import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
 import { checkinDue } from '@/domain/checkin';
 import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
@@ -38,12 +40,13 @@ async function loadToday(db: Db) {
     listDay(db, diaryDay),
     calorieGoalOn(db, diaryDay),
   ]);
-  const [timed, setup, pending, sleep, trainingWeek] = await Promise.all([
+  const [timed, setup, pending, sleep, trainingWeek, ready] = await Promise.all([
     loadTimedRun(db),
     loadCoachSetup(db),
     loadCoachPending(db),
     listSleep(db, today),
     loadTrainingWeek(db, today),
+    readinessToday(db, today),
   ]);
   // Wochen-Check-in fällig (COACH-008)? Frühestens eine Woche nach dem letzten Check-in, sonst nach der
   // Coach-Einrichtung bzw. der ersten Gewichtsmessung – vorher gäbe es keine Woche zum Zurückschauen.
@@ -88,13 +91,15 @@ async function loadToday(db: Db) {
     openSetup,
     restDay: goal?.trainingDay === false,
     week: trainingWeek,
+    ready,
+    today,
   };
 }
 
 const EMPTY_WEEK = Array.from({ length: 7 }, () => false);
 
 export default function TodayScreen() {
-  const { data, db, loaded } = useLoad(loadToday, {
+  const { data, db, loaded, reload } = useLoad(loadToday, {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
     restDay: false,
@@ -106,8 +111,10 @@ export default function TodayScreen() {
     food: { entries: 0, sums: sumNutrients([]), drinksMl: 0, drinkGoalMl: null as number | null, goal: null as number | null, hide: false },
     coach: null as CoachTodayData | null,
     openSetup: false,
+    ready: null as ReadinessToday | null,
+    today: '',
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today } = data;
   useEffect(() => {
     if (!openSetup) return;
     saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
@@ -153,9 +160,15 @@ export default function TodayScreen() {
   const dayLabels = [1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`));
   const days: WeekDay[] = dayLabels.map((label, i) => ({ label, done: week.done[i], planned: week.planned[i], today: i === week.todayIndex }));
   const doneDays = week.done.filter(Boolean).length;
-  const weekSummary = week.goal
-    ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal })
-    : t('today.weekSummary', { count: doneDays });
+  // Status krank/verletzt/Pause (A6.7): kein Wochenziel, keine Lücke – nur was war.
+  const paused = ready?.readiness.kind === 'status';
+  const c = ready?.check;
+  const checkComplete = !!c && c.sleepHours !== null && c.sleepQuality !== null && c.energy !== null && c.soreness !== null;
+  const weekSummary = paused
+    ? t('today.weekSummaryPaused', { count: doneDays })
+    : week.goal
+      ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal })
+      : t('today.weekSummary', { count: doneDays });
 
   // Kennzahlen
   const kcal = food.sums.values.kcal;
@@ -207,6 +220,11 @@ export default function TodayScreen() {
         action={training.action}
         onPress={training.go}
       />
+      {ready && ready.readiness.kind !== 'status' && !checkComplete ? (
+        <MorningCheck key={today} db={db} day={today} check={ready.check} onSaved={reload} />
+      ) : ready ? (
+        <ReadinessCard db={db} readiness={ready.readiness} today={today} onChanged={reload} />
+      ) : null}
       <FigureStrip
         figures={[
           {

@@ -10,6 +10,10 @@ export type ReminderSettings = {
   training: { enabled: boolean; weekdays: number[]; time: string };
   /** Trinken nur im Fenster from–to (außerhalb = Ruhezeit), alle `everyHours` Stunden. */
   drink: { enabled: boolean; from: string; to: string; everyHours: number };
+  /** Morgen-Check (A6.2) täglich zur gewählten Zeit. */
+  morning: { enabled: boolean; time: string };
+  /** Bettzeit (A6.9): 30 Minuten vor der Bettzeit aus Aufstehzeit und Schlafziel. */
+  bedtime: { enabled: boolean };
 };
 
 /** Wochentage 1 = Montag … 7 = Sonntag (wie im Kalender üblich). */
@@ -19,7 +23,12 @@ export const DEFAULT_REMINDERS: ReminderSettings = {
   timerAlerts: false,
   training: { enabled: false, weekdays: [1, 3, 5], time: '18:00' },
   drink: { enabled: false, from: '09:00', to: '20:00', everyHours: 2 },
+  morning: { enabled: false, time: '07:30' },
+  bedtime: { enabled: false },
 };
+
+/** Vorlauf der Bettzeit-Erinnerung in Minuten. */
+export const BEDTIME_LEAD_MINUTES = 30;
 
 /** „7:30“ oder „07:30“ → Minuten seit Mitternacht; ungültig → null. */
 export function parseTime(text: string): number | null {
@@ -49,7 +58,7 @@ export function toExpoWeekday(weekday: number): number {
   return (weekday % 7) + 1;
 }
 
-export type ReminderProblem = 'trainingTime' | 'weekdays' | 'drinkWindow' | 'drinkEvery';
+export type ReminderProblem = 'trainingTime' | 'weekdays' | 'drinkWindow' | 'drinkEvery' | 'morningTime';
 
 export function validateReminders(r: ReminderSettings): ReminderProblem[] {
   const problems: ReminderProblem[] = [];
@@ -63,6 +72,7 @@ export function validateReminders(r: ReminderSettings): ReminderProblem[] {
     if (start === null || end === null || end <= start) problems.push('drinkWindow');
     if (!Number.isInteger(r.drink.everyHours) || r.drink.everyHours < 1 || r.drink.everyHours > 6) problems.push('drinkEvery');
   }
+  if (r.morning.enabled && parseTime(r.morning.time) === null) problems.push('morningTime');
   return problems;
 }
 
@@ -79,7 +89,7 @@ const RESERVE = 3;
 export function reminderCount(r: ReminderSettings): number {
   const training = r.training.enabled && parseTime(r.training.time) !== null ? new Set(r.training.weekdays).size : 0;
   const drink = r.drink.enabled ? drinkTimes(r.drink.from, r.drink.to, r.drink.everyHours).length : 0;
-  return training + drink;
+  return training + drink + (r.morning.enabled ? 1 : 0) + (r.bedtime.enabled ? 1 : 0);
 }
 
 /**

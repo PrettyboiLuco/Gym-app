@@ -118,6 +118,26 @@ Fundstelle: `mobile/src/domain/routines.ts`.
 | G4 | Tipps auf „Heute“ | nur auf Klick; nie Aufforderung zu „mehr“ nach Zielerreichung; über Ziel (> 200 kcal) „ohne Druck“ | Texte (`i18n/de.ts` → `coach.tips`) freigeben? | | |
 | G5 | Trinkziel | frei 250–10 000 ml, kein gewichtsabhängiger Vorschlag | Gewichtsabhängige Grenzen gewünscht? (O3) | | |
 
+## I. Bereitschaft, Schlaf und Journal (Ausbauplan A6)
+
+Fundstelle: `mobile/src/domain/readiness.ts` (Regeln Fassung 1, `READINESS_RULES_VERSION`). Wortwahl in der App:
+Trainingsvorschlag, nie Befund; Angebote nur für heute und nur nach Antippen.
+
+| ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| I1 | Grundlage | eigener Schnitt der 28 Tage vor heute; unter 7 Morgen-Checks „noch am Lernen“ (keine Ampel) | Fenster und Mindestzahl freigeben? | | |
+| I2 | Schlaf | ≥ 1 h unter dem Schnitt → 1 Punkt, ≥ 2 h → 2; Schlafqualität 1–2 (von 5) → 1 | Freigeben? | | |
+| I3 | Energie | ≥ 1 Punkt unter dem Schnitt → 1, ≥ 2 → 2 (Skala 1–5) | Freigeben? | | |
+| I4 | Muskelkater | ≥ 1 über dem Schnitt → 1; Wert 4–5 → 2 | Freigeben? | | |
+| I5 | Trainingslast | Dauer (min, max. 240) × Anstrengung 1–10 je Einheit; 7 Tage ÷ Wochenschnitt der 28 Tage: > 1,3 → 1, > 1,5 → 2; erst ab 14 Tagen Geschichte | Grenzen (angelehnt an Akut-zu-chronisch-Verhältnis) freigeben? | | |
+| I6 | Ampel | Summe 0–1 grün, 2–3 gelb, ≥ 4 rot | Freigeben? | | |
+| I7 | Angebote | gelb: je Übung 1 Satz weniger; rot: halbe Sätze oder Dehnen; nur heute, nur nach Antippen | Freigeben? | | |
+| I8 | Status | krank/verletzt/Pause: Trainingserinnerungen, Wochenziel, Kalorienvorschlag im Check-in ruhen; Hinweis auf ärztliche Beratung | Weitere Punkte nötig (z. B. Wiedereinstieg nach Krankheit)? | | |
+| I9 | Schlafschuld | Summe der Stunden unter dem eigenen Ziel in 14 Nächten, ohne Gegenrechnung; Ziel frei 5–11 h, Vorgabe 8 h oder Angabe aus der Coach-Einrichtung | Freigeben? Gegenrechnung sinnvoll? | | |
+| I10 | Regelmäßigkeit | Streuung (Standardabweichung) der Aufsteh- und Bettzeit über 14 Tage, ab 5 Zeiten | Freigeben? | | |
+| I11 | Journal | Faktoren des Vortags (eigene + Tagebuch: Alkohol, Koffein ≥ 50 mg nach 14 Uhr, letzte Mahlzeit ab 21 Uhr, > 500 kcal über Ziel); Unterschied ab je 5 Tagen und ab 0,5 Punkten bzw. 0,5 h, Hinweis „kann Zufall sein“ | Schwellen freigeben? | | |
+| I12 | Atemübung | ruhig 4 s ein / 6 s aus oder 4-7-8; 1–4 min; Hinweis bei Schwindel aufzuhören | Freigeben? | | |
+
 ## H. Beispielrechnungen zum Nachprüfen
 
 Mit dem echten Code der App berechnet (30.10.2026). Werte in kcal bzw. g pro Tag.
@@ -147,7 +167,7 @@ Eiweiß-Spanne 96–160 g.
 | | |
 |---|---|
 | Name, Qualifikation | |
-| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
+| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Bereitschaft 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
 | Geltungsbereich | gesunde Erwachsene 18+ (Kalorien 19–78 J.), Ausschlüsse siehe G2 |
 | Datum, Unterschrift | |
 

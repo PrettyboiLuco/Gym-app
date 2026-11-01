@@ -193,6 +193,7 @@ export default function ProgressScreen() {
 
       {/* Alles Weitere zum Körper als eine ruhige Liste statt sechs kleiner Karten; Werte stehen rechts. */}
       <Card title={t('progress.bodyTitle')}>
+        <ListRow icon="heart" title={t('readiness.title')} subtitle={t('readiness.listSubtitle')} accessory="›" onPress={() => router.push('/progress/readiness')} />
         <ListRow icon="calendar" title={t('checkin.open')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         <ListRow
           icon="flame"

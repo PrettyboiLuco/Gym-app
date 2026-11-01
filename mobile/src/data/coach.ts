@@ -9,6 +9,7 @@ import type { Goal } from '@/domain/energy';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
+import { saveCheck, statusDuring } from './readiness';
 import { activeWeightGoal, adjustCalorieGoal, calorieGoalOn, trainingDays } from './goals';
 import { daySums, loadNutritionSettings } from './nutrition';
 import { listSteps } from './steps';
@@ -42,30 +43,26 @@ export const saveCoachPending = (db: Db, pending: boolean) => writeState(db, 'co
 
 export type SleepEntry = { id: string; day: string; hours: number; quality: number | null };
 
+/** Schlaf liegt seit A6 im Morgen-Check (daily_check); hier die bisherige Sicht darauf. */
 export function listSleep(db: Db, fromDay = '0000-01-01') {
   return db.getAllAsync<SleepEntry>(
-    'SELECT id, day, hours, quality FROM sleep_entry WHERE day >= ? ORDER BY day DESC, recorded_at_utc DESC',
+    `SELECT id, day, sleep_hours AS hours, sleep_quality AS quality FROM daily_check
+     WHERE day >= ? AND sleep_hours IS NOT NULL ORDER BY day DESC`,
     fromDay
   );
 }
 
-/** Ein Eintrag pro Tag: ein neuer ersetzt den alten (Tag = Tag des Aufwachens). */
+/** Ein Eintrag pro Tag (Tag des Aufwachens): setzt Dauer und Qualität im Morgen-Check, der Rest bleibt. */
 export async function saveSleep(db: Db, day: string, hours: number, quality: number | null) {
-  await db.withTransactionAsync(async () => {
-    await db.runAsync('DELETE FROM sleep_entry WHERE day = ?', day);
-    await db.runAsync(
-      'INSERT INTO sleep_entry (id, day, hours, quality, recorded_at_utc) VALUES (?, ?, ?, ?, ?)',
-      newId(),
-      day,
-      hours,
-      quality,
-      nowUtc()
-    );
-  });
+  await saveCheck(db, day, { sleepHours: hours, sleepQuality: quality });
 }
 
+/** Löscht nur die Schlafangaben; ist der Morgen-Check danach leer, verschwindet er ganz. */
 export async function deleteSleep(db: Db, id: string) {
-  await db.runAsync('DELETE FROM sleep_entry WHERE id = ?', id);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('UPDATE daily_check SET sleep_hours = NULL, sleep_quality = NULL, bed_time = NULL, wake_time = NULL WHERE id = ?', id);
+    await db.runAsync('DELETE FROM daily_check WHERE id = ? AND energy IS NULL AND soreness IS NULL AND factors IS NULL AND note IS NULL', id);
+  });
 }
 
 // ---------------------------------------------------------------------------------- Check-in
@@ -89,6 +86,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     loadNutritionSettings(db),
   ]);
   const goals = await Promise.all(days.map((d) => calorieGoalOn(db, d)));
+  const paused = await statusDuring(db, from, weekEnd);
   const byDay = new Map(sums.map((s) => [s.day, s]));
   const plan = plans.find((p) => p.days.length > 0);
   return {
@@ -117,6 +115,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     hideNumbers: settings.hideNumbers,
     heightCm: profile.heightCm,
     currentGoal: current?.baseKcal ?? null,
+    paused,
   };
 }
 

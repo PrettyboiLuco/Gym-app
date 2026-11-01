@@ -9,6 +9,7 @@
 //   mehr als 1 % des Gewichts pro Woche verloren → +100. Zunehmen: kein Anstieg → +100, mehr als 0,5 % → −100.
 //   Halten: mehr als ±0,5 kg → ±100 in Gegenrichtung.
 // - Schlaf ist nur Kontext (COACH-006): kurzer Schlaf ergibt einen Hinweis, nie eine Kalorienänderung.
+// - Status krank/verletzt/Pause in der Woche (A6.7): kein Kalorienvorschlag.
 
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { weekAverage } from './nutrition';
@@ -51,6 +52,8 @@ export type CheckinInput = {
   heightCm: number | null;
   /** Aktuelles Kalorienziel; null = keins. */
   currentGoal: number | null;
+  /** Status krank/verletzt/Pause in dieser Woche (A6): dann kein Kalorienvorschlag. */
+  paused?: string | null;
 };
 
 export type CheckinSummary = {
@@ -81,7 +84,8 @@ export type CheckinSuggestion =
   | { kind: 'mehrDaten'; missing: Missing[] }
   | { kind: 'passt' }
   | { kind: 'sensibel' }
-  | { kind: 'ohneZahlen' };
+  | { kind: 'ohneZahlen' }
+  | { kind: 'pausiert' };
 
 export type CheckinHint = 'trainingWeniger' | 'trainingOk' | 'schlafKurz' | 'eiweissWenig' | 'ballaststoffeWenig';
 
@@ -157,6 +161,8 @@ function macroAverages(days: CheckinDay[]) {
 function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
   if (input.sensitive) return { kind: 'sensibel' };
   if (input.hideNumbers) return { kind: 'ohneZahlen' };
+  // Krank, verletzt oder Pause: Gewicht und Essen sagen in dieser Woche wenig über das Ziel aus (A6.7).
+  if (input.paused) return { kind: 'pausiert' };
   const missing: Missing[] = [];
   if (input.direction === null) missing.push('richtung');
   if (input.currentGoal === null) missing.push('ziel');

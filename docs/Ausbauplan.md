@@ -24,7 +24,8 @@ mit der Fachperson statt vieler einzelner.
 | A3 | **fertig** (01.11.2026) – Datenbank-Version 21, 566 Tests; OFF-Test (50 Produkte) durch Luc offen |
 | A4 | **fertig** (01.11.2026) – Datenbank-Version 22, 441 Grundnahrungsmittel (USDA SR28); Gerätetest durch Luc offen |
 | A5 | **fertig** (01.11.2026) – CSV-Export, Import Strong/Hevy/Gewicht, PDF-Bericht, KI-Zusammenfassung; Test mit echten Strong-/Hevy-Dateien durch Luc offen |
-| A6–A11 | offen |
+| A6 | **fertig** (01.11.2026) – Datenbank-Version 23, Regeln Bereitschaft v1 (Fachprüfung offen, Mappe Abschnitt I); 2 Wochen Morgen-Check durch Luc offen |
+| A7–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -225,6 +226,31 @@ Zeitraum-Schalter abgeschnitten → Chips · „Hähnchenbrustfilet (roh), roh�
 | A6.12 | Verlauf: Bereitschaft, Schlaf und Last über 4 Wochen; Wortwahl als Trainingsempfehlung, nie als Befund; Begriffe in die Claims-Prüfung; Regeln in die Fachprüfungs-Mappe |
 
 **Fertig, wenn:** Luc zwei Wochen lang morgens den Check macht und Ampel, Schlafschuld und Journal nachvollziehbar findet.
+
+**Umgesetzt (A6, 01.11.2026):** Migration 23: `daily_check` (Schlaf von–bis/Stunden, Qualität, Energie, Muskelkater,
+Faktoren des Vortags, Notiz, HRV/Ruhepuls leer bis D4) ersetzt `sleep_entry` (wird übernommen, auch aus alten
+Sicherungen); `status_period`; `workout_session.effort` und Rückmeldung je Muskelgruppe. „Heute“: Morgen-Check mit
+4 Antippen (jede Wahl sofort gespeichert), danach Trainings-Ampel mit Gründen, Rohwerten und eigenem Schnitt bzw.
+„noch am Lernen“. Angebote nur für heute als befristete Planfassung (gelb 1 Satz weniger, rot halbe Sätze oder
+Dehnen). Nach dem Training Anstrengung 1–10 und freiwillig Pump/Muskelkater/Gelenke je Muskelgruppe. Trainingslast
+Dauer × Anstrengung (Kraft und Cardio). Status krank/verletzt/Pause: Trainingserinnerungen, Wochenziel und
+Kalorienvorschlag ruhen; Hinweis auf den automatischen Wiedereinstieg. „Fortschritt → Bereitschaft“: Morgen-Check
+im Detail (Uhrzeiten, Faktoren, Notiz), Status, Schlafschuld und Regelmäßigkeit, Journal mit Faktoren aus dem
+Tagebuch, Verlauf von 4 Wochen. Erinnerungen für Morgen-Check und Bettzeit (aus Aufstehzeit und Schlafziel) zählen
+im Mitteilungsbudget. Atemübung (ruhig 4/6 oder 4-7-8) als eigener Bildschirm. Claims-Regel „befund“; Regeln in der
+Fachprüfungs-Mappe (I1–I12).
+
+**Abweichungen vom Plan:** Die Atemübung läuft nicht über den Ablauf-Runner. Der braucht Übungen aus dem Katalog,
+und für einen Atemtakt reicht ein eigener, schlichter Bildschirm. Das Journal wertet Energie, Schlafdauer und
+Schlafqualität aus; „Leistung“ fehlt noch. Dafür braucht es pro Einheit einen Vergleichswert, der mit A8
+(Auswertung im Training) kommt.
+
+**Beim Lückencheck nach A6 gefunden und geschlossen:** Zweimal „1 Satz weniger“ hätte den Plan doppelt gekürzt →
+nur einmal am Tag · eine befristete Wochenfassung wäre nach dem leichten Tag verloren gegangen → Rückkehr zu ihr ·
+Schlaf aus dem Check-in und der Morgen-Check wären zwei Einträge pro Tag geworden → ein Eintrag je Tag · ältere
+Sicherungen hätten keinen Schlaf mehr gezeigt → werden übernommen · Cardio im Training wäre doppelt in die Last
+gezählt → nur Cardio außerhalb eines Trainings · Trainings-Ampel durfte das heutige Training nicht mitzählen → Last
+bis gestern · Morgen-Check verschwand nach dem ersten Antippen → bleibt, bis alle vier Werte da sind.
 
 ## A7 – Adaptiver Energiebedarf (Fachprüfung)
 

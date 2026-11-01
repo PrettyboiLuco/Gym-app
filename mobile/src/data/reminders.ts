@@ -11,6 +11,8 @@ export async function loadReminders(db: Db): Promise<ReminderSettings> {
     timerAlerts: s.timerAlerts ?? DEFAULT_REMINDERS.timerAlerts,
     training: { ...DEFAULT_REMINDERS.training, ...s.training },
     drink: { ...DEFAULT_REMINDERS.drink, ...s.drink },
+    morning: { ...DEFAULT_REMINDERS.morning, ...s.morning },
+    bedtime: { ...DEFAULT_REMINDERS.bedtime, ...s.bedtime },
   };
 }
 
