@@ -17,6 +17,8 @@ export default function MoreLayout() {
       <Stack.Screen name="data" options={{ title: t('dataScreen.title') }} />
       <Stack.Screen name="import" options={{ title: t('importCsv.title') }} />
       <Stack.Screen name="report" options={{ title: t('report.screenTitle') }} />
+      <Stack.Screen name="learn/index" options={{ title: t('learn.title') }} />
+      <Stack.Screen name="learn/[id]" options={{ title: t('learn.title') }} />
       <Stack.Screen name="security" options={{ title: t('security.title') }} />
       <Stack.Screen name="feedback" options={{ title: t('feedback.title') }} />
       <Stack.Screen name="help" options={{ title: t('help.title') }} />

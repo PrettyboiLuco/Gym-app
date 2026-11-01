@@ -8,6 +8,7 @@ import type { Goal } from '@/domain/energy';
 import type { GoalDraft, GoalKind, Habit, LiftSet } from '@/domain/goals';
 import { localDay } from '@/domain/time';
 
+import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
 
 // ----------------------------------------------------------------------------- Kalorienziel
@@ -343,3 +344,7 @@ export async function addMeasurements(db: Db, day: string, values: Partial<Recor
 export async function deleteMeasurement(db: Db, id: string) {
   await db.runAsync('DELETE FROM body_measurement WHERE id = ?', id);
 }
+
+/** Ziele für Körpermaße in cm (A10.2), je Stelle höchstens eins; ohne Richtung – angezeigt wird nur der Abstand. */
+export const loadMeasureGoals = (db: Db) => readState<Partial<Record<MeasureSite, number>>>(db, 'measure_goals', {});
+export const saveMeasureGoals = (db: Db, goals: Partial<Record<MeasureSite, number>>) => writeState(db, 'measure_goals', goals);

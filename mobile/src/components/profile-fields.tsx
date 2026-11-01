@@ -3,8 +3,8 @@ import { Choice, Field, RadioList } from '@/components/fields';
 import { ThemedText } from '@/components/themed-text';
 import { ACTIVITY_KEYS, type ActivityLevel, type FormulaTerm } from '@/domain/energy';
 import type { ProfileForm } from '@/domain/profile';
-import { cmToUnit, parseDecimal, unitToCm, type LengthUnit, type WeightUnit } from '@/domain/units';
-import { t } from '@/i18n';
+import { cmToUnit, parseDecimal, unitToCm, type LengthUnit, type VolumeUnit, type WeightUnit } from '@/domain/units';
+import { formatHeight, t } from '@/i18n';
 
 type Change = (change: Partial<ProfileForm>) => void;
 
@@ -26,6 +26,13 @@ export function UnitFields({ form, onChange }: { form: ProfileForm; onChange: Ch
         value={form.units.weight}
         onChange={(weight: WeightUnit) => onChange({ units: { ...form.units, weight } })}
         format={(u) => t(`units.weightLabel.${u}`)}
+      />
+      <Choice
+        label={t('profile.volumeUnit')}
+        options={['ml', 'oz'] as const}
+        value={form.units.volume ?? 'ml'}
+        onChange={(volume: VolumeUnit) => onChange({ units: { ...form.units, volume } })}
+        format={(u) => t(`units.volumeLabel.${u}`)}
       />
       <Choice
         label={t('profile.lengthUnit')}
@@ -59,6 +66,11 @@ export function CalculatorFields({ form, onChange }: { form: ProfileForm; onChan
           onChangeText={(height) => onChange({ height })}
           keyboardType="decimal-pad"
         />
+        {form.units.length === 'in' && parseDecimal(form.height, 1) !== null ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('profile.heightFeet', { value: formatHeight(unitToCm(parseDecimal(form.height, 1)!, 'in'), 'in') })}
+          </ThemedText>
+        ) : null}
       </Card>
       <Card>
         <Choice

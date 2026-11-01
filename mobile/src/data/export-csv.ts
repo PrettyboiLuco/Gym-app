@@ -12,7 +12,7 @@ import type { Db } from './db';
 import { listActiveGoals } from './goals';
 import { listExercises } from './training';
 
-export const EXPORT_AREAS = ['training', 'cardio', 'ernaehrung', 'gewicht', 'masse', 'schlaf', 'ziele'] as const;
+export const EXPORT_AREAS = ['training', 'cardio', 'ernaehrung', 'gewicht', 'masse', 'schlaf', 'blutdruck', 'ziele'] as const;
 export type ExportArea = (typeof EXPORT_AREAS)[number];
 
 /** wie components/cardio-row (ohne UI-Abhängigkeiten, damit testbar) */
@@ -147,6 +147,13 @@ async function sleepCsv(db: Db) {
   );
 }
 
+async function bloodPressureCsv(db: Db) {
+  const rows = await db.getAllAsync<{ day: string; at: string; sys: number; dia: number; pulse: number | null; note: string | null }>(
+    'SELECT day, measured_at_utc AS at, systolic AS sys, diastolic AS dia, pulse, note FROM blood_pressure ORDER BY measured_at_utc'
+  );
+  return toCsv(['Datum', 'Uhrzeit', 'Oberer Wert (mmHg)', 'Unterer Wert (mmHg)', 'Puls', 'Notiz'], rows.map((r): Cell[] => [r.day, time(r.at), r.sys, r.dia, r.pulse, r.note]));
+}
+
 async function goalsCsv(db: Db) {
   const names = new Map((await listExercises(db)).map((e) => [e.id, exerciseName(e)]));
   const goals = await listActiveGoals(db);
@@ -172,6 +179,7 @@ const BUILDERS: Record<ExportArea, (db: Db) => Promise<string>> = {
   gewicht: weightCsv,
   masse: measurementCsv,
   schlaf: sleepCsv,
+  blutdruck: bloodPressureCsv,
   ziele: goalsCsv,
 };
 

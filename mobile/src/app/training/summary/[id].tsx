@@ -33,6 +33,7 @@ import {
 import { bestOneRepMax, loadModeOf } from "@/domain/logger";
 import { CardioRow } from "@/components/cardio-row";
 import { SessionFeedback } from "@/components/session-feedback";
+import { ShareCard } from "@/components/share-card";
 import { listCardioForSession, type CardioEntry } from "@/data/cardio";
 import { loadTrainingWeek, type TrainingWeek } from "@/data/training-week";
 import { findRecords, summarize, type Record } from "@/domain/summary";
@@ -151,6 +152,7 @@ export default function SummaryScreen() {
     loaded,
   } = data;
   const [note, setNote] = useState<string | null>(null);
+  const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
     if (!loaded) return;
@@ -349,6 +351,26 @@ export default function SummaryScreen() {
         sessionId={id}
         muscleGroups={data.muscleGroups}
       />
+
+      <Card title={t("shareCard.title")}>
+        {showShare ? (
+          <ShareCard
+            content={{
+              eyebrow: t("shareCard.training"),
+              value: String(summary.sets),
+              unit: t("shareCard.sets"),
+              title: session.dayName ?? t("session.free"),
+              lines: [
+                summary.minutes ? t("shareCard.minutes", { count: summary.minutes }) : null,
+                summary.volumeKg > 0 ? t("shareCard.volume", { value: volume }) : null,
+                ...records.slice(0, 3).map((r) => `${nameOf(r.exerciseId)}: ${recordText(r)}`),
+              ].filter((x): x is string => !!x),
+            }}
+          />
+        ) : (
+          <Button label={t("shareCard.show")} variant="secondary" onPress={() => setShowShare(true)} />
+        )}
+      </Card>
 
       <Card title={t("summary.noteTitle")}>
         <Field

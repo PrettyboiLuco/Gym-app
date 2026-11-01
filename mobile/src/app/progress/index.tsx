@@ -193,6 +193,7 @@ export default function ProgressScreen() {
 
       {/* Alles Weitere zum Körper als eine ruhige Liste statt sechs kleiner Karten; Werte stehen rechts. */}
       <Card title={t('progress.bodyTitle')}>
+        <ListRow icon="target" title={t('milestones.screenTitle')} subtitle={t('milestones.listSubtitle')} accessory="›" onPress={() => router.push('/progress/milestones')} />
         <ListRow icon="heart" title={t('readiness.title')} subtitle={t('readiness.listSubtitle')} accessory="›" onPress={() => router.push('/progress/readiness')} />
         <ListRow icon="calendar" title={t('checkin.open')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         <ListRow
@@ -219,6 +220,7 @@ export default function ProgressScreen() {
           accessory="›"
           onPress={() => router.push('/progress/measurements')}
         />
+        <ListRow icon="heart" title={t('bloodPressure.title')} subtitle={t('bloodPressure.listSubtitle')} accessory="›" onPress={() => router.push('/progress/blood-pressure')} />
         <ListRow icon="steps" title={t('steps.title')} value={steps === null ? '–' : formatNumber(steps, 0)} accessory="›" onPress={() => router.push('/progress/steps')} />
         {/* Keine Vorschaubilder in der Übersicht: Fotos erst auf eigener Seite und verdeckt. */}
         <ListRow

@@ -8,6 +8,7 @@ import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton } from '@/components/fields';
 import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
+import { Slider } from '@/components/slider';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { newId } from '@/data/db';
@@ -30,6 +31,11 @@ export default function PhotosScreen() {
   const [day, setDay] = useState(todayDay);
   const [pose, setPose] = useState<PhotoPose>('vorne');
   const [comparePose, setComparePose] = useState<PhotoPose>('vorne');
+  // Vergleich (A10.1): zwei beliebige Tage, nebeneinander oder überblendet, mit Hilfslinien
+  const [pick, setPick] = useState<{ a: string | null; b: string | null }>({ a: null, b: null });
+  const [mode, setMode] = useState<'nebeneinander' | 'ueberblenden'>('nebeneinander');
+  const [blend, setBlend] = useState(0.5);
+  const [guides, setGuides] = useState(true);
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
@@ -92,6 +98,9 @@ export default function PhotosScreen() {
   }
 
   const pair = comparePair(photos, comparePose);
+  const posePhotos = photos.filter((p) => p.pose === comparePose).sort((x, y) => x.day.localeCompare(y.day));
+  const first = posePhotos.find((p) => p.id === pick.a) ?? pair?.first ?? null;
+  const second = posePhotos.find((p) => p.id === pick.b) ?? pair?.latest ?? null;
   const label = (p: ProgressPhoto) => t('photos.photoLabel', { pose: t(`photos.poses.${p.pose}`), date: formatDay(p.day) });
 
   return (
@@ -129,21 +138,50 @@ export default function PhotosScreen() {
               label={t('photos.pose')}
               options={PHOTO_POSES}
               value={comparePose}
-              onChange={setComparePose}
+              onChange={(p) => {
+                setComparePose(p);
+                setPick({ a: null, b: null });
+              }}
               format={(p) => t(`photos.poses.${p}`)}
             />
-            {pair ? (
-              <View style={styles.row}>
-                {[
-                  { photo: pair.first, caption: t('photos.first', { date: formatDay(pair.first.day) }) },
-                  { photo: pair.latest, caption: t('photos.latest', { date: formatDay(pair.latest.day) }) },
-                ].map(({ photo, caption }) => (
-                  <View key={photo.id} style={styles.half}>
-                    <PhotoView photo={photo} visible={visible} label={label(photo)} />
-                    <ThemedText type="small">{caption}</ThemedText>
+            {pair && first && second ? (
+              <>
+                <Choice label={t('photos.compareA')} options={posePhotos.map((p) => p.id)} value={first.id} onChange={(a) => setPick((x) => ({ ...x, a }))} format={(id) => formatDay(posePhotos.find((p) => p.id === id)!.day)} chips />
+                <Choice label={t('photos.compareB')} options={posePhotos.map((p) => p.id)} value={second.id} onChange={(b) => setPick((x) => ({ ...x, b }))} format={(id) => formatDay(posePhotos.find((p) => p.id === id)!.day)} chips />
+                <Choice label={t('photos.mode')} options={['nebeneinander', 'ueberblenden'] as const} value={mode} onChange={setMode} format={(m) => t(`photos.modes.${m}`)} />
+                <Choice label={t('photos.guides')} options={['an', 'aus'] as const} value={guides ? 'an' : 'aus'} onChange={(v) => setGuides(v === 'an')} format={(v) => (v === 'an' ? t('common.on') : t('common.off'))} />
+                {mode === 'nebeneinander' ? (
+                  <View style={styles.row}>
+                    {[first, second].map((photo) => (
+                      <View key={photo.id} style={styles.half}>
+                        <View>
+                          <PhotoView photo={photo} visible={visible} label={label(photo)} />
+                          {guides ? <GuideLines /> : null}
+                        </View>
+                        <ThemedText type="small">{formatDay(photo.day)}</ThemedText>
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
+                ) : (
+                  <>
+                    <View>
+                      <PhotoView photo={first} visible={visible} label={label(first)} />
+                      <View style={[StyleSheet.absoluteFill, { opacity: blend }]}>
+                        <PhotoView photo={second} visible={visible} label={label(second)} />
+                      </View>
+                      {guides ? <GuideLines /> : null}
+                    </View>
+                    <Slider value={blend} onChange={setBlend} label={t('photos.blend', { a: formatDay(first.day), b: formatDay(second.day) })} />
+                    <View style={styles.blendLabels}>
+                      <ThemedText type="small">{formatDay(first.day)}</ThemedText>
+                      <ThemedText type="small">{formatDay(second.day)}</ThemedText>
+                    </View>
+                  </>
+                )}
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('photos.guidesHint')}
+                </ThemedText>
+              </>
             ) : (
               <ThemedText themeColor="textSecondary">{t('photos.compareNone')}</ThemedText>
             )}
@@ -178,6 +216,17 @@ export default function PhotosScreen() {
   );
 }
 
+/** Hilfslinien für die gleiche Pose: Mitte senkrecht, Drittel waagerecht. */
+function GuideLines() {
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View style={[styles.guide, { left: '50%', top: 0, bottom: 0, width: 1 }]} />
+      <View style={[styles.guide, { top: '33.3%', left: 0, right: 0, height: 1 }]} />
+      <View style={[styles.guide, { top: '66.6%', left: 0, right: 0, height: 1 }]} />
+    </View>
+  );
+}
+
 /** Ein Foto, solange verdeckt nur als graue Fläche. */
 function PhotoView({ photo, visible, label }: { photo: ProgressPhoto; visible: boolean; label: string }) {
   const theme = useTheme();
@@ -191,5 +240,7 @@ const styles = StyleSheet.create({
   image: { width: '100%', aspectRatio: 3 / 4, borderRadius: Spacing.two },
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   thumb: { width: 56 },
+  guide: { position: 'absolute', backgroundColor: 'rgba(198, 242, 78, 0.7)' },
+  blendLabels: { flexDirection: 'row', justifyContent: 'space-between' },
   flex: { flex: 1 },
 });

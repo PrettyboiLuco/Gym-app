@@ -40,6 +40,7 @@ export const BACKUP_TABLES = [
   'diary_day',
   'meal_plan',
   'shopping_check',
+  'blood_pressure',
   'checkin',
   'supplement',
   'supplement_log',

@@ -100,7 +100,7 @@ export const de = {
       other: '{{count}} Einträge',
     },
     tileDrinks: 'Trinken',
-    tileDrinksOf: 'von {{goal}} l',
+    tileDrinksOf: 'von {{goal}}',
     tileWeight: 'Gewicht',
     tileWeightTrend: 'Trend {{kg}}',
     tileWeightNone: 'noch keine Messung',
@@ -1245,14 +1245,14 @@ export const de = {
     templateNoFoods: 'Diese Mahlzeit enthält nur Rezepte; Vorlagen brauchen Lebensmittel.',
     drinks: {
       title: 'Getränke',
-      progress: '{{all}} von {{goal}} ml getrunken',
-      progressNoGoal: '{{all}} ml getrunken',
-      water: 'davon Wasser: {{water}} ml',
+      progress: '{{all}} von {{goal}} getrunken',
+      progressNoGoal: '{{all}} getrunken',
+      water: 'davon Wasser: {{water}}',
       reached: 'Trinkziel erreicht.',
       basis:
         'Gezählt werden nur Getränke, nicht das Wasser im Essen. Rund 1,5 Liter am Tag sind eine allgemeine Orientierung der DGE, kein Mindestwert – bei Hitze, Sport, Krankheit, in Schwangerschaft und Stillzeit kann der Bedarf anders sein.',
       quick: 'Wasser schnell eintragen',
-      addGlass: '+{{ml}} ml Wasser',
+      addGlass: '+{{ml}} Wasser',
       other: 'Anderes Getränk',
     },
     search: {
@@ -1453,6 +1453,14 @@ export const de = {
     lb: '{{value}} lb',
     cm: '{{value}} cm',
     in: '{{value}} in',
+    ml: '{{value}} ml',
+    l: '{{value}} l',
+    oz: '{{value}} fl oz',
+    feetInches: '{{feet}}′ {{inches}}″',
+    volumeLabel: {
+      ml: 'Milliliter (ml)',
+      oz: 'Flüssigunzen (fl oz)',
+    },
     weightLabel: {
       kg: 'Kilogramm (kg)',
       lb: 'Pfund (lb)',
@@ -1589,6 +1597,8 @@ export const de = {
     sensitive: 'Sensible Situation (Schwangerschaft/Stillzeit, Essstörung, Untergewicht, Erkrankung)',
     sensitiveHint: 'Wenn „an“: keine automatische Kalorienzahl und keine Abnehmziele. Gespeichert wird nur an/aus.',
     weightUnit: 'Gewicht',
+    volumeUnit: 'Getränke in',
+    heightFeet: 'Das sind {{value}}.',
     lengthUnit: 'Länge (Größe, Maße)',
     unitsHint: 'Gespeichert wird immer in kg und cm. Ein Wechsel ändert nur die Anzeige, nie deine Daten.',
     privacy: 'Alle Angaben bleiben auf deinem Gerät.',
@@ -2235,6 +2245,13 @@ export const de = {
     show: 'Fotos anzeigen',
     hide: 'Fotos verdecken',
     compareTitle: 'Vergleich',
+    compareA: 'Vorher',
+    compareB: 'Nachher',
+    mode: 'Ansicht',
+    modes: { nebeneinander: 'Nebeneinander', ueberblenden: 'Überblenden' },
+    blend: 'Überblendung {{a}} zu {{b}}',
+    guides: 'Hilfslinien',
+    guidesHint: 'Für einen fairen Vergleich: gleiche Pose, gleicher Abstand, gleiches Licht. Die Linien helfen, Kopf, Schultern und Hüfte gleich auszurichten.',
     compareNone: 'Für einen Vergleich brauchst du mindestens zwei Fotos mit derselben Ansicht.',
     first: 'Erstes: {{date}}',
     latest: 'Neuestes: {{date}}',
@@ -2254,8 +2271,19 @@ export const de = {
       brust: 'Brust',
       arm: 'Oberarm',
       oberschenkel: 'Oberschenkel',
+      wade: 'Wade',
+      nacken: 'Nacken',
+      unterarm: 'Unterarm',
     },
     input: '{{site}} in {{unit}}',
+    goal: 'Ziel {{value}}',
+    goalLeft: 'Ziel {{value}} · noch {{left}}',
+    goalReached: 'Ziel {{value}} erreicht',
+    goalsTitle: 'Ziele für Maße (freiwillig)',
+    goalsHint: 'Ein Wert je Stelle, leer = kein Ziel. Die App zeigt nur den Abstand – ob größer oder kleiner das Ziel ist, entscheidest du.',
+    goalsSave: 'Ziele speichern',
+    goalsSaved: 'Ziele gespeichert.',
+    goalInput: 'Ziel {{site}} in {{unit}}',
     save: 'Maße speichern',
     saved: 'Gespeichert.',
     invalid: 'Maße: Zahl zwischen {{min}} und {{max}} oder leer lassen.',
@@ -2269,7 +2297,10 @@ export const de = {
       '• Taille: in der Mitte zwischen unterster Rippe und Beckenkamm, nach normalem Ausatmen.\n' +
       '• Hüfte: an der breitesten Stelle des Gesäßes.\n' +
       '• Brust: auf Höhe der Brustwarzen, Arme locker hängend.\n' +
-      '• Oberarm und Oberschenkel: an der dicksten Stelle, entspannt, immer dieselbe Seite.',
+      '• Oberarm und Oberschenkel: an der dicksten Stelle, entspannt, immer dieselbe Seite.\n' +
+      '• Wade: an der dicksten Stelle im Stehen, Gewicht auf beiden Beinen.\n' +
+      '• Nacken: direkt unter dem Kehlkopf, Blick geradeaus, Schultern locker.\n' +
+      '• Unterarm: an der dicksten Stelle unterhalb des Ellbogens, Hand locker geöffnet.',
     guideNote: 'Eine bebilderte Anleitung folgt.',
     history: 'Verlauf',
   },
@@ -2412,6 +2443,177 @@ export const de = {
     encryption:
       'Die Daten liegen im geschützten App-Bereich des iPhones (iOS verschlüsselt das Gerät, solange es gesperrt ist). ' +
       'Eine zusätzlich verschlüsselte Datenbank kommt mit der eigenen App-Version (Development Build).',
+  },
+  milestones: {
+    screenTitle: 'Meilensteine & Bilanz',
+    listSubtitle: 'Erreichtes und Plan-Wochen – ohne Serien',
+    title: 'Meilensteine',
+    eyebrow: 'Meilenstein',
+    none: 'Noch keine – das erste kommt mit dem ersten Training.',
+    next: 'Als Nächstes: {{name}}',
+    newTitle: 'Neuer Meilenstein: {{name}}',
+    newSubtitle: 'Ansehen und auf Wunsch als Bild teilen',
+    name: {
+      training_1: 'Erstes Training',
+      training_10: '10. Training',
+      training_50: '50. Training',
+      training_100: '100. Training',
+      training_250: '250. Training',
+      training_500: '500. Training',
+      saetze_1000: '1.000 Sätze',
+      saetze_5000: '5.000 Sätze',
+      kg_100: 'Erstmals 100 kg bewegt',
+      planwochen_4: '4 Plan-Wochen am Stück',
+      planwochen_12: '12 Plan-Wochen am Stück',
+    },
+    value: {
+      training_1: '1',
+      training_10: '10',
+      training_50: '50',
+      training_100: '100',
+      training_250: '250',
+      training_500: '500',
+      saetze_1000: '1.000',
+      saetze_5000: '5.000',
+      kg_100: '100 kg',
+      planwochen_4: '4',
+      planwochen_12: '12',
+    },
+  },
+  balance: {
+    title: 'Plan-Wochen',
+    eyebrow: 'Monatsbilanz',
+    current: {
+      geschafft: 'Diese Woche geschafft: {{trained}} von {{goal}} Trainingstagen.',
+      laeuft: 'Diese Woche bisher {{trained}} von {{goal}} Trainingstagen.',
+      pausiert: 'Diese Woche zählt nicht (Status krank, verletzt oder Pause).',
+      offen: 'Diese Woche: {{trained}} von {{goal}} Trainingstagen.',
+    },
+    last4: 'Letzte 4 Wochen: {{done}} von {{counted}} Plan-Wochen',
+    month: 'Dieser Monat: {{done}} von {{counted}} Plan-Wochen',
+    total: 'Seit Beginn: {{done}} von {{counted}} Plan-Wochen',
+    weeksLabel: 'Die letzten Wochen: gefüllt = geschafft, gestrichelt = pausiert',
+    hint: 'Eine Plan-Woche ist geschafft, wenn du an {{goal}} Tagen trainiert hast – Ruhetage gehören dazu. Es gibt keine Serie, die reißt: Eine verpasste Woche nimmt nichts weg, Wochen mit Status zählen nicht.',
+    shareMonth: 'Monatsbilanz als Bild teilen',
+    shareTitle: 'Plan-Wochen in diesem Monat',
+    shareLine: 'Letzte 4 Wochen: {{done}} von {{counted}}',
+    toggle: 'Plan-Wochen anzeigen',
+    toggleHint: 'Bei einer angegebenen sensiblen Situation ist die Bilanz immer aus.',
+  },
+  bloodPressure: {
+    title: 'Blutdruck',
+    listSubtitle: 'Tagebuch, freiwillig, ohne Bewertung',
+    add: 'Messung eintragen',
+    systolic: 'Oberer Wert (mmHg)',
+    diastolic: 'Unterer Wert (mmHg)',
+    pulse: 'Puls (optional)',
+    note: 'Notiz (z. B. „nach dem Aufstehen“)',
+    hint: 'Gespeichert wird mit Datum und Uhrzeit. Am besten immer unter gleichen Bedingungen messen.',
+    problems: {
+      systolic: 'Oberer Wert: bitte eine Zahl zwischen 50 und 260.',
+      diastolic: 'Unterer Wert: bitte eine Zahl zwischen 30 und 180.',
+      order: 'Der obere Wert muss größer als der untere sein.',
+      pulse: 'Puls: bitte eine Zahl zwischen 25 und 220.',
+    },
+    weekTitle: 'Letzte 7 Tage',
+    average: 'Ø {{sys}}/{{dia}} mmHg aus {{count}} Messungen',
+    averagePulse: 'Ø Puls {{pulse}}',
+    pulseShort: 'Puls {{pulse}}',
+    history: 'Verlauf',
+    empty: 'Noch keine Messungen.',
+    disclaimer: 'Die App bewertet Blutdruckwerte nicht und nennt keine Grenzwerte. Fragen zu deinen Werten besprich bitte mit deiner Ärztin oder deinem Arzt.',
+  },
+  shareCard: {
+    title: 'Als Bild teilen',
+    show: 'Teilen-Karte zeigen',
+    share: 'Teilen',
+    dialog: 'Bild teilen',
+    training: 'Training geschafft',
+    sets: 'Sätze',
+    minutes: '{{count}} Minuten',
+    volume: '{{value}} bewegt',
+  },
+  learn: {
+    title: 'Wissen',
+    subtitle: '12 kurze Artikel: Training, Ernährung, Erholung',
+    intro: 'Kurz und ohne Versprechen: Grundlagen, auf denen die Vorschläge der App beruhen. Für Fragen zu deiner Gesundheit ist eine Ärztin oder ein Arzt die richtige Stelle.',
+    topics: { training: 'Training', ernaehrung: 'Ernährung', erholung: 'Erholung' },
+    readMinutes: 'ca. {{count}} min',
+    articles: {
+      progression: {
+        title: 'Steigerung: in kleinen Schritten mehr',
+        body:
+          'Muskeln und Kraft wachsen, wenn die Anforderung über Wochen langsam steigt. Die App nutzt dafür die doppelte Progression: Du arbeitest im Wiederholungsbereich (z. B. 8–12) nach oben. Schaffst du in allen Sätzen das obere Ende, kommt beim nächsten Mal der kleinste Gewichtsschritt dazu und du startest wieder unten im Bereich.\n\n' +
+          'Nicht jede Woche geht es voran – Schlaf, Stress und Essen spielen mit. Stockt eine Übung mehrere Einheiten, schlägt die App vor, etwas leichter neu aufzubauen. Das ist kein Rückschritt, sondern ein üblicher Weg aus einem Plateau.',
+      },
+      rir: {
+        title: 'RIR: wie viele Wiederholungen noch gegangen wären',
+        body:
+          'RIR heißt „Wiederholungen in Reserve“. RIR 2 bedeutet: Du hörst auf, obwohl noch etwa zwei saubere Wiederholungen gegangen wären. RIR 0 heißt, es ging nichts mehr.\n\n' +
+          'Die meisten Arbeitssätze liegen sinnvoll bei RIR 1–3: anstrengend genug für einen Reiz, ohne dass die Technik leidet oder die Erholung zu lange dauert. Das Gefühl dafür lernt man – am Anfang verschätzt man sich oft um ein, zwei Wiederholungen. Trag dein RIR ein; die App zeigt es beim nächsten Mal wieder an.',
+      },
+      volumen: {
+        title: 'Wie viele Sätze pro Muskel?',
+        body:
+          'Als Volumen zählt man meist die harten Arbeitssätze je Muskelgruppe und Woche. Für viele Trainierende liegt ein sinnvoller Bereich bei etwa 10–20 Sätzen pro Muskel und Woche, verteilt auf zwei oder mehr Einheiten. Einsteiger kommen oft mit weniger gut voran.\n\n' +
+          'Mehr ist nicht automatisch besser: Ab einem Punkt steigt vor allem die Ermüdung. Die Muskelkarte unter „Training → Statistik“ zeigt deine Sätze je Muskel – nur die Menge, ohne Bewertung.',
+      },
+      technik: {
+        title: 'Technik vor Gewicht',
+        body:
+          'Eine saubere Ausführung über den vollen, schmerzfreien Bewegungsweg bringt mehr als ein paar Kilo extra. Kontrolliert absenken, die Position halten, die Wiederholung ohne Schwung beenden.\n\n' +
+          'Schmerz ist kein gutes Zeichen: Brennen im Muskel ist normal, stechende oder ziehende Schmerzen in Gelenken sind ein Grund aufzuhören. Im Training kannst du jede Übung ersetzen („Gerät belegt“ oder im Plan) – es gibt fast immer eine Variante, die sich besser anfühlt.',
+      },
+      deload: {
+        title: 'Leichte Woche (Deload)',
+        body:
+          'Viele Pläne legen alle 6–10 Wochen eine leichtere Woche ein: weniger Sätze bei ähnlichem Gewicht. Ziel ist, angesammelte Ermüdung abzubauen, damit die Steigerung danach wieder läuft.\n\n' +
+          'Die App bietet nach 8 Trainingswochen am Stück eine solche Woche an: halbe Sätze, gleiche Gewichte, 3 Wiederholungen in Reserve. Nur ein Angebot – wenn du dich frisch fühlst, kannst du sie verschieben. Die Regel ist noch nicht fachlich geprüft.',
+      },
+      eiweiss: {
+        title: 'Eiweiß: wie viel und wann',
+        body:
+          'Für Menschen, die regelmäßig Krafttraining machen, wird häufig eine Eiweißzufuhr von etwa 1,6 g pro kg Körpergewicht und Tag genannt; in einer Diät oft etwas mehr. Die allgemeine Empfehlung der DGE für Erwachsene liegt bei 0,8 g pro kg.\n\n' +
+          'Hilfreich ist, das Eiweiß über mehrere Mahlzeiten zu verteilen. Ob es aus Fleisch, Milch, Hülsenfrüchten oder Tofu kommt, ist für die Menge zweitrangig. Bei Nierenerkrankungen gilt: vorher ärztlich abklären.',
+      },
+      kalorienbilanz: {
+        title: 'Energiebilanz statt Wundermittel',
+        body:
+          'Ob das Gewicht über Wochen steigt oder fällt, hängt vor allem davon ab, wie viel Energie du aufnimmst und verbrauchst. Einzelne Lebensmittel „verbrennen“ kein Fett.\n\n' +
+          'Der Rechner schätzt deinen Bedarf aus Formeln; Menschen weichen davon ab. Darum vergleicht die App nach einigen Wochen deine Einträge mit deinem Gewichtstrend und schätzt deinen tatsächlichen Verbrauch – mit Rechenweg und Unsicherheit.',
+      },
+      gewicht_schwankt: {
+        title: 'Warum das Gewicht täglich schwankt',
+        body:
+          'Ein oder zwei Kilo Unterschied von einem Tag zum nächsten sind normal: Wasser, Salz, Kohlenhydrate, Verdauung, Zyklus und Training verschieben die Waage, ohne dass sich Fett verändert hat.\n\n' +
+          'Aussagekräftiger ist der Trend über eine Woche. Die App zeigt deshalb einen 7-Tage-Schnitt und vergleicht Wochen miteinander. Am besten wiegst du dich unter gleichen Bedingungen, z. B. morgens nach dem Toilettengang.',
+      },
+      schlaf: {
+        title: 'Schlaf und Training',
+        body:
+          'Für die meisten Erwachsenen werden 7–9 Stunden Schlaf genannt. Wenig Schlaf macht Training oft zäher und das Essen schwieriger zu steuern.\n\n' +
+          'Regelmäßige Bett- und Aufstehzeiten helfen vielen mehr als einzelne lange Nächte. Der Morgen-Check fragt deshalb nach Schlaf, Qualität und Energie und vergleicht mit deinem eigenen Schnitt. Anhaltende Schlafprobleme gehören in ärztliche Hände.',
+      },
+      cardio: {
+        title: 'Cardio neben dem Krafttraining',
+        body:
+          'Ausdauertraining tut Herz und Kreislauf gut und lässt sich gut mit Krafttraining verbinden. Die WHO nennt für Erwachsene 150–300 Minuten moderate oder 75–150 Minuten intensive Bewegung pro Woche.\n\n' +
+          'Wer beides macht, kann Cardio z. B. nach dem Krafttraining oder an anderen Tagen einplanen. Sehr viel intensives Cardio kann die Erholung für das Krafttraining knapper machen – dann hilft es, die Menge langsam zu steigern.',
+      },
+      aufwaermen: {
+        title: 'Aufwärmen in 5–10 Minuten',
+        body:
+          'Ein kurzes allgemeines Aufwärmen (z. B. einige Minuten locker auf dem Rad) und dann Aufwärmsätze der ersten Übung mit leichterem Gewicht bereiten Gelenke und Bewegung vor.\n\n' +
+          'Die App kann Aufwärmsätze automatisch einfügen (z. B. 40 %, 60 %, 80 % des Arbeitsgewichts). Langes statisches Dehnen direkt vor schwerem Training ist nicht nötig; Dehnen passt gut ans Ende oder an Ruhetage.',
+      },
+      mythen: {
+        title: 'Drei hartnäckige Mythen',
+        body:
+          '„Bauchübungen machen den Bauch flach“: Gezielt an einer Stelle Fett abbauen geht nicht. Bauchübungen stärken die Muskeln, Fett geht über die Energiebilanz.\n\n' +
+          '„Nach 18 Uhr nichts mehr essen“: Entscheidend ist, was und wie viel du über den Tag isst, nicht die Uhrzeit.\n\n' +
+          '„Krafttraining macht Frauen massig“: Muskelaufbau braucht Jahre und viel Training; ein paar Einheiten pro Woche formen eher, als dass sie „massig“ machen.',
+      },
+    },
   },
   mealPlan: {
     title: 'Wochenplan',
@@ -2736,6 +2938,7 @@ export const de = {
       gewicht: 'Gewicht',
       masse: 'Maße',
       schlaf: 'Schlaf & Morgen-Check',
+      blutdruck: 'Blutdruck',
       ziele: 'Ziele',
     },
     share: 'CSV teilen',

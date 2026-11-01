@@ -152,20 +152,20 @@ describe('Körpermaße (GOAL-004)', () => {
     expect(await listMeasurements(db)).toHaveLength(1);
   });
   test('Datenbank lehnt unbekannte Stelle ab', async () => {
-    await expect(addMeasurements(db, '2026-10-29', { nacken: 40 } as never)).rejects.toThrow();
+    await expect(addMeasurements(db, '2026-10-29', { knie: 40 } as never)).rejects.toThrow();
   });
 });
 
 describe('Profil und Erststart (UX-010)', () => {
   test('Standard: leer, kg/cm, Erststart offen', async () => {
     const profile = await loadProfile(db);
-    expect(profile.units).toEqual({ weight: 'kg', length: 'cm' });
+    expect(profile.units).toEqual({ weight: 'kg', length: 'cm', volume: 'ml' });
     expect(profile.adult).toBe(false);
     expect(await loadOnboardingDone(db)).toBe(false);
   });
   test('speichern und laden', async () => {
     const profile = await loadProfile(db);
-    await saveProfile(db, { ...profile, adult: true, heightCm: 180, units: { weight: 'lb', length: 'cm' } });
+    await saveProfile(db, { ...profile, adult: true, heightCm: 180, units: { weight: 'lb', length: 'cm', volume: 'ml' } });
     await saveOnboardingDone(db);
     expect((await loadProfile(db)).heightCm).toBe(180);
     expect((await loadProfile(db)).units.weight).toBe('lb');

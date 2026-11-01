@@ -1,7 +1,7 @@
 import { getLocales } from 'expo-localization';
 import { I18n } from 'i18n-js';
 
-import { cmToUnit, kgToUnit, type LengthUnit, type WeightUnit } from '@/domain/units';
+import { cmToUnit, feetInches, kgToUnit, mlToUnit, type LengthUnit, type VolumeUnit, type WeightUnit } from '@/domain/units';
 
 import { de } from './de';
 
@@ -53,6 +53,19 @@ export function formatWeight(kg: number, unit: WeightUnit, digits = 1): string {
 /** Länge aus cm in der gewählten Einheit, z. B. „82 cm“ oder „32,3 in“. */
 export function formatLength(cm: number, unit: LengthUnit): string {
   return t(`units.${unit}`, { value: formatNumber(cmToUnit(cm, unit)) });
+}
+
+/** Menge aus ml, z. B. „250 ml“ oder „8,5 fl oz“; ab 1000 ml in Litern. */
+export function formatVolume(ml: number, unit: VolumeUnit): string {
+  if (unit === 'oz') return t('units.oz', { value: formatNumber(mlToUnit(ml, 'oz'), 1) });
+  return ml >= 1000 ? t('units.l', { value: formatNumber(ml / 1000, 2) }) : t('units.ml', { value: formatNumber(ml, 0) });
+}
+
+/** Körpergröße: „180 cm“ bzw. „5′ 11″“. */
+export function formatHeight(cm: number, unit: LengthUnit): string {
+  if (unit === 'cm') return formatLength(cm, 'cm');
+  const { feet, inches } = feetInches(cm);
+  return t('units.feetInches', { feet, inches });
 }
 
 const MISSING = '\u0000fehlt';

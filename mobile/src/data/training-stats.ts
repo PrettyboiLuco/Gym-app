@@ -44,7 +44,7 @@ export async function loadSecondsPerSet(db: Db): Promise<number | null> {
 
 // ------------------------------------------------------------------------------ Statistik
 
-async function allSets(db: Db): Promise<StatSet[]> {
+export async function allSets(db: Db): Promise<StatSet[]> {
   const rows = await db.getAllAsync<Omit<StatSet, 'day'> & { at: string }>(
     `SELECT l.session_id AS sessionId, s.started_at_utc AS at, l.exercise_id AS exerciseId, l.set_type AS setType,
        l.weight_kg AS weightKg, l.reps, l.seconds

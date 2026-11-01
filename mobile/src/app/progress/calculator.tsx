@@ -15,7 +15,7 @@ import { DIRECTIONS } from '@/domain/goals';
 import { ageOn } from '@/domain/profile';
 import { weightTrend } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
-import { formatDay, formatLength, formatNumber, formatWeight, t } from '@/i18n';
+import { formatDay, formatHeight, formatNumber, formatWeight, t } from '@/i18n';
 
 async function loadCalc(db: Db) {
   const today = todayDay();
@@ -100,7 +100,7 @@ export default function CalculatorScreen() {
               ? t('calculator.weightMissing')
               : ''}
         </ThemedText>
-        {profile.heightCm !== null ? <ThemedText>{t('calculator.height', { value: formatLength(profile.heightCm, units.length) })}</ThemedText> : null}
+        {profile.heightCm !== null ? <ThemedText>{t('calculator.height', { value: formatHeight(profile.heightCm, units.length) })}</ThemedText> : null}
         {age !== null ? <ThemedText>{t('calculator.age', { age })}</ThemedText> : null}
         {profile.formulaTerm ? <ThemedText>{t('calculator.formula', { value: t(`profile.formulaOption.${profile.formulaTerm}`) })}</ThemedText> : null}
         {profile.activity ? <ThemedText>{t('calculator.activity', { value: t(`profile.activityOption.${profile.activity}`) })}</ThemedText> : null}

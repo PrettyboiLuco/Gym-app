@@ -55,7 +55,7 @@ describe('Profil (COACH-001)', () => {
     expect(parseProfileForm(form, EMPTY_PROFILE, '2026-10-29').problems).toEqual(['height']);
   });
   test('Größe in Zoll wird in cm gespeichert', () => {
-    const form = { ...profileToForm(EMPTY_PROFILE), height: '70', units: { weight: 'lb' as const, length: 'in' as const } };
+    const form = { ...profileToForm(EMPTY_PROFILE), height: '70', units: { weight: 'lb' as const, length: 'in' as const, volume: 'ml' as const } };
     expect(parseProfileForm(form, EMPTY_PROFILE, '2026-10-29').profile?.heightCm).toBeCloseTo(177.8);
   });
 });

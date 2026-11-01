@@ -28,7 +28,8 @@ mit der Fachperson statt vieler einzelner.
 | A7 | **fertig** (01.11.2026) – Datenbank-Version 24, Schätzung Fassung 1, Check-in Fassung 2 wählbar (Fachprüfung offen, Mappe Abschnitt J); Test nach 3–4 Wochen Daten durch Luc offen |
 | A8 | **fertig** (01.11.2026) – 5 Vorlagen, Deload v1 (Fachprüfung offen, Mappe Abschnitt K), Geräteprofile, Muskelkarte, Statistik; Gerätetest durch Luc offen |
 | A9 | **fertig** (01.11.2026) – Datenbank-Version 25, Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep; Supermarkt-Test durch Luc offen |
-| A10–A11 | offen |
+| A10 | **fertig** (01.11.2026) – Datenbank-Version 26; Gerätetest (Foto-Überblendung, Teilen-Karte) durch Luc offen |
+| A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -394,6 +395,39 @@ Einfügen der Zutaten.
 | A10.8 | **Lerninhalte:** 10–15 kurze Artikel (Progression, RIR, Eiweiß, Schlaf, Deload, Cardio), geprüft gegen falsche Versprechen |
 
 **Fertig, wenn:** Luc einen Foto-Vergleich mit Überblendung macht, einen Meilenstein bekommt und eine Teilen-Karte verschickt.
+
+**Umgesetzt (A10, 01.11.2026):**
+- **Fotos:** zwei beliebige Tage derselben Ansicht vergleichen, nebeneinander oder überblendet mit Schieber
+  (VoiceOver-bedienbar); Hilfslinien (Mitte, Drittel) für die gleiche Pose.
+- **Maße:**
+  - Migration 26 baut die Tabelle neu auf, damit Wade, Nacken und Unterarm dazukommen; die Daten bleiben erhalten.
+  - Ziel je Stelle ohne Richtung: Es wird nur der Abstand angezeigt.
+  - Messanleitung für alle 8 Stellen.
+- **Einheiten:** Getränke in ml oder fl oz (Kachel „Trinken“, Tagebuch, Glas-Knöpfe); Größe bei Zoll zusätzlich
+  in Fuß/Zoll.
+- **Blutdruck-Tagebuch:** Werte, Uhrzeit, Puls, Notiz und Ø der letzten 7 Tage, ohne Bewertung oder Grenzwerte;
+  auch als CSV.
+- **Meilensteine:**
+  - 1./10./50./100./250./500. Training
+  - 1.000/5.000 Sätze
+  - erstmals 100 kg (Gegengewicht zählt nicht)
+  - 4/12 Plan-Wochen am Stück
+  - Ein neuer Meilenstein erscheint einmal auf „Heute“.
+- **Plan-Wochen statt Serien** (Entscheidung E1 vorläufig wie empfohlen):
+  - Eine Woche ist geschafft bei x von y Trainingstagen; Ruhetage zählen mit.
+  - Verpasste Wochen nehmen nichts weg, Wochen mit Status zählen nicht.
+  - Bilanz für die letzten 4 Wochen, den Monat und seit Beginn.
+  - Abschaltbar; bei sensibler Situation immer aus.
+- **Teilen-Karten** als Bild (react-native-view-shot, in Expo Go enthalten) für Training mit Bestleistungen,
+  Meilenstein und Monatsbilanz; über das Teilen-Menü, im Browser als Text.
+- **Wissen:** 12 kurze Artikel unter „Mehr“ zu Training, Ernährung und Erholung, durch die Claims-Prüfung.
+
+**Beim Lückencheck nach A10 gefunden und geschlossen:**
+- Neue Messstellen scheiterten an der CHECK-Bedingung der Tabelle; deshalb wird die Tabelle neu aufgebaut.
+- Der Blutdruck fehlte im CSV-Export.
+- Ein Test erwartete noch „Nacken“ als unbekannte Stelle.
+- `expo install` war wegen des Netzwerk-Proxys nicht erreichbar; das Paket wurde in der für SDK 58 passenden
+  Version direkt installiert.
 
 ## A11 – Qualität und Aufräumen
 

@@ -678,6 +678,31 @@ export const MIGRATIONS: string[] = [
      checked INTEGER NOT NULL CHECK (checked IN (0, 1)),
      updated_at_utc TEXT NOT NULL
    );`,
+
+  // Version 26: Körper (Ausbauplan A10). Weitere Messstellen – die Liste steckt in einer CHECK-Bedingung, daher wird
+  // die Tabelle neu aufgebaut (Daten bleiben). Blutdruck-Tagebuch: nur Werte und Verlauf, keine Bewertung.
+  `CREATE TABLE body_measurement_new (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     site TEXT NOT NULL CHECK (site IN ('taille', 'huefte', 'brust', 'arm', 'oberschenkel', 'wade', 'nacken', 'unterarm')),
+     cm REAL NOT NULL CHECK (cm > 0),
+     recorded_at_utc TEXT NOT NULL
+   );
+   INSERT INTO body_measurement_new (id, day, site, cm, recorded_at_utc) SELECT id, day, site, cm, recorded_at_utc FROM body_measurement;
+   DROP TABLE body_measurement;
+   ALTER TABLE body_measurement_new RENAME TO body_measurement;
+   CREATE INDEX body_measurement_site ON body_measurement (site, day);
+   CREATE TABLE blood_pressure (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     measured_at_utc TEXT NOT NULL,
+     systolic INTEGER NOT NULL CHECK (systolic BETWEEN 50 AND 260),
+     diastolic INTEGER NOT NULL CHECK (diastolic BETWEEN 30 AND 180),
+     pulse INTEGER CHECK (pulse IS NULL OR pulse BETWEEN 25 AND 220),
+     note TEXT,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX blood_pressure_day ON blood_pressure (day);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

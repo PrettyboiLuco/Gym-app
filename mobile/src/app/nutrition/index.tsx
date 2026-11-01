@@ -35,7 +35,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, t } from '@/i18n';
+import { useUnits } from '@/data/profile-provider';
+import { formatNumber, formatVolume, t } from '@/i18n';
 
 async function loadDiary(db: Db, day: string) {
   const [events, settings, goal, incomplete] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day), isDayIncomplete(db, day)]);
@@ -44,6 +45,7 @@ async function loadDiary(db: Db, day: string) {
 
 export default function DiaryScreen() {
   const theme = useTheme();
+  const units = useUnits();
   const dark = useColorScheme() === 'dark';
   const dataColor = dark ? theme.accent : theme.tint;
   const [day, setDay] = useState(diaryToday);
@@ -266,14 +268,14 @@ export default function DiaryScreen() {
       <Card title={t('nutrition.drinks.title')}>
         <ThemedText>
           {settings.drinkGoalMl
-            ? t('nutrition.drinks.progress', { all: formatNumber(allMl, 0), goal: formatNumber(settings.drinkGoalMl, 0) })
-            : t('nutrition.drinks.progressNoGoal', { all: formatNumber(allMl, 0) })}
+            ? t('nutrition.drinks.progress', { all: formatVolume(allMl, units.volume), goal: formatVolume(settings.drinkGoalMl, units.volume) })
+            : t('nutrition.drinks.progressNoGoal', { all: formatVolume(allMl, units.volume) })}
         </ThemedText>
         {settings.drinkGoalMl ? (
           <MeterBar progress={allMl / settings.drinkGoalMl} color={dataColor} trackColor={theme.backgroundSelected} height={8} />
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
-          {t('nutrition.drinks.water', { water: formatNumber(waterMl, 0) })}
+          {t('nutrition.drinks.water', { water: formatVolume(waterMl, units.volume) })}
         </ThemedText>
         {/* Ziel erreicht: nur feststellen, nicht zum Weitertrinken auffordern (TIME-012). */}
         {settings.drinkGoalMl && allMl >= settings.drinkGoalMl ? <ThemedText type="smallBold">{t('nutrition.drinks.reached')}</ThemedText> : null}
@@ -285,7 +287,7 @@ export default function DiaryScreen() {
           label={t('nutrition.water')}
           options={settings.glassSizes}
           onChange={addWater}
-          format={(ml) => t('nutrition.drinks.addGlass', { ml })}
+          format={(ml) => t('nutrition.drinks.addGlass', { ml: formatVolume(ml, units.volume) })}
         />
         <ThemedText type="small" themeColor="textSecondary">
           {t('caffeine.title')}

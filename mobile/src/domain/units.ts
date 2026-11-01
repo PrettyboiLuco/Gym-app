@@ -3,12 +3,25 @@
 
 export type WeightUnit = 'kg' | 'lb';
 export type LengthUnit = 'cm' | 'in';
-export type Units = { weight: WeightUnit; length: LengthUnit };
+/** Getränke (A10.3): gespeichert in ml, angezeigt in ml oder US-Flüssigunzen. */
+export type VolumeUnit = 'ml' | 'oz';
+export type Units = { weight: WeightUnit; length: LengthUnit; volume: VolumeUnit };
 
-export const DEFAULT_UNITS: Units = { weight: 'kg', length: 'cm' };
+export const DEFAULT_UNITS: Units = { weight: 'kg', length: 'cm', volume: 'ml' };
 
 const KG_PER_LB = 0.45359237;
 const CM_PER_IN = 2.54;
+const ML_PER_OZ = 29.5735;
+
+export function mlToUnit(ml: number, unit: VolumeUnit): number {
+  return unit === 'ml' ? ml : ml / ML_PER_OZ;
+}
+
+/** Körpergröße in Fuß und Zoll (5′ 11″), gerundet auf ganze Zoll. */
+export function feetInches(cm: number): { feet: number; inches: number } {
+  const total = Math.round(cm / CM_PER_IN);
+  return { feet: Math.floor(total / 12), inches: total % 12 };
+}
 
 export function kgToUnit(kg: number, unit: WeightUnit): number {
   return unit === 'kg' ? kg : kg / KG_PER_LB;

@@ -15,6 +15,8 @@ import { useUnits } from '@/data/profile-provider';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
 import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { readinessToday, type ReadinessToday } from '@/data/readiness';
+import { loadMotivation } from '@/data/motivation';
+import type { Milestone } from '@/domain/motivation';
 import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
 import { checkinDue } from '@/domain/checkin';
 import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
@@ -24,7 +26,8 @@ import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { nextDayIndex } from '@/domain/training';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
-import { formatDay, formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
+import { mlToUnit, type VolumeUnit } from '@/domain/units';
+import { formatDay, formatLongDate, formatNumber, formatVolume, formatWeight, t } from '@/i18n';
 
 async function loadToday(db: Db) {
   const today = todayDay();
@@ -48,6 +51,7 @@ async function loadToday(db: Db) {
     loadTrainingWeek(db, today),
     readinessToday(db, today),
   ]);
+  const motivation = await loadMotivation(db, today);
   // Wochen-Check-in fällig (COACH-008)? Frühestens eine Woche nach dem letzten Check-in, sonst nach der
   // Coach-Einrichtung bzw. der ersten Gewichtsmessung – vorher gäbe es keine Woche zum Zurückschauen.
   const since = (await lastCheckinWeekEnd(db)) ?? setup?.doneAt ?? weights.at(-1)?.day ?? null;
@@ -93,10 +97,18 @@ async function loadToday(db: Db) {
     week: trainingWeek,
     ready,
     today,
+    // Nur der neueste noch nicht angesehene Meilenstein (A10.5); ältere stehen in der Liste.
+    milestone: motivation.fresh.at(-1) ?? null,
   };
 }
 
 const EMPTY_WEEK = Array.from({ length: 7 }, () => false);
+
+/** Zahl und Einheit für die Kachel „Trinken“ (ml unter 1 l, sonst l; oder fl oz). */
+function volumeFigure(ml: number, unit: VolumeUnit) {
+  if (unit === 'oz') return { value: formatNumber(mlToUnit(ml, 'oz'), 0), unit: 'fl oz' };
+  return ml >= 1000 ? { value: formatNumber(ml / 1000, 1), unit: 'l' } : { value: formatNumber(ml, 0), unit: 'ml' };
+}
 
 export default function TodayScreen() {
   const { data, db, loaded, reload } = useLoad(loadToday, {
@@ -113,8 +125,9 @@ export default function TodayScreen() {
     openSetup: false,
     ready: null as ReadinessToday | null,
     today: '',
+    milestone: null as Milestone | null,
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today, milestone } = data;
   useEffect(() => {
     if (!openSetup) return;
     saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
@@ -172,7 +185,7 @@ export default function TodayScreen() {
 
   // Kennzahlen
   const kcal = food.sums.values.kcal;
-  const liters = (ml: number) => formatNumber(ml / 1000, 1);
+  const volume = (ml: number) => formatVolume(ml, units.volume);
   const kcalFigure = food.hide
     ? { value: String(food.entries), unit: undefined, sub: t('today.tileEntries', { count: food.entries }) }
     : {
@@ -211,6 +224,18 @@ export default function TodayScreen() {
           <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         </Card>
       ) : null}
+      {milestone ? (
+        <Card>
+          <ListRow
+            icon="target"
+            title={t('milestones.newTitle', { name: t(`milestones.name.${milestone.id}`) })}
+            subtitle={t('milestones.newSubtitle')}
+            accessory="›"
+            last
+            onPress={() => router.push('/progress/milestones')}
+          />
+        </Card>
+      ) : null}
       <TrainingBlock
         label={training.label}
         title={training.title}
@@ -235,10 +260,9 @@ export default function TodayScreen() {
           },
           {
             label: t('today.tileDrinks'),
-            value: liters(food.drinksMl),
-            unit: 'l',
-            sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: liters(food.drinkGoalMl) }) : null,
-            accessibilityLabel: `${t('today.tileDrinks')} ${liters(food.drinksMl)} l`,
+            ...volumeFigure(food.drinksMl, units.volume),
+            sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: volume(food.drinkGoalMl) }) : null,
+            accessibilityLabel: `${t('today.tileDrinks')} ${volume(food.drinksMl)}`,
             onPress: () => router.push('/nutrition'),
           },
           {

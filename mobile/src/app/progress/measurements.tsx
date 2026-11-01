@@ -8,22 +8,28 @@ import { todayDay } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { addMeasurements, deleteMeasurement, listMeasurements } from '@/data/goals';
+import { addMeasurements, deleteMeasurement, listMeasurements, loadMeasureGoals, saveMeasureGoals } from '@/data/goals';
 import { useUnits } from '@/data/profile-provider';
 import { latestBySite, MEASURE_SITES, type Measurement, type MeasureSite } from '@/domain/body';
-import { MEASURE_RANGE, parseLengthIn } from '@/domain/units';
+import { lengthInputText, MEASURE_RANGE, parseLengthIn } from '@/domain/units';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, formatLength, t } from '@/i18n';
 
-const EMPTY: Record<MeasureSite, string> = { taille: '', huefte: '', brust: '', arm: '', oberschenkel: '' };
+const EMPTY = Object.fromEntries(MEASURE_SITES.map((s) => [s, ''])) as Record<MeasureSite, string>;
 
 /** Körpermaße eintragen, mit Anleitung und Verlauf (Register GOAL-004). */
 export default function MeasurementsScreen() {
   const theme = useTheme();
   const units = useUnits();
-  const { data: list, reload, db } = useLoad(listMeasurements, [] as Measurement[]);
+  const { data, reload, db } = useLoad(async (d) => ({ list: await listMeasurements(d), goals: await loadMeasureGoals(d) }), {
+    list: [] as Measurement[],
+    goals: {} as Partial<Record<MeasureSite, number>>,
+  });
+  const { list, goals } = data;
+  const [goalForm, setGoalForm] = useState<Record<MeasureSite, string> | null>(null);
+  const [goalProblem, setGoalProblem] = useState(false);
   const [day, setDay] = useState(todayDay);
   const [form, setForm] = useState(EMPTY);
   const [problem, setProblem] = useState<'invalid' | 'none' | null>(null);
@@ -77,6 +83,15 @@ export default function MeasurementsScreen() {
                 }}
                 keyboardType="decimal-pad"
               />
+              {goals[site] ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {!last
+                    ? t('measure.goal', { value: formatLength(goals[site]!, units.length) })
+                    : Math.abs(last.latest.cm - goals[site]!) < 0.25
+                      ? t('measure.goalReached', { value: formatLength(goals[site]!, units.length) })
+                      : t('measure.goalLeft', { value: formatLength(goals[site]!, units.length), left: formatLength(Math.abs(last.latest.cm - goals[site]!), units.length) })}
+                </ThemedText>
+              ) : null}
               {last ? (
                 <ThemedText type="small" themeColor="textSecondary">
                   {t('measure.latest', { value: formatLength(last.latest.cm, units.length), date: formatDay(last.latest.day) })}{' '}
@@ -103,6 +118,54 @@ export default function MeasurementsScreen() {
         ) : null}
         <Button label={t('measure.save')} onPress={save} />
         {saved ? <ThemedText type="smallBold">{t('measure.saved')}</ThemedText> : null}
+      </Card>
+
+      <Card title={t('measure.goalsTitle')}>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('measure.goalsHint')}
+        </ThemedText>
+        {goalForm ? (
+          <>
+            {MEASURE_SITES.map((site) => (
+              <Field
+                key={site}
+                label={t('measure.goalInput', { site: t(`measure.sites.${site}`), unit: units.length })}
+                value={goalForm[site]}
+                onChangeText={(v) => setGoalForm({ ...goalForm, [site]: v })}
+                keyboardType="decimal-pad"
+              />
+            ))}
+            {goalProblem ? (
+              <ThemedText style={{ color: theme.danger }}>
+                {t('measure.invalid', { min: formatLength(MEASURE_RANGE.min, units.length), max: formatLength(MEASURE_RANGE.max, units.length) })}
+              </ThemedText>
+            ) : null}
+            <Button
+              label={t('measure.goalsSave')}
+              onPress={async () => {
+                const next: Partial<Record<MeasureSite, number>> = {};
+                for (const site of MEASURE_SITES) {
+                  if (!goalForm[site].trim()) continue;
+                  const cm = parseLengthIn(goalForm[site], units.length, MEASURE_RANGE);
+                  if (cm === null) return setGoalProblem(true);
+                  next[site] = cm;
+                }
+                setGoalProblem(false);
+                await saveMeasureGoals(db, next);
+                setGoalForm(null);
+                await reload();
+              }}
+            />
+          </>
+        ) : (
+          <Button
+            label={t('measure.goalsTitle')}
+            variant="secondary"
+            onPress={() =>
+              setGoalForm(Object.fromEntries(MEASURE_SITES.map((s) => [s, goals[s] ? lengthInputText(goals[s]!, units.length) : ''])) as Record<MeasureSite, string>)
+            }
+          />
+        )}
       </Card>
 
       <Card title={t('measure.guideTitle')}>
