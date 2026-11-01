@@ -6,7 +6,18 @@ import { BASIS_FOODS } from '@/domain/basis-foods-data';
 
 import { syncBasisFoods } from '../basis-foods';
 import type { Db } from '../db';
-import { addPlanEntries, checkedKeys, cleanEatenLinks, listPlan, logPlanEntry, planNutrients, resetChecked, saveImportedRecipe, setChecked, shoppingFor } from '../meal-plan';
+import {
+  addPlanEntries,
+  checkedKeys,
+  cleanEatenLinks,
+  listPlan,
+  logPlanEntry,
+  planNutrients,
+  resetChecked,
+  saveImportedRecipe,
+  setChecked,
+  shoppingFor,
+} from '../meal-plan';
 import { migrate } from '../migrations';
 import { deleteEvent, listDay, saveFood } from '../nutrition';
 import { createTestDb } from '../testing/node-db';
@@ -68,9 +79,18 @@ describe('Einkaufsliste', () => {
   });
 
   test('eigenes Lebensmittel ohne Grundnahrungsmittel landet unter Sonstiges', async () => {
-    const id = await saveFood(db, null, { name: 'Proteinpulver Vanille', brand: 'X', barcode: null, basis: 'g', per100: { kcal: 380, protein: 75, carbs: 8, fat: 6, fiber: 0 }, servingAmount: 30 });
+    const id = await saveFood(db, null, {
+      name: 'Proteinpulver Vanille',
+      brand: 'X',
+      barcode: null,
+      basis: 'g',
+      per100: { kcal: 380, protein: 75, carbs: 8, fat: 6, fiber: 0 },
+      servingAmount: 30,
+    });
     const r = await saveImportedRecipe(db, 'Shake', 1, [{ foodId: id, amount: 30 }]);
     await addPlanEntries(db, [{ day: '2026-11-05', meal: 'snack', source: 'eigen', ref: r, name: 'Shake', portions: 2 }]);
-    expect(await shoppingFor(db, '2026-11-05', '2026-11-05')).toEqual([expect.objectContaining({ name: 'Proteinpulver Vanille', amount: 60, department: 'sonstiges' })]);
+    expect(await shoppingFor(db, '2026-11-05', '2026-11-05')).toEqual([
+      expect.objectContaining({ name: 'Proteinpulver Vanille', amount: 60, department: 'sonstiges' }),
+    ]);
   });
 });

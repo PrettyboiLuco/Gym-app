@@ -4,18 +4,18 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, Field } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { addMeasurements, deleteMeasurement, listMeasurements, loadMeasureGoals, saveMeasureGoals } from '@/data/goals';
-import { useUnits } from '@/providers/profile-provider';
 import { latestBySite, MEASURE_SITES, type Measurement, type MeasureSite } from '@/domain/body';
+import { todayDay } from '@/domain/time';
 import { lengthInputText, MEASURE_RANGE, parseLengthIn } from '@/domain/units';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, formatLength, t } from '@/i18n';
+import { useUnits } from '@/providers/profile-provider';
 
 const EMPTY = Object.fromEntries(MEASURE_SITES.map((s) => [s, ''])) as Record<MeasureSite, string>;
 
@@ -89,7 +89,10 @@ export default function MeasurementsScreen() {
                     ? t('measure.goal', { value: formatLength(goals[site]!, units.length) })
                     : Math.abs(last.latest.cm - goals[site]!) < 0.25
                       ? t('measure.goalReached', { value: formatLength(goals[site]!, units.length) })
-                      : t('measure.goalLeft', { value: formatLength(goals[site]!, units.length), left: formatLength(Math.abs(last.latest.cm - goals[site]!), units.length) })}
+                      : t('measure.goalLeft', {
+                          value: formatLength(goals[site]!, units.length),
+                          left: formatLength(Math.abs(last.latest.cm - goals[site]!), units.length),
+                        })}
                 </ThemedText>
               ) : null}
               {last ? (
@@ -162,7 +165,9 @@ export default function MeasurementsScreen() {
             label={t('measure.goalsTitle')}
             variant="secondary"
             onPress={() =>
-              setGoalForm(Object.fromEntries(MEASURE_SITES.map((s) => [s, goals[s] ? lengthInputText(goals[s]!, units.length) : ''])) as Record<MeasureSite, string>)
+              setGoalForm(
+                Object.fromEntries(MEASURE_SITES.map((s) => [s, goals[s] ? lengthInputText(goals[s]!, units.length) : ''])) as Record<MeasureSite, string>
+              )
             }
           />
         )}
@@ -182,7 +187,13 @@ export default function MeasurementsScreen() {
               <ThemedText style={styles.flex}>
                 {formatDay(m.day)} · {t(`measure.sites.${m.site}`)} · {formatLength(m.cm, units.length)}
               </ThemedText>
-              <ConfirmButton label={t('common.delete')} onConfirm={async () => { await deleteMeasurement(db, m.id); await reload(); }} />
+              <ConfirmButton
+                label={t('common.delete')}
+                onConfirm={async () => {
+                  await deleteMeasurement(db, m.id);
+                  await reload();
+                }}
+              />
             </View>
           ))}
         </Card>

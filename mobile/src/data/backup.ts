@@ -66,10 +66,7 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
       for (const row of rows) {
         const keys = Object.keys(row).filter((k) => columns.has(k));
         if (table === 'exercise' && row.name_key != null) continue;
-        await db.runAsync(
-          `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`,
-          ...keys.map((k) => row[k] as SqlValue)
-        );
+        await db.runAsync(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`, ...keys.map((k) => row[k] as SqlValue));
       }
     }
     for (const [key, value] of Object.entries(manifest.appState)) {

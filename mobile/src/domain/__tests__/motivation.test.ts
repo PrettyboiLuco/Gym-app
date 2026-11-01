@@ -22,7 +22,10 @@ describe('Plan-Wochen', () => {
     expect(balance(weeks, '0000-01-01', day(43))).toEqual({ done: 4, counted: 5 });
   });
   test('Meilensteine: Trainings, 100 kg, 4 Plan-Wochen; neu = noch nicht gesehen', () => {
-    const sets = [{ day: day(2), exerciseId: 'kreuzheben', weightKg: 100, reps: 3, normal: true }, { day: day(0), exerciseId: 'latzug_assist', weightKg: 120, reps: 5, normal: false }];
+    const sets = [
+      { day: day(2), exerciseId: 'kreuzheben', weightKg: 100, reps: 3, normal: true },
+      { day: day(0), exerciseId: 'latzug_assist', weightKg: 120, reps: 5, normal: false },
+    ];
     const ms = milestones({ sessionDays: training.slice(0, 13), sets, weeks });
     expect(ms.map((m) => m.id)).toEqual(['training_1', 'kg_100', 'training_10', 'planwochen_4']);
     expect(ms.find((m) => m.id === 'kg_100')).toMatchObject({ day: day(2), detail: 'kreuzheben' });
@@ -41,7 +44,12 @@ describe('Blutdruck', () => {
     expect(parseBloodPressure({ systolic: 'x', diastolic: '20', pulse: '300' }).problems).toEqual(['systolic', 'diastolic', 'pulse']);
   });
   test('Schnitt ohne Bewertung', () => {
-    expect(bpAverage([{ systolic: 120, diastolic: 80, pulse: 60 }, { systolic: 131, diastolic: 85, pulse: null }])).toEqual({ systolic: 126, diastolic: 83, pulse: 60, count: 2 });
+    expect(
+      bpAverage([
+        { systolic: 120, diastolic: 80, pulse: 60 },
+        { systolic: 131, diastolic: 85, pulse: null },
+      ])
+    ).toEqual({ systolic: 126, diastolic: 83, pulse: 60, count: 2 });
     expect(bpAverage([])).toBeNull();
   });
 });

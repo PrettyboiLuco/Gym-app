@@ -155,9 +155,7 @@ export function Segmented<T extends string>({
       accessibilityLabel={label}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
-      {index >= 0 && segment > 0 ? (
-        <Animated.View style={[styles.thumb, { width: segment, backgroundColor: theme.primary }, thumb]} />
-      ) : null}
+      {index >= 0 && segment > 0 ? <Animated.View style={[styles.thumb, { width: segment, backgroundColor: theme.primary }, thumb]} /> : null}
       {options.map((option, i) => {
         const selected = i === index;
         return (
@@ -443,13 +441,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three + Spacing.one,
     borderRadius: Radius.pill,
   },
-  smallChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.one, paddingHorizontal: Spacing.three, borderRadius: Radius.pill, minHeight: 34 },
+  smallChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.pill,
+    minHeight: 34,
+  },
   track: { flexDirection: 'row', borderRadius: Radius.pill, padding: 4, minHeight: 44 },
   thumb: { position: 'absolute', top: 4, bottom: 4, left: 4, borderRadius: Radius.pill },
   segment: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.two, minHeight: 36 },
   confirm: { flexDirection: 'row', gap: Spacing.two },
   flex: { flex: 1 },
-  rowOuter: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, marginHorizontal: -Spacing.two, paddingHorizontal: Spacing.two, borderRadius: Radius.field },
+  rowOuter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    marginHorizontal: -Spacing.two,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Radius.field,
+  },
   rowIcon: { width: 24, alignItems: 'center' },
   row: {
     flex: 1,

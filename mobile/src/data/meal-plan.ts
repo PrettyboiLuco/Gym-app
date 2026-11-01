@@ -1,8 +1,8 @@
 // Datenbankzugriffe für Wochenplan, Einkaufsliste und Rezept-Import (Ausbauplan A9).
 
-import { findBookRecipe } from '@/domain/recipe-book';
 import { bookShopping, shoppingList, type NewPlanEntry, type PlanEntry, type ShoppingItem, type ShoppingSource } from '@/domain/meal-plan';
 import { fractionOf, type Nutrients } from '@/domain/nutrition';
+import { findBookRecipe } from '@/domain/recipe-book';
 
 import { newId, nowUtc, type Db } from './db';
 import { getFood, listRecipes, loadRecipeDraft, logRecipe, saveRecipe, type When } from './nutrition';
@@ -135,4 +135,3 @@ export async function fetchPage(url: string, timeoutMs = 15_000): Promise<string
 export async function saveImportedRecipe(db: Db, name: string, portions: number | null, ingredients: { foodId: string; amount: number }[]) {
   return saveRecipe(db, null, { name: name.trim() || 'Rezept', endWeightG: null, portions, ingredients });
 }
-

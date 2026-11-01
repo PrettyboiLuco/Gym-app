@@ -31,7 +31,11 @@ function subscribe(l: () => void) {
 }
 
 export function ToastHost() {
-  const toast = useSyncExternalStore(subscribe, () => current, () => current);
+  const toast = useSyncExternalStore(
+    subscribe,
+    () => current,
+    () => current
+  );
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
@@ -54,10 +58,7 @@ export function ToastHost() {
   if (!toast) return null;
   return (
     <View pointerEvents="none" style={[styles.wrap, { bottom: insets.bottom + BottomTabInset + Spacing.three }]}>
-      <Animated.View
-        accessibilityLiveRegion="polite"
-        accessibilityRole="alert"
-        style={[styles.toast, { backgroundColor: theme.primary }, style]}>
+      <Animated.View accessibilityLiveRegion="polite" accessibilityRole="alert" style={[styles.toast, { backgroundColor: theme.primary }, style]}>
         <Icon name="check" color={theme.onPrimary} size={16} strokeWidth={2.4} />
         <ThemedText type="smallBold" style={{ color: theme.onPrimary }}>
           {toast.text}

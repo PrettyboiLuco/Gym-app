@@ -10,11 +10,11 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { findFoodByBarcode, foodFacts, getFood, per100, saveFood } from '@/data/nutrition';
 import { ALLERGENS } from '@/domain/diet';
-import { useDb } from '@/providers/store-provider';
 import { foodToForm, parseFoodForm, PREPS, type FoodForm, type FoodProblem } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 const EMPTY: FoodForm = {
   name: '',
@@ -93,12 +93,7 @@ export default function FoodEditScreen() {
     <Screen withHeader>
       <Stack.Screen options={{ title: isNew ? t('nutrition.edit.titleNew') : t('nutrition.edit.titleEdit') }} />
       <Card>
-        <Field
-          label={t('nutrition.edit.name')}
-          placeholder={t('nutrition.edit.namePlaceholder')}
-          value={form.name}
-          onChangeText={(v) => set('name', v)}
-        />
+        <Field label={t('nutrition.edit.name')} placeholder={t('nutrition.edit.namePlaceholder')} value={form.name} onChangeText={(v) => set('name', v)} />
         <Field label={t('nutrition.edit.brand')} value={form.brand} onChangeText={(v) => set('brand', v)} />
         <Choice
           label={t('nutrition.edit.prep')}
@@ -107,12 +102,7 @@ export default function FoodEditScreen() {
           onChange={(v) => set('prep', v)}
           format={(v) => (v === 'keine' ? t('nutrition.edit.prepNone') : t(`nutrition.food.prep.${v}`))}
         />
-        <Field
-          label={t('nutrition.edit.barcode')}
-          value={form.barcode}
-          onChangeText={(v) => set('barcode', v.replace(/\D/g, ''))}
-          keyboardType="number-pad"
-        />
+        <Field label={t('nutrition.edit.barcode')} value={form.barcode} onChangeText={(v) => set('barcode', v.replace(/\D/g, ''))} keyboardType="number-pad" />
       </Card>
 
       {isNew && params.barcode ? (

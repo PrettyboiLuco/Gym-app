@@ -3,11 +3,7 @@
   "version": 1,
   "name": "Zuhause mit Kurzhanteln 3×",
   "note": "Drei Tage pro Woche zu Hause, nur Kurzhanteln und Körpergewicht. Werden die Wiederholungen zu leicht: langsamer absenken oder schwerere Kurzhanteln.",
-  "weekdays": [
-    1,
-    3,
-    5
-  ],
+  "weekdays": [1, 3, 5],
   "days": [
     {
       "name": "Zuhause A",
@@ -15,50 +11,35 @@
         {
           "exercise": "goblet_kniebeuge",
           "sets": 3,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "bankdruecken_kh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "rudern_kh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "rumaenisches_kreuzheben_kh",
           "sets": 3,
-          "reps": [
-            10,
-            12
-          ],
+          "reps": [10, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "seitheben",
           "sets": 2,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
@@ -76,60 +57,42 @@
         {
           "exercise": "bulgarische_kniebeuge",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "schulterdruecken_kh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "rudern_vorgebeugt_kh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "liegestuetze",
           "sets": 2,
-          "reps": [
-            8,
-            15
-          ],
+          "reps": [8, 15],
           "rest": 90,
           "rir": "1"
         },
         {
           "exercise": "bizepscurls_kh",
           "sets": 2,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "french_press_kh",
           "sets": 2,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         }
@@ -141,60 +104,42 @@
         {
           "exercise": "kniebeuge_kh",
           "sets": 3,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "bodendruecken_kh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "rudern_kh",
           "sets": 3,
-          "reps": [
-            10,
-            12
-          ],
+          "reps": [10, 12],
           "rest": 90,
           "rir": "1–2"
         },
         {
           "exercise": "beckenheben",
           "sets": 3,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "1"
         },
         {
           "exercise": "reverse_flys_kh",
           "sets": 2,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "crunches",
           "sets": 2,
-          "reps": [
-            12,
-            20
-          ],
+          "reps": [12, 20],
           "rest": 60
         }
       ]

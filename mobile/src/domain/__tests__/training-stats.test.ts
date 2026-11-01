@@ -3,7 +3,17 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { weekStart } from '../dates';
-import { DEFAULT_PROFILES, deloadDraft, deloadDue, muscleLevel, periodStats, personalSecondsPerSet, trainingWeeksInBlock, usableEquipment, type StatSet } from '../training-stats';
+import {
+  DEFAULT_PROFILES,
+  deloadDraft,
+  deloadDue,
+  muscleLevel,
+  periodStats,
+  personalSecondsPerSet,
+  trainingWeeksInBlock,
+  usableEquipment,
+  type StatSet,
+} from '../training-stats';
 
 describe('Satzzeit', () => {
   const session = (minutes: number) => ({
@@ -38,7 +48,15 @@ describe('Statistik', () => {
     set('s4', '2026-11-02', 'squat', 105, 5),
   ];
   test('Zahlen und Bestleistungen im Oktober; erstes Mal zählt nicht', () => {
-    const s = periodStats(all, [{ day: '2026-10-10', minutes: 30 }, { day: '2026-11-01', minutes: 20 }], '2026-10-01', '2026-10-31');
+    const s = periodStats(
+      all,
+      [
+        { day: '2026-10-10', minutes: 30 },
+        { day: '2026-11-01', minutes: 20 },
+      ],
+      '2026-10-01',
+      '2026-10-31'
+    );
     expect(s).toMatchObject({ sessions: 2, sets: 3, volumeKg: 800 + 510 + 500, cardioMinutes: 30, cardioCount: 1 });
     expect(s.records.map((r) => [r.exerciseId, r.kind, r.weightKg, r.reps])).toEqual([['bank', 'gewicht', 85, 6]]);
     expect(s.perExercise[0]).toMatchObject({ exerciseId: 'bank', sets: 2 });
@@ -53,7 +71,8 @@ describe('Statistik', () => {
 });
 
 describe('Deload', () => {
-  const days = (weeks: number, from = '2026-11-02') => [...Array(weeks)].map((_, i) => new Date(Date.parse(`${from}T12:00:00Z`) - i * 7 * 86_400_000).toISOString().slice(0, 10));
+  const days = (weeks: number, from = '2026-11-02') =>
+    [...Array(weeks)].map((_, i) => new Date(Date.parse(`${from}T12:00:00Z`) - i * 7 * 86_400_000).toISOString().slice(0, 10));
   test('Wochen am Stück; eine Woche Pause beendet den Block', () => {
     expect(weekStart('2026-11-01')).toBe('2026-10-26');
     expect(trainingWeeksInBlock(days(8), '2026-11-03', null)).toBe(8);
@@ -70,7 +89,15 @@ describe('Deload', () => {
   test('halbe Sätze, RIR 3, Zeitübungen ohne RIR', () => {
     const d = deloadDraft({
       name: 'P',
-      days: [{ name: 'A', items: [{ exerciseId: 'x', sets: 3, repsMin: 8, repsMax: 12, restSeconds: 120, rir: '1' }, { exerciseId: 'plank', sets: 1, repsMin: 1, repsMax: 1, restSeconds: 60, targetSeconds: 45 }] }],
+      days: [
+        {
+          name: 'A',
+          items: [
+            { exerciseId: 'x', sets: 3, repsMin: 8, repsMax: 12, restSeconds: 120, rir: '1' },
+            { exerciseId: 'plank', sets: 1, repsMin: 1, repsMax: 1, restSeconds: 60, targetSeconds: 45 },
+          ],
+        },
+      ],
     });
     expect(d.days[0].items.map((i) => [i.sets, i.rir])).toEqual([
       [2, '3'],

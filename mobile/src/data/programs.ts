@@ -8,7 +8,12 @@ import oberUnter from './presets/ober-unter-4.myhealth.json';
 import ppl from './presets/ppl-6.myhealth.json';
 import zuhause from './presets/zuhause-kh-3.myhealth.json';
 
-export type Program = { id: string; file: { name: string; note?: string; days: unknown[]; weekdays?: number[] }; level: 'einsteiger' | 'fortgeschritten'; place: 'studio' | 'zuhause' };
+export type Program = {
+  id: string;
+  file: { name: string; note?: string; days: unknown[]; weekdays?: number[] };
+  level: 'einsteiger' | 'fortgeschritten';
+  place: 'studio' | 'zuhause';
+};
 
 export const PROGRAMS: Program[] = [
   { id: 'ganzkoerper-3', file: ganzkoerper, level: 'einsteiger', place: 'studio' },

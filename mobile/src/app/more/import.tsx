@@ -1,19 +1,19 @@
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { pickTextFile } from '@/data/backup-files';
 import { importTraining, importWeights, suggestChoices, type ExerciseChoice } from '@/data/import';
-import { useDb } from '@/providers/store-provider';
 import { listExercises, type Exercise } from '@/data/training';
 import { isCardioSet, parseTrainingCsv, parseWeightCsv, strengthExercises, type TrainingImport, type WeightRow } from '@/domain/import-csv';
 import { localDay, timeZone } from '@/domain/time';
+import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 type Kind = 'training' | 'gewicht';
 type Choices = Record<string, ExerciseChoice & { score?: number }>;

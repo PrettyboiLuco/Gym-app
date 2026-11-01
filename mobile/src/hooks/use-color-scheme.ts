@@ -23,7 +23,11 @@ export function setAppearance(next: AppearanceChoice) {
 }
 
 export function useAppearance(): AppearanceChoice {
-  return useSyncExternalStore(subscribe, () => choice, () => choice);
+  return useSyncExternalStore(
+    subscribe,
+    () => choice,
+    () => choice
+  );
 }
 
 /** Wirksames Farbschema: feste Wahl oder das des iPhones. */

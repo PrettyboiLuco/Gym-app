@@ -5,21 +5,12 @@ import type { PhotoPose, ProgressPhoto } from '@/domain/body';
 import { newId, nowUtc, type Db } from './db';
 
 export function listPhotos(db: Db) {
-  return db.getAllAsync<ProgressPhoto>(
-    'SELECT id, day, pose, file_name AS fileName FROM progress_photo ORDER BY day DESC, created_at_utc DESC, rowid DESC'
-  );
+  return db.getAllAsync<ProgressPhoto>('SELECT id, day, pose, file_name AS fileName FROM progress_photo ORDER BY day DESC, created_at_utc DESC, rowid DESC');
 }
 
 export async function addPhoto(db: Db, day: string, pose: PhotoPose, fileName: string) {
   const id = newId();
-  await db.runAsync(
-    'INSERT INTO progress_photo (id, day, pose, file_name, created_at_utc) VALUES (?, ?, ?, ?, ?)',
-    id,
-    day,
-    pose,
-    fileName,
-    nowUtc()
-  );
+  await db.runAsync('INSERT INTO progress_photo (id, day, pose, file_name, created_at_utc) VALUES (?, ?, ?, ?, ?)', id, day, pose, fileName, nowUtc());
   return id;
 }
 

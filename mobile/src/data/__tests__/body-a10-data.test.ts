@@ -54,7 +54,10 @@ describe('Meilensteine und Bilanz', () => {
     expect(m.milestones.map((x) => x.id)).toEqual(['training_1', 'planwochen_4', 'training_10']);
     expect(m.goal).toBe(2);
     expect(m.total).toEqual({ done: 5, counted: 5 });
-    await markMilestonesSeen(db, m.fresh.map((f) => f.id));
+    await markMilestonesSeen(
+      db,
+      m.fresh.map((f) => f.id)
+    );
     await saveBalanceOn(db, false);
     m = await loadMotivation(db, '2026-11-08');
     expect(m.fresh).toEqual([]);

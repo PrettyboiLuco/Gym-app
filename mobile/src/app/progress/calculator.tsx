@@ -3,20 +3,20 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { activeWeightGoal, adjustCalorieGoal, listCalorieGoals, type CalorieGoal } from '@/data/goals';
-import { useProfile } from '@/providers/profile-provider';
 import { listWeights } from '@/data/weights';
 import { calculate, DELTA_OPTIONS, type CalculatorInput, type Goal } from '@/domain/energy';
 import { DIRECTIONS } from '@/domain/goals';
 import { ageOn } from '@/domain/profile';
+import { todayDay } from '@/domain/time';
 import { weightTrend } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatHeight, formatNumber, formatWeight, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
 
 async function loadCalc(db: Db) {
   const today = todayDay();
@@ -93,9 +93,7 @@ export default function CalculatorScreen() {
         <ThemedText>
           {data.weight
             ? `${t('calculator.weight', { kg: formatWeight(data.weight.kg, units.weight) })} ${
-                data.weight.from === 'trend'
-                  ? t('calculator.weightSourceTrend')
-                  : t('calculator.weightSourceLast', { date: formatDay(data.weight.day) })
+                data.weight.from === 'trend' ? t('calculator.weightSourceTrend') : t('calculator.weightSourceLast', { date: formatDay(data.weight.day) })
               }`
             : loaded
               ? t('calculator.weightMissing')
@@ -143,9 +141,7 @@ export default function CalculatorScreen() {
 
       <Card title={t('calculator.resultTitle')}>
         {result.status === 'fehlt' ? (
-          <ThemedText>
-            {t('calculator.missing', { list: result.missing.map((m) => t(`calculator.missingItem.${m}`)).join(', ') })}
-          </ThemedText>
+          <ThemedText>{t('calculator.missing', { list: result.missing.map((m) => t(`calculator.missingItem.${m}`)).join(', ') })}</ThemedText>
         ) : null}
         {result.status === 'sensibel' ? <ThemedText>{t('calculator.sensitive')}</ThemedText> : null}
         {result.status === 'alter' ? <ThemedText>{t('calculator.ageOutside')}</ThemedText> : null}
@@ -153,9 +149,7 @@ export default function CalculatorScreen() {
         {result.status === 'fachpruefung' || result.status === 'vorschlag' ? (
           <>
             <ThemedText>{t('calculator.resting', { kcal: formatKcal(result.resting) })}</ThemedText>
-            <ThemedText>
-              {t('calculator.estimate', { factor: formatNumber(result.factor, 2), kcal: formatKcal(result.estimate) })}
-            </ThemedText>
+            <ThemedText>{t('calculator.estimate', { factor: formatNumber(result.factor, 2), kcal: formatKcal(result.estimate) })}</ThemedText>
           </>
         ) : null}
         {result.status === 'fachpruefung' ? <ThemedText>{t('calculator.floor')}</ThemedText> : null}

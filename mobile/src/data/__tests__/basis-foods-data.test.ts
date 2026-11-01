@@ -32,7 +32,16 @@ const quark: BasisFood = {
   allergens: ['milch'],
   diet: 'vegetarisch',
 };
-const oats: BasisFood = { ...quark, id: 'usda-test2', name: 'Haferflocken', group: 'getreide', per100: [379, 13.2, 57.6, 6.5, 10.1, 1, 1.1, 0.02], synonyms: ['Oats'], allergens: ['gluten'], diet: 'vegan' };
+const oats: BasisFood = {
+  ...quark,
+  id: 'usda-test2',
+  name: 'Haferflocken',
+  group: 'getreide',
+  per100: [379, 13.2, 57.6, 6.5, 10.1, 1, 1.1, 0.02],
+  synonyms: ['Oats'],
+  allergens: ['gluten'],
+  diet: 'vegan',
+};
 const when = { diaryDate: '2026-11-01', at: new Date('2026-11-01T08:00:00Z'), timeZone: 'Europe/Berlin' };
 const idOf = async (catalog: string) => (await db.getFirstAsync<{ id: string }>('SELECT id FROM food WHERE catalog_origin = ?', catalog))!.id;
 
@@ -56,7 +65,16 @@ describe('Grundnahrungsmittel in der Datenbank', () => {
     });
     expect(await getFood(db, oatId)).toMatchObject({ catalogId: null, catalogOrigin: 'usda-test2' });
 
-    expect(await syncBasisFoods(db, [{ ...quark, per100: [70, 11, 3, 0.2, 0, 2, 0.1, 0.1] }, { ...oats, name: 'Neu' }], 2)).toBe(1);
+    expect(
+      await syncBasisFoods(
+        db,
+        [
+          { ...quark, per100: [70, 11, 3, 0.2, 0, 2, 0.1, 0.1] },
+          { ...oats, name: 'Neu' },
+        ],
+        2
+      )
+    ).toBe(1);
     expect((await getFood(db, id))!.kcal).toBe(70);
     expect((await getFood(db, oatId))!.name).toBe('Meine Haferflocken');
     expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM food'))!.n).toBe(2);
@@ -64,7 +82,19 @@ describe('Grundnahrungsmittel in der Datenbank', () => {
 
   test('Suche über Synonyme, Umlaute und Tippfehler; Grundnahrungsmittel vor Produkten', async () => {
     await syncBasisFoods(db, BASIS_FOODS, 1);
-    await saveFood(db, null, { name: 'Haferflocken Crunchy', brand: 'Marke', barcode: '400', basis: 'g', per100: { kcal: 450, protein: 9, carbs: 60, fat: 18, fiber: 6 }, servingAmount: null }, 'off');
+    await saveFood(
+      db,
+      null,
+      {
+        name: 'Haferflocken Crunchy',
+        brand: 'Marke',
+        barcode: '400',
+        basis: 'g',
+        per100: { kcal: 450, protein: 9, carbs: 60, fat: 18, fiber: 6 },
+        servingAmount: null,
+      },
+      'off'
+    );
     const oats = await searchFoods(db, 'Haferflocken');
     expect(oats[0].catalogId).not.toBeNull();
     expect(oats.at(-1)?.name).toBe('Haferflocken Crunchy');

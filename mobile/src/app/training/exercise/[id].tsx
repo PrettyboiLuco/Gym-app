@@ -4,20 +4,20 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Choice } from '@/components/fields';
-import { exerciseName } from '@/format/exercise-name';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { TimeChart } from '@/components/time-chart';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useUnits } from '@/providers/profile-provider';
 import { exerciseBests, listExercises, type Exercise, type ExerciseBest } from '@/data/training';
 import { loadModeOf } from '@/domain/logger';
 import { localDay, timeZone } from '@/domain/time';
 import { kgToUnit } from '@/domain/units';
+import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
+import { useUnits } from '@/providers/profile-provider';
 
 /**
  * Kraftverlauf einer Übung: bester Satz je Training als Linie, Bestleistungen als gefüllte Punkte.
@@ -45,13 +45,7 @@ export default function ExerciseProgressScreen() {
   const shownBests = metric === 'e1rm' ? bests.filter((b) => b.e1rm != null) : bests;
   // Messgröße je nach Übung: Sekunden, Wiederholungen (Körpergewicht), geschätztes 1RM oder Gewicht.
   const value = (b: ExerciseBest) =>
-    timed
-      ? (b.seconds ?? 0)
-      : bodyweight
-        ? (b.reps ?? 0)
-        : metric === 'e1rm'
-          ? kgToUnit(b.e1rm ?? 0, units.weight)
-          : kgToUnit(b.weightKg, units.weight);
+    timed ? (b.seconds ?? 0) : bodyweight ? (b.reps ?? 0) : metric === 'e1rm' ? kgToUnit(b.e1rm ?? 0, units.weight) : kgToUnit(b.weightKg, units.weight);
   const better = (a: number, b: number) => (assisted && metric === 'gewicht' && !timed && !bodyweight ? a < b : a > b);
   const text = (b: ExerciseBest) =>
     timed
@@ -124,12 +118,15 @@ export default function ExerciseProgressScreen() {
       ) : null}
       {bests.length > 0 ? (
         <Card title={t('exerciseProgress.recentTitle')}>
-          {[...bests].reverse().slice(0, 8).map((b, i, list) => (
-            <View key={b.sessionId} style={[styles.row, i < list.length - 1 && [styles.rule, { borderColor: theme.backgroundSelected }]]}>
-              <ThemedText style={styles.flex}>{formatDay(localDay(new Date(b.at), timeZone))}</ThemedText>
-              <ThemedText style={styles.num}>{text(b)}</ThemedText>
-            </View>
-          ))}
+          {[...bests]
+            .reverse()
+            .slice(0, 8)
+            .map((b, i, list) => (
+              <View key={b.sessionId} style={[styles.row, i < list.length - 1 && [styles.rule, { borderColor: theme.backgroundSelected }]]}>
+                <ThemedText style={styles.flex}>{formatDay(localDay(new Date(b.at), timeZone))}</ThemedText>
+                <ThemedText style={styles.num}>{text(b)}</ThemedText>
+              </View>
+            ))}
         </Card>
       ) : null}
     </Screen>

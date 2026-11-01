@@ -12,12 +12,12 @@ import { showToast } from '@/components/toast';
 import { FigureStrip } from '@/components/today-widgets';
 import { Spacing } from '@/constants/theme';
 import { calorieGoalOn } from '@/data/goals';
-import { cachedMealTimes, DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
 import { addPlanEntries } from '@/data/meal-plan';
+import { cachedMealTimes, DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
 import { copyBookRecipe, logBookRecipe } from '@/data/recipe-book';
-import { mealPrep } from '@/domain/meal-plan';
-import { suggestMealAt } from '@/domain/diet';
 import { shiftDay } from '@/domain/dates';
+import { suggestMealAt } from '@/domain/diet';
+import { mealPrep } from '@/domain/meal-plan';
 import { MEALS, type Meal } from '@/domain/nutrition';
 import { findBookRecipe, scaledIngredients } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
@@ -34,10 +34,10 @@ const PREP_DAYS = ['2', '3', '4', '5'] as const;
 export default function BookRecipeScreen() {
   const { id, planDay } = useLocalSearchParams<{ id: string; planDay?: string }>();
   const recipe = findBookRecipe(id);
-  const { data, db } = useLoad(
-    async (d) => ({ settings: await loadNutritionSettings(d), goal: (await calorieGoalOn(d, diaryToday()))?.kcal ?? null }),
-    { settings: DEFAULT_SETTINGS, goal: null as number | null }
-  );
+  const { data, db } = useLoad(async (d) => ({ settings: await loadNutritionSettings(d), goal: (await calorieGoalOn(d, diaryToday()))?.kcal ?? null }), {
+    settings: DEFAULT_SETTINGS,
+    goal: null as number | null,
+  });
   const [servings, setServings] = useState<(typeof SERVINGS)[number] | null>(null);
   const [meal, setMeal] = useState<Meal>(recipe?.meal === 'snack' ? 'snack' : suggestMealAt(new Date().getHours(), cachedMealTimes()));
   const [logAmount, setLogAmount] = useState<(typeof LOG_AMOUNTS)[number]>('1');
@@ -162,13 +162,7 @@ export default function BookRecipeScreen() {
 
       <Card title={t('book.logTitle')}>
         <Choice label={t('nutrition.meal')} options={MEALS} value={meal} onChange={setMeal} format={(m) => t(`book.mealShort.${m}`)} />
-        <Choice
-          label={t('book.logAmountLabel')}
-          options={LOG_AMOUNTS}
-          value={logAmount}
-          onChange={setLogAmount}
-          format={(a) => formatNumber(Number(a), 1)}
-        />
+        <Choice label={t('book.logAmountLabel')} options={LOG_AMOUNTS} value={logAmount} onChange={setLogAmount} format={(a) => formatNumber(Number(a), 1)} />
         <Button
           label={t('book.log', {
             kcal: formatNumber((n.kcal ?? 0) * Number(logAmount), 0),
@@ -192,7 +186,13 @@ export default function BookRecipeScreen() {
           {t('mealPlan.planUses', { meal: t(`nutrition.meals.${meal}`), portions: formatNumber(Number(logAmount), 1) })}
         </ThemedText>
         <Button label={t('mealPlan.planAdd')} variant="secondary" onPress={plan} />
-        <Choice label={t('mealPlan.prepDays')} options={PREP_DAYS} value={prepDays} onChange={setPrepDays} format={(d) => t('mealPlan.prepDaysOption', { count: d })} />
+        <Choice
+          label={t('mealPlan.prepDays')}
+          options={PREP_DAYS}
+          value={prepDays}
+          onChange={setPrepDays}
+          format={(d) => t('mealPlan.prepDaysOption', { count: d })}
+        />
         <Button label={t('mealPlan.prep', { count: Number(prepDays) })} variant="secondary" onPress={prep} />
         <ThemedText type="small" themeColor="textSecondary">
           {t('mealPlan.prepHint', { scaled: Number(prepDays) })}

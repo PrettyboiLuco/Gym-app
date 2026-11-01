@@ -8,9 +8,7 @@ type Row = { id: string; name: string; amount: number | null; unit: SupplementUn
 const toSupplement = (r: Row): Supplement => ({ id: r.id, name: r.name, amount: r.amount, unit: r.unit, reminderTime: r.reminder_time });
 
 export async function listSupplements(db: Db): Promise<Supplement[]> {
-  const rows = await db.getAllAsync<Row>(
-    'SELECT id, name, amount, unit, reminder_time FROM supplement WHERE archived = 0 ORDER BY position, created_at_utc'
-  );
+  const rows = await db.getAllAsync<Row>('SELECT id, name, amount, unit, reminder_time FROM supplement WHERE archived = 0 ORDER BY position, created_at_utc');
   return rows.map(toSupplement);
 }
 
@@ -68,10 +66,7 @@ export async function setTaken(db: Db, supplement: Supplement, day: string, take
 
 /** Abgehakte Tage je Supplement ab `fromDay`. */
 export async function loggedDays(db: Db, fromDay: string): Promise<Map<string, string[]>> {
-  const rows = await db.getAllAsync<{ supplement_id: string; day: string }>(
-    'SELECT supplement_id, day FROM supplement_log WHERE day >= ?',
-    fromDay
-  );
+  const rows = await db.getAllAsync<{ supplement_id: string; day: string }>('SELECT supplement_id, day FROM supplement_log WHERE day >= ?', fromDay);
   const map = new Map<string, string[]>();
   for (const r of rows) map.set(r.supplement_id, [...(map.get(r.supplement_id) ?? []), r.day]);
   return map;

@@ -4,16 +4,16 @@ import { useEffect, useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton, Field } from '@/components/fields';
-import { foodTitle } from '@/format/food-title';
 import { extraLine, formatKcal, macroLine } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { deleteEvent, getEvent, updateEvent, type ConsumptionEvent } from '@/data/nutrition';
-import { useDb } from '@/providers/store-provider';
 import { fractionOf, MEALS, parseAmount, type Meal } from '@/domain/nutrition';
+import { foodTitle } from '@/format/food-title';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatNumber, t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 type EntryForm = { amount: string; meal: Meal | null; day: string };
 

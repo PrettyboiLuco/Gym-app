@@ -13,8 +13,8 @@
 // }
 // "reps" ist [von, bis] oder eine Zahl; Zeit-Übungen nutzen "seconds" statt "reps". "rest" in Sekunden (Standard 120).
 
-import { EQUIPMENT, EXERCISE_KINDS, MUSCLE_GROUPS, SIDES, type Equipment, type ExerciseKind, type MuscleGroup, type Sides } from './exercises';
 import type { CardioActivity } from './cardio';
+import { EQUIPMENT, EXERCISE_KINDS, MUSCLE_GROUPS, SIDES, type Equipment, type ExerciseKind, type MuscleGroup, type Sides } from './exercises';
 import { ROUTINE_DEFAULTS, type RoutineDraft } from './routines';
 import { validatePlan, type PlanDraft, type PlanProblem } from './training';
 
@@ -50,7 +50,11 @@ export type PlanFileResult =
 const DEFAULT_REST = 120;
 /** Supersatz als Buchstabe („A“) oder Zahl; gleiche Angabe bei aufeinanderfolgenden Übungen = Supersatz. */
 const supersetOf = (v: unknown) =>
-  typeof v === 'string' && /^[A-Za-z]$/.test(v.trim()) ? v.trim().toUpperCase().charCodeAt(0) - 64 : typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : null;
+  typeof v === 'string' && /^[A-Za-z]$/.test(v.trim())
+    ? v.trim().toUpperCase().charCodeAt(0) - 64
+    : typeof v === 'number' && Number.isInteger(v) && v > 0
+      ? v
+      : null;
 const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
@@ -142,7 +146,14 @@ export function parsePlanFile(text: string, knownExerciseIds: ReadonlySet<string
     if (!str(row.name) || items.length === 0 || items.some((i) => !Number.isInteger(i.seconds) || i.seconds < 5 || i.seconds > 300)) {
       return { ok: false, error: 'routine' };
     }
-    routines.push({ ...ROUTINE_DEFAULTS, kind: 'dehnen', name: str(row.name)!, items, switchSeconds: num(row.switchSeconds) ?? ROUTINE_DEFAULTS.switchSeconds, transitionSeconds: num(row.transitionSeconds) ?? ROUTINE_DEFAULTS.transitionSeconds });
+    routines.push({
+      ...ROUTINE_DEFAULTS,
+      kind: 'dehnen',
+      name: str(row.name)!,
+      items,
+      switchSeconds: num(row.switchSeconds) ?? ROUTINE_DEFAULTS.switchSeconds,
+      transitionSeconds: num(row.transitionSeconds) ?? ROUTINE_DEFAULTS.transitionSeconds,
+    });
   }
 
   if (unknown.size > 0) return { ok: false, error: 'unknownExercises', unknown: [...unknown] };
@@ -160,6 +171,9 @@ export function parsePlanFile(text: string, knownExerciseIds: ReadonlySet<string
     weekdays: weekdays && weekdays.length > 0 ? [...new Set(weekdays)].sort() : null,
     customExercises,
     routines,
-    goals: { kcal: kcal !== null && kcal >= 1000 && kcal <= 8000 ? Math.round(kcal) : null, drinkMl: drinkMl !== null && drinkMl >= 500 && drinkMl <= 10000 ? Math.round(drinkMl) : null },
+    goals: {
+      kcal: kcal !== null && kcal >= 1000 && kcal <= 8000 ? Math.round(kcal) : null,
+      drinkMl: drinkMl !== null && drinkMl >= 500 && drinkMl <= 10000 ? Math.round(drinkMl) : null,
+    },
   };
 }

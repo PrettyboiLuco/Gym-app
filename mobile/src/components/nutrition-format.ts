@@ -2,10 +2,10 @@
 
 import { cachedDayEnd, cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
 import { MICRO_KEYS, MICRO_UNITS, type Micros } from '@/domain/basis-foods';
-import { suggestMealAt } from '@/domain/diet';
-import { localDay, timeZone, todayDay } from '@/domain/time';
 import { shiftDay } from '@/domain/dates';
+import { suggestMealAt } from '@/domain/diet';
 import { DRINK_TYPES, MEALS, NUTRIENT_KEYS, type DrinkType, type Meal, type NutrientTotals, type Nutrients } from '@/domain/nutrition';
+import { localDay, timeZone, todayDay } from '@/domain/time';
 import { formatDay, formatNumber, t } from '@/i18n';
 
 /**
@@ -32,7 +32,7 @@ export function formatAmount(amount: number, unit: EventUnit) {
   return t(`nutrition.units.${unit}`, { value: formatNumber(amount) });
 }
 
-export function formatGram(value: number | null) {
+function formatGram(value: number | null) {
   return value === null ? t('nutrition.unknown') : t('nutrition.gram', { value: formatNumber(value) });
 }
 
@@ -49,9 +49,7 @@ export function macroLine(n: Nutrients) {
 
 /** Zucker, gesättigte Fettsäuren, Salz (A3) – nur die bekannten; null, wenn keiner bekannt ist. */
 export function extraLine(n: Nutrients) {
-  const parts = (['sugar', 'satFat', 'salt'] as const)
-    .filter((key) => n[key] != null)
-    .map((key) => `${t(`nutrition.${key}`)} ${formatGram(n[key] ?? null)}`);
+  const parts = (['sugar', 'satFat', 'salt'] as const).filter((key) => n[key] != null).map((key) => `${t(`nutrition.${key}`)} ${formatGram(n[key] ?? null)}`);
   return parts.length ? parts.join(' · ') : null;
 }
 
@@ -117,9 +115,7 @@ export function readTarget(params: TargetParams): { day: string; target: Target 
     const drinkType = (DRINK_TYPES as readonly string[]).includes(params.drink) ? (params.drink as DrinkType) : 'sonstiges';
     return { day, target: { kind: 'getraenk', drinkType } };
   }
-  const meal = (MEALS as readonly string[]).includes(params.meal ?? '')
-    ? (params.meal as Meal)
-    : suggestMealAt(new Date().getHours(), cachedMealTimes());
+  const meal = (MEALS as readonly string[]).includes(params.meal ?? '') ? (params.meal as Meal) : suggestMealAt(new Date().getHours(), cachedMealTimes());
   return { day, target: { kind: 'essen', meal } };
 }
 

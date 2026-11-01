@@ -3,8 +3,8 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { comparePair, latestBySite } from '../body';
-import { bmi, calculate, CALORIE_FLOOR, proteinRange, underweightLimitKg, type CalculatorInput } from '../energy';
 import { weekStart } from '../dates';
+import { bmi, calculate, CALORIE_FLOOR, proteinRange, underweightLimitKg, type CalculatorInput } from '../energy';
 import { EMPTY_GOAL_FORM, habitWeeks, parseGoalForm, strengthProgress, weightProgress } from '../goals';
 import { ageOn, EMPTY_PROFILE, parseBirthMonth, parseProfileForm, profileToForm } from '../profile';
 import { parseSetInput } from '../training';
@@ -14,16 +14,14 @@ import { dailyMeans, weeklyChange } from '../weight';
 describe('Einheiten (UX-003)', () => {
   test('1 lb = 0,45359237 kg', () => expect(unitToKg(1, 'lb')).toBeCloseTo(0.45359237, 8));
   test('hin und zurück bleibt gleich', () => expect(kgToUnit(unitToKg(225, 'lb'), 'lb')).toBeCloseTo(225, 10));
-  test('Körpergewicht in lb wird als kg gespeichert', () =>
-    expect(parseWeightIn('176,4', 'lb', BODY_WEIGHT_RANGE)).toBeCloseTo(80.01, 2));
+  test('Körpergewicht in lb wird als kg gespeichert', () => expect(parseWeightIn('176,4', 'lb', BODY_WEIGHT_RANGE)).toBeCloseTo(80.01, 2));
   test('Grenzen gelten in kg, auch bei lb', () => {
     expect(parseWeightIn('30', 'lb', BODY_WEIGHT_RANGE)).toBeNull();
     expect(parseWeightIn('44', 'lb', BODY_WEIGHT_RANGE)).not.toBeNull();
   });
   test('Größe in Zoll', () => expect(parseLengthIn('70', 'in', { min: 100, max: 250 })).toBeCloseTo(177.8));
   test('Eingabetext in lb', () => expect(weightInputText(100, 'lb')).toBe('220,46'));
-  test('Satz in lb wird in kg gespeichert', () =>
-    expect(parseSetInput('135', '5', 'lb')?.weightKg).toBeCloseTo(61.235, 3));
+  test('Satz in lb wird in kg gespeichert', () => expect(parseSetInput('135', '5', 'lb')?.weightKg).toBeCloseTo(61.235, 3));
   test('Satz in kg unverändert', () => expect(parseSetInput('62,5', '8')).toEqual({ weightKg: 62.5, reps: 8 }));
 });
 
@@ -89,16 +87,14 @@ describe('Kalorienrechner (CALC-001–005)', () => {
     const r = calculate({ ...base, goal: 'abnehmen', delta: -500 });
     expect(r.status === 'vorschlag' && r.kcal).toBe(2080);
   });
-  test('nicht erlaubter Abstand wird abgelehnt', () =>
-    expect(() => calculate({ ...base, goal: 'abnehmen', delta: -1000 })).toThrow());
+  test('nicht erlaubter Abstand wird abgelehnt', () => expect(() => calculate({ ...base, goal: 'abnehmen', delta: -1000 })).toThrow());
   test('fehlende Angaben werden genannt', () =>
     expect(calculate({ ...base, heightCm: null, activity: null })).toEqual({ status: 'fehlt', missing: ['height', 'activity'] }));
   test('außerhalb 19–78 Jahre keine Zahl (CALC-002)', () => {
     expect(calculate({ ...base, age: 18 }).status).toBe('alter');
     expect(calculate({ ...base, age: 79 }).status).toBe('alter');
   });
-  test('sensible Situation: keine Zahl (COACH-010)', () =>
-    expect(calculate({ ...base, sensitive: true }).status).toBe('sensibel'));
+  test('sensible Situation: keine Zahl (COACH-010)', () => expect(calculate({ ...base, sensitive: true }).status).toBe('sensibel'));
   test('Untergewicht + abnehmen: keine Zahl (GOAL-007)', () =>
     expect(calculate({ ...base, weightKg: 55, goal: 'abnehmen', delta: -250 }).status).toBe('untergewicht'));
   test('Untergewicht + zunehmen: Zahl mit Hinweis', () => {
@@ -139,9 +135,7 @@ describe('Ziele (GOAL-001–007)', () => {
   test('sensible Situation: kein Abnehmziel', () =>
     expect(parseGoalForm({ ...weightForm, direction: 'abnehmen' }, 'kg', { ...ctx, sensitive: true }).problems).toEqual(['sensitive']));
   test('Zielgewicht beim Abnehmen braucht die Größe', () =>
-    expect(parseGoalForm({ ...weightForm, direction: 'abnehmen', targetWeight: '75' }, 'kg', { ...ctx, heightCm: null }).problems).toEqual([
-      'heightNeeded',
-    ]));
+    expect(parseGoalForm({ ...weightForm, direction: 'abnehmen', targetWeight: '75' }, 'kg', { ...ctx, heightCm: null }).problems).toEqual(['heightNeeded']));
   test('Richtung und Zielgewicht passen nicht', () =>
     expect(parseGoalForm({ ...weightForm, direction: 'zunehmen', targetWeight: '75' }, 'kg', ctx).problems).toEqual(['direction']));
   test('Halten ignoriert ein Zielgewicht', () =>
@@ -175,8 +169,7 @@ describe('Ziele (GOAL-001–007)', () => {
       remainingKg: 3,
       reached: false,
     }));
-  test('ohne Trend keine Aussage', () =>
-    expect(weightProgress({ direction: 'abnehmen', targetKg: 75, startKg: 80 }, null).remainingKg).toBeNull());
+  test('ohne Trend keine Aussage', () => expect(weightProgress({ direction: 'abnehmen', targetKg: 75, startKg: 80 }, null).remainingKg).toBeNull());
   test('Ziel erreicht', () => expect(weightProgress({ direction: 'zunehmen', targetKg: 70, startKg: 65 }, 70.2).reached).toBe(true));
 
   const sets = [
@@ -191,8 +184,7 @@ describe('Ziele (GOAL-001–007)', () => {
     expect(p.reached).toBe(false);
   });
   test('Kraftziel erreicht', () => expect(strengthProgress(sets, { targetKg: 85, targetReps: 5 }).reached).toBe(true));
-  test('schwerer Satz mit zu wenigen Wiederholungen zählt nicht', () =>
-    expect(strengthProgress(sets, { targetKg: 90, targetReps: 5 }).reached).toBe(false));
+  test('schwerer Satz mit zu wenigen Wiederholungen zählt nicht', () => expect(strengthProgress(sets, { targetKg: 90, targetReps: 5 }).reached).toBe(false));
 
   test('Wochenbeginn Montag', () => {
     expect(weekStart('2026-10-29')).toBe('2026-10-26');
@@ -215,9 +207,16 @@ describe('Gewichtsverlauf (GOAL-003)', () => {
   test('Veränderung zur Vorwoche', () => expect(weeklyChange(entries, '2026-10-29')).toBeCloseTo(-1));
   test('ohne zwei Durchschnitte keine Veränderung', () => expect(weeklyChange(entries.slice(0, 7), '2026-10-29')).toBeNull());
   test('ein Wert pro Tag (Mittel)', () =>
-    expect(dailyMeans([{ day: '2026-10-29', kg: 80 }, { day: '2026-10-29', kg: 81 }], '2026-10-29', 30)).toEqual([
-      { day: '2026-10-29', kg: 80.5 },
-    ]));
+    expect(
+      dailyMeans(
+        [
+          { day: '2026-10-29', kg: 80 },
+          { day: '2026-10-29', kg: 81 },
+        ],
+        '2026-10-29',
+        30
+      )
+    ).toEqual([{ day: '2026-10-29', kg: 80.5 }]));
 });
 
 describe('Körpermaße (GOAL-004)', () => {

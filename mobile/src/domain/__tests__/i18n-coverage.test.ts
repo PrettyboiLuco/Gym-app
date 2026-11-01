@@ -4,7 +4,16 @@ import { describe, expect, test } from '@jest/globals';
 
 import { de } from '@/i18n/de';
 
-import { EQUIPMENT, EXERCISE_META, HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, MUSCLE_GROUPS, STARTER_EXERCISES, STRETCH_EXERCISES } from '../exercises';
+import {
+  EQUIPMENT,
+  EXERCISE_META,
+  HIIT_EXERCISES,
+  MORE_STRENGTH_EXERCISES,
+  MOVEMENT_PATTERNS,
+  MUSCLE_GROUPS,
+  STARTER_EXERCISES,
+  STRETCH_EXERCISES,
+} from '../exercises';
 import { DAY_TYPES, GOALS, SPLITS } from '../planner';
 import { DURATIONS } from '../wish';
 

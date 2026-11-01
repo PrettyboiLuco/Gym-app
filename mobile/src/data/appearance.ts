@@ -2,8 +2,8 @@
 
 import { type AppearanceChoice, APPEARANCES } from '@/domain/appearance';
 
-import type { Db } from './db';
 import { readState, writeState } from './app-state';
+import type { Db } from './db';
 
 const KEY = 'appearance';
 

@@ -6,14 +6,14 @@ import { Platform } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { buildReport, periodFor, REPORT_WEEKS, reportHtml, reportSections, reportText, type Report, type ReportWeeks } from '@/data/report';
-import { useDb } from '@/providers/store-provider';
+import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 /** Bericht für Trainer/Arzt als PDF und Zusammenfassung zum Kopieren (Ausbauplan A5.5/A5.6). Ohne Bewertung. */
 export default function ReportScreen() {
@@ -66,7 +66,14 @@ export default function ReportScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('report.cardText')}
         </ThemedText>
-        <Choice label={t('report.weeks')} options={REPORT_WEEKS} value={weeks} onChange={setWeeks} format={(w) => t('report.weeksOption', { count: w })} chips />
+        <Choice
+          label={t('report.weeks')}
+          options={REPORT_WEEKS}
+          value={weeks}
+          onChange={setWeeks}
+          format={(w) => t('report.weeksOption', { count: w })}
+          chips
+        />
         <Button label={t('report.pdf')} disabled={busy || !report} onPress={sharePdf} />
         <Button label={t('report.copy')} variant="secondary" disabled={!report} onPress={copy} />
         <ThemedText type="small" themeColor="textSecondary">

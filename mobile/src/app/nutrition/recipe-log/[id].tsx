@@ -2,11 +2,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
+import { DietNotice } from '@/components/diet-notice';
 import { Choice, Field } from '@/components/fields';
 import { dayLabel, formatKcal, macroLine, readTarget, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { DietNotice } from '@/components/diet-notice';
 import { DEFAULT_SETTINGS, getRecipeVersion, loadNutritionSettings, logRecipe, recipeFacts } from '@/data/nutrition';
 import type { FoodFacts } from '@/domain/diet';
 import { fractionOf, MEALS, nutrientsForAmount, parseAmount, per100FromTotal, type Meal } from '@/domain/nutrition';

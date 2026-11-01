@@ -4,28 +4,21 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { routineMinutes, templateName, withMinutes } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useProfile, useUnits } from '@/providers/profile-provider';
-import {
-  addFlexibilityTest,
-  deleteFlexibilityTest,
-  listFlexibilityTests,
-  listRoutines,
-  type FlexibilityTest,
-  type RoutineSummary,
-} from '@/data/routines';
+import { addFlexibilityTest, deleteFlexibilityTest, listFlexibilityTests, listRoutines, type FlexibilityTest, type RoutineSummary } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
 import { FLEX_RANGE } from '@/domain/goals';
 import { STRETCH_TEMPLATES } from '@/domain/routines';
+import { todayDay } from '@/domain/time';
 import { parseLengthIn } from '@/domain/units';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatLength, t } from '@/i18n';
+import { useProfile, useUnits } from '@/providers/profile-provider';
 
 async function loadStretch(db: Db) {
   const [list, exercises, tests] = await Promise.all([listRoutines(db, 'dehnen'), listExercises(db), listFlexibilityTests(db)]);
@@ -103,31 +96,27 @@ export default function StretchScreen() {
       <Card title={t('stretch.flexTitle')}>
         <ThemedText type="small">{t('stretch.flexHow')}</ThemedText>
         <View style={styles.row}>
-          <Field
-            label={t('stretch.flexInput', { unit: units.length })}
-            value={input}
-            onChangeText={setInput}
-            keyboardType="decimal-pad"
-            style={styles.flex}
-          />
+          <Field label={t('stretch.flexInput', { unit: units.length })} value={input} onChangeText={setInput} keyboardType="decimal-pad" style={styles.flex} />
           <Button label={t('stretch.flexSave')} onPress={saveTest} />
         </View>
         {error ? (
-          <ThemedText style={{ color: theme.danger }}>
-            {t('stretch.flexInvalid', { max: formatLength(FLEX_RANGE.max, units.length) })}
-          </ThemedText>
+          <ThemedText style={{ color: theme.danger }}>{t('stretch.flexInvalid', { max: formatLength(FLEX_RANGE.max, units.length) })}</ThemedText>
         ) : null}
         {data.tests.length > 0 ? (
           <>
-            <ThemedText>
-              {t('stretch.flexLatest', { value: formatLength(data.tests[0].cm, units.length), date: formatDay(data.tests[0].day) })}
-            </ThemedText>
+            <ThemedText>{t('stretch.flexLatest', { value: formatLength(data.tests[0].cm, units.length), date: formatDay(data.tests[0].day) })}</ThemedText>
             {data.tests.slice(1, 6).map((test) => (
               <View key={test.id} style={styles.entry}>
                 <ThemedText type="small" themeColor="textSecondary" style={styles.flex}>
                   {formatDay(test.day)} · {formatLength(test.cm, units.length)}
                 </ThemedText>
-                <ConfirmButton label={t('common.delete')} onConfirm={async () => { await deleteFlexibilityTest(db, test.id); await reload(); }} />
+                <ConfirmButton
+                  label={t('common.delete')}
+                  onConfirm={async () => {
+                    await deleteFlexibilityTest(db, test.id);
+                    await reload();
+                  }}
+                />
               </View>
             ))}
           </>

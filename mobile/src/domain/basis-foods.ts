@@ -86,7 +86,9 @@ export function editDistance(a: string, b: string, max = 2): number {
  * exakt am Wortanfang oder mit höchstens einem Tippfehler (ab 7 Zeichen zwei).
  */
 export function fuzzyBasis(query: string, foods: readonly BasisFood[], limit = 10): BasisFood[] {
-  const words = foldText(query).split(' ').filter((w) => w.length >= 3);
+  const words = foldText(query)
+    .split(' ')
+    .filter((w) => w.length >= 3);
   if (words.length === 0) return [];
   const scored: { food: BasisFood; score: number }[] = [];
   for (const food of foods) {
@@ -108,7 +110,10 @@ export function fuzzyBasis(query: string, foods: readonly BasisFood[], limit = 1
     }
     if (ok) scored.push({ food, score: score + food.name.length / 100 });
   }
-  return scored.sort((a, b) => a.score - b.score).slice(0, limit).map((s) => s.food);
+  return scored
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map((s) => s.food);
 }
 
 /** Mikronährstoffe für eine Menge (Faktor = Menge / 100). */

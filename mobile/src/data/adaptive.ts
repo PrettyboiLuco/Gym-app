@@ -1,7 +1,7 @@
 // Daten für den adaptiven Energiebedarf (Ausbauplan A7): Aufnahme der letzten Wochen, Gewicht, Einrichtung, Regelwahl.
 
-import { shiftDay } from '@/domain/dates';
 import { estimateExpenditure, weeklyBalance, WINDOW_DAYS, type Estimate, type WeekBalance } from '@/domain/adaptive';
+import { shiftDay } from '@/domain/dates';
 
 import { readState, writeState } from './app-state';
 import type { Db } from './db';

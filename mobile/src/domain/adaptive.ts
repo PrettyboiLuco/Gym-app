@@ -12,10 +12,10 @@
 //   gerundet, höchstens ±200 kcal Änderung je Woche, unter 100 kcal Unterschied kein Vorschlag, nie unter die Untergrenze, kein Senken bei Untergewicht; ohne
 //   Schätzung gilt Fassung 1.
 
-import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI } from './energy';
-import { weightTrend, type WeightEntry } from './weight';
 import { shiftDay } from './dates';
+import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI } from './energy';
 import { roundTo } from './math';
+import { weightTrend, type WeightEntry } from './weight';
 
 export const ADAPTIVE_RULES_VERSION = 1;
 export const WINDOW_DAYS = 28;
@@ -46,7 +46,7 @@ export type Estimate =
     }
   | { kind: 'lernen'; completeDays: number; needed: number; weightStart: boolean; weightEnd: boolean; from: string; to: string };
 
-export const isComplete = (d: IntakeDay) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0 && !d.flagged;
+const isComplete = (d: IntakeDay) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0 && !d.flagged;
 
 /** Geschätzter Verbrauch für das Fenster bis `endDay` (meist gestern). */
 export function estimateExpenditure(days: IntakeDay[], weights: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string, windowDays = WINDOW_DAYS): Estimate {
@@ -55,7 +55,15 @@ export function estimateExpenditure(days: IntakeDay[], weights: Pick<WeightEntry
   const trendStart = weightTrend(weights, shiftDay(from, 6));
   const trendEnd = weightTrend(weights, endDay);
   if (complete.length < MIN_COMPLETE_DAYS || trendStart === null || trendEnd === null) {
-    return { kind: 'lernen', completeDays: complete.length, needed: MIN_COMPLETE_DAYS, weightStart: trendStart !== null, weightEnd: trendEnd !== null, from, to: endDay };
+    return {
+      kind: 'lernen',
+      completeDays: complete.length,
+      needed: MIN_COMPLETE_DAYS,
+      weightStart: trendStart !== null,
+      weightEnd: trendEnd !== null,
+      from,
+      to: endDay,
+    };
   }
   const spanDays = windowDays - 7;
   const intakeAvg = complete.reduce((s, d) => s + (d.kcal ?? 0), 0) / complete.length;
@@ -96,7 +104,10 @@ export type V2Input = {
   heightCm: number | null;
 };
 
-export type V2Result = { kind: 'kcal'; from: number; to: number; target: number; capped: boolean } | { kind: 'passt'; target: number } | { kind: 'ohne'; why: 'lernen' | 'keineEinrichtung' | 'keinZiel' };
+export type V2Result =
+  | { kind: 'kcal'; from: number; to: number; target: number; capped: boolean }
+  | { kind: 'passt'; target: number }
+  | { kind: 'ohne'; why: 'lernen' | 'keineEinrichtung' | 'keinZiel' };
 
 /** Vorschlag nach Fassung 2 (nur Zahlenteil; Sperren wie sensibel/ohne Zahlen/Status prüft der Check-in vorher). */
 export function suggestV2(i: V2Input): V2Result {

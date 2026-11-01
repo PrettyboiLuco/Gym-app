@@ -3,17 +3,17 @@
 // - Geplante und tatsächliche Werte sind getrennt; jeder Satz wird sofort gespeichert (TRAIN-013).
 // - Letzte Leistung nur aus derselben Übung (TRAIN-014).
 
-import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
 import type { CardioActivity } from '@/domain/cardio';
+import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
 import { estimateOneRepMax, setOrder, type LoadMode, type PlateSetup, type SetType } from '@/domain/logger';
-import { localDay, timeZone } from '@/domain/time';
 import type { PastSession } from '@/domain/progression';
+import { daysSince } from '@/domain/progression';
 import type { PreviousBest } from '@/domain/summary';
+import { localDay, timeZone } from '@/domain/time';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
-import { daysSince } from '@/domain/progression';
 
 // ------------------------------------------------------------------------------------ Übungen
 
@@ -47,13 +47,7 @@ export function listExercises(db: Db) {
 
 const KRAFT_DEFAULTS = { kind: 'kraft', sides: 'beidseitig', holdSeconds: null, measure: 'wdh', pattern: null } as const;
 
-export async function addCustomExercise(
-  db: Db,
-  name: string,
-  equipment: Equipment,
-  muscleGroup: MuscleGroup,
-  more: Partial<ExerciseFields> = {}
-) {
+export async function addCustomExercise(db: Db, name: string, equipment: Equipment, muscleGroup: MuscleGroup, more: Partial<ExerciseFields> = {}) {
   const id = newId();
   const f = { ...KRAFT_DEFAULTS, ...more };
   await db.runAsync(
@@ -133,10 +127,7 @@ export async function listActivePlans(db: Db): Promise<PlanSummary[]> {
 
 /** Aktive Version eines Plans als bearbeitbarer Entwurf. */
 export async function loadPlanDraft(db: Db, planId: string): Promise<PlanDraft | null> {
-  const version = await db.getFirstAsync<{ id: string; name: string }>(
-    'SELECT id, name FROM plan_version WHERE plan_id = ? AND active = 1',
-    planId
-  );
+  const version = await db.getFirstAsync<{ id: string; name: string }>('SELECT id, name FROM plan_version WHERE plan_id = ? AND active = 1', planId);
   return version ? loadVersionDraft(db, version.id, version.name) : null;
 }
 
@@ -181,7 +172,9 @@ async function loadVersionDraft(db: Db, versionId: string, name: string): Promis
       warmup: day.warmup === 1,
       cooldown: day.cooldown === 1,
       // Cardio nur mitgeben, wenn vorhanden – so bleibt ein Plan ohne Cardio unverändert.
-      ...(cardio.length ? { cardio: cardio.map((c) => ({ activity: c.activity, minutes: c.minutes, atEnd: c.atEnd === 1, ...(c.note ? { note: c.note } : {}) })) } : {}),
+      ...(cardio.length
+        ? { cardio: cardio.map((c) => ({ activity: c.activity, minutes: c.minutes, atEnd: c.atEnd === 1, ...(c.note ? { note: c.note } : {}) })) }
+        : {}),
     });
   }
   return draft;
@@ -200,10 +193,7 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, 
   await db.withTransactionAsync(async () => {
     const now = nowUtc();
     if (!planId) await db.runAsync('INSERT INTO plan (id, created_at_utc) VALUES (?, ?)', id, now);
-    const last = await db.getFirstAsync<{ version: number }>(
-      'SELECT MAX(version) AS version FROM plan_version WHERE plan_id = ?',
-      id
-    );
+    const last = await db.getFirstAsync<{ version: number }>('SELECT MAX(version) AS version FROM plan_version WHERE plan_id = ?', id);
     await db.runAsync('UPDATE plan_version SET active = 0 WHERE plan_id = ?', id);
     const versionId = newId();
     await db.runAsync(
@@ -298,11 +288,7 @@ export async function activatePlanVersion(db: Db, planId: string, versionId: str
     await db.runAsync('UPDATE plan_version SET active = 0 WHERE plan_id = ?', planId);
     await db.runAsync('UPDATE plan_version SET active = 1 WHERE id = ? AND plan_id = ?', versionId, planId);
     if (today) {
-      await db.runAsync(
-        'UPDATE plan_version SET valid_until = NULL, return_version_id = NULL WHERE id = ? AND valid_until < ?',
-        versionId,
-        today
-      );
+      await db.runAsync('UPDATE plan_version SET valid_until = NULL, return_version_id = NULL WHERE id = ? AND valid_until < ?', versionId, today);
     }
   });
 }
@@ -398,12 +384,7 @@ export async function lastCompletedDayPosition(db: Db, planId: string): Promise<
 export async function startSession(db: Db, planDayId: string | null): Promise<string> {
   const id = newId();
   await db.withTransactionAsync(async () => {
-    await db.runAsync(
-      "INSERT INTO workout_session (id, plan_day_id, status, started_at_utc) VALUES (?, ?, 'aktiv', ?)",
-      id,
-      planDayId,
-      nowUtc()
-    );
+    await db.runAsync("INSERT INTO workout_session (id, plan_day_id, status, started_at_utc) VALUES (?, ?, 'aktiv', ?)", id, planDayId, nowUtc());
     if (!planDayId) return;
     const items = await db.getAllAsync<{
       exerciseId: string;
@@ -489,24 +470,12 @@ export function listSessionSets(db: Db, sessionId: string) {
 }
 
 export async function completeSet(db: Db, setId: string, weightKg: number, reps: number) {
-  await db.runAsync(
-    'UPDATE set_log SET weight_kg = ?, reps = ?, completed_at_utc = ? WHERE id = ?',
-    weightKg,
-    reps,
-    nowUtc(),
-    setId
-  );
+  await db.runAsync('UPDATE set_log SET weight_kg = ?, reps = ?, completed_at_utc = ? WHERE id = ?', weightKg, reps, nowUtc(), setId);
 }
 
 /** Zeit-Satz erledigt (z. B. Plank 45 s); Gewicht optional, Standard 0 (UX-011). */
 export async function completeTimedSet(db: Db, setId: string, seconds: number, weightKg = 0) {
-  await db.runAsync(
-    'UPDATE set_log SET seconds = ?, weight_kg = ?, reps = NULL, completed_at_utc = ? WHERE id = ?',
-    seconds,
-    weightKg,
-    nowUtc(),
-    setId
-  );
+  await db.runAsync('UPDATE set_log SET seconds = ?, weight_kg = ?, reps = NULL, completed_at_utc = ? WHERE id = ?', seconds, weightKg, nowUtc(), setId);
 }
 
 export async function reopenSet(db: Db, setId: string) {
@@ -566,10 +535,7 @@ export async function addSet(db: Db, sessionId: string, exerciseId: string) {
     sessionId,
     exerciseId
   );
-  const max = await db.getFirstAsync<{ position: number | null }>(
-    'SELECT MAX(position) AS position FROM set_log WHERE session_id = ?',
-    sessionId
-  );
+  const max = await db.getFirstAsync<{ position: number | null }>('SELECT MAX(position) AS position FROM set_log WHERE session_id = ?', sessionId);
   await db.runAsync(
     `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds,
      planned_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -639,13 +605,7 @@ export async function replaceOpenSets(db: Db, sessionId: string, fromExerciseId:
  * Frühere Einheiten einer Übung (neueste zuerst) mit ihren erledigten Sätzen, für die Steigerungsregeln
  * (TRAIN-018). Abgebrochene Trainings zählen nicht.
  */
-export async function exerciseHistory(
-  db: Db,
-  exerciseId: string,
-  excludeSessionId: string,
-  nowMs: number,
-  limit = 3
-): Promise<PastSession[]> {
+export async function exerciseHistory(db: Db, exerciseId: string, excludeSessionId: string, nowMs: number, limit = 3): Promise<PastSession[]> {
   const sessions = await db.getAllAsync<{ sessionId: string; at: string }>(
     `SELECT l.session_id AS sessionId, MAX(l.completed_at_utc) AS at FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
@@ -671,9 +631,7 @@ export async function exerciseHistory(
 
 /** Ende des letzten abgeschlossenen Trainings (für den Hinweis zum Wiedereinstieg, TRAIN-015). */
 export async function lastFinishedAt(db: Db): Promise<string | null> {
-  const row = await db.getFirstAsync<{ at: string | null }>(
-    "SELECT MAX(finished_at_utc) AS at FROM workout_session WHERE status = 'abgeschlossen'"
-  );
+  const row = await db.getFirstAsync<{ at: string | null }>("SELECT MAX(finished_at_utc) AS at FROM workout_session WHERE status = 'abgeschlossen'");
   return row?.at ?? null;
 }
 
@@ -761,8 +719,7 @@ export async function exerciseBests(db: Db, exerciseId: string, loadMode?: LoadM
     // Gegengewicht: weniger ist besser.
     const heavier = mode === 'unterstuetzt' ? kg < (prev?.weightKg ?? Infinity) : kg > (prev?.weightKg ?? -Infinity);
     const better =
-      !prev ||
-      (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : heavier || (kg === prev.weightKg && (r.reps ?? 0) > (prev.reps ?? 0)));
+      !prev || (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : heavier || (kg === prev.weightKg && (r.reps ?? 0) > (prev.reps ?? 0)));
     if (better) bySession.set(r.sessionId, { sessionId: r.sessionId, at: r.at, weightKg: kg, reps: r.reps, seconds: r.seconds, e1rm: bestE1rm });
     else if (prev) prev.e1rm = bestE1rm;
   }

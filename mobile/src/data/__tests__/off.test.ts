@@ -36,7 +36,10 @@ describe('Produkt per Barcode', () => {
     const res = await off.fetchProduct('4000000000001');
     expect(res).toEqual({
       ok: true,
-      value: expect.objectContaining({ name: 'Haferflocken', per100: { kcal: 370, protein: 13, carbs: null, fat: null, fiber: null, sugar: null, satFat: null, salt: null } }),
+      value: expect.objectContaining({
+        name: 'Haferflocken',
+        per100: { kcal: 370, protein: 13, carbs: null, fat: null, fiber: null, sugar: null, satFat: null, salt: null },
+      }),
     });
     const [url, init] = fetchMock.mock.calls[0] as [string, { headers: Record<string, string> }];
     expect(url).toContain('/api/v3/product/4000000000001');
@@ -55,9 +58,11 @@ describe('Produkt per Barcode', () => {
     expect(await off.fetchProduct('1')).toEqual({ ok: false, error: 'unavailable' });
   });
   test('kein Netz', async () => {
-    const off = await loadOff(jest.fn(async () => {
-      throw new Error('network');
-    }) as FetchMock);
+    const off = await loadOff(
+      jest.fn(async () => {
+        throw new Error('network');
+      }) as FetchMock
+    );
     expect(await off.fetchProduct('1')).toEqual({ ok: false, error: 'offline' });
   });
   test('eigene Grenze: höchstens 12 Abfragen pro Minute', async () => {

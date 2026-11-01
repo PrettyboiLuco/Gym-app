@@ -10,10 +10,10 @@ import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { logQuick } from '@/data/nutrition';
-import { useDb } from '@/providers/store-provider';
 import { MEALS, parseNutrient, type Meal } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 /**
  * Schnelleintrag (A3): nur Kalorien, Makros freiwillig – für Kantine, Restaurant oder „ungefähr“. Ohne Lebensmittel,
@@ -51,9 +51,30 @@ export default function QuickEntryScreen() {
       <Card>
         <Field label={t('quick.kcal')} value={kcal} onChangeText={setKcal} keyboardType="decimal-pad" placeholder="650" autoFocus />
         <View style={styles.row}>
-          <Field label={`${t('nutrition.protein')} (g)`} value={protein} onChangeText={setProtein} keyboardType="decimal-pad" placeholder={t('nutrition.unknown')} style={styles.cell} />
-          <Field label={`${t('nutrition.carbs')} (g)`} value={carbs} onChangeText={setCarbs} keyboardType="decimal-pad" placeholder={t('nutrition.unknown')} style={styles.cell} />
-          <Field label={`${t('nutrition.fat')} (g)`} value={fat} onChangeText={setFat} keyboardType="decimal-pad" placeholder={t('nutrition.unknown')} style={styles.cell} />
+          <Field
+            label={`${t('nutrition.protein')} (g)`}
+            value={protein}
+            onChangeText={setProtein}
+            keyboardType="decimal-pad"
+            placeholder={t('nutrition.unknown')}
+            style={styles.cell}
+          />
+          <Field
+            label={`${t('nutrition.carbs')} (g)`}
+            value={carbs}
+            onChangeText={setCarbs}
+            keyboardType="decimal-pad"
+            placeholder={t('nutrition.unknown')}
+            style={styles.cell}
+          />
+          <Field
+            label={`${t('nutrition.fat')} (g)`}
+            value={fat}
+            onChangeText={setFat}
+            keyboardType="decimal-pad"
+            placeholder={t('nutrition.unknown')}
+            style={styles.cell}
+          />
         </View>
         <Field label={t('quick.name')} value={name} onChangeText={setName} placeholder={t('quick.namePlaceholder')} />
         <Choice label={t('nutrition.meal')} options={MEALS} value={meal} onChange={setMeal} format={(m) => t(`book.mealShort.${m}`)} />

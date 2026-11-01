@@ -24,15 +24,7 @@ import {
   startTimedSession,
 } from '../routines';
 import { createTestDb } from '../testing/node-db';
-import {
-  addCustomExercise,
-  completeTimedSet,
-  listExercises,
-  listSessionSets,
-  loadPlanDraft,
-  savePlan,
-  startSession,
-} from '../training';
+import { addCustomExercise, completeTimedSet, listExercises, listSessionSets, loadPlanDraft, savePlan, startSession } from '../training';
 
 let db: Db & { close(): void };
 
@@ -64,9 +56,7 @@ describe('Migration 6', () => {
     expect(await listActiveGoals(old)).toHaveLength(3);
     // Fremdschlüssel greifen weiterhin.
     await expect(
-      old.runAsync(
-        "INSERT INTO goal_version (id, goal_id, version, valid_from, status, created_at_utc) VALUES ('x', 'fehlt', 1, '2026-10-30', 'aktiv', 'x')"
-      )
+      old.runAsync("INSERT INTO goal_version (id, goal_id, version, valid_from, status, created_at_utc) VALUES ('x', 'fehlt', 1, '2026-10-30', 'aktiv', 'x')")
     ).rejects.toThrow();
     old.close();
   });

@@ -1,19 +1,19 @@
 // Texte und Fortschritt der Ziele für Übersicht und Zielseite (Register GOAL-001–006).
 
-import { exerciseName } from '@/format/exercise-name';
-import { timeZone } from '@/domain/time';
 import type { Db } from '@/data/db';
 import { drinkGoalDays, liftSets, stretchDays, trainingDays, type GoalVersion } from '@/data/goals';
+import { loadNutritionSettings } from '@/data/nutrition';
 import { listFlexibilityTests } from '@/data/routines';
 import { listSteps } from '@/data/steps';
-import { stepGoalDays } from '@/domain/steps';
-import { loadNutritionSettings } from '@/data/nutrition';
 import type { Exercise } from '@/data/training';
 import { listWeights } from '@/data/weights';
-import { flexibilityProgress, habitWeeks, strengthProgress, weightProgress } from '@/domain/goals';
 import { shiftDay, weekStart } from '@/domain/dates';
+import { flexibilityProgress, habitWeeks, strengthProgress, weightProgress } from '@/domain/goals';
+import { stepGoalDays } from '@/domain/steps';
+import { timeZone } from '@/domain/time';
 import type { Units } from '@/domain/units';
 import { weightTrend } from '@/domain/weight';
+import { exerciseName } from '@/format/exercise-name';
 import { formatDay, formatLength, formatWeight, t } from '@/i18n';
 
 /** Kurzbeschreibung eines Ziels, z. B. „Abnehmen auf 75 kg“. */
@@ -73,9 +73,7 @@ export async function goalProgressLines(
     const p = strengthProgress(sets, { targetKg: goal.targetKg!, targetReps: goal.targetReps! });
     const setText = (s: { weightKg: number; reps: number }) => `${formatWeight(s.weightKg, units.weight, 2)} × ${s.reps}`;
     const lines = [
-      p.best
-        ? t('goals.progress.best', { reps: goal.targetReps, best: setText(p.best) })
-        : t('goals.progress.bestNone', { reps: goal.targetReps }),
+      p.best ? t('goals.progress.best', { reps: goal.targetReps, best: setText(p.best) }) : t('goals.progress.bestNone', { reps: goal.targetReps }),
     ];
     if (p.last) lines.push(t('goals.progress.last', { last: setText(p.last), date: formatDay(p.last.day) }));
     if (p.reached) lines.push(t('goals.progress.liftReached'));

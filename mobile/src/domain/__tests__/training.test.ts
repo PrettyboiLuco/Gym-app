@@ -24,17 +24,14 @@ const valid: PlanDraft = {
 
 describe('Plan prüfen', () => {
   test('gültiger Plan hat keine Probleme', () => expect(validatePlan(valid)).toEqual([]));
-  test('fehlender Name, leerer Tag', () =>
-    expect(validatePlan({ name: ' ', days: [{ name: 'A', items: [] }] })).toEqual(['nameMissing', 'dayEmpty']));
+  test('fehlender Name, leerer Tag', () => expect(validatePlan({ name: ' ', days: [{ name: 'A', items: [] }] })).toEqual(['nameMissing', 'dayEmpty']));
   test('kein Tag', () => expect(validatePlan({ name: 'X', days: [] })).toEqual(['noDays']));
   test.each([2, 3, 4, 5, 6])('%i Trainingstage sind gültig (TRAIN-004)', (count) =>
-    expect(validatePlan({ ...valid, days: Array(count).fill(valid.days[0]) })).toEqual([]));
-  test('mehr als 7 Tage', () =>
-    expect(validatePlan({ ...valid, days: Array(8).fill(valid.days[0]) })).toContain('tooManyDays'));
+    expect(validatePlan({ ...valid, days: Array(count).fill(valid.days[0]) })).toEqual([])
+  );
+  test('mehr als 7 Tage', () => expect(validatePlan({ ...valid, days: Array(8).fill(valid.days[0]) })).toContain('tooManyDays'));
   test('Wiederholungsbereich verkehrt herum', () =>
-    expect(
-      validatePlan({ ...valid, days: [{ name: 'A', items: [{ ...valid.days[0].items[0], repsMin: 12, repsMax: 8 }] }] })
-    ).toEqual(['invalidReps']));
+    expect(validatePlan({ ...valid, days: [{ name: 'A', items: [{ ...valid.days[0].items[0], repsMin: 12, repsMax: 8 }] }] })).toEqual(['invalidReps']));
   test('0 Sätze und Pause über 30 Minuten', () =>
     expect(
       validatePlan({
@@ -53,8 +50,7 @@ describe('Reihenfolge', () => {
 });
 
 describe('Satz-Eingabe', () => {
-  test('Komma-Gewicht und Wiederholungen', () =>
-    expect(parseSetInput('62,5', '8')).toEqual({ weightKg: 62.5, reps: 8 }));
+  test('Komma-Gewicht und Wiederholungen', () => expect(parseSetInput('62,5', '8')).toEqual({ weightKg: 62.5, reps: 8 }));
   test('Körpergewicht 0 kg erlaubt', () => expect(parseSetInput('0', '12')).toEqual({ weightKg: 0, reps: 12 }));
   test('ungültige Eingaben', () => {
     expect(parseSetInput('', '8')).toBeNull();
@@ -85,8 +81,7 @@ describe('Pausentimer', () => {
     expect(restRemainingMs(timer, 10_000)).toBe(110_000);
     expect(timer?.generation).toBe(2);
   });
-  test('Verlängern nach Ablauf zählt ab jetzt', () =>
-    expect(restRemainingMs(extendRest(startRest(null, 30, 0), 30, 100_000), 100_000)).toBe(30_000));
+  test('Verlängern nach Ablauf zählt ab jetzt', () => expect(restRemainingMs(extendRest(startRest(null, 30, 0), 30, 100_000), 100_000)).toBe(30_000));
   test('abgelaufen bleibt bei 0', () => expect(restRemainingMs(startRest(null, 30, 0), 60_000)).toBe(0));
   test('kein Timer ergibt 0', () => expect(restRemainingMs(null, 0)).toBe(0));
   test('nach Überspringen bekommt der nächste Timer eine neue Generation (Vibrationsfehler)', () => {
@@ -106,12 +101,9 @@ describe('Pausentimer', () => {
 describe('Intervall-Timer (HIIT)', () => {
   const config = { workSeconds: 40, restSeconds: 20, rounds: 3 };
   test('Gesamtdauer ohne Pause nach letzter Runde', () => expect(intervalTotalSeconds(config)).toBe(160));
-  test('Start: Arbeit Runde 1', () =>
-    expect(intervalState(config, 0)).toEqual({ phase: 'arbeit', round: 1, remainingMs: 40_000 }));
-  test('nach 45 s: Pause Runde 1', () =>
-    expect(intervalState(config, 45_000)).toEqual({ phase: 'pause', round: 1, remainingMs: 15_000 }));
-  test('nach 60 s: Arbeit Runde 2', () =>
-    expect(intervalState(config, 60_000)).toEqual({ phase: 'arbeit', round: 2, remainingMs: 40_000 }));
+  test('Start: Arbeit Runde 1', () => expect(intervalState(config, 0)).toEqual({ phase: 'arbeit', round: 1, remainingMs: 40_000 }));
+  test('nach 45 s: Pause Runde 1', () => expect(intervalState(config, 45_000)).toEqual({ phase: 'pause', round: 1, remainingMs: 15_000 }));
+  test('nach 60 s: Arbeit Runde 2', () => expect(intervalState(config, 60_000)).toEqual({ phase: 'arbeit', round: 2, remainingMs: 40_000 }));
   test('nach 160 s: fertig', () => expect(intervalState(config, 160_000).phase).toBe('fertig'));
   test('ohne Pause folgt Runde auf Runde', () =>
     expect(intervalState({ workSeconds: 30, restSeconds: 0, rounds: 2 }, 30_000)).toEqual({
@@ -119,8 +111,7 @@ describe('Intervall-Timer (HIIT)', () => {
       round: 2,
       remainingMs: 30_000,
     }));
-  test('ungültige Einstellung abgelehnt', () =>
-    expect(() => intervalState({ workSeconds: 0, restSeconds: 10, rounds: 3 }, 0)).toThrow());
+  test('ungültige Einstellung abgelehnt', () => expect(() => intervalState({ workSeconds: 0, restSeconds: 10, rounds: 3 }, 0)).toThrow());
   test('Uhrzeitformat', () => {
     expect(formatClock(90_000)).toBe('1:30');
     expect(formatClock(4_100)).toBe('0:05');

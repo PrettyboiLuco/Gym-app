@@ -1,8 +1,8 @@
 // Zusammenfassung nach einem Training und Bestleistungen (nur aus echten, erledigten Sätzen).
 // Aufwärmsätze zählen nicht mit (A1); Gewichtsart je Übung bestimmt Volumen und Richtung der Bestleistung.
 
-import { countsAsWork, setVolume, type LoadMode, type SetType } from './logger';
 import { DAY_MS } from './dates';
+import { countsAsWork, setVolume, type LoadMode, type SetType } from './logger';
 
 export type DoneSet = {
   exerciseId: string;

@@ -94,7 +94,7 @@ describe('Lebensmittel', () => {
     expect((await getFood(db, raw))?.prep).toBe('roh');
     expect((await getFood(db, cooked))?.prep).toBe('gekocht');
     expect(await searchFoods(db, 'Reis')).toHaveLength(2);
-    expect((await getFood(db, (await saveFood(db, null, bread))))?.prep).toBeNull();
+    expect((await getFood(db, await saveFood(db, null, bread)))?.prep).toBeNull();
     await logFood(db, raw, 60, { kind: 'essen', meal: 'mittag' }, when());
     expect((await listDay(db, '2026-10-29'))[0]).toMatchObject({ name: 'Reis', prep: 'roh', kcal: 210 });
   });
@@ -200,9 +200,7 @@ describe('Tagebuch', () => {
     const b = await saveFood(db, null, { ...juice, per100: { ...juice.per100, kcal: null } });
     await logFood(db, a, 100, { kind: 'essen', meal: 'mittag' }, when());
     await logFood(db, b, 200, { kind: 'getraenk', drinkType: 'saft' }, when());
-    expect(await daySums(db, '2026-10-23', '2026-10-29')).toEqual([
-      expect.objectContaining({ day: '2026-10-29', kcal: 250, entries: 2, unknownKcal: 1 }),
-    ]);
+    expect(await daySums(db, '2026-10-23', '2026-10-29')).toEqual([expect.objectContaining({ day: '2026-10-29', kcal: 250, entries: 2, unknownKcal: 1 })]);
   });
 });
 

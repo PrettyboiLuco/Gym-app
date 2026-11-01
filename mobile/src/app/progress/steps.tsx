@@ -4,13 +4,13 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, Field } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { addSteps, deleteSteps, listSteps } from '@/data/steps';
 import { shiftDay } from '@/domain/dates';
 import { parseSteps, stepsAverage, stepsForDay, type StepEntry } from '@/domain/steps';
+import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
@@ -82,7 +82,13 @@ export default function StepsScreen() {
               <ThemedText style={styles.flex}>
                 {formatDay(e.day)} · {formatNumber(e.steps, 0)} · {t(`steps.source.${e.source}`)}
               </ThemedText>
-              <ConfirmButton label={t('common.delete')} onConfirm={async () => { await deleteSteps(db, e.id); await reload(); }} />
+              <ConfirmButton
+                label={t('common.delete')}
+                onConfirm={async () => {
+                  await deleteSteps(db, e.id);
+                  await reload();
+                }}
+              />
             </View>
           ))}
         </Card>

@@ -4,15 +4,15 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
+import { ErrorView } from '@/components/error-view';
 import { LockGate } from '@/components/lock-gate';
-import { ToastHost } from '@/components/toast';
 import { Onboarding } from '@/components/onboarding';
+import { ToastHost } from '@/components/toast';
+import { Colors } from '@/constants/theme';
 import { configureNotifications } from '@/data/notifications';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ProfileProvider, useProfile } from '@/providers/profile-provider';
 import { StoreProvider } from '@/providers/store-provider';
-import { ErrorView } from '@/components/error-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 SplashScreen.preventAutoHideAsync();
 configureNotifications();

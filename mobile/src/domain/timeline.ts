@@ -92,9 +92,7 @@ export function stepsTotalSeconds(steps: Step[]): number {
   return steps.reduce((sum, s) => sum + s.seconds, 0);
 }
 
-export type TimelineState =
-  | { done: false; index: number; step: Step; remainingMs: number; next: Step | null }
-  | { done: true; index: number };
+export type TimelineState = { done: false; index: number; step: Step; remainingMs: number; next: Step | null } | { done: true; index: number };
 
 /** Aktueller Schritt aus der verstrichenen Zeit. */
 export function timelineState(steps: Step[], elapsedMs: number): TimelineState {

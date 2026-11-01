@@ -1,9 +1,9 @@
 // Export als CSV (Ausbauplan A5): je Bereich eine Datei zum Anschauen und Weiterverwenden (Excel, Numbers).
 // Die Komplettsicherung (JSON, data/backup.ts) bleibt der Weg für Umzug und Wiederherstellung.
 
-import { exerciseName } from '@/format/exercise-name';
 import { toCsv, type Cell } from '@/domain/csv';
 import { localDay, timeZone } from '@/domain/time';
+import { exerciseName } from '@/format/exercise-name';
 import { t } from '@/i18n';
 
 import type { CardioEntry } from './cardio';
@@ -75,7 +75,17 @@ async function cardioCsv(db: Db) {
   );
   return toCsv(
     ['Datum', 'Aktivität', 'Minuten', 'Strecke (km)', 'Ø Puls', 'Anstrengung (1–10)', 'Stufe/Steigung', 'Notiz', 'Im Training'],
-    rows.map((r): Cell[] => [r.day, cardioName(r), r.minutes, r.distanceKm, r.avgHr, r.effort, r.level, r.note, r.sessionId ? t('onboarding.yes') : t('onboarding.no')])
+    rows.map((r): Cell[] => [
+      r.day,
+      cardioName(r),
+      r.minutes,
+      r.distanceKm,
+      r.avgHr,
+      r.effort,
+      r.level,
+      r.note,
+      r.sessionId ? t('onboarding.yes') : t('onboarding.no'),
+    ])
   );
 }
 
@@ -86,7 +96,24 @@ async function nutritionCsv(db: Db) {
      FROM consumption_event ORDER BY diary_date, occurred_at_utc`
   );
   return toCsv(
-    ['Datum', 'Uhrzeit', 'Mahlzeit/Getränk', 'Name', 'Marke', 'Menge', 'Einheit', 'kcal', 'Eiweiß (g)', 'Kohlenhydrate (g)', 'Fett (g)', 'Ballaststoffe (g)', 'Zucker (g)', 'Ges. Fettsäuren (g)', 'Salz (g)', 'Koffein (mg)'],
+    [
+      'Datum',
+      'Uhrzeit',
+      'Mahlzeit/Getränk',
+      'Name',
+      'Marke',
+      'Menge',
+      'Einheit',
+      'kcal',
+      'Eiweiß (g)',
+      'Kohlenhydrate (g)',
+      'Fett (g)',
+      'Ballaststoffe (g)',
+      'Zucker (g)',
+      'Ges. Fettsäuren (g)',
+      'Salz (g)',
+      'Koffein (mg)',
+    ],
     rows.map((r): Cell[] => [
       r.day,
       time(r.at as string),
@@ -109,13 +136,21 @@ async function nutritionCsv(db: Db) {
 }
 
 async function weightCsv(db: Db) {
-  const rows = await db.getAllAsync<{ day: string; kg: number; at: string }>('SELECT day, kg, recorded_at_utc AS at FROM weight_entry ORDER BY day, recorded_at_utc');
-  return toCsv(['Datum', 'Gewicht (kg)', 'Erfasst um'], rows.map((r) => [r.day, r.kg, time(r.at)]));
+  const rows = await db.getAllAsync<{ day: string; kg: number; at: string }>(
+    'SELECT day, kg, recorded_at_utc AS at FROM weight_entry ORDER BY day, recorded_at_utc'
+  );
+  return toCsv(
+    ['Datum', 'Gewicht (kg)', 'Erfasst um'],
+    rows.map((r) => [r.day, r.kg, time(r.at)])
+  );
 }
 
 async function measurementCsv(db: Db) {
   const rows = await db.getAllAsync<{ day: string; site: string; cm: number }>('SELECT day, site, cm FROM body_measurement ORDER BY day, site');
-  return toCsv(['Datum', 'Stelle', 'cm'], rows.map((r) => [r.day, t(`measure.sites.${r.site}`), r.cm]));
+  return toCsv(
+    ['Datum', 'Stelle', 'cm'],
+    rows.map((r) => [r.day, t(`measure.sites.${r.site}`), r.cm])
+  );
 }
 
 async function sleepCsv(db: Db) {
@@ -150,7 +185,10 @@ async function bloodPressureCsv(db: Db) {
   const rows = await db.getAllAsync<{ day: string; at: string; sys: number; dia: number; pulse: number | null; note: string | null }>(
     'SELECT day, measured_at_utc AS at, systolic AS sys, diastolic AS dia, pulse, note FROM blood_pressure ORDER BY measured_at_utc'
   );
-  return toCsv(['Datum', 'Uhrzeit', 'Oberer Wert (mmHg)', 'Unterer Wert (mmHg)', 'Puls', 'Notiz'], rows.map((r): Cell[] => [r.day, time(r.at), r.sys, r.dia, r.pulse, r.note]));
+  return toCsv(
+    ['Datum', 'Uhrzeit', 'Oberer Wert (mmHg)', 'Unterer Wert (mmHg)', 'Puls', 'Notiz'],
+    rows.map((r): Cell[] => [r.day, time(r.at), r.sys, r.dia, r.pulse, r.note])
+  );
 }
 
 async function goalsCsv(db: Db) {

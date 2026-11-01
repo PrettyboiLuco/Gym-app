@@ -37,7 +37,10 @@ export function WeightChart({
       reference={targetKg !== null ? { value: u(targetKg), label: t('progress.chartTarget', { value: formatWeight(targetKg, unit) }) } : undefined}
       projection={
         projection
-          ? { to: { day: projection.day, value: u(projection.kg) }, label: t('progress.chartProjection', { value: formatWeight(projection.kg, unit), date: formatDay(projection.day) }) }
+          ? {
+              to: { day: projection.day, value: u(projection.kg) },
+              label: t('progress.chartProjection', { value: formatWeight(projection.kg, unit), date: formatDay(projection.day) }),
+            }
           : undefined
       }
       format={(v) => formatNumber(v, 1)}

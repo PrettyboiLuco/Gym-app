@@ -18,7 +18,6 @@ describe('Rasterwerte für Diagramme', () => {
   });
 });
 
-
 describe('Hochrechnung Gewicht', () => {
   test('in Richtung Ziel, höchstens 4 Wochen', () => {
     expect(projectWeight(84, -0.5, 80, '2026-10-31')).toEqual({ day: '2026-11-28', kg: 82 });

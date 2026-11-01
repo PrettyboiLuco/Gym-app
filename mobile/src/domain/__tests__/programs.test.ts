@@ -9,7 +9,9 @@ import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, STARTER_EXERCISES, STRETCH_EXE
 import { parsePlanFile } from '../plan-file';
 import { estimateDayMinutes } from '../training';
 
-const known = new Set([...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES, ...STRETCH_EXERCISES, ...CATALOG_EXERCISES, ...CATALOG_STRETCHES].map((e) => e.id));
+const known = new Set(
+  [...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES, ...STRETCH_EXERCISES, ...CATALOG_EXERCISES, ...CATALOG_STRETCHES].map((e) => e.id)
+);
 
 describe('Programm-Vorlagen', () => {
   test.each(PROGRAMS.map((p) => [p.id, p] as const))('%s ist gültig und passt in rund 75 Minuten', (_id, program) => {

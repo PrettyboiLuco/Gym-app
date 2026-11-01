@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { parseTrainingCsv, parseWeightCsv, type TrainingImport, type WeightRow } from '@/domain/import-csv';
 import { HEVY } from '@/domain/testing/import-samples';
 
-import { buildCsv } from '../export-csv';
 import type { Db } from '../db';
+import { buildCsv } from '../export-csv';
 import { importTraining, importWeights, suggestChoices } from '../import';
 import { migrate } from '../migrations';
 import { createTestDb } from '../testing/node-db';
@@ -38,7 +38,9 @@ describe('Import in die Datenbank', () => {
     expect(cardio).toEqual({ activity: 'laufband', minutes: 20, distanceKm: 2.5 });
     const bests = await exerciseBests(db, 'bankdruecken');
     expect(bests.length).toBeGreaterThan(0);
-    const types = await db.getAllAsync<{ t: string; rir: number | null }>("SELECT set_type AS t, rir FROM set_log WHERE exercise_id = 'bankdruecken' ORDER BY position");
+    const types = await db.getAllAsync<{ t: string; rir: number | null }>(
+      "SELECT set_type AS t, rir FROM set_log WHERE exercise_id = 'bankdruecken' ORDER BY position"
+    );
     expect(types).toEqual([
       { t: 'aufwaermen', rir: null },
       { t: 'arbeit', rir: 2 },

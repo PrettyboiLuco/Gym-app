@@ -6,17 +6,17 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
-import { foodTitle } from '@/format/food-title';
 import { extraLine, formatKcal, macroLine, readTarget, targetParams, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { findFoodByBarcode, saveFood } from '@/data/nutrition';
 import { fetchProduct, type OffError } from '@/data/off';
-import { useDb } from '@/providers/store-provider';
 import { isValidBarcode, productCodeFromScan, type FoodDraft } from '@/domain/nutrition';
+import { foodTitle } from '@/format/food-title';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 type Phase =
   | { kind: 'scan' }
@@ -176,9 +176,7 @@ export default function ScanScreen() {
             {phase.error !== 'invalidCode' ? (
               <Button
                 label={t('nutrition.scan.createOwn')}
-                onPress={() =>
-                  router.replace({ pathname: '/nutrition/food-edit/[id]', params: { id: 'neu', barcode: phase.code, ...passOn } })
-                }
+                onPress={() => router.replace({ pathname: '/nutrition/food-edit/[id]', params: { id: 'neu', barcode: phase.code, ...passOn } })}
               />
             ) : null}
             {phase.error === 'offline' || phase.error === 'unavailable' || phase.error === 'rateLimited' ? (

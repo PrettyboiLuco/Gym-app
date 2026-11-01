@@ -2,7 +2,7 @@
 // lokalen Zeit des Tages, damit Wochensummen zum Kalender passen.
 
 import type { CardioActivity, CardioValues } from '@/domain/cardio';
-import { localDay, timeZone } from '@/domain/time';
+import { todayDay } from '@/domain/time';
 
 import { newId, nowUtc, type Db } from './db';
 
@@ -28,8 +28,6 @@ const COLUMNS = `id, session_id AS sessionId, activity, custom_name AS customNam
   at_end AS atEnd, minutes, distance_km AS distanceKm, avg_hr AS avgHr, effort, level, note,
   timer_started_at_utc AS timerStartedAt, completed_at_utc AS completedAt`;
 
-export const today = () => localDay(new Date(), timeZone);
-
 export function getCardio(db: Db, id: string) {
   return db.getFirstAsync<CardioEntry>(`SELECT ${COLUMNS} FROM cardio_log WHERE id = ?`, id);
 }
@@ -50,9 +48,7 @@ export function listCardio(db: Db, fromDay: string, toDay: string) {
 
 /** Offene Einträge ohne Training (z. B. Stoppuhr läuft noch), damit nichts unsichtbar liegen bleibt. */
 export function listOpenCardio(db: Db) {
-  return db.getAllAsync<CardioEntry>(
-    `SELECT ${COLUMNS} FROM cardio_log WHERE session_id IS NULL AND completed_at_utc IS NULL ORDER BY created_at_utc DESC`
-  );
+  return db.getAllAsync<CardioEntry>(`SELECT ${COLUMNS} FROM cardio_log WHERE session_id IS NULL AND completed_at_utc IS NULL ORDER BY created_at_utc DESC`);
 }
 
 /** Neuer, noch offener Eintrag (z. B. „Cardio hinzufügen“ im Training). */
@@ -68,7 +64,7 @@ export async function addCardio(
     entry.sessionId ?? null,
     entry.activity,
     entry.customName?.trim() || null,
-    entry.day ?? today(),
+    entry.day ?? todayDay(),
     entry.plannedMinutes ?? null,
     entry.atEnd === false ? 0 : 1,
     nowUtc()
@@ -77,7 +73,12 @@ export async function addCardio(
 }
 
 /** Werte eintragen und als erledigt markieren (Stoppuhr wird beendet). */
-export async function completeCardio(db: Db, id: string, values: CardioValues, change: { activity?: CardioActivity; customName?: string | null; day?: string } = {}) {
+export async function completeCardio(
+  db: Db,
+  id: string,
+  values: CardioValues,
+  change: { activity?: CardioActivity; customName?: string | null; day?: string } = {}
+) {
   await db.runAsync(
     `UPDATE cardio_log SET minutes = ?, distance_km = ?, avg_hr = ?, effort = ?, level = ?, note = ?, timer_started_at_utc = NULL,
      completed_at_utc = COALESCE(completed_at_utc, ?) WHERE id = ?`,

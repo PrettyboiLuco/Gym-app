@@ -60,13 +60,7 @@ export function validatePlan(plan: PlanDraft): PlanProblem[] {
       const seconds = item.targetSeconds;
       if (seconds != null) {
         if (!Number.isInteger(seconds) || seconds < 5 || seconds > 600) problems.add('invalidSeconds');
-      } else if (
-        !Number.isInteger(item.repsMin) ||
-        !Number.isInteger(item.repsMax) ||
-        item.repsMin < 1 ||
-        item.repsMax < item.repsMin ||
-        item.repsMax > 100
-      ) {
+      } else if (!Number.isInteger(item.repsMin) || !Number.isInteger(item.repsMax) || item.repsMin < 1 || item.repsMax < item.repsMin || item.repsMax > 100) {
         problems.add('invalidReps');
       }
       if (!Number.isInteger(item.restSeconds) || item.restSeconds < 0 || item.restSeconds > 1800) {
@@ -102,11 +96,7 @@ export function parseWholeNumber(input: string): number | null {
  * Liest Gewicht (0–1000 kg, Komma erlaubt) und Wiederholungen (1–100) eines Satzes.
  * Bei lb wird in kg umgerechnet, gespeichert wird immer kg (UX-003).
  */
-export function parseSetInput(
-  weightText: string,
-  repsText: string,
-  unit: WeightUnit = 'kg'
-): { weightKg: number; reps: number } | null {
+export function parseSetInput(weightText: string, repsText: string, unit: WeightUnit = 'kg'): { weightKg: number; reps: number } | null {
   const weightKg = parseWeightIn(weightText, unit, LIFT_RANGE);
   const reps = parseWholeNumber(repsText);
   if (weightKg === null || reps === null || reps < 1 || reps > 100) return null;
@@ -187,9 +177,7 @@ export function restRemainingMs(timer: RestTimer, nowMs: number): number {
 // berechnet, damit keine Phase doppelt gezählt oder verloren wird.
 
 export type IntervalConfig = { workSeconds: number; restSeconds: number; rounds: number };
-export type IntervalState =
-  | { phase: 'arbeit' | 'pause'; round: number; remainingMs: number }
-  | { phase: 'fertig'; round: number; remainingMs: 0 };
+export type IntervalState = { phase: 'arbeit' | 'pause'; round: number; remainingMs: number } | { phase: 'fertig'; round: number; remainingMs: 0 };
 
 export function intervalTotalSeconds({ workSeconds, restSeconds, rounds }: IntervalConfig): number {
   // Nach der letzten Runde gibt es keine Pause mehr.

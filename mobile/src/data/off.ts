@@ -88,9 +88,7 @@ export async function searchProducts(query: string): Promise<OffResult<FoodDraft
   const primary = await getJson(`${SEARCH_BASE}/search?q=${q}&page_size=20&langs=de,en&fields=${FIELDS}`);
   let hits = primary.ok ? extractHits(primary.value) : null;
   if (!hits) {
-    const fallback = await getJson(
-      `${BASE}/cgi/search.pl?search_terms=${q}&search_simple=1&json=1&page_size=20&fields=${FIELDS}`
-    );
+    const fallback = await getJson(`${BASE}/cgi/search.pl?search_terms=${q}&search_simple=1&json=1&page_size=20&fields=${FIELDS}`);
     if (!fallback.ok) return fallback;
     hits = extractHits(fallback.value);
   }

@@ -4,18 +4,18 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, MultiChoice, Presets } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { adjustCalorieGoal, calorieGoalOn } from '@/data/goals';
 import { DEFAULT_SETTINGS, loadNutritionSettings, saveNutritionSettings } from '@/data/nutrition';
-import { useDb } from '@/providers/store-provider';
 import { ALLERGENS, DIETS, type Allergen, type Diet, type MealTimes } from '@/domain/diet';
 import { parseSettingsForm, type SettingsForm, type SettingsProblem } from '@/domain/nutrition';
+import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 function toForm(s: typeof DEFAULT_SETTINGS, kcalGoal: number | null): SettingsForm {
   return {

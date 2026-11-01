@@ -7,7 +7,10 @@ export type BpProblem = 'systolic' | 'diastolic' | 'order' | 'pulse';
 const int = (s: string) => (/^\d{2,3}$/.test(s.trim()) ? Number(s.trim()) : null);
 
 /** Liest „128“, „82“, optional Puls; oberer Wert muss über dem unteren liegen (Tippfehler-Schutz). */
-export function parseBloodPressure(form: { systolic: string; diastolic: string; pulse: string }): { value: { systolic: number; diastolic: number; pulse: number | null } | null; problems: BpProblem[] } {
+export function parseBloodPressure(form: { systolic: string; diastolic: string; pulse: string }): {
+  value: { systolic: number; diastolic: number; pulse: number | null } | null;
+  problems: BpProblem[];
+} {
   const problems: BpProblem[] = [];
   const sys = int(form.systolic);
   const dia = int(form.diastolic);
@@ -24,5 +27,10 @@ export function bpAverage(list: { systolic: number; diastolic: number; pulse: nu
   if (!list.length) return null;
   const avg = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
   const pulses = list.map((m) => m.pulse).filter((p): p is number => p !== null);
-  return { systolic: avg(list.map((m) => m.systolic)), diastolic: avg(list.map((m) => m.diastolic)), pulse: pulses.length ? avg(pulses) : null, count: list.length };
+  return {
+    systolic: avg(list.map((m) => m.systolic)),
+    diastolic: avg(list.map((m) => m.diastolic)),
+    pulse: pulses.length ? avg(pulses) : null,
+    count: list.length,
+  };
 }

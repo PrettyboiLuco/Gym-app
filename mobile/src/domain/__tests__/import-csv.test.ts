@@ -17,11 +17,21 @@ import { HEVY, STRONG } from '../testing/import-samples';
 
 describe('CSV', () => {
   test('Export für Excel: BOM, Semikolon, Dezimalkomma, Anführungszeichen', () => {
-    const csv = toCsv(['Name', 'kg'], [['Bank; schwer', 82.5], ['Sag "Hi"', null]]);
+    const csv = toCsv(
+      ['Name', 'kg'],
+      [
+        ['Bank; schwer', 82.5],
+        ['Sag "Hi"', null],
+      ]
+    );
     expect(csv.startsWith('﻿')).toBe(true);
     expect(csv).toContain('"Bank; schwer";82,5');
     expect(csv).toContain('"Sag ""Hi""";');
-    expect(parseCsv(csv)).toEqual([['Name', 'kg'], ['Bank; schwer', '82,5'], ['Sag "Hi"', '']]);
+    expect(parseCsv(csv)).toEqual([
+      ['Name', 'kg'],
+      ['Bank; schwer', '82,5'],
+      ['Sag "Hi"', ''],
+    ]);
   });
   test('Zahlen in beiden Schreibweisen', () => {
     expect(csvNumber('1.234,5')).toBe(1234.5);

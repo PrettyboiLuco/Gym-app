@@ -2,33 +2,33 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 
 import { Card } from '@/components/card';
+import { CoachToday, type CoachTodayData } from '@/components/coach-today';
 import { ListRow } from '@/components/fields';
+import { diaryToday } from '@/components/nutrition-format';
+import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
-import { todayDay } from '@/domain/time';
-import { diaryToday } from '@/components/nutrition-format';
+import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
-import { loadTimedRun } from '@/data/routines';
-import { listDay, loadNutritionSettings } from '@/data/nutrition';
-import { useModules, useUnits } from '@/providers/profile-provider';
-import { CoachToday, type CoachTodayData } from '@/components/coach-today';
-import { MorningCheck, ReadinessCard } from '@/components/readiness';
-import { readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadMotivation } from '@/data/motivation';
-import type { Milestone } from '@/domain/motivation';
-import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
-import { checkinDue } from '@/domain/checkin';
+import { listDay, loadNutritionSettings } from '@/data/nutrition';
+import { readinessToday, type ReadinessToday } from '@/data/readiness';
+import { loadTimedRun } from '@/data/routines';
 import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
 import { loadTrainingWeek } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
+import { checkinDue } from '@/domain/checkin';
+import type { Milestone } from '@/domain/motivation';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
+import { todayDay } from '@/domain/time';
 import { nextDayIndex } from '@/domain/training';
+import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
-import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { formatDay, formatLongDate, formatNumber, formatVolume, formatWeight, t } from '@/i18n';
+import { useModules, useUnits } from '@/providers/profile-provider';
 
 async function loadToday(db: Db) {
   const today = todayDay();
@@ -254,19 +254,23 @@ export default function TodayScreen() {
       ) : null}
       <FigureStrip
         figures={[
-          ...(modules.ernaehrung ? [{
-            label: t('today.tileKcal'),
-            ...kcalFigure,
-            accessibilityLabel: [t('today.tileKcal'), kcalFigure.value, kcalFigure.unit, kcalFigure.sub].filter(Boolean).join(' '),
-            onPress: () => router.push('/nutrition'),
-          },
-          {
-            label: t('today.tileDrinks'),
-            ...volumeFigure(food.drinksMl, units.volume),
-            sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: volume(food.drinkGoalMl) }) : null,
-            accessibilityLabel: `${t('today.tileDrinks')} ${volume(food.drinksMl)}`,
-            onPress: () => router.push('/nutrition'),
-          }] : []),
+          ...(modules.ernaehrung
+            ? [
+                {
+                  label: t('today.tileKcal'),
+                  ...kcalFigure,
+                  accessibilityLabel: [t('today.tileKcal'), kcalFigure.value, kcalFigure.unit, kcalFigure.sub].filter(Boolean).join(' '),
+                  onPress: () => router.push('/nutrition'),
+                },
+                {
+                  label: t('today.tileDrinks'),
+                  ...volumeFigure(food.drinksMl, units.volume),
+                  sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: volume(food.drinkGoalMl) }) : null,
+                  accessibilityLabel: `${t('today.tileDrinks')} ${volume(food.drinksMl)}`,
+                  onPress: () => router.push('/nutrition'),
+                },
+              ]
+            : []),
           {
             label: t('today.tileWeight'),
             value: weightValue,

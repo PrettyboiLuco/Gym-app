@@ -3,8 +3,8 @@ import { Platform, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 
 import { ThemedText } from '@/components/themed-text';
-import { niceTicks } from '@/domain/chart-ticks';
 import { Spacing } from '@/constants/theme';
+import { niceTicks } from '@/domain/chart-ticks';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -77,65 +77,75 @@ export function TimeChart({
   const y = (v: number) => TOP + (1 - (v - lo) / Math.max(hi - lo, 1e-9)) * (height - TOP - BOTTOM);
 
   const path = line.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ');
-  const area = line.length > 1 ? `${path} L${x(line[line.length - 1].day).toFixed(1)} ${height - BOTTOM} L${x(line[0].day).toFixed(1)} ${height - BOTTOM} Z` : '';
+  const area =
+    line.length > 1 ? `${path} L${x(line[line.length - 1].day).toFixed(1)} ${height - BOTTOM} L${x(line[0].day).toFixed(1)} ${height - BOTTOM} Z` : '';
   const last = line[line.length - 1];
 
   return (
     <View accessible accessibilityLabel={accessibilityLabel} style={styles.wrap}>
       <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height }}>
-      {width > 0 ? (
-        <Svg width={width} height={height}>
-          <Defs>
-            <LinearGradient id="timeArea" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={data} stopOpacity={0.14} />
-              <Stop offset="1" stopColor={data} stopOpacity={0} />
-            </LinearGradient>
-          </Defs>
-          {ticks.map((tv) => (
-            <Line key={`g${tv}`} x1={LANE} x2={width} y1={y(tv)} y2={y(tv)} stroke={theme.backgroundSelected} strokeWidth={1} />
-          ))}
-          {ticks.map((tv) => (
-            <SvgText key={`t${tv}`} x={LANE - 8} y={y(tv) + 4} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
-              {format(tv)}
-            </SvgText>
-          ))}
-          {reference ? (
-            <>
-              <Line x1={LANE} x2={width} y1={y(reference.value)} y2={y(reference.value)} stroke={theme.text} strokeOpacity={0.55} strokeWidth={1} strokeDasharray="4 4" />
-              <SvgText x={width - 2} y={y(reference.value) - 6} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
-                {reference.label}
+        {width > 0 ? (
+          <Svg width={width} height={height}>
+            <Defs>
+              <LinearGradient id="timeArea" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor={data} stopOpacity={0.14} />
+                <Stop offset="1" stopColor={data} stopOpacity={0} />
+              </LinearGradient>
+            </Defs>
+            {ticks.map((tv) => (
+              <Line key={`g${tv}`} x1={LANE} x2={width} y1={y(tv)} y2={y(tv)} stroke={theme.backgroundSelected} strokeWidth={1} />
+            ))}
+            {ticks.map((tv) => (
+              <SvgText key={`t${tv}`} x={LANE - 8} y={y(tv) + 4} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
+                {format(tv)}
               </SvgText>
-            </>
-          ) : null}
-          {area ? <Path d={area} fill="url(#timeArea)" /> : null}
-          {dots.map((p) => (
-            <Circle key={`d${p.day}`} cx={x(p.day)} cy={y(p.value)} r={2.5} fill={theme.textSecondary} />
-          ))}
-          {path ? <Path d={path} stroke={data} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" /> : null}
-          {projection && last ? (
-            <>
-              <Line
-                x1={x(last.day)}
-                y1={y(last.value)}
-                x2={x(projection.to.day)}
-                y2={y(projection.to.value)}
-                stroke={data}
-                strokeWidth={2}
-                strokeDasharray="4 5"
-                strokeLinecap="round"
-              />
-              <Circle cx={x(projection.to.day)} cy={y(projection.to.value)} r={3.5} fill={theme.backgroundElement} stroke={data} strokeWidth={2} />
-            </>
-          ) : null}
-          {markers.map((m) => (
-            <Circle key={`m${m.day}`} cx={x(m.day)} cy={y(m.value)} r={5} fill={data} stroke={theme.backgroundElement} strokeWidth={2} />
-          ))}
-          {/* Letzter Wert als Ring – außer er ist selbst markiert (z. B. Bestleistung), dann bleibt der gefüllte Punkt sichtbar. */}
-          {last && !markers.some((m) => m.day === last.day) ? (
-            <Circle cx={x(last.day)} cy={y(last.value)} r={5} fill={theme.backgroundElement} stroke={data} strokeWidth={2.5} />
-          ) : null}
-        </Svg>
-      ) : null}
+            ))}
+            {reference ? (
+              <>
+                <Line
+                  x1={LANE}
+                  x2={width}
+                  y1={y(reference.value)}
+                  y2={y(reference.value)}
+                  stroke={theme.text}
+                  strokeOpacity={0.55}
+                  strokeWidth={1}
+                  strokeDasharray="4 4"
+                />
+                <SvgText x={width - 2} y={y(reference.value) - 6} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
+                  {reference.label}
+                </SvgText>
+              </>
+            ) : null}
+            {area ? <Path d={area} fill="url(#timeArea)" /> : null}
+            {dots.map((p) => (
+              <Circle key={`d${p.day}`} cx={x(p.day)} cy={y(p.value)} r={2.5} fill={theme.textSecondary} />
+            ))}
+            {path ? <Path d={path} stroke={data} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" /> : null}
+            {projection && last ? (
+              <>
+                <Line
+                  x1={x(last.day)}
+                  y1={y(last.value)}
+                  x2={x(projection.to.day)}
+                  y2={y(projection.to.value)}
+                  stroke={data}
+                  strokeWidth={2}
+                  strokeDasharray="4 5"
+                  strokeLinecap="round"
+                />
+                <Circle cx={x(projection.to.day)} cy={y(projection.to.value)} r={3.5} fill={theme.backgroundElement} stroke={data} strokeWidth={2} />
+              </>
+            ) : null}
+            {markers.map((m) => (
+              <Circle key={`m${m.day}`} cx={x(m.day)} cy={y(m.value)} r={5} fill={data} stroke={theme.backgroundElement} strokeWidth={2} />
+            ))}
+            {/* Letzter Wert als Ring – außer er ist selbst markiert (z. B. Bestleistung), dann bleibt der gefüllte Punkt sichtbar. */}
+            {last && !markers.some((m) => m.day === last.day) ? (
+              <Circle cx={x(last.day)} cy={y(last.value)} r={5} fill={theme.backgroundElement} stroke={data} strokeWidth={2.5} />
+            ) : null}
+          </Svg>
+        ) : null}
       </View>
       {dayLabel && spacing === 'time' ? (
         <View style={styles.days}>

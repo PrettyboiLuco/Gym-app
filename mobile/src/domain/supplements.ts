@@ -2,8 +2,8 @@
 // schlägt keine Menge vor, nennt keine Marken und verspricht keine Wirkung (Health-Claims-Verordnung, LAW-010).
 // Name, Menge und Einheit stammen ausschließlich von dir.
 
-import { parseTime } from './reminders';
 import { DAY_MS } from './dates';
+import { parseTime } from './reminders';
 
 export const SUPPLEMENT_UNITS = ['g', 'mg', 'mcg', 'ie', 'ml', 'kapsel', 'tablette', 'tropfen', 'messloeffel', 'portion'] as const;
 export type SupplementUnit = (typeof SUPPLEMENT_UNITS)[number];
@@ -35,10 +35,7 @@ export function supplementToForm(s: Supplement): SupplementForm {
  * Prüft die Eingabe. Menge ist freiwillig; wer eine Menge einträgt, wählt auch die Einheit. `otherReminders` = wie
  * viele andere Supplements schon eine Erinnerung haben.
  */
-export function parseSupplementForm(
-  form: SupplementForm,
-  otherReminders: number
-): { value: Omit<Supplement, 'id'> | null; problems: SupplementProblem[] } {
+export function parseSupplementForm(form: SupplementForm, otherReminders: number): { value: Omit<Supplement, 'id'> | null; problems: SupplementProblem[] } {
   const problems: SupplementProblem[] = [];
   const name = form.name.trim().replace(/\s+/g, ' ');
   if (name.length === 0 || name.length > MAX_SUPPLEMENT_NAME) problems.push('name');
@@ -58,15 +55,20 @@ export function parseSupplementForm(
 
   if (problems.length > 0) return { value: null, problems };
   const reminderTime = minutes === null ? null : `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-  return { value: { name, amount: amount === null || Number.isNaN(amount) ? null : amount, unit: amount === null ? null : form.unit, reminderTime }, problems: [] };
+  return {
+    value: { name, amount: amount === null || Number.isNaN(amount) ? null : amount, unit: amount === null ? null : form.unit, reminderTime },
+    problems: [],
+  };
 }
 
 /** An wie vielen der `days` Tage bis einschließlich `today` etwas abgehakt wurde. */
 export function takenOnDays(loggedDays: string[], today: string, days = 7): number {
   const end = Date.parse(`${today}T12:00:00Z`);
   const start = end - (days - 1) * DAY_MS;
-  return new Set(loggedDays.filter((d) => {
-    const t = Date.parse(`${d}T12:00:00Z`);
-    return t >= start && t <= end;
-  })).size;
+  return new Set(
+    loggedDays.filter((d) => {
+      const t = Date.parse(`${d}T12:00:00Z`);
+      return t >= start && t <= end;
+    })
+  ).size;
 }

@@ -2,35 +2,26 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, RadioList } from '@/components/fields';
 import { goalProgressLines, goalTitle } from '@/components/goal-progress';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { endGoal, listActiveGoals, listGoalVersions, saveGoal, type GoalVersion } from '@/data/goals';
-import { useProfile } from '@/providers/profile-provider';
-import { useDb } from '@/providers/store-provider';
 import { listExercises, type Exercise } from '@/data/training';
 import { listWeights } from '@/data/weights';
 import type { Goal } from '@/domain/energy';
-import {
-  DIRECTIONS,
-  EMPTY_GOAL_FORM,
-  GOAL_KINDS,
-  HABITS,
-  parseGoalForm,
-  type GoalForm,
-  type GoalKind,
-  type GoalProblem,
-} from '@/domain/goals';
+import { DIRECTIONS, EMPTY_GOAL_FORM, GOAL_KINDS, HABITS, parseGoalForm, type GoalForm, type GoalKind, type GoalProblem } from '@/domain/goals';
+import { todayDay } from '@/domain/time';
 import { lengthInputText, weightInputText, type Units } from '@/domain/units';
 import { weightTrend } from '@/domain/weight';
+import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 function toForm(v: GoalVersion, units: Units): GoalForm {
   return {
@@ -135,7 +126,7 @@ export default function GoalScreen() {
       setProblems(found);
       return;
     }
-    const targetId = data.goalId ?? (draft.kind === 'gewicht' ? data.activeWeight?.goalId ?? null : null);
+    const targetId = data.goalId ?? (draft.kind === 'gewicht' ? (data.activeWeight?.goalId ?? null) : null);
     await saveGoal(db, targetId, draft, todayDay(), data.currentKg);
     allowLeave();
     router.back();
@@ -180,13 +171,7 @@ export default function GoalScreen() {
         <>
           <Card>
             {isNew ? (
-              <Choice
-                label={t('goals.kind')}
-                options={GOAL_KINDS}
-                value={form.kind}
-                onChange={changeKind}
-                format={(k) => t(`goals.kindOption.${k}`)}
-              />
+              <Choice label={t('goals.kind')} options={GOAL_KINDS} value={form.kind} onChange={changeKind} format={(k) => t(`goals.kindOption.${k}`)} />
             ) : null}
             {form.kind === 'gewicht' ? (
               <>
@@ -264,12 +249,7 @@ export default function GoalScreen() {
                     keyboardType="number-pad"
                   />
                 ) : null}
-                <Field
-                  label={t('goals.perWeek')}
-                  value={form.perWeek}
-                  onChangeText={(perWeek) => change({ perWeek })}
-                  keyboardType="number-pad"
-                />
+                <Field label={t('goals.perWeek')} value={form.perWeek} onChangeText={(perWeek) => change({ perWeek })} keyboardType="number-pad" />
                 <ThemedText type="small" themeColor="textSecondary">
                   {t('goals.later')}
                 </ThemedText>

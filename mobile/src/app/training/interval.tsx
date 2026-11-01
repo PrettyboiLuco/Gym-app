@@ -1,26 +1,21 @@
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { cancelRunAlerts, syncIntervalAlerts } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
+import { KeepAwake } from '@/components/keep-awake';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { useDb } from '@/providers/store-provider';
 import { loadIntervalRun, saveIntervalRun } from '@/data/training';
-import {
-  formatClock,
-  intervalState,
-  intervalTotalSeconds,
-  parseWholeNumber,
-  type IntervalConfig,
-} from '@/domain/training';
+import { nowMs } from '@/domain/time';
+import { formatClock, intervalState, intervalTotalSeconds, parseWholeNumber, type IntervalConfig } from '@/domain/training';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 function parseConfig(work: string, rest: string, rounds: string): IntervalConfig | null {
   const w = parseWholeNumber(work);
@@ -29,14 +24,6 @@ function parseConfig(work: string, rest: string, rounds: string): IntervalConfig
   if (w === null || r === null || n === null) return null;
   if (w < 5 || w > 600 || r > 600 || n < 1 || n > 50) return null;
   return { workSeconds: w, restSeconds: r, rounds: n };
-}
-
-// Startzeit wird im Event-Handler gesetzt, nicht beim Rendern.
-const nowMs = () => Date.now();
-
-function KeepAwake() {
-  useKeepAwake();
-  return null;
 }
 
 /** Intervall-Timer (HEALTH-010). Phase und Runde werden aus der Startzeit berechnet. */
@@ -81,18 +68,18 @@ export default function IntervalScreen() {
 
   return (
     <Screen withHeader>
-      {state && state.phase !== 'fertig' && Platform.OS !== 'web' ? <KeepAwake /> : null}
+      <KeepAwake when={!!state && state.phase !== 'fertig'} />
       {state ? (
         <Card>
           <ThemedText type="subtitle" style={{ color: phaseColor }} accessibilityLiveRegion="polite">
             {t(`interval.phase.${state.phase}`)}
           </ThemedText>
           {state.phase !== 'fertig' ? (
-            <ThemedText type="subtitle" style={styles.clock}>{formatClock(state.remainingMs)}</ThemedText>
+            <ThemedText type="subtitle" style={styles.clock}>
+              {formatClock(state.remainingMs)}
+            </ThemedText>
           ) : null}
-          <ThemedText themeColor="textSecondary">
-            {t('interval.round', { round: state.round, rounds: running?.rounds })}
-          </ThemedText>
+          <ThemedText themeColor="textSecondary">{t('interval.round', { round: state.round, rounds: running?.rounds })}</ThemedText>
           <Button
             label={state.phase === 'fertig' ? t('common.ok') : t('interval.stop')}
             variant="secondary"

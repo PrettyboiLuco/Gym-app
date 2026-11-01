@@ -64,7 +64,6 @@ export type Readiness =
 export type LoadDay = { day: string; load: number };
 export type LoadRatio = { acute: number; chronicWeekly: number; ratio: number | null; historyDays: number };
 
-
 /** Last einer Einheit: Dauer × Anstrengung (sRPE). Ohne Anstrengung oder Dauer keine Last. */
 export function sessionLoad(minutes: number | null, effort: number | null): number | null {
   if (minutes === null || effort === null || !(minutes > 0) || effort < 1 || effort > 10) return null;
@@ -76,7 +75,10 @@ export function loadRatio(loads: LoadDay[], today: string): LoadRatio {
   const inWindow = (from: number) => loads.filter((l) => daysBetween(l.day, today) >= 0 && daysBetween(l.day, today) < from);
   const acute = inWindow(7).reduce((s, l) => s + l.load, 0);
   const chronicWeekly = inWindow(BASELINE_DAYS).reduce((s, l) => s + l.load, 0) / 4;
-  const first = loads.filter((l) => l.load > 0).map((l) => l.day).sort()[0];
+  const first = loads
+    .filter((l) => l.load > 0)
+    .map((l) => l.day)
+    .sort()[0];
   const historyDays = first ? daysBetween(first, today) + 1 : 0;
   const ratio = historyDays >= MIN_LOAD_HISTORY_DAYS && chronicWeekly > 0 ? Math.round((acute / chronicWeekly) * 100) / 100 : null;
   return { acute, chronicWeekly: Math.round(chronicWeekly), ratio, historyDays };
@@ -132,7 +134,7 @@ export function readiness(check: DailyCheck | null, history: DailyCheck[], ratio
 // ------------------------------------------------------------------------------------- Schlaf
 
 /** „23:30“ → Minuten; Bettzeiten vor 12 Uhr zählen als nach Mitternacht (für Schnitt und Streuung). */
-export function clockMinutes(text: string | null, bedTime = false): number | null {
+function clockMinutes(text: string | null, bedTime = false): number | null {
   const m = text ? /^(\d{1,2}):(\d{2})$/.exec(text.trim()) : null;
   if (!m || +m[1] > 23 || +m[2] > 59) return null;
   const min = +m[1] * 60 + +m[2];

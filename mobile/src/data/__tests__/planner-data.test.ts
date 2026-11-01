@@ -48,10 +48,7 @@ const standard: PlanDraft = {
 const rebuilt: PlanDraft = { name: 'PPL', days: [{ name: 'Ganzkörper', items: [item('bankdruecken'), item('latzug')], warmup: true, cooldown: true }] };
 
 async function logsSnapshot() {
-  return JSON.stringify([
-    await db.getAllAsync('SELECT * FROM workout_session ORDER BY id'),
-    await db.getAllAsync('SELECT * FROM set_log ORDER BY id'),
-  ]);
+  return JSON.stringify([await db.getAllAsync('SELECT * FROM workout_session ORDER BY id'), await db.getAllAsync('SELECT * FROM set_log ORDER BY id')]);
 }
 
 async function dayIdOf(planId: string, position = 0) {
@@ -70,7 +67,12 @@ describe('Übungsdaten (8.1)', () => {
     const id = await addCustomExercise(db, 'Landmine Press', 'langhantel', 'schultern', { pattern: 'druecken_vertikal' });
     expect((await listExercises(db)).find((e) => e.id === id)?.pattern).toBe('druecken_vertikal');
     // Dehnübungen bekommen kein Kraft-Muster.
-    const stretch = await addCustomExercise(db, 'Dehnen X', 'koerpergewicht', 'beine', { kind: 'dehnung_statisch', holdSeconds: 30, measure: 'zeit', pattern: 'kniebeuge' });
+    const stretch = await addCustomExercise(db, 'Dehnen X', 'koerpergewicht', 'beine', {
+      kind: 'dehnung_statisch',
+      holdSeconds: 30,
+      measure: 'zeit',
+      pattern: 'kniebeuge',
+    });
     expect((await listExercises(db)).find((e) => e.id === stretch)?.pattern).toBeNull();
   });
 });
@@ -151,7 +153,11 @@ describe('Verlauf für Steigerungsregeln (TRAIN-018)', () => {
   test('neueste Einheit zuerst, abgebrochene zählen nicht', async () => {
     const planId = await savePlan(db, null, standard);
     const day = await dayIdOf(planId);
-    for (const [weight, status] of [[70, 'abgeschlossen'], [75, 'abgebrochen'], [72.5, 'abgeschlossen']] as const) {
+    for (const [weight, status] of [
+      [70, 'abgeschlossen'],
+      [75, 'abgebrochen'],
+      [72.5, 'abgeschlossen'],
+    ] as const) {
       const s = await startSession(db, day);
       for (const set of await listSessionSets(db, s)) await completeSet(db, set.id, weight, 10);
       await finishSession(db, s, status);

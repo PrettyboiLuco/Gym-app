@@ -5,18 +5,28 @@ import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, Field, Presets } from '@/components/fields';
 import { Screen } from '@/components/screen';
-import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
+import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
 import { loadSleepGoal, loadWakeTime, saveSleepGoal, saveWakeTime } from '@/data/readiness';
 import { loadReminders, saveReminders } from '@/data/reminders';
 import { bedtimeFor, SLEEP_GOAL_RANGE } from '@/domain/readiness';
-import { useDb } from '@/providers/store-provider';
-import { BEDTIME_LEAD_MINUTES, DEFAULT_REMINDERS, drinkTimes, formatTime, parseTime, validateReminders, WEEKDAYS, type ReminderProblem, type ReminderSettings } from '@/domain/reminders';
+import {
+  BEDTIME_LEAD_MINUTES,
+  DEFAULT_REMINDERS,
+  drinkTimes,
+  formatTime,
+  parseTime,
+  validateReminders,
+  WEEKDAYS,
+  type ReminderProblem,
+  type ReminderSettings,
+} from '@/domain/reminders';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 /**
  * Mitteilungen und Erinnerungen (Register UX-006/007, TIME-011, HEALTH-012). Alles freiwillig und
@@ -182,9 +192,7 @@ export default function NotificationsScreen() {
               onChange={(everyHours) => setForm((f) => ({ ...f, drink: { ...f.drink, everyHours } }))}
               format={(h) => t('reminders.hours', { count: h })}
             />
-            {times.length > 0 ? (
-              <ThemedText type="small">{t('reminders.times', { times: times.map(formatTime).join(', ') })}</ThemedText>
-            ) : null}
+            {times.length > 0 ? <ThemedText type="small">{t('reminders.times', { times: times.map(formatTime).join(', ') })}</ThemedText> : null}
           </>
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
@@ -221,9 +229,7 @@ export default function NotificationsScreen() {
         />
         {toggle(form.bedtime.enabled, (enabled) => setForm((f) => ({ ...f, bedtime: { enabled } })), t('reminders.bedtimeToggle'))}
         {bed !== null ? (
-          <ThemedText type="small">
-            {t('reminders.bedtimeAt', { bed: formatTime(bed), at: formatTime((bed - BEDTIME_LEAD_MINUTES + 1440) % 1440) })}
-          </ThemedText>
+          <ThemedText type="small">{t('reminders.bedtimeAt', { bed: formatTime(bed), at: formatTime((bed - BEDTIME_LEAD_MINUTES + 1440) % 1440) })}</ThemedText>
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           {t('reminders.bedtimeHint')}

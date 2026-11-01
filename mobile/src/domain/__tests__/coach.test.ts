@@ -2,8 +2,22 @@
 
 import { describe, expect, test } from '@jest/globals';
 
+import {
+  buildPlan,
+  coachEnergy,
+  dailyTips,
+  dayTarget,
+  daySplit,
+  gymPal,
+  macroSettings,
+  macrosFor,
+  needsRecalc,
+  palFromSteps,
+  proteinTarget,
+  rescalePlan,
+  type CoachInput,
+} from '../coach';
 import { isoWeekday } from '../dates';
-import { buildPlan, coachEnergy, dailyTips, dayTarget, daySplit, gymPal, macroSettings, macrosFor, needsRecalc, palFromSteps, proteinTarget, rescalePlan, type CoachInput } from '../coach';
 import { restingEnergy } from '../energy';
 
 const base: CoachInput = { weightKg: 80, heightCm: 180, age: 30, term: '+5', steps: 8000, gymDays: 4, goal: 'zunehmen', delta: 250, sensitive: false };
@@ -30,8 +44,7 @@ describe('Bedarf aus Schritten und Gym-Tagen (C2)', () => {
     expect(r.maintenance).toBe(Math.round((resting * 1.86) / 10) * 10);
     expect(r.kcal).toBe(r.maintenance + 250);
   });
-  test('Schlaf kommt in der Rechnung nicht vor (COACH-006): gleiche Eingaben, gleiche Zahl', () =>
-    expect(coachEnergy({ ...base })).toEqual(coachEnergy(base)));
+  test('Schlaf kommt in der Rechnung nicht vor (COACH-006): gleiche Eingaben, gleiche Zahl', () => expect(coachEnergy({ ...base })).toEqual(coachEnergy(base)));
   test('Cut nie unter die Untergrenze', () => {
     const r = coachEnergy({ ...base, weightKg: 50, heightCm: 160, age: 70, term: '-161', steps: 2000, gymDays: 0, goal: 'abnehmen', delta: -500 });
     expect(r.status === 'ok' && r.kcal).toBe(1200);
@@ -77,8 +90,7 @@ describe('Makro-Ausrichtung (Lean/Bodybuilding)', () => {
     expect(b.carbs).toBeGreaterThan(a.carbs);
     expect(Math.abs(b.protein * 4 + b.fat * 9 + b.carbs * 4 - 3560)).toBeLessThan(10);
   });
-  test('Lean im Cut: 2,2 g Eiweiß pro kg', () =>
-    expect(macroSettings({ ...standard, profile: 'lean' }, 80, 'abnehmen', 4).protein).toBe(176));
+  test('Lean im Cut: 2,2 g Eiweiß pro kg', () => expect(macroSettings({ ...standard, profile: 'lean' }, 80, 'abnehmen', 4).protein).toBe(176));
   test('Eigene Werte werden in den Rahmen gesetzt (Fett nie unter 20 %)', () => {
     expect(macroSettings({ profile: 'eigen', proteinPerKg: 3.5, fatShare: 0.1 }, 80, 'zunehmen', 4)).toEqual({ protein: 200, fatShare: 0.2 });
     expect(macroSettings({ profile: 'eigen', proteinPerKg: 1.8, fatShare: 0.25 }, 80, 'zunehmen', 4)).toEqual({ protein: 144, fatShare: 0.25 });
@@ -142,5 +154,7 @@ describe('Neu berechnen und Tipps (C8, C9)', () => {
   test('Modus ohne Zahlen: keine Gramm-Tipps', () =>
     expect(dailyTips({ ...ctx, hideNumbers: true }).map((t) => t.key)).toEqual(['trainingstag', 'trinken', 'schlafKurz']));
   test('nichts offen → „alles gut“, keine Aufforderung zu mehr', () =>
-    expect(dailyTips({ target: null, eaten: { kcal: 0, protein: 0, fiber: 0 }, drinksMl: 0, drinkGoalMl: null, hour: 9, sleepHours: null, hideNumbers: false })).toEqual([{ key: 'allesGut' }]));
+    expect(
+      dailyTips({ target: null, eaten: { kcal: 0, protein: 0, fiber: 0 }, drinksMl: 0, drinkGoalMl: null, hour: 9, sleepHours: null, hideNumbers: false })
+    ).toEqual([{ key: 'allesGut' }]));
 });

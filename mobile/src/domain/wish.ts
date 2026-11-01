@@ -28,16 +28,7 @@ export type Wish = {
 export const MAX_WISH_LENGTH = 500;
 const WISH_KEYS = ['days', 'minutes', 'split', 'duration', 'blockedEquipment', 'blockedExercises', 'lockedExercises', 'keepFavorites', 'pain'];
 
-export type WishProblem =
-  | 'keinObjekt'
-  | 'unbekanntesFeld'
-  | 'tage'
-  | 'minuten'
-  | 'aufteilung'
-  | 'dauer'
-  | 'geraet'
-  | 'uebung'
-  | 'typ';
+export type WishProblem = 'keinObjekt' | 'unbekanntesFeld' | 'tage' | 'minuten' | 'aufteilung' | 'dauer' | 'geraet' | 'uebung' | 'typ';
 
 /** Prüft einen Wunsch – egal ob aus dem lokalen Auswerter oder später aus einer KI-Antwort. */
 export function validateWish(raw: unknown, knownExercises: ReadonlySet<string>): { wish: Wish | null; problems: WishProblem[] } {
@@ -92,7 +83,6 @@ export function validateWish(raw: unknown, knownExercises: ReadonlySet<string>):
 }
 
 // ------------------------------------------------------------------------- lokaler Auswerter
-
 
 const NUMBER_WORDS: Record<string, number> = { zwei: 2, drei: 3, vier: 4, fuenf: 5, sechs: 6, sieben: 7 };
 const NUM = '\\b(\\d{1,2}|zwei|drei|vier|fuenf|sechs|sieben)';
@@ -169,7 +159,8 @@ const EQUIPMENT_WORDS: Record<Equipment, string> = {
 /** Kleingeräte, die man oft zu Hause hat: „zu Hause“ schließt sie nur aus, wenn sie nicht erwähnt sind. */
 const HOME_OPTIONAL: Equipment[] = ['kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'];
 const NEGATION = '(?:ohne|kein|keine|keinen|nicht mit|statt|anstatt)';
-const BLOCKED_AFTER = '(?:ist|sind)?\\s*(?:belegt|kaputt|besetzt|gesperrt|nicht verfuegbar|nicht da|fehlt|fehlen|geht nicht|gehen nicht|tut weh|tun weh|schmerzt|schmerzen)';
+const BLOCKED_AFTER =
+  '(?:ist|sind)?\\s*(?:belegt|kaputt|besetzt|gesperrt|nicht verfuegbar|nicht da|fehlt|fehlen|geht nicht|gehen nicht|tut weh|tun weh|schmerzt|schmerzen)';
 
 function parseEquipment(text: string): Equipment[] {
   const blocked = new Set<Equipment>();
@@ -234,7 +225,10 @@ function parseExercises(text: string, exercises: NamedExercise[]) {
     if (new RegExp(`${NEGATION}\\s*(?:\\w+\\s+)?$`).test(before) || new RegExp(`^\\s*${BLOCKED_AFTER}`).test(after)) {
       ids.forEach((id) => blocked.add(id));
       if (/tut weh|tun weh|schmerz/.test(after)) pain = true;
-    } else if (/^\s*(?:\w+\s+)?(?:behalten|bleibt|bleiben|sperren|muss bleiben|unbedingt)/.test(after) || /(?:unbedingt|behalte|lieblingsuebung\w*)\s*$/.test(before)) {
+    } else if (
+      /^\s*(?:\w+\s+)?(?:behalten|bleibt|bleiben|sperren|muss bleiben|unbedingt)/.test(after) ||
+      /(?:unbedingt|behalte|lieblingsuebung\w*)\s*$/.test(before)
+    ) {
       ids.forEach((id) => locked.add(id));
     }
   }

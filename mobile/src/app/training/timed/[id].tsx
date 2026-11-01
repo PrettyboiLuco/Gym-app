@@ -1,13 +1,13 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
 import { Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { ConfirmButton } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { deleteTimedSession, getTimedSession, type TimedSession } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
+import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, t } from '@/i18n';
 

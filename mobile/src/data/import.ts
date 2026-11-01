@@ -2,7 +2,6 @@
 // Cardio-Sätze als Cardio-Einträge, Gewichte aus CSV. Doppelte werden übersprungen (gleiche Startzeit bzw. gleicher
 // Tag), daher kann man denselben Export gefahrlos zweimal einlesen.
 
-import { exerciseName, exerciseSynonyms } from '@/format/exercise-name';
 import {
   cardioActivityOf,
   equipmentHint,
@@ -14,6 +13,7 @@ import {
   type WeightRow,
 } from '@/domain/import-csv';
 import { localDay, timeZone } from '@/domain/time';
+import { exerciseName, exerciseSynonyms } from '@/format/exercise-name';
 
 import { newId, nowUtc, type Db } from './db';
 import { addCustomExercise, listExercises } from './training';
@@ -21,7 +21,7 @@ import { addCustomExercise, listExercises } from './training';
 /** Zuordnung je Übungsname: ID einer vorhandenen Übung, „neu“ (eigene Übung anlegen) oder „weglassen“. */
 export type ExerciseChoice = { kind: 'vorhanden'; id: string } | { kind: 'neu' } | { kind: 'weglassen' };
 
-export async function exerciseCandidates(db: Db): Promise<Candidate[]> {
+async function exerciseCandidates(db: Db): Promise<Candidate[]> {
   return (await listExercises(db))
     .filter((e) => e.kind === 'kraft')
     .map((e) => ({ id: e.id, names: [exerciseName(e), ...exerciseSynonyms(e)], equipment: e.equipment }));
@@ -48,9 +48,7 @@ function measureOf(sets: ImportedSet[]) {
 
 export async function importTraining(db: Db, imp: TrainingImport, choices: Record<string, ExerciseChoice>): Promise<ImportResult> {
   const result: ImportResult = { workouts: 0, sets: 0, cardio: 0, duplicates: 0, newExercises: 0 };
-  const existing = new Set(
-    (await db.getAllAsync<{ at: string }>('SELECT started_at_utc AS at FROM workout_session')).map((r) => new Date(r.at).toISOString())
-  );
+  const existing = new Set((await db.getAllAsync<{ at: string }>('SELECT started_at_utc AS at FROM workout_session')).map((r) => new Date(r.at).toISOString()));
   await db.withTransactionAsync(async () => {
     // Eigene Übungen nur für Namen anlegen, die wirklich Kraft-Sätze haben
     const ids = new Map<string, string>();

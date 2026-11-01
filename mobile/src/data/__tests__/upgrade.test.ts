@@ -4,9 +4,9 @@
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
-import type { Db } from '../db';
 import { CATALOG_EXERCISES, CATALOG_STRETCHES } from '@/domain/exercise-catalog';
 
+import type { Db } from '../db';
 import { MIGRATIONS, migrate } from '../migrations';
 import { createTestDb } from '../testing/node-db';
 import { listWeights } from '../weights';
@@ -55,9 +55,25 @@ const GOLDEN = `
 `;
 
 const TABLES = [
-  'weight_entry', 'plan', 'plan_version', 'plan_day', 'plan_item', 'workout_session', 'set_log', 'app_state', 'food',
-  'recipe', 'recipe_version', 'recipe_ingredient', 'meal_template', 'meal_template_item', 'consumption_event',
-  'calorie_goal', 'goal', 'goal_version', 'body_measurement',
+  'weight_entry',
+  'plan',
+  'plan_version',
+  'plan_day',
+  'plan_item',
+  'workout_session',
+  'set_log',
+  'app_state',
+  'food',
+  'recipe',
+  'recipe_version',
+  'recipe_ingredient',
+  'meal_template',
+  'meal_template_item',
+  'consumption_event',
+  'calorie_goal',
+  'goal',
+  'goal_version',
+  'body_measurement',
 ];
 
 /** Alle Zeilen aller Tabellen, nur mit den Spalten, die es in Version 4 schon gab. */
@@ -147,7 +163,9 @@ describe('Update von Version 4 auf die neueste Version (Golden-Dataset)', () => 
     await migrateTo(db, 14);
     await db.runAsync("INSERT INTO app_state (key, value) VALUES ('profile', ?)", JSON.stringify({ equipment: ['kurzhantel'] }));
     await migrate(db);
-    expect(JSON.parse((await db.getFirstAsync<{ value: string }>("SELECT value FROM app_state WHERE key = 'profile'"))!.value).equipment).toEqual(['kurzhantel']);
+    expect(JSON.parse((await db.getFirstAsync<{ value: string }>("SELECT value FROM app_state WHERE key = 'profile'"))!.value).equipment).toEqual([
+      'kurzhantel',
+    ]);
     await db.runAsync("UPDATE app_state SET value = ? WHERE key = 'profile'", JSON.stringify({ equipment: null }));
     expect(await db.getAllAsync("SELECT value FROM app_state WHERE key = 'profile'")).toHaveLength(1);
   });

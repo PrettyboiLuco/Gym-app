@@ -4,16 +4,7 @@ import { describe, expect, test } from '@jest/globals';
 
 import { HIIT_EXERCISES, STARTER_EXERCISES, STRETCH_EXERCISES } from '../exercises';
 import { flexibilityProgress } from '../goals';
-import {
-  cooldownItems,
-  findTemplate,
-  HIIT_PROGRAMS,
-  routineSteps,
-  STRETCH_TEMPLATES,
-  validateRoutine,
-  warmupItems,
-  type RoutineDraft,
-} from '../routines';
+import { cooldownItems, findTemplate, HIIT_PROGRAMS, routineSteps, STRETCH_TEMPLATES, validateRoutine, warmupItems, type RoutineDraft } from '../routines';
 import {
   hiitSteps,
   newRun,
@@ -39,13 +30,7 @@ describe('Timer-Engine Dehnen (STRETCH-004)', () => {
   ];
   test('wie Referenzmodell: links, Wechsel, rechts, Übergang, 105 s ohne Vorbereitung', () => {
     const steps = stretchSteps(items, 5, 10, 0);
-    expect(steps.map((s) => `${s.kind}${s.side ? `:${s.side}` : ''}`)).toEqual([
-      'halten:links',
-      'seitenwechsel:rechts',
-      'halten:rechts',
-      'wechsel',
-      'halten',
-    ]);
+    expect(steps.map((s) => `${s.kind}${s.side ? `:${s.side}` : ''}`)).toEqual(['halten:links', 'seitenwechsel:rechts', 'halten:rechts', 'wechsel', 'halten']);
     expect(stepsTotalSeconds(steps)).toBe(105);
   });
   test('Vorbereitung kündigt die erste Übung an', () => {
@@ -71,16 +56,7 @@ describe('Timer-Engine HIIT (HIIT-003)', () => {
     prepSeconds: 10,
   });
   test('Ablauf: Vorbereitung, Belastung, Pause, Belastung, Rundenpause, … ohne Pause am Ende', () => {
-    expect(steps.map((s) => s.kind)).toEqual([
-      'vorbereitung',
-      'belastung',
-      'pause',
-      'belastung',
-      'rundenpause',
-      'belastung',
-      'pause',
-      'belastung',
-    ]);
+    expect(steps.map((s) => s.kind)).toEqual(['vorbereitung', 'belastung', 'pause', 'belastung', 'rundenpause', 'belastung', 'pause', 'belastung']);
     expect(stepsTotalSeconds(steps)).toBe(10 + 20 + 10 + 20 + 60 + 20 + 10 + 20);
   });
   test('Pause kündigt die nächste Übung an', () => {
@@ -109,7 +85,15 @@ describe('Timer-Engine HIIT (HIIT-003)', () => {
 });
 
 describe('Laufender Ablauf: Pause, Weiter, Überspringen (HIIT-003)', () => {
-  const steps = stretchSteps([{ exerciseId: 'a', seconds: 30, bothSides: false }, { exerciseId: 'b', seconds: 30, bothSides: false }], 5, 10, 0);
+  const steps = stretchSteps(
+    [
+      { exerciseId: 'a', seconds: 30, bothSides: false },
+      { exerciseId: 'b', seconds: 30, bothSides: false },
+    ],
+    5,
+    10,
+    0
+  );
   const run = newRun({ kind: 'dehnen', title: 'Test', steps, sessionId: 's', workoutSessionId: null }, 0);
   test('Pause hält die Zeit an', () => {
     const paused = pauseRun(run, 10_000);
@@ -145,7 +129,11 @@ describe('Vorlagen und Programme (STRETCH-003, HIIT-001/002)', () => {
   });
   test('Bauch und Ganzkörper je in Anfänger und Fortgeschritten', () => {
     for (const focus of ['bauch', 'ganzkoerper']) {
-      expect(HIIT_PROGRAMS.filter((p) => p.focus === focus).map((p) => p.level).sort()).toEqual(['anfaenger', 'fortgeschritten']);
+      expect(
+        HIIT_PROGRAMS.filter((p) => p.focus === focus)
+          .map((p) => p.level)
+          .sort()
+      ).toEqual(['anfaenger', 'fortgeschritten']);
     }
   });
   test('Fortgeschritten ist länger als Anfänger', () => {
@@ -170,12 +158,14 @@ describe('Vorlagen und Programme (STRETCH-003, HIIT-001/002)', () => {
 describe('Routine prüfen', () => {
   const base: RoutineDraft = { ...findTemplate('morgens')!, name: 'Meine' };
   test('Name und Übungen nötig', () => expect(validateRoutine({ ...base, name: ' ', items: [] })).toEqual(['name', 'items']));
-  test('Haltezeit 5–300 s', () =>
-    expect(validateRoutine({ ...base, items: [{ exerciseId: 'dehn_kobra', seconds: 400 }] })).toEqual(['seconds']));
+  test('Haltezeit 5–300 s', () => expect(validateRoutine({ ...base, items: [{ exerciseId: 'dehn_kobra', seconds: 400 }] })).toEqual(['seconds']));
   test('HIIT: Belastung, Pause, Runden geprüft', () =>
-    expect(
-      validateRoutine({ ...findTemplate('bauch_anfaenger')!, name: 'x', workSeconds: 2, restSeconds: -1, rounds: 0, roundRestSeconds: 999 })
-    ).toEqual(['work', 'rest', 'rounds', 'roundRest']));
+    expect(validateRoutine({ ...findTemplate('bauch_anfaenger')!, name: 'x', workSeconds: 2, restSeconds: -1, rounds: 0, roundRestSeconds: 999 })).toEqual([
+      'work',
+      'rest',
+      'rounds',
+      'roundRest',
+    ]));
 });
 
 describe('Aufwärmen und Cool-down (STRETCH-001/002)', () => {
@@ -202,9 +192,7 @@ describe('Zeit-Sätze (UX-011)', () => {
   test('Plan mit Zeit-Übung: Sekunden statt Wiederholungen', () => {
     const plan = { name: 'P', days: [{ name: 'T', items: [{ exerciseId: 'plank', sets: 3, repsMin: 1, repsMax: 1, restSeconds: 60, targetSeconds: 45 }] }] };
     expect(validatePlan(plan)).toEqual([]);
-    expect(validatePlan({ ...plan, days: [{ name: 'T', items: [{ ...plan.days[0].items[0], targetSeconds: 2 }] }] })).toEqual([
-      'invalidSeconds',
-    ]);
+    expect(validatePlan({ ...plan, days: [{ name: 'T', items: [{ ...plan.days[0].items[0], targetSeconds: 2 }] }] })).toEqual(['invalidSeconds']);
   });
   test('Zeitschätzung nutzt die Sekunden und das Aufwärmen', () => {
     expect(estimateDayMinutes([{ sets: 3, restSeconds: 60, targetSeconds: 60 }])).toBe(6);

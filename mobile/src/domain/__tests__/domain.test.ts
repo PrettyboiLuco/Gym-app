@@ -9,8 +9,7 @@ import { weightTrend } from '../weight';
 
 describe('Nährwerte', () => {
   test('250 kcal/100 g × 60 g = 150', () => expect(nutrientForAmount(250, 60)).toBe(150));
-  test('40 kcal/100 ml × 250 ml = 100', () =>
-    expect(nutrientForAmount(40, 250, 'ml', 'ml')).toBe(100));
+  test('40 kcal/100 ml × 250 ml = 100', () => expect(nutrientForAmount(40, 250, 'ml', 'ml')).toBe(100));
   test('fehlender Nährwert bleibt unbekannt', () => expect(nutrientForAmount(null, 60)).toBeNull());
   test('bekannte Null bleibt Null', () => expect(nutrientForAmount(0, 60)).toBe(0));
   test('negative Menge abgelehnt', () => expect(() => nutrientForAmount(40, -1)).toThrow());
@@ -22,23 +21,17 @@ describe('Nährwerte', () => {
 
 describe('Kalorienrechner', () => {
   test('Mifflin 80 kg/180 cm/30 J/+5 = 1780', () => expect(restingEnergy(80, 180, 30, '+5')).toBe(1780));
-  test('Mifflin 60 kg/165 cm/25 J/-161 = 1345,25', () =>
-    expect(restingEnergy(60, 165, 25, '-161')).toBeCloseTo(1345.25));
+  test('Mifflin 60 kg/165 cm/25 J/-161 = 1345,25', () => expect(restingEnergy(60, 165, 25, '-161')).toBeCloseTo(1345.25));
   test('Alter 17 außerhalb Population', () => expect(() => restingEnergy(70, 175, 17, '+5')).toThrow());
   test('Alter 80 außerhalb Population', () => expect(() => restingEnergy(70, 175, 80, '+5')).toThrow());
   test('Gewicht 0 abgelehnt', () => expect(() => restingEnergy(0, 175, 30, '+5')).toThrow());
 
   const testTable = { test_mittel: 1.55 }; // Testparameter, keine freigegebene Stufe
-  test('Schätzung 1780 × 1,55 = 2759', () =>
-    expect(energyEstimate(1780, 'test_mittel', testTable)).toBeCloseTo(2759));
-  test('unbekannte Aktivitätsstufe abgelehnt', () =>
-    expect(() => energyEstimate(1780, 'extrem', testTable)).toThrow());
-  test('abnehmen −500 ergibt 2259', () =>
-    expect(calorieTarget(2759, 'abnehmen', -500, 1200)).toEqual({ status: 'vorschlag', kcal: 2259 }));
-  test('unter Untergrenze keine Zahl', () =>
-    expect(calorieTarget(1600, 'abnehmen', -500, 1200)).toEqual({ status: 'fachpruefung' }));
-  test('abnehmen mit Überschuss abgelehnt', () =>
-    expect(() => calorieTarget(2000, 'abnehmen', 300, 1200)).toThrow());
+  test('Schätzung 1780 × 1,55 = 2759', () => expect(energyEstimate(1780, 'test_mittel', testTable)).toBeCloseTo(2759));
+  test('unbekannte Aktivitätsstufe abgelehnt', () => expect(() => energyEstimate(1780, 'extrem', testTable)).toThrow());
+  test('abnehmen −500 ergibt 2259', () => expect(calorieTarget(2759, 'abnehmen', -500, 1200)).toEqual({ status: 'vorschlag', kcal: 2259 }));
+  test('unter Untergrenze keine Zahl', () => expect(calorieTarget(1600, 'abnehmen', -500, 1200)).toEqual({ status: 'fachpruefung' }));
+  test('abnehmen mit Überschuss abgelehnt', () => expect(() => calorieTarget(2000, 'abnehmen', 300, 1200)).toThrow());
   test('halten mit Delta abgelehnt', () => expect(() => calorieTarget(2000, 'halten', -100, 1200)).toThrow());
 });
 
@@ -55,8 +48,7 @@ describe('Gewicht', () => {
     kg,
   }));
   test('7-Tage-Mittel aus 7 Messungen', () => expect(weightTrend(week, '2026-10-28')).toBeCloseTo(80.1));
-  test('zu wenige Messungen ergeben keinen Trend', () =>
-    expect(weightTrend(week.slice(0, 3), '2026-10-28')).toBeNull());
+  test('zu wenige Messungen ergeben keinen Trend', () => expect(weightTrend(week.slice(0, 3), '2026-10-28')).toBeNull());
   test('mehrere Messungen an einem Tag zählen als ein Tag', () => {
     const sameDay = [80, 80, 80, 80].map((kg) => ({ day: '2026-10-28', kg }));
     expect(weightTrend(sameDay, '2026-10-28')).toBeNull();
@@ -69,8 +61,7 @@ describe('Gewicht', () => {
     ];
     expect(weightTrend(mixed, '2026-10-28')).toBeCloseTo(81);
   });
-  test('Messungen außerhalb des Fensters ignoriert', () =>
-    expect(weightTrend([...week, { day: '2026-09-28', kg: 95 }], '2026-10-28')).toBeCloseTo(80.1));
+  test('Messungen außerhalb des Fensters ignoriert', () => expect(weightTrend([...week, { day: '2026-09-28', kg: 95 }], '2026-10-28')).toBeCloseTo(80.1));
 });
 
 describe('Zeit und Timer', () => {

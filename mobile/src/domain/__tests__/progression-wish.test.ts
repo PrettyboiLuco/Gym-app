@@ -25,9 +25,11 @@ describe('Steigerung (TRAIN-018)', () => {
   test('meist unter dem Bereich → Gewicht halten', () =>
     expect(progressionAdvice([session(3, 60, [7, 6, 9])], target, 'langhantel', 'kg')).toMatchObject({ kind: 'halten', weightKg: 60 }));
   test('dreimal gleich ohne Fortschritt → Stagnation mit ca. 10 % weniger', () =>
-    expect(
-      progressionAdvice([session(2, 60, [9, 9, 8]), session(5, 60, [9, 9, 8]), session(9, 60, [9, 9, 9])], target, 'langhantel', 'kg')
-    ).toEqual({ kind: 'stagnation', weightKg: 55, reps: 8 }));
+    expect(progressionAdvice([session(2, 60, [9, 9, 8]), session(5, 60, [9, 9, 8]), session(9, 60, [9, 9, 9])], target, 'langhantel', 'kg')).toEqual({
+      kind: 'stagnation',
+      weightKg: 55,
+      reps: 8,
+    }));
   test('Wiedereinstieg nach 14 bzw. 28 Tagen (TRAIN-015)', () => {
     expect(progressionAdvice([session(20, 100, [8, 8, 8])], target, 'langhantel', 'kg')).toMatchObject({ kind: 'wiedereinstieg', weightKg: 90, percent: 10 });
     expect(progressionAdvice([session(40, 100, [8, 8, 8])], target, 'langhantel', 'kg')).toMatchObject({ weightKg: 80, percent: 20 });
@@ -57,12 +59,28 @@ const known = new Set(NAMES.map((n) => n.id));
 describe('Freitext (8.7)', () => {
   test('Beispiel aus Kap. 05', () =>
     expect(
-      parseWish('Ich trainiere bisher sechs Tage Push-Pull-Legs. Künftig vier Tage, je 60 Minuten, Oberkörper/Unterkörper; meine Lieblingsübungen behalten.', NAMES)
+      parseWish(
+        'Ich trainiere bisher sechs Tage Push-Pull-Legs. Künftig vier Tage, je 60 Minuten, Oberkörper/Unterkörper; meine Lieblingsübungen behalten.',
+        NAMES
+      )
     ).toEqual({ days: 4, minutes: 60, split: 'ober_unter', duration: 'dauerhaft', keepFavorites: true }));
   test('„von 6 auf 3 Tage“, eine Stunde, nur diese Woche', () =>
     expect(parseWish('Diese Woche von 6 auf 3 Tage, je eine Stunde', NAMES)).toEqual({ days: 3, minutes: 60, duration: 'woche' }));
   test('Geräte: zu Hause mit Kurzhanteln', () =>
-    expect(parseWish('Bin im Urlaub zu Hause mit Kurzhanteln, 45 min', NAMES).blockedEquipment?.sort()).toEqual(['band', 'faszienrolle', 'gymnastikball', 'kabel', 'kabel_crossover', 'kabel_doppel', 'kettlebell', 'langhantel', 'maschine', 'medizinball', 'smith', 'sz_stange']));
+    expect(parseWish('Bin im Urlaub zu Hause mit Kurzhanteln, 45 min', NAMES).blockedEquipment?.sort()).toEqual([
+      'band',
+      'faszienrolle',
+      'gymnastikball',
+      'kabel',
+      'kabel_crossover',
+      'kabel_doppel',
+      'kettlebell',
+      'langhantel',
+      'maschine',
+      'medizinball',
+      'smith',
+      'sz_stange',
+    ]));
   test('ohne Langhantel; Beinpresse ist kaputt; Kniebeuge behalten', () => {
     const wish = parseWish('Ohne Langhantel bitte, die Beinpresse ist kaputt. Kniebeuge behalten!', NAMES);
     expect(wish.blockedEquipment).toEqual(['langhantel']);

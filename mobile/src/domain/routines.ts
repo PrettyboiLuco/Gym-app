@@ -2,8 +2,8 @@
 // Programme sind Kandidaten bis zur fachlichen Abnahme (Fahrplan 10.1); Zeiten sind Voreinstellungen.
 
 import type { MuscleGroup, Sides } from './exercises';
-import { parseWholeNumber } from './training';
 import { hiitSteps, stretchSteps, type Step } from './timeline';
+import { parseWholeNumber } from './training';
 
 export type RoutineKind = 'dehnen' | 'hiit';
 
@@ -175,12 +175,18 @@ export const HIIT_PROGRAMS: Template[] = [
     rounds: 2,
     roundRest: 60,
   }),
-  hiit('ganzkoerper_fortgeschritten', 'ganzkoerper', 'fortgeschritten', ['burpees', 'sprungkniebeuge', 'liegestuetze', 'mountain_climbers', 'ausfallschritte_wechsel', 'kniehebelauf'], {
-    work: 40,
-    rest: 20,
-    rounds: 3,
-    roundRest: 60,
-  }),
+  hiit(
+    'ganzkoerper_fortgeschritten',
+    'ganzkoerper',
+    'fortgeschritten',
+    ['burpees', 'sprungkniebeuge', 'liegestuetze', 'mountain_climbers', 'ausfallschritte_wechsel', 'kniehebelauf'],
+    {
+      work: 40,
+      rest: 20,
+      rounds: 3,
+      roundRest: 60,
+    }
+  ),
 ];
 
 export function findTemplate(id: string): Template | undefined {

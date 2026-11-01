@@ -6,12 +6,12 @@ import { Choice, MultiChoice } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
-import { useProfile } from '@/providers/profile-provider';
-import { useDb } from '@/providers/store-provider';
 import { loadEquipmentProfiles, saveActiveEquipmentProfile, saveEquipmentProfiles } from '@/data/training-stats';
 import { EQUIPMENT, type Equipment } from '@/domain/exercises';
 import type { EquipmentProfile } from '@/domain/training-stats';
 import { t, tOptional } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 /** Geräteprofile (A8.4): Studio, Zuhause, Hotel – Planassistent und „Gerät belegt“ nutzen das gewählte. */
 export default function EquipmentScreen() {
@@ -55,7 +55,13 @@ export default function EquipmentScreen() {
         />
       </Card>
       <Card title={t('equipmentProfiles.equipmentOf', { name: tOptional(`equipmentProfiles.names.${active.id}`) ?? active.name })}>
-        <MultiChoice label={t('equipmentProfiles.available')} options={EQUIPMENT} value={active.equipment} onChange={setEquipment} format={(e) => t(`equipment.${e}`)} />
+        <MultiChoice
+          label={t('equipmentProfiles.available')}
+          options={EQUIPMENT}
+          value={active.equipment}
+          onChange={setEquipment}
+          format={(e) => t(`equipment.${e}`)}
+        />
         <ThemedText type="small" themeColor="textSecondary">
           {t('equipmentProfiles.bodyweight')}
         </ThemedText>

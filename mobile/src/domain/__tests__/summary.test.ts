@@ -2,7 +2,12 @@ import { describe, expect, test } from '@jest/globals';
 
 import { findRecords, summarize, trainedDays, type DoneSet } from '../summary';
 
-const set = (exerciseId: string, weightKg: number | null, reps: number | null, seconds: number | null = null): DoneSet => ({ exerciseId, weightKg, reps, seconds });
+const set = (exerciseId: string, weightKg: number | null, reps: number | null, seconds: number | null = null): DoneSet => ({
+  exerciseId,
+  weightKg,
+  reps,
+  seconds,
+});
 
 describe('Zusammenfassung nach dem Training', () => {
   test('Sätze, Übungen, Volumen und Dauer', () => {
@@ -28,8 +33,15 @@ describe('Bestleistungen', () => {
     expect(findRecords([set('a', 70, 5)], [{ exerciseId: 'a', maxKg: 80, repsAtMaxKg: 5, maxReps: 5, maxSeconds: null }])).toEqual([]);
   });
   test('Körpergewicht und Zeit', () => {
-    expect(findRecords([set('k', 0, 15)], [{ exerciseId: 'k', maxKg: 0, repsAtMaxKg: 12, maxReps: 12, maxSeconds: null }])[0]).toMatchObject({ kind: 'wiederholungen', reps: 15 });
-    expect(findRecords([set('p', 0, null, 75)], [{ exerciseId: 'p', maxKg: 0, repsAtMaxKg: null, maxReps: null, maxSeconds: 60 }])[0]).toMatchObject({ kind: 'zeit', seconds: 75, previousSeconds: 60 });
+    expect(findRecords([set('k', 0, 15)], [{ exerciseId: 'k', maxKg: 0, repsAtMaxKg: 12, maxReps: 12, maxSeconds: null }])[0]).toMatchObject({
+      kind: 'wiederholungen',
+      reps: 15,
+    });
+    expect(findRecords([set('p', 0, null, 75)], [{ exerciseId: 'p', maxKg: 0, repsAtMaxKg: null, maxReps: null, maxSeconds: 60 }])[0]).toMatchObject({
+      kind: 'zeit',
+      seconds: 75,
+      previousSeconds: 60,
+    });
   });
 });
 

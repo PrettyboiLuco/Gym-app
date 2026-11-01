@@ -30,7 +30,15 @@ describe('Logger-Paket (A1)', () => {
     expect(estimateOneRepMax(100, 1)).toBe(100);
     expect(estimateOneRepMax(100, 10)).toBe(133.3);
     expect(estimateOneRepMax(100, 13)).toBeNull();
-    expect(bestOneRepMax([{ weightKg: 60, reps: 8, setType: 'aufwaermen' }, { weightKg: 80, reps: 5, setType: 'arbeit' }], 'normal')).toBe(93.3);
+    expect(
+      bestOneRepMax(
+        [
+          { weightKg: 60, reps: 8, setType: 'aufwaermen' },
+          { weightKg: 80, reps: 5, setType: 'arbeit' },
+        ],
+        'normal'
+      )
+    ).toBe(93.3);
     expect(bestOneRepMax([{ weightKg: 30, reps: 8 }], 'unterstuetzt')).toBeNull();
   });
 
@@ -71,7 +79,12 @@ describe('Logger-Paket (A1)', () => {
       [2, 75],
       [1, 60],
     ]);
-    expect(supersetLetters([null, 3, 3, 7])).toEqual(new Map([[3, 'A'], [7, 'B']]));
+    expect(supersetLetters([null, 3, 3, 7])).toEqual(
+      new Map([
+        [3, 'A'],
+        [7, 'B'],
+      ])
+    );
   });
 
   test('Zusammenfassung und Bestleistungen ohne Aufwärmsätze, Gegengewicht: weniger ist besser', () => {
@@ -97,18 +110,42 @@ describe('Logger-Paket (A1)', () => {
   });
 
   test('Steigerung bei Gegengewicht: weniger Unterstützung statt mehr Gewicht', () => {
-    const history = [{ daysAgo: 3, sets: [{ weightKg: 30, reps: 12, seconds: null }, { weightKg: 30, reps: 12, seconds: null }] }];
+    const history = [
+      {
+        daysAgo: 3,
+        sets: [
+          { weightKg: 30, reps: 12, seconds: null },
+          { weightKg: 30, reps: 12, seconds: null },
+        ],
+      },
+    ];
     const target = { sets: 2, repsMin: 8, repsMax: 12, seconds: null };
     expect(progressionAdvice(history, target, 'maschine', 'kg')).toMatchObject({ kind: 'mehrGewicht', weightKg: 32.5 });
     expect(progressionAdvice(history, target, 'maschine', 'kg', 'unterstuetzt')).toMatchObject({ kind: 'mehrGewicht', weightKg: 27.5 });
   });
 
   test('Steigerungsregel v2 nutzt RIR, ist aber standardmäßig aus', () => {
-    const easy = [{ daysAgo: 3, sets: [{ weightKg: 80, reps: 9, seconds: null, rir: 3 }, { weightKg: 80, reps: 9, seconds: null, rir: 4 }] }];
+    const easy = [
+      {
+        daysAgo: 3,
+        sets: [
+          { weightKg: 80, reps: 9, seconds: null, rir: 3 },
+          { weightKg: 80, reps: 9, seconds: null, rir: 4 },
+        ],
+      },
+    ];
     const target = { sets: 2, repsMin: 8, repsMax: 12, seconds: null };
     expect(progressionAdvice(easy, target, 'langhantel', 'kg')).toMatchObject({ kind: 'mehrWdh' });
     expect(progressionAdvice(easy, target, 'langhantel', 'kg', 'normal', 2)).toMatchObject({ kind: 'mehrGewicht', weightKg: 82.5 });
-    const limit = [{ daysAgo: 3, sets: [{ weightKg: 80, reps: 8, seconds: null, rir: 1 }, { weightKg: 80, reps: 7, seconds: null, rir: 0 }] }];
+    const limit = [
+      {
+        daysAgo: 3,
+        sets: [
+          { weightKg: 80, reps: 8, seconds: null, rir: 1 },
+          { weightKg: 80, reps: 7, seconds: null, rir: 0 },
+        ],
+      },
+    ];
     expect(progressionAdvice(limit, target, 'langhantel', 'kg', 'normal', 2)).toMatchObject({ kind: 'halten', weightKg: 80 });
   });
 

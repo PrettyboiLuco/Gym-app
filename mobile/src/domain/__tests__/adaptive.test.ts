@@ -2,9 +2,9 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { shiftDay as shift } from '../dates';
 import { estimateExpenditure, suggestV2, weeklyBalance, type IntakeDay } from '../adaptive';
 import { applyV2, type CheckinResult } from '../checkin';
+import { shiftDay as shift } from '../dates';
 
 const END = '2026-10-31';
 /** 28 Tage mit Aufnahme `kcal`, Gewicht fällt linear um `kgPerWeek`. */
@@ -58,14 +58,28 @@ describe('Check-in Fassung 2', () => {
   const estimate = estimateExpenditure(...(Object.values(scenario(2400, 0.5)) as [IntakeDay[], { day: string; kg: number }[]]), END);
   test('Ziel = Verbrauch + Abstand, gedeckelt auf ±200 je Woche, auf 50 gerundet', () => {
     expect(suggestV2({ estimate, delta: -500, currentGoal: 2400, weightKg: 88, heightCm: 180 })).toEqual({ kind: 'passt', target: 2450 });
-    expect(suggestV2({ estimate, delta: 0, currentGoal: 2400, weightKg: 88, heightCm: 180 })).toEqual({ kind: 'kcal', from: 2400, to: 2600, target: 2950, capped: true });
+    expect(suggestV2({ estimate, delta: 0, currentGoal: 2400, weightKg: 88, heightCm: 180 })).toEqual({
+      kind: 'kcal',
+      from: 2400,
+      to: 2600,
+      target: 2950,
+      capped: true,
+    });
     expect(suggestV2({ estimate, delta: -500, currentGoal: 2300, weightKg: 88, heightCm: 180 })).toMatchObject({ kind: 'kcal', to: 2450, capped: false });
   });
   test('Schutz: nie unter die Untergrenze, kein Senken bei Untergewicht, ohne Schätzung/Einrichtung kein Vorschlag', () => {
     const low = { ...estimate, kcal: 1300 } as typeof estimate;
     expect(suggestV2({ estimate: low, delta: -500, currentGoal: 1300, weightKg: 70, heightCm: 180 })).toMatchObject({ kind: 'kcal', to: 1200 });
     expect(suggestV2({ estimate, delta: -500, currentGoal: 2700, weightKg: 55, heightCm: 180 })).toMatchObject({ kind: 'passt' });
-    expect(suggestV2({ estimate: { kind: 'lernen', completeDays: 3, needed: 14, weightStart: true, weightEnd: true, from: '', to: '' }, delta: 0, currentGoal: 2000, weightKg: 80, heightCm: 180 })).toEqual({
+    expect(
+      suggestV2({
+        estimate: { kind: 'lernen', completeDays: 3, needed: 14, weightStart: true, weightEnd: true, from: '', to: '' },
+        delta: 0,
+        currentGoal: 2000,
+        weightKg: 80,
+        heightCm: 180,
+      })
+    ).toEqual({
       kind: 'ohne',
       why: 'lernen',
     });
@@ -77,7 +91,10 @@ describe('Check-in Fassung 2', () => {
     for (const kind of ['sensibel', 'ohneZahlen', 'pausiert'] as const) {
       expect(applyV2({ ...base, suggestion: { kind } }, v2)).toMatchObject({ suggestion: { kind }, rulesVersion: 1 });
     }
-    expect(applyV2({ ...base, suggestion: { kind: 'zielEinhalten', over: 300 } }, v2)).toMatchObject({ suggestion: { kind: 'kcal', reason: 'verbrauch' }, rulesVersion: 2 });
+    expect(applyV2({ ...base, suggestion: { kind: 'zielEinhalten', over: 300 } }, v2)).toMatchObject({
+      suggestion: { kind: 'kcal', reason: 'verbrauch' },
+      rulesVersion: 2,
+    });
     expect(applyV2({ ...base, suggestion: { kind: 'passt' } }, { kind: 'ohne', why: 'lernen' })).toMatchObject({ rulesVersion: 1 });
   });
 });

@@ -3,12 +3,13 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
 import { BASIS_FOODS } from '@/domain/basis-foods-data';
+import { DEFAULT_REMINDERS } from '@/domain/reminders';
 
 import { writeState } from '../app-state';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '../backup';
 import { syncBasisFoods } from '../basis-foods';
-import { usageSummary } from '../feedback';
 import type { Db } from '../db';
+import { usageSummary } from '../feedback';
 import { listActiveGoals, saveGoal, setCalorieGoal } from '../goals';
 import { MIGRATIONS, migrate } from '../migrations';
 import { logWater } from '../nutrition';
@@ -18,7 +19,6 @@ import { addSteps, listSteps } from '../steps';
 import { createTestDb } from '../testing/node-db';
 import { addCustomExercise, listExercises, savePlan, startSession } from '../training';
 import { addWeight, listWeights } from '../weights';
-import { DEFAULT_REMINDERS } from '@/domain/reminders';
 
 let db: Db & { close(): void };
 

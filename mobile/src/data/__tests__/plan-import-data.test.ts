@@ -32,7 +32,10 @@ async function lucsPlan() {
 
 describe('Plan übernehmen', () => {
   test('ersetzt den alten Plan und übernimmt alles aus der Datei', async () => {
-    await savePlan(db, null, { name: 'Alter Plan', days: [{ name: 'A', items: [{ exerciseId: 'latzug', sets: 3, repsMin: 8, repsMax: 12, restSeconds: 90 }] }] });
+    await savePlan(db, null, {
+      name: 'Alter Plan',
+      days: [{ name: 'A', items: [{ exerciseId: 'latzug', sets: 3, repsMin: 8, repsMax: 12, restSeconds: 90 }] }],
+    });
     const imp = await lucsPlan();
     const done = await applyPlanImport(db, imp, { replace: true, goals: true }, '2026-10-31');
 

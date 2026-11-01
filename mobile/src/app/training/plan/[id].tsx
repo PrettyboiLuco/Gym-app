@@ -3,19 +3,13 @@ import { Fragment, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { supersetLetters } from '@/domain/logger';
-import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
-import { exerciseName } from '@/format/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
-import { loadSecondsPerSet } from '@/data/training-stats';
-import { todayDay } from '@/domain/time';
 import { blockSeconds as blockSecondsOf } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useDb } from '@/providers/store-provider';
 import {
   activatePlanVersion,
   activeVersion,
@@ -27,19 +21,16 @@ import {
   type Exercise,
   type PlanVersionInfo,
 } from '@/data/training';
-import {
-  estimateDayMinutes,
-  formatClock,
-  MAX_DAYS,
-  moveItem,
-  parseWholeNumber,
-  REST_PRESETS,
-  validatePlan,
-  type PlanDraft,
-} from '@/domain/training';
+import { loadSecondsPerSet } from '@/data/training-stats';
+import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
+import { supersetLetters } from '@/domain/logger';
+import { todayDay } from '@/domain/time';
+import { estimateDayMinutes, formatClock, MAX_DAYS, moveItem, parseWholeNumber, REST_PRESETS, validatePlan, type PlanDraft } from '@/domain/training';
+import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
 type ItemForm = {
@@ -259,120 +250,110 @@ export default function PlanEditorScreen() {
         <Button label={t('plan.assistant')} variant="secondary" onPress={() => router.push({ pathname: '/training/assistant', params: { plan: id } })} />
       ) : null}
       <Card>
-        <Field
-          label={t('plan.name')}
-          placeholder={t('plan.namePlaceholder')}
-          value={form.name}
-          onChangeText={(name) => setForm((f) => ({ ...f, name }))}
-        />
+        <Field label={t('plan.name')} placeholder={t('plan.namePlaceholder')} value={form.name} onChangeText={(name) => setForm((f) => ({ ...f, name }))} />
       </Card>
 
       {form.days.map((day, dayIndex) => (
         <Card key={dayIndex} title={t('plan.day', { number: dayIndex + 1 })}>
-          <Field
-            label={t('plan.dayName')}
-            placeholder={t('plan.dayPlaceholder')}
-            value={day.name}
-            onChangeText={(name) => updateDay(dayIndex, { name })}
-          />
+          <Field label={t('plan.dayName')} placeholder={t('plan.dayPlaceholder')} value={day.name} onChangeText={(name) => updateDay(dayIndex, { name })} />
           {day.items.map((item, itemIndex) => (
             <Fragment key={itemIndex}>
-            <View style={[styles.item, { borderColor: theme.backgroundSelected }]}>
-              {supersetGroups(day.items)[itemIndex] != null ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('plan.supersetBadge', {
-                    letter: supersetLetters(supersetGroups(day.items)).get(supersetGroups(day.items)[itemIndex]!),
-                  })}
-                </ThemedText>
-              ) : null}
-              {/* Name über volle Breite, Knöpfe darunter – sonst bricht ein langer Name mitten im Wort. */}
-              <View>
-                <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
-                {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
+              <View style={[styles.item, { borderColor: theme.backgroundSelected }]}>
+                {supersetGroups(day.items)[itemIndex] != null ? (
                   <ThemedText type="small" themeColor="textSecondary">
-                    {exerciseName(byId.get(item.exerciseId))}
+                    {t('plan.supersetBadge', {
+                      letter: supersetLetters(supersetGroups(day.items)).get(supersetGroups(day.items)[itemIndex]!),
+                    })}
                   </ThemedText>
                 ) : null}
-              </View>
-              <View style={styles.itemHeader}>
-                <View style={styles.flex} />
-                {itemIndex > 0 ? (
+                {/* Name über volle Breite, Knöpfe darunter – sonst bricht ein langer Name mitten im Wort. */}
+                <View>
+                  <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
+                  {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {exerciseName(byId.get(item.exerciseId))}
+                    </ThemedText>
+                  ) : null}
+                </View>
+                <View style={styles.itemHeader}>
+                  <View style={styles.flex} />
+                  {itemIndex > 0 ? (
+                    <Button
+                      label="↑"
+                      accessibilityLabel={`${t('common.moveUp')} ${exerciseName(byId.get(item.exerciseId))}`}
+                      variant="secondary"
+                      onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex - 1) })}
+                    />
+                  ) : null}
+                  {itemIndex < day.items.length - 1 ? (
+                    <Button
+                      label="↓"
+                      accessibilityLabel={`${t('common.moveDown')} ${exerciseName(byId.get(item.exerciseId))}`}
+                      variant="secondary"
+                      onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex + 1) })}
+                    />
+                  ) : null}
                   <Button
-                    label="↑"
-                    accessibilityLabel={`${t('common.moveUp')} ${exerciseName(byId.get(item.exerciseId))}`}
-                    variant="secondary"
-                    onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex - 1) })}
+                    label={t('common.remove')}
+                    variant="danger"
+                    onPress={() => updateDay(dayIndex, { items: day.items.filter((_, i) => i !== itemIndex) })}
                   />
+                </View>
+                <View style={styles.numbers}>
+                  {(isTimed(item.exerciseId) ? (['sets', 'seconds', 'rest'] as const) : (['sets', 'repsMin', 'repsMax', 'rest'] as const)).map((key) => (
+                    <Field
+                      key={key}
+                      label={t(`plan.${key}`)}
+                      value={item[key]}
+                      keyboardType="number-pad"
+                      style={styles.numberField}
+                      onChangeText={(value) => updateItem(dayIndex, itemIndex, { [key]: value })}
+                    />
+                  ))}
+                </View>
+                {isTimed(item.exerciseId) ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('plan.timedHint')}
+                  </ThemedText>
                 ) : null}
-                {itemIndex < day.items.length - 1 ? (
-                  <Button
-                    label="↓"
-                    accessibilityLabel={`${t('common.moveDown')} ${exerciseName(byId.get(item.exerciseId))}`}
-                    variant="secondary"
-                    onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex + 1) })}
-                  />
-                ) : null}
-                <Button
-                  label={t('common.remove')}
-                  variant="danger"
-                  onPress={() => updateDay(dayIndex, { items: day.items.filter((_, i) => i !== itemIndex) })}
+                <Field
+                  label={t('plan.label')}
+                  value={item.label ?? ''}
+                  placeholder={exerciseName(byId.get(item.exerciseId))}
+                  onChangeText={(label) => updateItem(dayIndex, itemIndex, { label })}
                 />
-              </View>
-              <View style={styles.numbers}>
-                {(isTimed(item.exerciseId) ? (['sets', 'seconds', 'rest'] as const) : (['sets', 'repsMin', 'repsMax', 'rest'] as const)).map((key) => (
+                <View style={styles.numbers}>
                   <Field
-                    key={key}
-                    label={t(`plan.${key}`)}
-                    value={item[key]}
-                    keyboardType="number-pad"
+                    label={t('plan.rir')}
+                    value={item.rir ?? ''}
+                    placeholder="1–2"
                     style={styles.numberField}
-                    onChangeText={(value) => updateItem(dayIndex, itemIndex, { [key]: value })}
+                    onChangeText={(rir) => updateItem(dayIndex, itemIndex, { rir })}
                   />
-                ))}
+                  <Field
+                    label={t('plan.note')}
+                    value={item.note ?? ''}
+                    placeholder={t('plan.notePlaceholder')}
+                    style={styles.noteField}
+                    onChangeText={(note) => updateItem(dayIndex, itemIndex, { note })}
+                  />
+                </View>
+                <Presets
+                  label={t('plan.rest')}
+                  options={REST_PRESETS}
+                  value={parseWholeNumber(item.rest) ?? undefined}
+                  format={(s) => formatClock(s * 1000)}
+                  onChange={(s) => updateItem(dayIndex, itemIndex, { rest: String(s) })}
+                />
               </View>
-              {isTimed(item.exerciseId) ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('plan.timedHint')}
-                </ThemedText>
+              {itemIndex < day.items.length - 1 ? (
+                <Button
+                  label={item.linkNext ? t('plan.supersetUnlink') : t('plan.supersetLink')}
+                  variant="secondary"
+                  size="compact"
+                  onPress={() => updateItem(dayIndex, itemIndex, { linkNext: !item.linkNext })}
+                />
               ) : null}
-              <Field
-                label={t('plan.label')}
-                value={item.label ?? ''}
-                placeholder={exerciseName(byId.get(item.exerciseId))}
-                onChangeText={(label) => updateItem(dayIndex, itemIndex, { label })}
-              />
-              <View style={styles.numbers}>
-                <Field
-                  label={t('plan.rir')}
-                  value={item.rir ?? ''}
-                  placeholder="1–2"
-                  style={styles.numberField}
-                  onChangeText={(rir) => updateItem(dayIndex, itemIndex, { rir })}
-                />
-                <Field
-                  label={t('plan.note')}
-                  value={item.note ?? ''}
-                  placeholder={t('plan.notePlaceholder')}
-                  style={styles.noteField}
-                  onChangeText={(note) => updateItem(dayIndex, itemIndex, { note })}
-                />
-              </View>
-              <Presets
-                label={t('plan.rest')}
-                options={REST_PRESETS}
-                value={parseWholeNumber(item.rest) ?? undefined}
-                format={(s) => formatClock(s * 1000)}
-                onChange={(s) => updateItem(dayIndex, itemIndex, { rest: String(s) })}
-              />
-            </View>
-            {itemIndex < day.items.length - 1 ? (
-              <Button
-                label={item.linkNext ? t('plan.supersetUnlink') : t('plan.supersetLink')}
-                variant="secondary"
-                size="compact"
-                onPress={() => updateItem(dayIndex, itemIndex, { linkNext: !item.linkNext })}
-              />
-            ) : null}
             </Fragment>
           ))}
           <Choice
@@ -473,20 +454,12 @@ export default function PlanEditorScreen() {
             </View>
           ) : null}
           {form.days.length > 1 ? (
-            <ConfirmButton
-              label={t('plan.removeDay')}
-              onConfirm={() => setForm((f) => ({ ...f, days: f.days.filter((_, i) => i !== dayIndex) }))}
-            />
+            <ConfirmButton label={t('plan.removeDay')} onConfirm={() => setForm((f) => ({ ...f, days: f.days.filter((_, i) => i !== dayIndex) }))} />
           ) : null}
         </Card>
       ))}
 
-      {form.days.length < MAX_DAYS ? (
-        <Button
-          label={t('plan.addDay')}
-          onPress={() => setForm((f) => ({ ...f, days: [...f.days, NEW_DAY] }))}
-        />
-      ) : null}
+      {form.days.length < MAX_DAYS ? <Button label={t('plan.addDay')} onPress={() => setForm((f) => ({ ...f, days: [...f.days, NEW_DAY] }))} /> : null}
 
       {showProblems && problems.length > 0 ? (
         <Card>

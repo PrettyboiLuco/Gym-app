@@ -1,8 +1,8 @@
 import { Stack } from 'expo-router';
 
+import { ErrorView } from '@/components/error-view';
 import { useStackOptions } from '@/components/stack-options';
 import { t } from '@/i18n';
-import { ErrorView } from '@/components/error-view';
 
 /** Fehler in einem Bildschirm zeigen statt einer leeren Seite. */
 export const ErrorBoundary = ErrorView;
@@ -10,8 +10,7 @@ export const ErrorBoundary = ErrorView;
 export default function TrainingLayout() {
   const stackOptions = useStackOptions();
   return (
-    <Stack
-      screenOptions={stackOptions}>
+    <Stack screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="plan/[id]" options={{ title: t('plan.titleEdit') }} />
       <Stack.Screen name="session/[id]" options={{ title: t('session.title') }} />

@@ -1,8 +1,8 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 
-import { useDb } from '@/providers/store-provider';
 import type { Db } from '@/data/db';
+import { useDb } from '@/providers/store-provider';
 
 /**
  * Lädt Daten aus der Datenbank, sobald der Bildschirm sichtbar wird oder sich `key` ändert

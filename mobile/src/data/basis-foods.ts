@@ -2,8 +2,8 @@
 // Regeln: verknüpfte Einträge (catalog_id) werden aktualisiert; geänderte (nur noch catalog_origin) bleiben unberührt
 // und werden auch nicht neu angelegt; fehlende kommen dazu. Läuft nur, wenn sich die Listen-Version geändert hat.
 
-import { BASIS_FOODS } from '@/domain/basis-foods-data';
 import { BASIS_VERSION, searchTermsOf, type BasisFood } from '@/domain/basis-foods';
+import { BASIS_FOODS } from '@/domain/basis-foods-data';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';

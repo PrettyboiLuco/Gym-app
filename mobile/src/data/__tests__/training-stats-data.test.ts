@@ -50,7 +50,8 @@ describe('Deload', () => {
   test('Angebot nach 8 Wochen am Stück, leichte Woche bis Sonntag, danach wieder der Plan', async () => {
     const planId = await savePlan(db, null, plan);
     const before = await activeVersion(db, planId);
-    for (let w = 0; w < 8; w++) await session(`w${w}`, new Date(Date.parse('2026-11-02T17:00:00Z') - w * 7 * 86_400_000).toISOString(), 60, [{ ex: 'kniebeuge', kg: 100, reps: 6 }]);
+    for (let w = 0; w < 8; w++)
+      await session(`w${w}`, new Date(Date.parse('2026-11-02T17:00:00Z') - w * 7 * 86_400_000).toISOString(), 60, [{ ex: 'kniebeuge', kg: 100, reps: 6 }]);
     expect(await deloadOffer(db, '2026-11-03')).toMatchObject({ due: true, weeks: 8 });
     await saveDeloadState(db, { ...(await loadDeloadState(db)), snoozedUntil: '2026-11-09' });
     expect((await deloadOffer(db, '2026-11-03')).due).toBe(false);
@@ -81,7 +82,12 @@ describe('Geräteprofile und Wochentage', () => {
 describe('Statistik und Satzzeit', () => {
   test('Monatszahlen und eigene Satzzeit', async () => {
     for (let i = 0; i < 3; i++) {
-      await session(`s${i}`, `2026-10-0${i + 2}T17:00:00Z`, 30, [...Array(8)].map((_, j) => ({ ex: j < 4 ? 'kniebeuge' : 'bankdruecken', kg: 80 + i * 5, reps: 5 })));
+      await session(
+        `s${i}`,
+        `2026-10-0${i + 2}T17:00:00Z`,
+        30,
+        [...Array(8)].map((_, j) => ({ ex: j < 4 ? 'kniebeuge' : 'bankdruecken', kg: 80 + i * 5, reps: 5 }))
+      );
     }
     const s = await loadPeriodStats(db, '2026-10-01', '2026-10-31');
     expect(s).toMatchObject({ sessions: 3, sets: 24 });

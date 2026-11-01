@@ -2,13 +2,13 @@
 
 import type { Db } from '@/data/db';
 import { cancelAlerts, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
-import { loadReminders } from '@/data/reminders';
-import { supplementReminders } from '@/data/supplements';
-import { todayDay } from '@/domain/time';
 import { loadProfile } from '@/data/profile';
 import { loadSleepGoal, loadWakeTime, statusToday } from '@/data/readiness';
+import { loadReminders } from '@/data/reminders';
+import { supplementReminders } from '@/data/supplements';
 import { bedtimeFor } from '@/domain/readiness';
 import { BEDTIME_LEAD_MINUTES, drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
+import { todayDay } from '@/domain/time';
 import { runElapsedMs, type TimedRun } from '@/domain/timeline';
 import type { IntervalConfig, RestTimer } from '@/domain/training';
 import { t } from '@/i18n';
@@ -103,7 +103,14 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
   }
   const morningAt = parseTime(settings.morning.time);
   if (settings.morning.enabled && morningAt !== null && modules.bereitschaft) {
-    list.push({ id: 'morgen-check', kind: 'daily', hour: Math.floor(morningAt / 60), minute: morningAt % 60, title: t('alerts.morningTitle'), body: t('alerts.morningBody') });
+    list.push({
+      id: 'morgen-check',
+      kind: 'daily',
+      hour: Math.floor(morningAt / 60),
+      minute: morningAt % 60,
+      title: t('alerts.morningTitle'),
+      body: t('alerts.morningBody'),
+    });
   }
   const wake = await loadWakeTime(db);
   const bed = settings.bedtime.enabled && wake ? bedtimeFor(wake, await loadSleepGoal(db)) : null;

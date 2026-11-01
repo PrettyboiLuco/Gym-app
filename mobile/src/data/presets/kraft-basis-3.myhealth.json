@@ -3,11 +3,7 @@
   "version": 1,
   "name": "Kraft-Basis 3× (lineare Steigerung)",
   "note": "Drei Tage pro Woche, A und B im Wechsel. Feste 5 Wiederholungen: Hast du alle Sätze mit 5 geschafft, schlägt die App beim nächsten Mal den kleinsten Gewichtsschritt vor (lineare Steigerung). Klappt es dreimal nicht, wird leichter neu aufgebaut.",
-  "weekdays": [
-    1,
-    3,
-    5
-  ],
+  "weekdays": [1, 3, 5],
   "days": [
     {
       "name": "Kraft A",
@@ -15,30 +11,21 @@
         {
           "exercise": "kniebeuge",
           "sets": 3,
-          "reps": [
-            5,
-            5
-          ],
+          "reps": [5, 5],
           "rest": 180,
           "rir": "1–2"
         },
         {
           "exercise": "bankdruecken",
           "sets": 3,
-          "reps": [
-            5,
-            5
-          ],
+          "reps": [5, 5],
           "rest": 180,
           "rir": "1–2"
         },
         {
           "exercise": "langhantelrudern",
           "sets": 3,
-          "reps": [
-            5,
-            5
-          ],
+          "reps": [5, 5],
           "rest": 150,
           "rir": "1–2"
         }
@@ -50,30 +37,21 @@
         {
           "exercise": "kniebeuge",
           "sets": 3,
-          "reps": [
-            5,
-            5
-          ],
+          "reps": [5, 5],
           "rest": 180,
           "rir": "1–2"
         },
         {
           "exercise": "schulterdruecken_lh",
           "sets": 3,
-          "reps": [
-            5,
-            5
-          ],
+          "reps": [5, 5],
           "rest": 180,
           "rir": "1–2"
         },
         {
           "exercise": "kreuzheben",
           "sets": 1,
-          "reps": [
-            5,
-            5
-          ],
+          "reps": [5, 5],
           "rest": 180,
           "rir": "1–2"
         }

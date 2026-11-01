@@ -3,14 +3,23 @@
 // Formate laut den Export-Dateien der Apps (Spaltennamen); beide Apps haben ihr Format mehrfach leicht geändert,
 // daher werden mehrere Schreibweisen akzeptiert.
 
-import { csvNumber, csvObjects } from './csv';
 import type { CardioActivity } from './cardio';
+import { csvNumber, csvObjects } from './csv';
 import type { Equipment } from './exercises';
 import type { SetType } from './logger';
 import { foldText } from './text';
 
 export type ImportSource = 'strong' | 'hevy';
-export type ImportedSet = { exercise: string; setType: SetType; weightKg: number | null; reps: number | null; seconds: number | null; distanceKm: number | null; rir: number | null; note: string | null };
+export type ImportedSet = {
+  exercise: string;
+  setType: SetType;
+  weightKg: number | null;
+  reps: number | null;
+  seconds: number | null;
+  distanceKm: number | null;
+  rir: number | null;
+  note: string | null;
+};
 export type ImportedWorkout = { startedAt: string; finishedAt: string | null; title: string; note: string | null; sets: ImportedSet[] };
 export type TrainingImport = { source: ImportSource; workouts: ImportedWorkout[]; exercises: string[] };
 export type ImportError = 'leer' | 'unbekannt';
@@ -42,7 +51,7 @@ function durationMinutes(text: string): number | null {
   const s = text.trim();
   if (!s) return null;
   const hm = s.match(/(?:(\d+)\s*h)?\s*(?:(\d+)\s*m(?:in)?)?/i);
-  if (hm && (hm[1] || hm[2])) return (+(hm[1] ?? 0)) * 60 + +(hm[2] ?? 0);
+  if (hm && (hm[1] || hm[2])) return +(hm[1] ?? 0) * 60 + +(hm[2] ?? 0);
   const clock = s.match(/^(\d+):(\d{2})(?::(\d{2}))?$/);
   if (clock) return clock[3] ? +clock[1] * 60 + +clock[2] : +clock[1] + +clock[2] / 60;
   const n = csvNumber(s);
@@ -169,7 +178,7 @@ export function parseWeightCsv(text: string): WeightRow[] | { error: ImportError
 const fold = (s: string) => foldText(s.replace(/\(.*?\)/g, ' '));
 
 /** Ähnlichkeit zweier Namen (0–1) über gemeinsame Wörter; Gerät in Klammern zählt extra. */
-export function nameSimilarity(a: string, b: string): number {
+function nameSimilarity(a: string, b: string): number {
   const wa = new Set(fold(a).split(' ').filter(Boolean));
   const wb = new Set(fold(b).split(' ').filter(Boolean));
   if (wa.size === 0 || wb.size === 0) return 0;

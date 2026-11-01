@@ -91,7 +91,7 @@ describe('Keine unzulässigen Versprechen', () => {
           return [title.split(' (')[0], body.join('\n').trim()];
         })
     );
-    const limits: Record<string, number> = { Name: 30, Untertitel: 30, Werbetext: 170, Beschreibung: 4000, 'Stichwörter': 100 };
+    const limits: Record<string, number> = { Name: 30, Untertitel: 30, Werbetext: 170, Beschreibung: 4000, Stichwörter: 100 };
     for (const [field, max] of Object.entries(limits)) {
       expect(fields[field]?.length ?? 0).toBeGreaterThan(0);
       expect([field, [...fields[field]].length <= max]).toEqual([field, true]);

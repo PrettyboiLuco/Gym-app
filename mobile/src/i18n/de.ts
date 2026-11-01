@@ -341,9 +341,11 @@ export const de = {
     ...catalog(1),
     plank: 'Unterarme unter den Schultern, Körper von Kopf bis Fersen gerade, Bauch fest.',
     kniebeuge: 'Stange auf dem oberen Rücken, Füße etwa schulterbreit. Gesäß nach hinten unten, Knie folgen den Fußspitzen, Rücken gerade, wieder hochdrücken.',
-    bankdruecken: 'Rückenlage auf der Bank, Füße fest am Boden. Stange kontrolliert zur unteren Brust senken und hochdrücken, Schulterblätter bleiben zusammen.',
+    bankdruecken:
+      'Rückenlage auf der Bank, Füße fest am Boden. Stange kontrolliert zur unteren Brust senken und hochdrücken, Schulterblätter bleiben zusammen.',
     kreuzheben: 'Stange nah am Schienbein, Rücken gerade, Brust raus. Aus den Beinen und der Hüfte aufrichten, Stange bleibt nah am Körper.',
-    rumaenisches_kreuzheben: 'Knie leicht gebeugt, Hüfte nach hinten schieben, Stange an den Oberschenkeln entlang senken, bis es hinten zieht. Rücken bleibt gerade.',
+    rumaenisches_kreuzheben:
+      'Knie leicht gebeugt, Hüfte nach hinten schieben, Stange an den Oberschenkeln entlang senken, bis es hinten zieht. Rücken bleibt gerade.',
     langhantelrudern: 'Oberkörper mit geradem Rücken nach vorn geneigt, Stange zum Bauchnabel ziehen, Schulterblätter zusammen, langsam senken.',
     schulterdruecken_kh: 'Sitzend oder stehend, Hanteln auf Schulterhöhe, über den Kopf drücken, ohne ins Hohlkreuz zu gehen.',
     schraegbankdruecken_kh: 'Bank leicht schräg, Hanteln auf Brusthöhe, nach oben drücken und kontrolliert senken.',
@@ -421,8 +423,7 @@ export const de = {
     mob_beinpendel: 'Seitlich festhalten, ein Bein locker vor und zurück pendeln.',
     mob_sprunggelenk: 'Fuß eine Handbreit vor der Wand, Knie über die Zehen zur Wand schieben, Ferse bleibt am Boden.',
     mob_tiefe_hocke: 'Füße schulterbreit, tief in die Hocke sinken, Fersen möglichst am Boden, bei Bedarf festhalten.',
-    mob_ausfallschritt_rotation:
-      'Großer Schritt nach vorn, Hände neben den vorderen Fuß, dann den Arm auf der Seite des vorderen Beins zur Decke drehen.',
+    mob_ausfallschritt_rotation: 'Großer Schritt nach vorn, Hände neben den vorderen Fuß, dann den Arm auf der Seite des vorderen Beins zur Decke drehen.',
     mob_nacken_halbkreise: 'Kinn zur Brust, Kopf langsam von Schulter zu Schulter rollen, nicht nach hinten überstrecken.',
     note: 'Kurzanleitungen selbst geschrieben, fachliche Prüfung steht noch aus. Bilder folgen später.',
   },
@@ -1122,8 +1123,7 @@ export const de = {
     pain: 'Schmerzen / abbrechen',
     painConfirm: 'Jetzt abbrechen?',
     painHint:
-      'Bei Schmerzen bitte aufhören. Halten sie an oder sind sie stark, lass dich ärztlich oder fachlich beraten. ' +
-      'Die App gibt keine Behandlungstipps.',
+      'Bei Schmerzen bitte aufhören. Halten sie an oder sind sie stark, lass dich ärztlich oder fachlich beraten. ' + 'Die App gibt keine Behandlungstipps.',
     voice: 'Sprachansage',
     askTitle: 'Einheit beendet?',
     askText: 'Die Zeit ist abgelaufen, während die App nicht offen war. Hast du die Einheit gemacht?',
@@ -1220,8 +1220,7 @@ export const de = {
         one: '1 Eintrag ohne Kalorienangabe – die Summe ist unvollständig. Ergänze die Werte beim Lebensmittel.',
         other: '{{count}} Einträge ohne Kalorienangabe – die Summe ist unvollständig. Ergänze die Werte beim Lebensmittel.',
       },
-      training:
-        'Training wird nicht dazugerechnet: Deine normale Bewegung steckt schon im Ziel. So wird nichts doppelt gezählt.',
+      training: 'Training wird nicht dazugerechnet: Deine normale Bewegung steckt schon im Ziel. So wird nichts doppelt gezählt.',
       hidden: {
         one: '1 Eintrag. Zahlen sind ausgeblendet (Einstellungen).',
         other: '{{count}} Einträge. Zahlen sind ausgeblendet (Einstellungen).',
@@ -1327,7 +1326,8 @@ export const de = {
       prepNone: 'keine Angabe',
       serving: 'Portionsgröße (optional)',
       package: 'Packungsinhalt (optional)',
-      fromLabel: 'Dieses Produkt kennt Open Food Facts noch nicht. Tipp: Werte vom Etikett abtippen („pro 100 g“) – der Barcode ist schon eingetragen, beim nächsten Scan findest du es sofort.',
+      fromLabel:
+        'Dieses Produkt kennt Open Food Facts noch nicht. Tipp: Werte vom Etikett abtippen („pro 100 g“) – der Barcode ist schon eingetragen, beim nächsten Scan findest du es sofort.',
       hint: 'Leere Nährwerte bleiben „unbekannt“ und werden nie als 0 gezählt. Änderungen bleiben auf deinem Gerät; bisherige Einträge bleiben unverändert.',
       problems: {
         name: 'Bitte einen Namen eingeben.',
@@ -1715,7 +1715,8 @@ export const de = {
     target: '{{goal}}: {{kcal}} kcal pro Tag im Schnitt',
     floor: 'Nicht weniger als {{kcal}} kcal – darunter geht der Coach nie.',
     hiddenNumbers: 'Du nutzt den Modus „ohne Zahlen“. Der Coach speichert dein Ziel, zeigt aber keine Kalorien oder Makros.',
-    calculatorHint: 'Dein Ziel kommt vom Coach. Übernimmst du hier eine Zahl, rechnet der Coach Makros und Trainings-/Ruhetage dafür neu. Einfacher: Coach → Ziel ändern.',
+    calculatorHint:
+      'Dein Ziel kommt vom Coach. Übernimmst du hier eine Zahl, rechnet der Coach Makros und Trainings-/Ruhetage dafür neu. Einfacher: Coach → Ziel ändern.',
     macros: 'Makros pro Tag: Eiweiß {{protein}} g · Fett {{fat}} g · Kohlenhydrate {{carbs}} g · Ballaststoffe mind. {{fiber}} g',
     macroProfile: 'Makro-Ausrichtung',
     macroProfileOption: { standard: 'Standard', lean: 'Lean (Bodybuilding)', eigen: 'Eigene Werte' },
@@ -1834,11 +1835,11 @@ export const de = {
       zielEinhalten: 'Du lagst im Schnitt {{over}} kcal über deinem Ziel. Versuch zuerst, das Ziel eine Woche einzuhalten; erst dann lohnt eine Anpassung.',
       mehrDaten: 'Für einen Vorschlag fehlt noch: {{list}}.',
       passt: 'Alles im Plan – keine Änderung nötig.',
-      pausiert: 'In dieser Woche war ein Status (krank, verletzt oder Pause) aktiv. Gewicht und Essen sagen dann wenig über dein Ziel – deshalb diesmal kein Kalorienvorschlag.',
+      pausiert:
+        'In dieser Woche war ein Status (krank, verletzt oder Pause) aktiv. Gewicht und Essen sagen dann wenig über dein Ziel – deshalb diesmal kein Kalorienvorschlag.',
       ohneZahlen: 'Du nutzt den Modus „ohne Zahlen“. Der Check-in zeigt deshalb keine Kalorien und schlägt keine vor.',
       sensibel:
-        'Du hast eine sensible Situation angegeben. Die App macht deshalb keine Kalorienvorschläge; sprich Änderungen ' +
-        'bitte mit einer Fachperson ab.',
+        'Du hast eine sensible Situation angegeben. Die App macht deshalb keine Kalorienvorschläge; sprich Änderungen ' + 'bitte mit einer Fachperson ab.',
     },
     reason: {
       keinFortschritt: 'das Gewicht hat sich nicht in Richtung deines Ziels bewegt',
@@ -1857,9 +1858,7 @@ export const de = {
       trainingOk: 'Training wie geplant.',
       eiweissWenig: 'Im Schnitt deutlich weniger Eiweiß als geplant. Eiweiß hilft, Muskeln aufzubauen bzw. zu halten.',
       ballaststoffeWenig: 'Im Schnitt eher wenig Ballaststoffe – Vollkorn, Gemüse, Obst und Hülsenfrüchte helfen.',
-      schlafKurz:
-        'Du hast im Schnitt unter 6 Stunden geschlafen. Das ändert keine Kalorien – steigere Gewichte diese Woche ' +
-        'eher vorsichtig.',
+      schlafKurz: 'Du hast im Schnitt unter 6 Stunden geschlafen. Das ändert keine Kalorien – steigere Gewichte diese Woche ' + 'eher vorsichtig.',
     },
     accept: 'Übernehmen',
     decline: 'Nicht jetzt',
@@ -1950,9 +1949,7 @@ export const de = {
     wishTitle: 'In eigenen Worten (freiwillig)',
     wishPlaceholder: 'z. B. „Künftig 4 Tage je 60 Minuten, Ober/Unter, ohne Langhantel, Kniebeuge behalten“',
     wishApply: 'Wunsch übernehmen',
-    wishHint:
-      'Die App liest daraus nur Tage, Minuten, Aufteilung, Dauer, Geräte und Übungen – ohne KI und ohne Internet. ' +
-      'Prüfe die Auswahl unten.',
+    wishHint: 'Die App liest daraus nur Tage, Minuten, Aufteilung, Dauer, Geräte und Übungen – ohne KI und ohne Internet. ' + 'Prüfe die Auswahl unten.',
     wishNone: 'Darin habe ich nichts erkannt. Nutze bitte die Auswahl unten.',
     wishFound: 'Übernommen: {{list}}',
     wishRejected: 'Nicht übernommen: {{list}}',
@@ -1992,8 +1989,7 @@ export const de = {
     planName: 'Name des Plans',
     planNameDefault: '{{split}} · {{days}} Tage',
     exercisesTitle: 'Übungen im Plan',
-    exercisesHint:
-      '„Behalten“ = Lieblingsübung, wird nie entfernt oder gekürzt. „Ersetzen“ = Gerät fehlt oder Übung geht gerade nicht.',
+    exercisesHint: '„Behalten“ = Lieblingsübung, wird nie entfernt oder gekürzt. „Ersetzen“ = Gerät fehlt oder Übung geht gerade nicht.',
     exerciseOption: { frei: 'frei', behalten: 'behalten', ersetzen: 'ersetzen' },
     blockedTitle: 'Nicht verfügbare Geräte',
     blockedHint: 'Übungen mit diesen Geräten werden durch passende ersetzt.',
@@ -2045,9 +2041,7 @@ export const de = {
       'mit dem du die Wiederholungen sauber schaffst. Schaffst du in allen Sätzen das obere Ende, schlägt dir die App ' +
       'beim nächsten Mal etwas mehr vor. Tippe auf eine Übung für die Kurzanleitung.',
     homeHint: 'Nur mit Körpergewicht ist die Auswahl kleiner; ein Paar Kurzhanteln macht den Plan vielseitiger.',
-    disclaimer:
-      'Vorschlag nach festen Regeln, ohne fachliche Prüfung (folgt vor der Veröffentlichung). Du kannst alles im Plan ' +
-      'nachträglich ändern.',
+    disclaimer: 'Vorschlag nach festen Regeln, ohne fachliche Prüfung (folgt vor der Veröffentlichung). Du kannst alles im Plan ' + 'nachträglich ändern.',
     apply: 'Übernehmen',
     discard: 'Verwerfen',
     applied: 'Übernommen als neue Fassung. Deine bisherigen Trainings bleiben unverändert.',
@@ -2178,8 +2172,7 @@ export const de = {
     lowBmi: 'Dein BMI liegt unter 18,5. Lass deinen Bedarf bitte fachlich prüfen.',
     apply: 'Als Kalorienziel übernehmen',
     applied: 'Übernommen. Das Ziel gilt ab heute und erscheint im Tagebuch.',
-    adjustHint:
-      'Nach einigen Wochen kannst du anhand deines Gewichtstrends nachjustieren. Automatische Anpassungen gibt es noch nicht.',
+    adjustHint: 'Nach einigen Wochen kannst du anhand deines Gewichtstrends nachjustieren. Automatische Anpassungen gibt es noch nicht.',
     missing: 'Für eine Schätzung fehlt noch: {{list}}.',
     missingItem: {
       weight: 'Gewicht',
@@ -2549,7 +2542,8 @@ export const de = {
   learn: {
     title: 'Wissen',
     subtitle: '12 kurze Artikel: Training, Ernährung, Erholung',
-    intro: 'Kurz und ohne Versprechen: Grundlagen, auf denen die Vorschläge der App beruhen. Für Fragen zu deiner Gesundheit ist eine Ärztin oder ein Arzt die richtige Stelle.',
+    intro:
+      'Kurz und ohne Versprechen: Grundlagen, auf denen die Vorschläge der App beruhen. Für Fragen zu deiner Gesundheit ist eine Ärztin oder ein Arzt die richtige Stelle.',
     topics: { training: 'Training', ernaehrung: 'Ernährung', erholung: 'Erholung' },
     readMinutes: 'ca. {{count}} min',
     articles: {
@@ -2635,7 +2629,8 @@ export const de = {
     snacks: 'Snacks mit vorschlagen',
     snacksOption: { ja: 'ja', nein: 'nein' },
     suggest: 'Freie Plätze vorschlagen',
-    suggestHint: 'Füllt ab heute leere Mahlzeiten aus dem Rezeptbuch – passend zu deinem Kalorien- und Eiweißziel, deiner Ernährungsweise und deinen Allergien. Geplantes bleibt, alles lässt sich löschen.',
+    suggestHint:
+      'Füllt ab heute leere Mahlzeiten aus dem Rezeptbuch – passend zu deinem Kalorien- und Eiweißziel, deiner Ernährungsweise und deinen Allergien. Geplantes bleibt, alles lässt sich löschen.',
     suggested: '{{count}} Mahlzeiten vorgeschlagen.',
     suggestedNone: 'Keine freien Plätze oder keine passenden Rezepte.',
     shopping: 'Einkaufsliste für diese Woche',
@@ -2692,7 +2687,8 @@ export const de = {
     linkTitle: 'Link zur Rezeptseite',
     url: 'Adresse (https://…)',
     load: 'Rezept laden',
-    linkHint: 'Klappt bei Seiten, die ihr Rezept maschinenlesbar beschreiben (schema.org), also bei den meisten großen Rezeptseiten. Die Seite wird nur einmal geladen; gespeichert wird nur das Rezept bei dir.',
+    linkHint:
+      'Klappt bei Seiten, die ihr Rezept maschinenlesbar beschreiben (schema.org), also bei den meisten großen Rezeptseiten. Die Seite wird nur einmal geladen; gespeichert wird nur das Rezept bei dir.',
     pasteTitle: 'Oder Zutaten einfügen',
     pasteLabel: 'Eine Zutat pro Zeile',
     pasteRead: 'Zutaten lesen',
@@ -2704,7 +2700,8 @@ export const de = {
     portions: 'Portionen',
     stepsFound: '{{count}} Zubereitungsschritte gefunden – sie bleiben auf der Seite, gespeichert werden Zutaten und Nährwerte.',
     ingredients: 'Zutaten zuordnen',
-    matchHint: 'Vorschläge aus Grundnahrungsmitteln und deinen Lebensmitteln. Menge in g bzw. ml; Löffel, Stück und Scheiben sind schon umgerechnet, wo es ging.',
+    matchHint:
+      'Vorschläge aus Grundnahrungsmitteln und deinen Lebensmitteln. Menge in g bzw. ml; Löffel, Stück und Scheiben sind schon umgerechnet, wo es ging.',
     food: 'Lebensmittel',
     skip: 'weglassen',
     amount: 'Menge ({{unit}})',
@@ -2769,7 +2766,7 @@ export const de = {
     later: 'Später (in einer Woche fragen)',
     started: 'Leichte Woche bis Sonntag aktiv. Danach gilt automatisch wieder dein Plan.',
     note: 'Leichte Woche: halbe Sätze, gleiche Gewichte, RIR 3',
-    hint: 'Nur ein Angebot – nichts ändert sich ohne dein Antippen. Die Regel ist noch nicht fachlich geprüft.',
+    hint: 'Nur ein Angebot – nichts ändert sich ohne dein Antippen. Die Regel (Fassung {{version}}) ist noch nicht fachlich geprüft.',
   },
   readiness: {
     title: 'Bereitschaft',
@@ -2850,7 +2847,8 @@ export const de = {
       pause: 'Pause',
     },
     statusTitle: 'Status',
-    statusIntro: 'Wenn du krank, verletzt oder bewusst in Pause bist: Erinnerungen ans Training, Wochenziel und Kalorienvorschläge ruhen, bis du wieder fit bist.',
+    statusIntro:
+      'Wenn du krank, verletzt oder bewusst in Pause bist: Erinnerungen ans Training, Wochenziel und Kalorienvorschläge ruhen, bis du wieder fit bist.',
     statusChoose: 'Status ab heute',
     statusStart: 'Status setzen',
     statusStartConfirm: '„{{status}}“ ab heute setzen?',
@@ -2868,7 +2866,8 @@ export const de = {
     wakeSpread: 'Aufstehzeit schwankt um ± {{minutes}} min',
     bedSpread: 'Bettzeit schwankt um ± {{minutes}} min',
     spreadMissing: 'Für die Regelmäßigkeit braucht es an 5 Tagen Bett- oder Aufstehzeit.',
-    sleepHint: 'Schlafschuld zählt nur Stunden unter deinem Ziel; mehr Schlaf an anderen Tagen wird nicht gegengerechnet. Kein „Schlaf-Score“ – nur deine Zahlen.',
+    sleepHint:
+      'Schlafschuld zählt nur Stunden unter deinem Ziel; mehr Schlaf an anderen Tagen wird nicht gegengerechnet. Kein „Schlaf-Score“ – nur deine Zahlen.',
     sleepReminder: 'Schlafziel und Bettzeit-Erinnerung',
     journalTitle: 'Journal',
     journalEmpty: 'Unterschiede zeigt das Journal erst, wenn es je mindestens 5 Tage mit und ohne einen Faktor gibt (bisher {{days}} Tage mit Morgen-Check).',
@@ -2890,7 +2889,7 @@ export const de = {
     breatheText: 'Ruhig atmen oder 4-7-8 – mit Kreis zum Mitatmen, 1 bis 4 Minuten.',
     breatheOpen: 'Atemübung starten',
     disclaimer:
-      'Die Ampel vergleicht deine eigenen Angaben mit deinem Schnitt der letzten 28 Tage und macht daraus einen Trainingsvorschlag. Sie ersetzt keine ärztliche Untersuchung; die Regeln sind noch nicht fachlich geprüft.',
+      'Die Ampel vergleicht deine eigenen Angaben mit deinem Schnitt der letzten 28 Tage und macht daraus einen Trainingsvorschlag. Sie ersetzt keine ärztliche Untersuchung; die Regeln (Fassung {{version}}) sind noch nicht fachlich geprüft.',
   },
   breathe: {
     title: 'Atemübung',
@@ -3010,8 +3009,7 @@ export const de = {
     title: 'Myhealth – Bericht',
     period: 'Zeitraum: {{from}} bis {{to}}',
     footer: 'Erstellt am {{date}} mit Myhealth aus selbst erfassten Werten. Keine medizinische Bewertung.',
-    aiIntro:
-      'Meine selbst erfassten Daten aus der App Myhealth, {{from}} bis {{to}}. Leere Tage sind nicht als 0 gezählt; Werte ohne Bewertung.',
+    aiIntro: 'Meine selbst erfassten Daten aus der App Myhealth, {{from}} bis {{to}}. Leere Tage sind nicht als 0 gezählt; Werte ohne Bewertung.',
     none: 'keine Einträge',
     weight: 'Gewicht',
     weightLine: '{{first}} kg → {{last}} kg ({{change}} kg)',
@@ -3388,8 +3386,7 @@ export const de = {
       'fragt die App beim Dienst Expo nach Korrekturen (nur technische Angaben wie Version und IP-Adresse).',
     healthTitle: 'Hinweis',
     health:
-      'Die App unterstützt allgemeine Fitness für Erwachsene. Sie ersetzt keine ärztliche oder ' +
-      'fachliche Beratung. Alle Kalorienwerte sind Schätzungen.',
+      'Die App unterstützt allgemeine Fitness für Erwachsene. Sie ersetzt keine ärztliche oder ' + 'fachliche Beratung. Alle Kalorienwerte sind Schätzungen.',
     languageTitle: 'Sprache',
     language: 'Deutsch. Weitere Sprachen folgen.',
     versionTitle: 'Version',

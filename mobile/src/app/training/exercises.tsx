@@ -1,14 +1,13 @@
 import { router } from 'expo-router';
 import { Fragment, useRef, useState } from 'react';
 import { Pressable, StyleSheet, type ScrollViewInstance } from 'react-native';
-import { LOAD_MODES, type LoadMode } from '@/domain/logger';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName, exerciseTarget, matchesExercise } from '@/format/exercise-name';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
+import { Spacing } from '@/constants/theme';
 import { addCustomExercise, listExercises, updateCustomExercise, type Exercise } from '@/data/training';
 import {
   EQUIPMENT,
@@ -27,14 +26,15 @@ import {
   type MuscleGroup,
   type Sides,
 } from '@/domain/exercises';
+import { LOAD_MODES, type LoadMode } from '@/domain/logger';
 import { mediaFor } from '@/domain/media';
 import { targetsOf, type Target } from '@/domain/targets';
 import { parseWholeNumber } from '@/domain/training';
-import { EXERCISE_MEDIA } from '@/media/exercise-media';
+import { exerciseName, exerciseTarget, matchesExercise } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
-import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { t, tOptional } from '@/i18n';
+import { EXERCISE_MEDIA } from '@/media/exercise-media';
 
 /** Startübung mit Kurzanleitung oder Planassistent-Daten (Muster, Ersatzübungen). */
 function hasInfo(e: Exercise): boolean {
@@ -184,20 +184,8 @@ export default function ExercisesScreen() {
           </ThemedText>
         ) : null}
         <Field label={t('exercises.customName')} value={name} onChangeText={setName} />
-        <Choice
-          label={t('exercises.equipment')}
-          options={EQUIPMENT}
-          value={equipment}
-          onChange={setEquipment}
-          format={(v) => t(`equipment.${v}`)}
-        />
-        <Choice
-          label={t('exercises.muscleGroup')}
-          options={MUSCLE_GROUPS}
-          value={muscle}
-          onChange={setMuscle}
-          format={(v) => t(`muscle.${v}`)}
-        />
+        <Choice label={t('exercises.equipment')} options={EQUIPMENT} value={equipment} onChange={setEquipment} format={(v) => t(`equipment.${v}`)} />
+        <Choice label={t('exercises.muscleGroup')} options={MUSCLE_GROUPS} value={muscle} onChange={setMuscle} format={(v) => t(`muscle.${v}`)} />
         <Choice label={t('exercises.kind')} options={EXERCISE_KINDS} value={kind} onChange={setKind} format={(v) => t(`exercises.kindOption.${v}`)} />
         {isStretchKind(kind) ? (
           <>
@@ -225,9 +213,7 @@ export default function ExercisesScreen() {
             />
           </>
         )}
-        {error ? (
-          <ThemedText style={{ color: theme.danger }}>{error === 'name' ? t('exercises.nameMissing') : t('exercises.holdInvalid')}</ThemedText>
-        ) : null}
+        {error ? <ThemedText style={{ color: theme.danger }}>{error === 'name' ? t('exercises.nameMissing') : t('exercises.holdInvalid')}</ThemedText> : null}
         <Button label={editing ? t('common.save') : t('common.add')} onPress={save} />
         {editing ? <Button label={t('common.cancel')} variant="secondary" onPress={reset} /> : null}
       </Card>

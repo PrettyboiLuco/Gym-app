@@ -37,7 +37,13 @@ function imports(path: string): { spec: string; typeOnly: boolean; line: number 
   const out: { spec: string; typeOnly: boolean; line: number }[] = [];
   const visit = (node: ts.Node) => {
     if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-      const typeOnly = ts.isImportDeclaration(node) ? !!node.importClause?.isTypeOnly || (!!node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings) && node.importClause.namedBindings.elements.every((e) => e.isTypeOnly) && !node.importClause.name) : node.isTypeOnly;
+      const typeOnly = ts.isImportDeclaration(node)
+        ? !!node.importClause?.isTypeOnly ||
+          (!!node.importClause?.namedBindings &&
+            ts.isNamedImports(node.importClause.namedBindings) &&
+            node.importClause.namedBindings.elements.every((e) => e.isTypeOnly) &&
+            !node.importClause.name)
+        : node.isTypeOnly;
       out.push({ spec: node.moduleSpecifier.text, typeOnly, line: src.getLineAndCharacterOfPosition(node.getStart()).line + 1 });
     }
     if (ts.isCallExpression(node) && node.expression.getText(src) === 'require' && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {

@@ -104,7 +104,15 @@ describe('Rezept-Allergene aus den Zutaten (COACH-009)', () => {
     const base = { brand: null, barcode: null, basis: 'g' as const, per100: { kcal: 100, protein: 1, carbs: 1, fat: 1, fiber: null }, servingAmount: null };
     const brot = await saveFood(db, null, { ...base, name: 'Brot', allergens: ['gluten'], traces: [] });
     const creme = await saveFood(db, null, { ...base, name: 'Creme', allergens: ['milch', 'schalenfruechte'], traces: [] });
-    await saveRecipe(db, null, { name: 'Nutella-Brot', endWeightG: null, portions: 1, ingredients: [{ foodId: brot, amount: 40 }, { foodId: creme, amount: 15 }] });
+    await saveRecipe(db, null, {
+      name: 'Nutella-Brot',
+      endWeightG: null,
+      portions: 1,
+      ingredients: [
+        { foodId: brot, amount: 40 },
+        { foodId: creme, amount: 15 },
+      ],
+    });
     const [recipe] = await listRecipes(db);
     expect((await recipeFacts(db, recipe.versionId)).allergens?.sort()).toEqual(['gluten', 'milch', 'schalenfruechte']);
   });
@@ -146,7 +154,14 @@ describe('Kalorienziel mit Coach-Plan (C3–C5)', () => {
 
 describe('Ballaststoffe (C4)', () => {
   test('Schnappschuss beim Eintrag, Menge ändern rechnet mit', async () => {
-    const id = await saveFood(db, null, { name: 'Haferflocken', brand: null, barcode: null, basis: 'g', per100: { kcal: 370, protein: 13, carbs: 59, fat: 7, fiber: 10 }, servingAmount: 40 });
+    const id = await saveFood(db, null, {
+      name: 'Haferflocken',
+      brand: null,
+      barcode: null,
+      basis: 'g',
+      per100: { kcal: 370, protein: 13, carbs: 59, fat: 7, fiber: 10 },
+      servingAmount: 40,
+    });
     await logFood(db, id, 50, { kind: 'essen', meal: 'fruehstueck' }, when(day(0)));
     const row = await db.getFirstAsync<{ fiber: number }>('SELECT fiber FROM consumption_event');
     expect(row?.fiber).toBe(5);
@@ -159,7 +174,15 @@ describe('Sicherung (TECH-014)', () => {
     await fillTwoWeeks();
     const result = weeklyCheckin(await checkinInput(db, day(0), EMPTY_PROFILE, 'Europe/Berlin'));
     await saveCheckin(db, { ...result, weekEnd: day(0), rulesVersion: 1 }, 'ohne', day(1));
-    await saveFood(db, null, { name: 'Milchreis', brand: null, barcode: null, basis: 'g', per100: { kcal: 1, protein: 1, carbs: 1, fat: 1, fiber: null }, servingAmount: null, allergens: ['milch'] });
+    await saveFood(db, null, {
+      name: 'Milchreis',
+      brand: null,
+      barcode: null,
+      basis: 'g',
+      per100: { kcal: 1, protein: 1, carbs: 1, fat: 1, fiber: null },
+      servingAmount: null,
+      allergens: ['milch'],
+    });
     const other = createTestDb();
     await migrate(other);
     await restoreBackup(other, JSON.parse(JSON.stringify(await exportBackup(db, null))));

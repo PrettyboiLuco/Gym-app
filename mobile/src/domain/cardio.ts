@@ -37,12 +37,10 @@ export const CARDIO_INFO: Record<CardioActivity, { distance: boolean; level: 'st
   sonstiges: { distance: true, level: null },
 };
 
-export const isCardioActivity = (v: unknown): v is CardioActivity =>
-  typeof v === 'string' && (CARDIO_ACTIVITIES as readonly string[]).includes(v);
+export const isCardioActivity = (v: unknown): v is CardioActivity => typeof v === 'string' && (CARDIO_ACTIVITIES as readonly string[]).includes(v);
 
 export const CARDIO_MAX_MINUTES = 600;
 export const PLAN_CARDIO_MAX_MINUTES = 180;
-
 
 export type CardioForm = { minutes: string; distance: string; avgHr: string; effort: number | null; level: string; note: string };
 export type CardioValues = {

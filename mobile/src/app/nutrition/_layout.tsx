@@ -1,8 +1,8 @@
 import { Stack } from 'expo-router';
 
+import { ErrorView } from '@/components/error-view';
 import { useStackOptions } from '@/components/stack-options';
 import { t } from '@/i18n';
-import { ErrorView } from '@/components/error-view';
 
 /** Fehler in einem Bildschirm zeigen statt einer leeren Seite. */
 export const ErrorBoundary = ErrorView;
@@ -10,8 +10,7 @@ export const ErrorBoundary = ErrorView;
 export default function NutritionLayout() {
   const stackOptions = useStackOptions();
   return (
-    <Stack
-      screenOptions={stackOptions}>
+    <Stack screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="add" options={{ title: t('nutrition.search.title') }} />
       <Stack.Screen name="text" options={{ title: t('foodText.title') }} />

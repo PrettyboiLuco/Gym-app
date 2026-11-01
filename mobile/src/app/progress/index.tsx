@@ -7,29 +7,29 @@ import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { goalProgressLines, goalTitle } from '@/components/goal-progress';
 import { Icon } from '@/components/icon';
-import { todayDay } from '@/domain/time';
 import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
-import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
+import { showToast } from '@/components/toast';
 import { WeightChart } from '@/components/weight-chart';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn, listActiveGoals, listMeasurements, type CalorieGoal, type GoalVersion } from '@/data/goals';
-import { useProfile } from '@/providers/profile-provider';
 import { listPhotos } from '@/data/photos';
 import { listSteps } from '@/data/steps';
 import { listExercises } from '@/data/training';
 import { addWeight, deleteWeight, listWeights } from '@/data/weights';
 import { latestBySite, MEASURE_SITES, type Measurement } from '@/domain/body';
 import { shiftDay } from '@/domain/dates';
-import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
 import { stepsForDay } from '@/domain/steps';
+import { todayDay } from '@/domain/time';
+import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
 import { dailyMeans, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
 
 type GoalCard = { goal: GoalVersion; title: string; lines: string[] };
 
@@ -59,14 +59,18 @@ export default function ProgressScreen() {
   const { profile } = useProfile();
   const modules = profile.modules;
   const units = profile.units;
-  const { data, reload, db, loaded } = useLoad((d) => loadProgress(d, units, profile.sensitive), {
-    weights: [] as WeightEntry[],
-    cards: [] as GoalCard[],
-    calorie: null as CalorieGoal | null,
-    measurements: [] as Measurement[],
-    photoCount: 0,
-    steps: null as number | null,
-  }, `${units.weight}-${units.length}-${profile.sensitive}`);
+  const { data, reload, db, loaded } = useLoad(
+    (d) => loadProgress(d, units, profile.sensitive),
+    {
+      weights: [] as WeightEntry[],
+      cards: [] as GoalCard[],
+      calorie: null as CalorieGoal | null,
+      measurements: [] as Measurement[],
+      photoCount: 0,
+      steps: null as number | null,
+    },
+    `${units.weight}-${units.length}-${profile.sensitive}`
+  );
   const { weights, cards, calorie, measurements, photoCount, steps } = data;
   const [day, setDay] = useState(todayDay);
   const [input, setInput] = useState('');
@@ -78,9 +82,7 @@ export default function ProgressScreen() {
   const change = weeklyChange(weights, today);
   const chartDays = Array.from({ length: 30 }, (_, i) => shiftDay(today, i - 29));
   const points = dailyMeans(weights, today, 30);
-  const trendPoints = chartDays
-    .map((d) => ({ day: d, kg: weightTrend(weights, d) }))
-    .filter((p): p is { day: string; kg: number } => p.kg !== null);
+  const trendPoints = chartDays.map((d) => ({ day: d, kg: weightTrend(weights, d) })).filter((p): p is { day: string; kg: number } => p.kg !== null);
   const latest = latestBySite(measurements);
 
   async function save() {
@@ -195,9 +197,21 @@ export default function ProgressScreen() {
 
       {/* Alles Weitere zum Körper als eine ruhige Liste statt sechs kleiner Karten; Werte stehen rechts. */}
       <Card title={t('progress.bodyTitle')}>
-        <ListRow icon="target" title={t('milestones.screenTitle')} subtitle={t('milestones.listSubtitle')} accessory="›" onPress={() => router.push('/progress/milestones')} />
+        <ListRow
+          icon="target"
+          title={t('milestones.screenTitle')}
+          subtitle={t('milestones.listSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/progress/milestones')}
+        />
         {modules.bereitschaft ? (
-          <ListRow icon="heart" title={t('readiness.title')} subtitle={t('readiness.listSubtitle')} accessory="›" onPress={() => router.push('/progress/readiness')} />
+          <ListRow
+            icon="heart"
+            title={t('readiness.title')}
+            subtitle={t('readiness.listSubtitle')}
+            accessory="›"
+            onPress={() => router.push('/progress/readiness')}
+          />
         ) : null}
         <ListRow icon="calendar" title={t('checkin.open')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
         <ListRow
@@ -224,8 +238,20 @@ export default function ProgressScreen() {
           accessory="›"
           onPress={() => router.push('/progress/measurements')}
         />
-        <ListRow icon="heart" title={t('bloodPressure.title')} subtitle={t('bloodPressure.listSubtitle')} accessory="›" onPress={() => router.push('/progress/blood-pressure')} />
-        <ListRow icon="steps" title={t('steps.title')} value={steps === null ? '–' : formatNumber(steps, 0)} accessory="›" onPress={() => router.push('/progress/steps')} />
+        <ListRow
+          icon="heart"
+          title={t('bloodPressure.title')}
+          subtitle={t('bloodPressure.listSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/progress/blood-pressure')}
+        />
+        <ListRow
+          icon="steps"
+          title={t('steps.title')}
+          value={steps === null ? '–' : formatNumber(steps, 0)}
+          accessory="›"
+          onPress={() => router.push('/progress/steps')}
+        />
         {/* Keine Vorschaubilder in der Übersicht: Fotos erst auf eigener Seite und verdeckt. */}
         <ListRow
           icon="camera"

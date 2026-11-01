@@ -3,20 +3,20 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { Choice, Field } from '@/components/fields';
 import { Icon } from '@/components/icon';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { pickBackup } from '@/data/backup-files';
 import { applyPlanImport } from '@/data/plan-import';
-import { findProgram } from '@/data/programs';
 import lucsPlan from '@/data/presets/lucs-training.myhealth.json';
+import { findProgram } from '@/data/programs';
 import { listExercises, type Exercise } from '@/data/training';
 import { CUSTOM_PREFIX, parsePlanFile, type PlanFileResult } from '@/domain/plan-file';
+import { todayDay } from '@/domain/time';
+import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -57,9 +57,7 @@ export default function ImportPlanScreen() {
     setBusy(true);
     try {
       const done = await applyPlanImport(db, result, { replace: replace === 'ja', goals: hasGoals && goals === 'ja' }, todayDay());
-      showToast(
-        done.archivedPlans > 0 ? t('planImport.savedReplaced', { count: done.archivedPlans }) : t('planImport.saved')
-      );
+      showToast(done.archivedPlans > 0 ? t('planImport.savedReplaced', { count: done.archivedPlans }) : t('planImport.saved'));
       router.dismissTo('/training');
     } finally {
       setBusy(false);
@@ -83,12 +81,7 @@ export default function ImportPlanScreen() {
           icon={<Icon name="dumbbell" color={theme.onPrimary} size={18} />}
           onPress={() => setText(JSON.stringify(lucsPlan))}
         />
-        <Button
-          label={t('planImport.pickFile')}
-          variant="secondary"
-          icon={<Icon name="book" color={theme.text} size={18} />}
-          onPress={pickFile}
-        />
+        <Button label={t('planImport.pickFile')} variant="secondary" icon={<Icon name="book" color={theme.text} size={18} />} onPress={pickFile} />
         <Field
           label={t('planImport.pasteLabel')}
           value={text}
@@ -184,9 +177,7 @@ export default function ImportPlanScreen() {
                   label={t('planImport.goals', {
                     list: [
                       result.goals.kcal !== null ? t('planImport.goalKcal', { kcal: result.goals.kcal.toLocaleString('de-DE') }) : null,
-                      result.goals.drinkMl !== null
-                        ? t('planImport.goalDrink', { liters: (result.goals.drinkMl / 1000).toLocaleString('de-DE') })
-                        : null,
+                      result.goals.drinkMl !== null ? t('planImport.goalDrink', { liters: (result.goals.drinkMl / 1000).toLocaleString('de-DE') }) : null,
                     ]
                       .filter(Boolean)
                       .join(', '),

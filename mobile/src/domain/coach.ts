@@ -10,17 +10,8 @@
 //   Kohlenhydrate der Rest, Ballaststoffe mindestens 30 g (DGE).
 // - Trainingstage +200 kcal, Ruhetage so viel weniger, dass der Wochenschnitt gleich bleibt (höchstens −300).
 
-import {
-  bmi,
-  CALORIE_FLOOR,
-  DELTA_OPTIONS,
-  POPULATION_AGE,
-  restingEnergy,
-  UNDERWEIGHT_BMI,
-  type FormulaTerm,
-  type Goal,
-} from './energy';
 import { isoWeekday } from './dates';
+import { bmi, CALORIE_FLOOR, DELTA_OPTIONS, POPULATION_AGE, restingEnergy, UNDERWEIGHT_BMI, type FormulaTerm, type Goal } from './energy';
 
 export const COACH_RULES_VERSION = 1;
 
@@ -148,7 +139,14 @@ export type Macros = { protein: number; fat: number; carbs: number; fiber: numbe
 /** Eiweiß in g pro Tag aus Gewicht, Ziel und Training. */
 export function proteinTarget(kg: number, goal: Goal, gymDays: number): number {
   const training = gymDays >= TRAINING_DAYS_FOR_SPORT;
-  const perKg = goal === 'abnehmen' ? (training ? PROTEIN_G_PER_KG.cutTraining : PROTEIN_G_PER_KG.cutGeneral) : training ? PROTEIN_G_PER_KG.training : PROTEIN_G_PER_KG.general;
+  const perKg =
+    goal === 'abnehmen'
+      ? training
+        ? PROTEIN_G_PER_KG.cutTraining
+        : PROTEIN_G_PER_KG.cutGeneral
+      : training
+        ? PROTEIN_G_PER_KG.training
+        : PROTEIN_G_PER_KG.general;
   return Math.round(kg * perKg);
 }
 
@@ -218,14 +216,7 @@ export function dayTarget(plan: GoalPlan, day: string): DayTarget {
 }
 
 /** Vollständiges Ziel aus dem Tagesschnitt (C3–C5). Ohne Aufteilung gilt jeder Tag gleich. */
-export function buildPlan(
-  kcal: number,
-  protein: number,
-  trainingWeekdays: number[],
-  floor: number,
-  split: boolean,
-  fatShare = FAT_SHARE
-): GoalPlan {
+export function buildPlan(kcal: number, protein: number, trainingWeekdays: number[], floor: number, split: boolean, fatShare = FAT_SHARE): GoalPlan {
   const days = [...new Set(trainingWeekdays)].filter((d) => d >= 1 && d <= 7).sort();
   const { training, rest } = daySplit(kcal, days.length, floor);
   const withSplit = split && days.length > 0 && days.length < 7;

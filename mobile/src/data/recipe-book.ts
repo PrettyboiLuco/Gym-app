@@ -1,8 +1,8 @@
 // Rezeptbuch im Tagebuch: eine Portion eintragen oder das Rezept als eigenes Rezept übernehmen (zum Anpassen).
 
+import { fractionOf, type Meal } from '@/domain/nutrition';
 import { ingredient, type BookRecipeView } from '@/domain/recipe-book';
 import { BOOK_TO_BASIS } from '@/domain/recipe-book-basis';
-import { fractionOf, type Meal } from '@/domain/nutrition';
 
 import type { Db } from './db';
 import { insertEvent, saveFood, saveRecipe, type When } from './nutrition';

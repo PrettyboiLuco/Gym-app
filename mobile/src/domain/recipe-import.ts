@@ -44,8 +44,23 @@ const text = (v: Json | undefined): string =>
 
 function steps(v: Json | undefined): string[] {
   if (!v) return [];
-  if (typeof v === 'string') return v.split(/\n+/).map((s) => text(s)).filter(Boolean);
-  if (Array.isArray(v)) return v.flatMap((s) => (typeof s === 'string' ? [text(s)] : s && typeof s === 'object' && !Array.isArray(s) ? (s.itemListElement ? steps(s.itemListElement) : [text(s.text ?? s.name)]) : [])).filter(Boolean);
+  if (typeof v === 'string')
+    return v
+      .split(/\n+/)
+      .map((s) => text(s))
+      .filter(Boolean);
+  if (Array.isArray(v))
+    return v
+      .flatMap((s) =>
+        typeof s === 'string'
+          ? [text(s)]
+          : s && typeof s === 'object' && !Array.isArray(s)
+            ? s.itemListElement
+              ? steps(s.itemListElement)
+              : [text(s.text ?? s.name)]
+            : []
+      )
+      .filter(Boolean);
   return [];
 }
 
@@ -69,7 +84,9 @@ export function extractRecipe(html: string, url: string | null = null): Imported
     }
     const r = findRecipe(data);
     if (!r) continue;
-    const ingredients = (Array.isArray(r.recipeIngredient) ? r.recipeIngredient : Array.isArray(r.ingredients) ? r.ingredients : []).map((i) => text(i)).filter(Boolean);
+    const ingredients = (Array.isArray(r.recipeIngredient) ? r.recipeIngredient : Array.isArray(r.ingredients) ? r.ingredients : [])
+      .map((i) => text(i))
+      .filter(Boolean);
     if (ingredients.length === 0) continue;
     return { name: text(r.name) || 'Rezept', portions: parseYield(r.recipeYield), ingredients, steps: steps(r.recipeInstructions), source: url };
   }
@@ -117,7 +134,11 @@ function parseAmount(token: string): number | null {
 /** „200 g Haferflocken (zart)“, „2 EL Olivenöl“, „1 ½ Zwiebeln, gewürfelt“, „Salz“ → Menge, Einheit, Name. */
 export function parseIngredientLine(raw: string): IngredientLine {
   // „, in Scheiben“ abschneiden, aber Dezimalkomma („0,5 kg“) behalten
-  let rest = raw.replace(/\(.*?\)/g, ' ').replace(/,\s*(?!\d).*$/, '').replace(/\s+/g, ' ').trim();
+  let rest = raw
+    .replace(/\(.*?\)/g, ' ')
+    .replace(/,\s*(?!\d).*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   // „200g“ → „200 g“
   rest = rest.replace(/^(\d+(?:[.,]\d+)?)([a-zA-ZäöüÄÖÜ]+)\b/, '$1 $2');
   const words = rest.split(' ');
@@ -140,7 +161,11 @@ export function parseIngredientLine(raw: string): IngredientLine {
     if (amount !== null) amount *= u[2];
     i++;
   }
-  const name = words.slice(i).join(' ').replace(/^(etwas|ca\.?|circa|evtl\.?)\s+/i, '').trim();
+  const name = words
+    .slice(i)
+    .join(' ')
+    .replace(/^(etwas|ca\.?|circa|evtl\.?)\s+/i, '')
+    .trim();
   return { raw, amount, unit: amount !== null && unit === null ? 'stueck' : unit, name: name || raw };
 }
 

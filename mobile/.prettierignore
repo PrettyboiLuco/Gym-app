@@ -1,0 +1,14 @@
+node_modules
+dist
+.expo
+web-build
+ios
+android
+package-lock.json
+# Datentabellen: eine Zeile je Eintrag, bewusst nicht umgebrochen.
+src/domain/basis-foods-data.ts
+src/domain/recipe-book-data.ts
+src/domain/recipe-book-more.ts
+src/domain/exercise-catalog*.ts
+src/i18n/de-exercises*.ts
+src/data/presets/

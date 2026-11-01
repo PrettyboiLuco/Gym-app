@@ -14,12 +14,7 @@ function dayNumber(day: string): number {
  * einem Tag zählen als ein Tag, sonst würde ein Tag mit vier Messungen den Schnitt bestimmen und allein „genug
  * Messungen“ ergeben. Ohne Messungen an mindestens `minDays` Tagen gibt es keinen Trend.
  */
-export function weightTrend(
-  entries: Pick<WeightEntry, 'day' | 'kg'>[],
-  endDay: string,
-  days = 7,
-  minDays = 4
-): number | null {
+export function weightTrend(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string, days = 7, minDays = 4): number | null {
   const means = dailyMeans(entries, endDay, days);
   if (means.length < minDays) return null;
   return means.reduce((sum, d) => sum + d.kg, 0) / means.length;
@@ -44,9 +39,7 @@ export function dailyMeans(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: s
     if (d > end || d <= end - days) continue;
     byDay.set(e.day, [...(byDay.get(e.day) ?? []), e.kg]);
   }
-  return [...byDay.entries()]
-    .map(([day, values]) => ({ day, kg: values.reduce((s, v) => s + v, 0) / values.length }))
-    .sort((a, b) => (a.day < b.day ? -1 : 1));
+  return [...byDay.entries()].map(([day, values]) => ({ day, kg: values.reduce((s, v) => s + v, 0) / values.length })).sort((a, b) => (a.day < b.day ? -1 : 1));
 }
 
 function shiftDayBy(day: string, delta: number): string {
@@ -58,7 +51,12 @@ function shiftDayBy(day: string, delta: number): string {
  * Ziel? Nur wenn sich das Gewicht messbar (≥ 0,05 kg/Woche) in Richtung Ziel bewegt – sonst keine Linie.
  * Ausdrücklich eine Hochrechnung, keine Vorhersage.
  */
-export function projectWeight(trendKg: number | null, weeklyChangeKg: number | null, targetKg: number | null, today: string): { day: string; kg: number } | null {
+export function projectWeight(
+  trendKg: number | null,
+  weeklyChangeKg: number | null,
+  targetKg: number | null,
+  today: string
+): { day: string; kg: number } | null {
   if (trendKg === null || weeklyChangeKg === null || targetKg === null) return null;
   if (Math.abs(weeklyChangeKg) < 0.05) return null;
   const towards = Math.sign(targetKg - trendKg) === Math.sign(weeklyChangeKg);

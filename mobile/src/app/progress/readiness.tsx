@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, ListRow, MultiChoice } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { levelColor, reasonText } from '@/components/readiness';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -27,9 +26,22 @@ import {
   type StatusPeriod,
 } from '@/data/readiness';
 import { loadReminders } from '@/data/reminders';
-import { formatTime, parseTime } from '@/domain/reminders';
 import { shiftDay } from '@/domain/dates';
-import { hoursBetween, journalFindings, MANUAL_FACTORS, sleepStats, STATUSES, type DailyCheck, type Factor, type JournalFinding, type SleepStats, type Status } from '@/domain/readiness';
+import {
+  hoursBetween,
+  READINESS_RULES_VERSION,
+  journalFindings,
+  MANUAL_FACTORS,
+  sleepStats,
+  STATUSES,
+  type DailyCheck,
+  type Factor,
+  type JournalFinding,
+  type SleepStats,
+  type Status,
+} from '@/domain/readiness';
+import { formatTime, parseTime } from '@/domain/reminders';
+import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
@@ -87,7 +99,7 @@ export default function ReadinessScreen() {
         <Button label={t('readiness.breatheOpen')} variant="secondary" onPress={() => router.push('/progress/breathe')} />
       </Card>
       <ThemedText type="small" themeColor="textSecondary">
-        {t('readiness.disclaimer')}
+        {t('readiness.disclaimer', { version: READINESS_RULES_VERSION })}
       </ThemedText>
     </Screen>
   );
@@ -137,8 +149,22 @@ function CheckForm({ db, day, check, diary, onSaved }: { db: Db; day: string; ch
   return (
     <Card title={t('readiness.checkTitleToday', { date: formatDay(day) })}>
       <View style={styles.row}>
-        <Field label={t('readiness.bedTime')} value={bed} onChangeText={(v) => setTimes(v, wake)} placeholder="23:00" keyboardType="numbers-and-punctuation" style={styles.flex} />
-        <Field label={t('readiness.wakeTime')} value={wake} onChangeText={(v) => setTimes(bed, v)} placeholder="07:00" keyboardType="numbers-and-punctuation" style={styles.flex} />
+        <Field
+          label={t('readiness.bedTime')}
+          value={bed}
+          onChangeText={(v) => setTimes(v, wake)}
+          placeholder="23:00"
+          keyboardType="numbers-and-punctuation"
+          style={styles.flex}
+        />
+        <Field
+          label={t('readiness.wakeTime')}
+          value={wake}
+          onChangeText={(v) => setTimes(bed, v)}
+          placeholder="07:00"
+          keyboardType="numbers-and-punctuation"
+          style={styles.flex}
+        />
       </View>
       <Field label={t('readiness.sleepHoursExact')} value={hours} onChangeText={setHours} keyboardType="decimal-pad" />
       <Choice label={t('readiness.sleepQuality')} options={SCALE} value={quality} onChange={setQuality} format={(v) => v} chips />
@@ -147,7 +173,13 @@ function CheckForm({ db, day, check, diary, onSaved }: { db: Db; day: string; ch
       <ThemedText type="small" themeColor="textSecondary">
         {t('readiness.scaleHint')}
       </ThemedText>
-      <MultiChoice label={t('readiness.factorsLabel')} options={MANUAL_FACTORS} value={factors} onChange={setFactors} format={(f) => t(`readiness.factors.${f}`)} />
+      <MultiChoice
+        label={t('readiness.factorsLabel')}
+        options={MANUAL_FACTORS}
+        value={factors}
+        onChange={setFactors}
+        format={(f) => t(`readiness.factors.${f}`)}
+      />
       {diary.length ? (
         <ThemedText type="small" themeColor="textSecondary">
           {t('readiness.factorsDiary', { list: diary.map((f) => t(`readiness.factors.${f}`)).join(', ') })}
@@ -264,7 +296,13 @@ function HistoryCard({ history }: { history: HistoryDay[] }) {
       {shown.map((h) => {
         const r = h.readiness;
         const label =
-          r.kind === 'ampel' ? t(`readiness.levelShort.${r.level}`) : r.kind === 'status' ? t(`readiness.status.${r.status}`) : r.kind === 'lernen' ? t('readiness.learningShort') : '–';
+          r.kind === 'ampel'
+            ? t(`readiness.levelShort.${r.level}`)
+            : r.kind === 'status'
+              ? t(`readiness.status.${r.status}`)
+              : r.kind === 'lernen'
+                ? t('readiness.learningShort')
+                : '–';
         const c = h.check;
         const parts = [
           c?.sleepHours != null ? `${formatNumber(c.sleepHours, 1)} h` : null,

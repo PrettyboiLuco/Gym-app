@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { DietNotice } from '@/components/diet-notice';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
-import { foodTitle } from '@/format/food-title';
 import {
   dayLabel,
   formatAmount,
@@ -20,10 +20,10 @@ import {
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { DietNotice } from '@/components/diet-notice';
 import { archiveFood, DEFAULT_SETTINGS, foodFacts, getFood, loadNutritionSettings, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
-import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
 import { parseMicros, parsePortions, scaleMicros } from '@/domain/basis-foods';
+import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
+import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
@@ -41,11 +41,7 @@ export default function FoodScreen() {
   const [error, setError] = useState(false);
 
   if (!food) {
-    return (
-      <Screen withHeader>
-        {loaded ? <ThemedText>{t('nutrition.food.notFound')}</ThemedText> : null}
-      </Screen>
-    );
+    return <Screen withHeader>{loaded ? <ThemedText>{t('nutrition.food.notFound')}</ThemedText> : null}</Screen>;
   }
 
   const unit = food.basis;
@@ -97,7 +93,11 @@ export default function FoodScreen() {
       <Card>
         <ThemedText type="subtitle">{foodTitle(food)}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          {food.catalogId ? t('nutrition.food.source.basis') : food.catalogOrigin ? t('nutrition.food.source.basisEdited') : t(`nutrition.food.source.${food.source}`)}
+          {food.catalogId
+            ? t('nutrition.food.source.basis')
+            : food.catalogOrigin
+              ? t('nutrition.food.source.basisEdited')
+              : t(`nutrition.food.source.${food.source}`)}
         </ThemedText>
         <DietNotice facts={foodFacts(food)} prefs={settings} />
         {food.barcode ? (
@@ -149,12 +149,12 @@ export default function FoodScreen() {
             portionLabel.has(v)
               ? `${portionLabel.get(v)} (${formatAmount(v, unit)})`
               : v === food.servingAmount
-              ? t('nutrition.food.serving', { value: formatAmount(v, unit) })
-              : v === packageAmount
-                ? t('nutrition.food.package', { value: formatAmount(v, unit) })
-                : packageAmount && v === packageAmount / 2
-                  ? t('nutrition.food.halfPackage', { value: formatAmount(v, unit) })
-                  : formatAmount(v, unit)
+                ? t('nutrition.food.serving', { value: formatAmount(v, unit) })
+                : v === packageAmount
+                  ? t('nutrition.food.package', { value: formatAmount(v, unit) })
+                  : packageAmount && v === packageAmount / 2
+                    ? t('nutrition.food.halfPackage', { value: formatAmount(v, unit) })
+                    : formatAmount(v, unit)
           }
         />
         {error ? <ThemedText style={{ color: theme.danger }}>{t('nutrition.food.amountInvalid')}</ThemedText> : null}
@@ -203,17 +203,11 @@ export default function FoodScreen() {
       </Card>
 
       <View style={styles.row}>
-        <Button
-          label={food.favorite ? t('nutrition.food.unfavorite') : t('nutrition.food.favorite')}
-          variant="secondary"
-          onPress={toggleFavorite}
-        />
+        <Button label={food.favorite ? t('nutrition.food.unfavorite') : t('nutrition.food.favorite')} variant="secondary" onPress={toggleFavorite} />
         <Button
           label={t('nutrition.food.edit')}
           variant="secondary"
-          onPress={() =>
-            router.push({ pathname: '/nutrition/food-edit/[id]', params: { id: food.id, ...targetParams(day, target) } })
-          }
+          onPress={() => router.push({ pathname: '/nutrition/food-edit/[id]', params: { id: food.id, ...targetParams(day, target) } })}
         />
       </View>
       <Card>

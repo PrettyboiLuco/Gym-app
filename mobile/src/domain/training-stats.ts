@@ -1,10 +1,10 @@
 // Auswertung im Training (Ausbauplan A8): eigene Satzzeit, Zeitraum-Statistik mit Bestleistungen, Sätze je
 // Muskelgruppe, geplanter Deload und Geräteprofile. Reine Logik ohne Datenbank.
 
+import { shiftDay, weekStart } from './dates';
 import type { Equipment } from './exercises';
 import { setVolume, type LoadMode, type SetType } from './logger';
 import type { PlanDraft } from './training';
-import { shiftDay, weekStart } from './dates';
 
 // --------------------------------------------------------------------------- Eigene Satzzeit
 
@@ -45,7 +45,14 @@ export type StatSet = {
   seconds: number | null;
 };
 
-export type PeriodRecord = { exerciseId: string; day: string; kind: 'gewicht' | 'wiederholungen' | 'zeit'; weightKg: number | null; reps: number | null; seconds: number | null };
+export type PeriodRecord = {
+  exerciseId: string;
+  day: string;
+  kind: 'gewicht' | 'wiederholungen' | 'zeit';
+  weightKg: number | null;
+  reps: number | null;
+  seconds: number | null;
+};
 
 export type PeriodStats = {
   sessions: number;

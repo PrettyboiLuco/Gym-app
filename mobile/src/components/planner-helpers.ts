@@ -19,8 +19,7 @@ export function blockSeconds(items: Pick<PlanItemDraft, 'exerciseId'>[], exercis
 
 /** Aufwärmen + Cool-down eines Tages, wie es der Planassistent in die Dauer einrechnet. */
 export function extraSecondsFor(exercises: Exercise[], warmup = true, cooldown = true) {
-  return (items: PlanItemDraft[]) =>
-    (warmup ? blockSeconds(items, exercises, 'aufwaermen') : 0) + (cooldown ? blockSeconds(items, exercises, 'cooldown') : 0);
+  return (items: PlanItemDraft[]) => (warmup ? blockSeconds(items, exercises, 'aufwaermen') : 0) + (cooldown ? blockSeconds(items, exercises, 'cooldown') : 0);
 }
 
 export function dayLabel(type: DayType, letter: string | null): string {

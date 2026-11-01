@@ -174,13 +174,7 @@ function RestFocus({
           </Pressable>
         </View>
         <View style={styles.focusCenter} accessible accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`} accessibilityLiveRegion="polite">
-          <ProgressRing
-            progress={progress}
-            size={264}
-            stroke={12}
-            color={dark ? theme.accent : theme.tint}
-            trackColor={theme.backgroundSelected}
-            follow="tick">
+          <ProgressRing progress={progress} size={264} stroke={12} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} follow="tick">
             <ThemedText style={styles.focusClock}>{formatClock(remaining)}</ThemedText>
           </ProgressRing>
         </View>

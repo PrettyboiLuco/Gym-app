@@ -1,5 +1,6 @@
 // Daten für Meilensteine und Wochenbilanz (Ausbauplan A10.5/A10.6).
 
+import { shiftDay } from '@/domain/dates';
 import { loadModeOf } from '@/domain/logger';
 import { balance, milestones, newMilestones, weekResults, type Balance, type Milestone, type WeekResult } from '@/domain/motivation';
 import { statusOn } from '@/domain/readiness';
@@ -12,7 +13,6 @@ import { loadProfile } from './profile';
 import { listStatus } from './readiness';
 import { listActivePlans, listExercises } from './training';
 import { allSets, loadPreferredWeekdays } from './training-stats';
-import { shiftDay } from '@/domain/dates';
 
 export type Motivation = {
   milestones: Milestone[];
@@ -26,7 +26,7 @@ export type Motivation = {
   showBalance: boolean;
 };
 
-export const loadBalanceOn = (db: Db) => readState<boolean>(db, 'balance_on', true);
+const loadBalanceOn = (db: Db) => readState<boolean>(db, 'balance_on', true);
 export const saveBalanceOn = (db: Db, on: boolean) => writeState(db, 'balance_on', on);
 export const markMilestonesSeen = async (db: Db, ids: string[]) =>
   writeState(db, 'milestones_seen', [...new Set([...(await readState<string[]>(db, 'milestones_seen', [])), ...ids])]);

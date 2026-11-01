@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { Choice, ListRow } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ShareCard, type ShareCardContent } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';
@@ -13,6 +11,8 @@ import type { Db } from '@/data/db';
 import { loadMotivation, markMilestonesSeen, saveBalanceOn, type Motivation } from '@/data/motivation';
 import { listExercises, type Exercise } from '@/data/training';
 import { MILESTONES, type Milestone } from '@/domain/motivation';
+import { todayDay } from '@/domain/time';
+import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
@@ -32,7 +32,11 @@ export default function MilestonesScreen() {
 
   // Angesehen = nicht mehr neu (Hinweis auf „Heute“ verschwindet).
   useEffect(() => {
-    if (m?.fresh.length) markMilestonesSeen(db, m.fresh.map((f) => f.id));
+    if (m?.fresh.length)
+      markMilestonesSeen(
+        db,
+        m.fresh.map((f) => f.id)
+      );
   }, [db, m]);
 
   if (!loaded || !m) return <Screen withHeader>{null}</Screen>;
@@ -51,11 +55,7 @@ export default function MilestonesScreen() {
     <Screen withHeader>
       {m.showBalance && m.goal ? (
         <Card title={t('balance.title')}>
-          {current ? (
-            <ThemedText>
-              {t(`balance.current.${current.status}`, { trained: current.trained, goal: current.goal })}
-            </ThemedText>
-          ) : null}
+          {current ? <ThemedText>{t(`balance.current.${current.status}`, { trained: current.trained, goal: current.goal })}</ThemedText> : null}
           <ThemedText>{t('balance.last4', { done: m.last4.done, counted: m.last4.counted })}</ThemedText>
           <ThemedText>{t('balance.month', { done: m.month.done, counted: m.month.counted })}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">

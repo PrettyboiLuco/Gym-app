@@ -40,12 +40,22 @@ describe('Allergien und Ernährungsweise (COACH-009)', () => {
         { allergens: ['milch'], traces: null, diet: 'vegetarisch' },
       ])
     ).toEqual({ allergens: ['gluten', 'milch'], traces: null, diet: 'vegetarisch' });
-    expect(combineFacts([{ allergens: null, traces: null, diet: null }, { allergens: [], traces: [], diet: 'vegan' }])).toEqual({
+    expect(
+      combineFacts([
+        { allergens: null, traces: null, diet: null },
+        { allergens: [], traces: [], diet: 'vegan' },
+      ])
+    ).toEqual({
       allergens: null,
       traces: null,
       diet: null,
     });
-    expect(combineFacts([{ allergens: null, traces: null, diet: null }, { allergens: [], traces: [], diet: 'nicht_vegetarisch' }]).diet).toBe('nicht_vegetarisch');
+    expect(
+      combineFacts([
+        { allergens: null, traces: null, diet: null },
+        { allergens: [], traces: [], diet: 'nicht_vegetarisch' },
+      ]).diet
+    ).toBe('nicht_vegetarisch');
   });
   test('ohne eigene Allergien keine Hinweise', () =>
     expect(needsAttention(dietCheck({ allergens: ['milch'], traces: null, diet: null }, { allergies: [], diet: 'alles' }))).toBe(false));
@@ -59,8 +69,7 @@ describe('Essenszeiten (COACH-007)', () => {
     expect(suggestMealAt(17, times)).toBe('snack');
     expect(suggestMealAt(22, times)).toBe('abend');
   });
-  test('ausgelassene Mahlzeit wird nicht vorgeschlagen', () =>
-    expect(suggestMealAt(9, { ...times, fruehstueck: null })).toBe('snack'));
+  test('ausgelassene Mahlzeit wird nicht vorgeschlagen', () => expect(suggestMealAt(9, { ...times, fruehstueck: null })).toBe('snack'));
 });
 
 describe('Essen in eigenen Worten (FOOD-014)', () => {
@@ -106,8 +115,7 @@ describe('Essen in eigenen Worten (FOOD-014)', () => {
   test('Text ohne Essen ergibt nichts', () => expect(parseFoodText(' , und ')).toEqual([]));
 });
 
-const days = (end: string, kcal: number, goal: number | null = 2000) =>
-  weekDays(end).map((day) => ({ day, kcal, entries: 3, unknownKcal: 0, goal }));
+const days = (end: string, kcal: number, goal: number | null = 2000) => weekDays(end).map((day) => ({ day, kcal, entries: 3, unknownKcal: 0, goal }));
 const weights = (from: string, kgs: number[]) =>
   kgs.map((kg, i) => ({ day: new Date(Date.parse(`${from}T12:00:00Z`) + i * 86_400_000).toISOString().slice(0, 10), kg }));
 
@@ -134,9 +142,12 @@ describe('Wochen-Check-in (COACH-008)', () => {
   test('Abnehmen ohne Fortschritt → −100 kcal, nur Vorschlag', () =>
     expect(weeklyCheckin(input()).suggestion).toEqual({ kind: 'kcal', from: 2000, to: 1900, reason: 'keinFortschritt' }));
   test('zu schneller Verlust (> 1 %/Woche) → +100', () =>
-    expect(weeklyCheckin(input({ weights: [...weights('2026-10-16', Array(7).fill(82)), ...weights('2026-10-23', Array(7).fill(80.9))] })).suggestion).toEqual(
-      { kind: 'kcal', from: 2000, to: 2100, reason: 'zuSchnell' }
-    ));
+    expect(weeklyCheckin(input({ weights: [...weights('2026-10-16', Array(7).fill(82)), ...weights('2026-10-23', Array(7).fill(80.9))] })).suggestion).toEqual({
+      kind: 'kcal',
+      from: 2000,
+      to: 2100,
+      reason: 'zuSchnell',
+    }));
   test('Fortschritt im Rahmen → keine Änderung', () =>
     expect(weeklyCheckin(input({ weights: [...weights('2026-10-16', Array(7).fill(80.5)), ...weights('2026-10-23', Array(7).fill(80))] })).suggestion).toEqual({
       kind: 'passt',
@@ -144,7 +155,9 @@ describe('Wochen-Check-in (COACH-008)', () => {
   test('deutlich über dem Ziel gegessen → erst Ziel einhalten, nicht senken', () =>
     expect(weeklyCheckin(input({ days: days('2026-10-29', 2300) })).suggestion).toEqual({ kind: 'zielEinhalten', over: 300 }));
   test('zu wenige Daten → sagt, was fehlt', () => {
-    const r = weeklyCheckin(input({ weights: weights('2026-10-26', [80, 80]), days: days('2026-10-29', 1900).map((d, i) => (i < 3 ? d : { ...d, entries: 0, kcal: null })) }));
+    const r = weeklyCheckin(
+      input({ weights: weights('2026-10-26', [80, 80]), days: days('2026-10-29', 1900).map((d, i) => (i < 3 ? d : { ...d, entries: 0, kcal: null })) })
+    );
     expect(r.suggestion).toEqual({ kind: 'mehrDaten', missing: ['gewicht', 'essen'] });
     expect(r.summary.completeDays).toBe(3);
   });
@@ -179,8 +192,7 @@ describe('Wochen-Check-in (COACH-008)', () => {
     expect(r.summary).toMatchObject({ proteinAvg: 80, proteinGoal: 130, fiberAvg: 15, fiberGoal: 30 });
     expect(weeklyCheckin(input({ days: low, hideNumbers: true })).hints).not.toContain('eiweissWenig');
   });
-  test('weniger trainiert als geplant → Hinweis', () =>
-    expect(weeklyCheckin(input({ workouts: 1 })).hints).toContain('trainingWeniger'));
+  test('weniger trainiert als geplant → Hinweis', () => expect(weeklyCheckin(input({ workouts: 1 })).hints).toContain('trainingWeniger'));
   test('fällig nach 7 Tagen', () => {
     expect(checkinDue(null, '2026-10-30')).toBe(true);
     expect(checkinDue('2026-10-25', '2026-10-30')).toBe(false);
@@ -192,7 +204,16 @@ describe('Übungsbilder (MEDIA-013)', () => {
   const ids = new Set([...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES, ...STRETCH_EXERCISES].map((e) => e.id));
   test('Verzeichnis in der App ist gültig (jedes Bild mit Herkunft)', () => expect(validateMedia(EXERCISE_MEDIA, ids)).toEqual([]));
   test('fehlende Herkunft, unbekannte Übung, Datum, doppelt werden erkannt', () => {
-    const ok: MediaEntry = { exerciseId: 'kniebeuge', source: 1, kind: 'bild', author: 'Luc', license: 'eigenes Werk', origin: 'Foto', checkedAt: '2026-11-15', movementReviewed: false };
+    const ok: MediaEntry = {
+      exerciseId: 'kniebeuge',
+      source: 1,
+      kind: 'bild',
+      author: 'Luc',
+      license: 'eigenes Werk',
+      origin: 'Foto',
+      checkedAt: '2026-11-15',
+      movementReviewed: false,
+    };
     expect(validateMedia([ok], ids)).toEqual([]);
     expect(validateMedia([{ ...ok, author: ' ' }, { ...ok, exerciseId: 'gibtsnicht', checkedAt: '15.11.' }, ok], ids).map((p) => p.problem)).toEqual([
       'herkunftFehlt',

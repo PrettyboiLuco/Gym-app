@@ -4,11 +4,11 @@ import { Choice } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { notificationPermission } from '@/data/notifications';
-import { useProfile } from '@/providers/profile-provider';
 import { loadReminders } from '@/data/reminders';
-import { useDb } from '@/providers/store-provider';
 import { MODULES, effectiveModules, type ModuleId } from '@/domain/modules';
 import { t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 /** Module ein-/ausschalten (Ausbauplan A11.1). Daten bleiben beim Ausschalten erhalten. */
 export default function ModulesScreen() {

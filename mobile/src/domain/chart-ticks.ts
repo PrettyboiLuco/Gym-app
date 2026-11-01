@@ -16,4 +16,3 @@ export function niceTicks(min: number, max: number): number[] {
   if (ticks[ticks.length - 1] <= max) ticks.push(Math.round((ticks[ticks.length - 1] + step) * 1000) / 1000);
   return ticks;
 }
-

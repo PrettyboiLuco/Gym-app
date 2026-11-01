@@ -1,22 +1,15 @@
-import {
-  Tabs,
-  TabList,
-  TabTrigger,
-  TabSlot,
-  type TabListProps,
-  type TabTriggerSlotProps,
-} from 'expo-router/ui';
+import { Tabs, TabList, TabTrigger, TabSlot, type TabListProps, type TabTriggerSlotProps } from 'expo-router/ui';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
 import { MiniPlayer } from '@/components/mini-player';
-import { useModules } from '@/providers/profile-provider';
 import { TabIcon, type TabIconName } from '@/components/tab-icon';
-import { useLiveTraining } from '@/providers/live-training';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { useLiveTraining } from '@/providers/live-training';
+import { useModules } from '@/providers/profile-provider';
 
 // Web-Vorschau: gleiche fünf Bereiche wie auf dem Handy, unten als Leiste.
 const TABS = [

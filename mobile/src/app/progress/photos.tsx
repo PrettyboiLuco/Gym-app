@@ -6,7 +6,6 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { Slider } from '@/components/slider';
 import { ThemedText } from '@/components/themed-text';
@@ -14,11 +13,12 @@ import { Spacing } from '@/constants/theme';
 import { newId } from '@/data/db';
 import { PHOTOS_SUPPORTED, photoUri, removePhotoFile, storePhoto } from '@/data/photo-files';
 import { addPhoto, deleteAllPhotos, deletePhoto, listPhotos } from '@/data/photos';
-import { useProfile } from '@/providers/profile-provider';
 import { comparePair, PHOTO_POSES, type PhotoPose, type ProgressPhoto } from '@/domain/body';
+import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
 
 /**
  * Fortschrittsfotos (Register GOAL-008): freiwillig, standardmäßig aus, nur auf dem Gerät.
@@ -146,10 +146,36 @@ export default function PhotosScreen() {
             />
             {pair && first && second ? (
               <>
-                <Choice label={t('photos.compareA')} options={posePhotos.map((p) => p.id)} value={first.id} onChange={(a) => setPick((x) => ({ ...x, a }))} format={(id) => formatDay(posePhotos.find((p) => p.id === id)!.day)} chips />
-                <Choice label={t('photos.compareB')} options={posePhotos.map((p) => p.id)} value={second.id} onChange={(b) => setPick((x) => ({ ...x, b }))} format={(id) => formatDay(posePhotos.find((p) => p.id === id)!.day)} chips />
-                <Choice label={t('photos.mode')} options={['nebeneinander', 'ueberblenden'] as const} value={mode} onChange={setMode} format={(m) => t(`photos.modes.${m}`)} />
-                <Choice label={t('photos.guides')} options={['an', 'aus'] as const} value={guides ? 'an' : 'aus'} onChange={(v) => setGuides(v === 'an')} format={(v) => (v === 'an' ? t('common.on') : t('common.off'))} />
+                <Choice
+                  label={t('photos.compareA')}
+                  options={posePhotos.map((p) => p.id)}
+                  value={first.id}
+                  onChange={(a) => setPick((x) => ({ ...x, a }))}
+                  format={(id) => formatDay(posePhotos.find((p) => p.id === id)!.day)}
+                  chips
+                />
+                <Choice
+                  label={t('photos.compareB')}
+                  options={posePhotos.map((p) => p.id)}
+                  value={second.id}
+                  onChange={(b) => setPick((x) => ({ ...x, b }))}
+                  format={(id) => formatDay(posePhotos.find((p) => p.id === id)!.day)}
+                  chips
+                />
+                <Choice
+                  label={t('photos.mode')}
+                  options={['nebeneinander', 'ueberblenden'] as const}
+                  value={mode}
+                  onChange={setMode}
+                  format={(m) => t(`photos.modes.${m}`)}
+                />
+                <Choice
+                  label={t('photos.guides')}
+                  options={['an', 'aus'] as const}
+                  value={guides ? 'an' : 'aus'}
+                  onChange={(v) => setGuides(v === 'an')}
+                  format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+                />
                 {mode === 'nebeneinander' ? (
                   <View style={styles.row}>
                     {[first, second].map((photo) => (
@@ -203,9 +229,7 @@ export default function PhotosScreen() {
       </Card>
 
       <Card>
-        {photos.length > 0 ? (
-          <ConfirmButton label={t('photos.deleteAll')} confirmLabel={t('photos.deleteAllConfirm')} onConfirm={removeAll} />
-        ) : null}
+        {photos.length > 0 ? <ConfirmButton label={t('photos.deleteAll')} confirmLabel={t('photos.deleteAllConfirm')} onConfirm={removeAll} /> : null}
         <Button label={t('photos.disable')} variant="danger" onPress={() => updateProfile({ ...profile, photos: false })} />
         <ThemedText type="small" themeColor="textSecondary">
           {t('photos.disableHint')}

@@ -2,24 +2,24 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { Choice } from '@/components/fields';
 import { MuscleMap } from '@/components/muscle-map';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { FigureStrip } from '@/components/today-widgets';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useUnits } from '@/providers/profile-provider';
-import { loadPeriodStats } from '@/data/training-stats';
 import { listExercises, type Exercise } from '@/data/training';
+import { loadPeriodStats } from '@/data/training-stats';
 import { loadWeekSetsByMuscle } from '@/data/training-week';
-import type { MuscleGroup } from '@/domain/exercises';
 import { shiftDay } from '@/domain/dates';
+import type { MuscleGroup } from '@/domain/exercises';
+import { todayDay } from '@/domain/time';
 import type { PeriodRecord, PeriodStats } from '@/domain/training-stats';
+import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
+import { useUnits } from '@/providers/profile-provider';
 
 type Kind = 'monat' | 'jahr';
 
@@ -53,20 +53,22 @@ export default function StatsScreen() {
   const [kind, setKind] = useState<Kind>('monat');
   const [offset, setOffset] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
-  const { data, loaded } = useLoad((db) => load(db, kind, offset, weekOffset), {
-    period: { from: '', to: '', label: '' },
-    stats: null as PeriodStats | null,
-    exercises: [] as Exercise[],
-    muscles: {} as Partial<Record<MuscleGroup, number>>,
-    weekDay: '',
-  }, `${kind}-${offset}-${weekOffset}`);
+  const { data, loaded } = useLoad(
+    (db) => load(db, kind, offset, weekOffset),
+    {
+      period: { from: '', to: '', label: '' },
+      stats: null as PeriodStats | null,
+      exercises: [] as Exercise[],
+      muscles: {} as Partial<Record<MuscleGroup, number>>,
+      weekDay: '',
+    },
+    `${kind}-${offset}-${weekOffset}`
+  );
   const byId = new Map(data.exercises.map((e) => [e.id, e]));
   const name = (id: string) => exerciseName(byId.get(id));
   const s = data.stats;
   const record = (r: PeriodRecord) =>
-    r.kind === 'zeit'
-      ? t('stats.recordTime', { seconds: r.seconds })
-      : `${formatWeight(r.weightKg ?? 0, units.weight, 2)} × ${r.reps}`;
+    r.kind === 'zeit' ? t('stats.recordTime', { seconds: r.seconds }) : `${formatWeight(r.weightKg ?? 0, units.weight, 2)} × ${r.reps}`;
   const muscleList = Object.entries(data.muscles).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
 
   return (
@@ -76,11 +78,7 @@ export default function StatsScreen() {
           {weekOffset === 0 ? t('stats.thisWeek') : t('stats.weekOf', { date: formatDay(data.weekDay) })}
         </ThemedText>
         <MuscleMap sets={data.muscles} />
-        <ThemedText type="small">
-          {muscleList.length
-            ? muscleList.map(([g, n]) => `${t(`muscle.${g}`)} ${n}`).join(' · ')
-            : t('stats.noSets')}
-        </ThemedText>
+        <ThemedText type="small">{muscleList.length ? muscleList.map(([g, n]) => `${t(`muscle.${g}`)} ${n}`).join(' · ') : t('stats.noSets')}</ThemedText>
         <View style={styles.row}>
           <Button label={t('stats.prevWeek')} variant="secondary" size="compact" onPress={() => setWeekOffset((w) => w + 1)} />
           {weekOffset > 0 ? <Button label={t('stats.nextWeek')} variant="secondary" size="compact" onPress={() => setWeekOffset((w) => w - 1)} /> : null}

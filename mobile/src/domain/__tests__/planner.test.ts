@@ -2,15 +2,8 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import {
-  EXERCISE_META,
-  HIIT_EXERCISES,
-  MORE_STRENGTH_EXERCISES,
-  STARTER_EXERCISES,
-  TIMED_EXERCISES,
-  levelOf,
-  patternOf,
-} from '../exercises';
+import { CATALOG_EXERCISES } from '../exercise-catalog';
+import { EXERCISE_META, HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, STARTER_EXERCISES, TIMED_EXERCISES, levelOf, patternOf } from '../exercises';
 import {
   buildTemplate,
   canApply,
@@ -24,7 +17,6 @@ import {
   type PlannerExercise,
   type RebuildInput,
 } from '../planner';
-import { CATALOG_EXERCISES } from '../exercise-catalog';
 import { validatePlan, type PlanDraft } from '../training';
 
 const CATALOG_IDS = new Set(CATALOG_EXERCISES.map((e) => e.id));
@@ -108,9 +100,7 @@ describe('Planumbau (8.2)', () => {
     expect(validatePlan(p.draft)).toEqual([]);
     p.dayMinutes.forEach((m) => expect(m).toBeLessThanOrEqual(60));
     // Oberkörpertage enthalten nur Push/Pull, Unterkörpertage nur Beine/Rumpf.
-    p.draft.days.forEach((d, i) =>
-      d.items.forEach((it) => expect(dayAccepts(p.dayTypes[i], patternOf(byId.get(it.exerciseId)!))).toBe(true))
-    );
+    p.draft.days.forEach((d, i) => d.items.forEach((it) => expect(dayAccepts(p.dayTypes[i], patternOf(byId.get(it.exerciseId)!))).toBe(true)));
     // Jede bisherige Übung taucht in der Änderungsliste auf, mit Grund, wenn sie nicht nur behalten ist.
     expect(p.changes.map((c) => c.exerciseId).sort()).toEqual([...new Set([...pushA, ...pullA, ...legsA])].sort());
     p.changes.filter((c) => c.kind !== 'behalten').forEach((c) => expect(c.reasons.length).toBeGreaterThan(0));
@@ -186,7 +176,13 @@ describe('Planumbau (8.2)', () => {
   });
 
   test('Tag ohne passende Übung wird aus der kuratierten Liste ergänzt und begründet', () => {
-    const upper: PlanDraft = { name: 'Oben', days: [{ name: 'A', items: pushA.map((id) => item(id)) }, { name: 'B', items: pullA.map((id) => item(id)) }] };
+    const upper: PlanDraft = {
+      name: 'Oben',
+      days: [
+        { name: 'A', items: pushA.map((id) => item(id)) },
+        { name: 'B', items: pullA.map((id) => item(id)) },
+      ],
+    };
     const p = rebuildPlan(input({ current: upper, days: 4 }));
     const legDays = p.draft.days.filter((_, i) => p.dayTypes[i] === 'unterkoerper');
     legDays.forEach((d) => expect(d.items.length).toBeGreaterThan(0));

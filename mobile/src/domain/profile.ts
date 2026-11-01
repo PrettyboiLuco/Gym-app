@@ -2,9 +2,9 @@
 // Volljährigkeit für den Start, Geburtsmonat/Größe/Formelvariante nur für den Kalorienrechner.
 // Alles ist optional außer der Bestätigung „mindestens 18“.
 
-import { DEFAULT_MODULES, type Modules } from './modules';
 import type { ActivityLevel, FormulaTerm } from './energy';
 import { EQUIPMENT, type Equipment, type Level } from './exercises';
+import { DEFAULT_MODULES, type Modules } from './modules';
 import { MINUTES_RANGE, type TrainingGoal } from './planner';
 import { DEFAULT_UNITS, HEIGHT_RANGE, lengthInputText, parseLengthIn, type Units } from './units';
 
@@ -77,7 +77,7 @@ export function parseBirthMonth(input: string, today: string): string | null {
   return value;
 }
 
-export function birthMonthText(birthMonth: string | null): string {
+function birthMonthText(birthMonth: string | null): string {
   if (!birthMonth) return '';
   const [year, month] = birthMonth.split('-');
   return `${month}.${year}`;
@@ -119,11 +119,7 @@ export function profileToForm(p: Profile): ProfileForm {
  * Prüft das Profilformular. Die Größe wird in der Einheit gelesen, die im Formular gewählt ist.
  * Ein Geburtsmonat unter 18 Jahren widerspricht dem Start nur für Erwachsene.
  */
-export function parseProfileForm(
-  form: ProfileForm,
-  previous: Profile,
-  today: string
-): { profile: Profile | null; problems: ProfileProblem[] } {
+export function parseProfileForm(form: ProfileForm, previous: Profile, today: string): { profile: Profile | null; problems: ProfileProblem[] } {
   const problems: ProfileProblem[] = [];
   const birthMonth = form.birth.trim() === '' ? null : parseBirthMonth(form.birth, today);
   if (form.birth.trim() !== '' && birthMonth === null) problems.push('birth');
@@ -136,7 +132,9 @@ export function parseProfileForm(
   if (minutesText !== '' && !minutesOk) problems.push('minutes');
   if (problems.length > 0) return { profile: null, problems };
   // Alle Geräte gewählt = wie keine Angabe; Körpergewicht zählt immer dazu.
-  const equipment = EQUIPMENT.every((e) => e === 'koerpergewicht' || form.equipment.includes(e)) ? null : [...new Set([...form.equipment, 'koerpergewicht' as const])];
+  const equipment = EQUIPMENT.every((e) => e === 'koerpergewicht' || form.equipment.includes(e))
+    ? null
+    : [...new Set([...form.equipment, 'koerpergewicht' as const])];
   return {
     profile: {
       ...previous,

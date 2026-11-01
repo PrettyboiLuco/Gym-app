@@ -1,13 +1,13 @@
 // Essen planen (Ausbauplan A9): Wochenplan, Vorschlag passend zu Kalorien-/Eiweißziel und Ernährungsweise,
 // Einkaufsliste nach Abteilung und Meal-Prep. Reine Logik ohne Datenbank.
 
-import { BASIS_FOODS } from './basis-foods-data';
 import { portionGrams, type BasisGroup } from './basis-foods';
+import { BASIS_FOODS } from './basis-foods-data';
+import { daysBetween, weekDays } from './dates';
 import { dietCheck, type DietPrefs } from './diet';
 import type { Meal, NutrientBasis, Nutrients } from './nutrition';
-import { BOOK_TO_BASIS } from './recipe-book-basis';
 import { ingredient, type BookRecipeView } from './recipe-book';
-import { daysBetween, weekDays } from './dates';
+import { BOOK_TO_BASIS } from './recipe-book-basis';
 
 export type PlanSource = 'buch' | 'eigen';
 export type PlanEntry = { id: string; day: string; meal: Meal; source: PlanSource; ref: string; name: string; portions: number; eatenEventId: string | null };
@@ -18,7 +18,7 @@ export const MEAL_SHARE: Record<Meal, number> = { fruehstueck: 0.25, mittag: 0.3
 export const PORTION_STEPS = [0.5, 1, 1.5, 2] as const;
 
 /** Passt ein Buchrezept zu Ernährungsweise und Allergien? */
-export function fitsPrefs(recipe: BookRecipeView, prefs: DietPrefs): boolean {
+function fitsPrefs(recipe: BookRecipeView, prefs: DietPrefs): boolean {
   const check = dietCheck({ allergens: recipe.allergens, traces: [], diet: recipe.diet }, prefs);
   return check.contains.length === 0 && check.dietConflict === 'nein';
 }
@@ -77,7 +77,10 @@ export function suggestWeek(input: SuggestInput): NewPlanEntry[] {
 }
 
 /** Tagessumme der geplanten Einträge (Nährwerte je Portion kommen von außen). */
-export function dayTotals(entries: PlanEntry[], perPortion: (e: PlanEntry) => Nutrients | null): Map<string, { kcal: number; protein: number; unknown: number }> {
+export function dayTotals(
+  entries: PlanEntry[],
+  perPortion: (e: PlanEntry) => Nutrients | null
+): Map<string, { kcal: number; protein: number; unknown: number }> {
   const out = new Map<string, { kcal: number; protein: number; unknown: number }>();
   for (const e of entries) {
     const n = perPortion(e);

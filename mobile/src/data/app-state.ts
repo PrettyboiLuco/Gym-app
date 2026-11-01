@@ -13,9 +13,5 @@ export async function readState<T>(db: Db, key: string, fallback: T): Promise<T>
 }
 
 export async function writeState(db: Db, key: string, value: unknown) {
-  await db.runAsync(
-    'INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value',
-    key,
-    JSON.stringify(value)
-  );
+  await db.runAsync('INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value', key, JSON.stringify(value));
 }

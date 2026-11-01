@@ -2,8 +2,8 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { CATALOG_TEXTS } from '@/i18n/de-exercises';
 import { de } from '@/i18n/de';
+import { CATALOG_TEXTS } from '@/i18n/de-exercises';
 
 import { CATALOG_EXERCISES, CATALOG_STRETCHES } from '../exercise-catalog';
 import {

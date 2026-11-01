@@ -37,8 +37,20 @@ export default function BloodPressureScreen() {
     <Screen withHeader>
       <Card title={t('bloodPressure.add')}>
         <View style={styles.row}>
-          <Field label={t('bloodPressure.systolic')} value={form.systolic} onChangeText={(systolic) => setForm({ ...form, systolic })} keyboardType="number-pad" style={styles.flex} />
-          <Field label={t('bloodPressure.diastolic')} value={form.diastolic} onChangeText={(diastolic) => setForm({ ...form, diastolic })} keyboardType="number-pad" style={styles.flex} />
+          <Field
+            label={t('bloodPressure.systolic')}
+            value={form.systolic}
+            onChangeText={(systolic) => setForm({ ...form, systolic })}
+            keyboardType="number-pad"
+            style={styles.flex}
+          />
+          <Field
+            label={t('bloodPressure.diastolic')}
+            value={form.diastolic}
+            onChangeText={(diastolic) => setForm({ ...form, diastolic })}
+            keyboardType="number-pad"
+            style={styles.flex}
+          />
         </View>
         <Field label={t('bloodPressure.pulse')} value={form.pulse} onChangeText={(pulse) => setForm({ ...form, pulse })} keyboardType="number-pad" />
         <Field label={t('bloodPressure.note')} value={form.note} onChangeText={(note) => setForm({ ...form, note })} />

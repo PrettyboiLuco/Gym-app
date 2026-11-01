@@ -8,11 +8,11 @@ import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
-import { useModules } from '@/providers/profile-provider';
 import { lighterPlanToday, saveCheck } from '@/data/readiness';
 import { offersFor, type DailyCheck, type Level, type Readiness, type Reason } from '@/domain/readiness';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
+import { useModules } from '@/providers/profile-provider';
 
 const SCALE = ['1', '2', '3', '4', '5'] as const;
 const SLEEP_CHIPS = ['4', '5', '6', '7', '8', '9', '10'] as const;
@@ -31,7 +31,7 @@ export function reasonText(r: Reason): string {
 }
 
 /** „Heute: 7 h Schlaf · Qualität 4 · Energie 3 · Muskelkater 2“ – die Rohwerte hinter der Ampel. */
-export function todayLine(c: DailyCheck): string {
+function todayLine(c: DailyCheck): string {
   const parts = [
     c.sleepHours !== null ? t('readiness.today.sleep', { value: formatNumber(c.sleepHours, 1) }) : null,
     c.sleepQuality !== null ? t('readiness.today.quality', { value: c.sleepQuality }) : null,
@@ -65,10 +65,31 @@ export function MorningCheck({ db, day, check, onSaved }: { db: Db; day: string;
       <ThemedText type="small" themeColor="textSecondary">
         {t('readiness.checkIntro')}
       </ThemedText>
-      <Choice label={t('readiness.sleepHours')} options={SLEEP_CHIPS} value={sleepPick} onChange={(v) => set('sleepHours', Number(v))} format={(v) => (v === '4' ? '≤4' : v === '10' ? '10+' : v)} chips />
-      <Choice label={t('readiness.sleepQuality')} options={SCALE} value={pick(values.sleepQuality)} onChange={(v) => set('sleepQuality', Number(v))} format={(v) => v} chips />
+      <Choice
+        label={t('readiness.sleepHours')}
+        options={SLEEP_CHIPS}
+        value={sleepPick}
+        onChange={(v) => set('sleepHours', Number(v))}
+        format={(v) => (v === '4' ? '≤4' : v === '10' ? '10+' : v)}
+        chips
+      />
+      <Choice
+        label={t('readiness.sleepQuality')}
+        options={SCALE}
+        value={pick(values.sleepQuality)}
+        onChange={(v) => set('sleepQuality', Number(v))}
+        format={(v) => v}
+        chips
+      />
       <Choice label={t('readiness.energy')} options={SCALE} value={pick(values.energy)} onChange={(v) => set('energy', Number(v))} format={(v) => v} chips />
-      <Choice label={t('readiness.soreness')} options={SCALE} value={pick(values.soreness)} onChange={(v) => set('soreness', Number(v))} format={(v) => v} chips />
+      <Choice
+        label={t('readiness.soreness')}
+        options={SCALE}
+        value={pick(values.soreness)}
+        onChange={(v) => set('soreness', Number(v))}
+        format={(v) => v}
+        chips
+      />
       <ThemedText type="small" themeColor="textSecondary">
         {t('readiness.scaleHint')}
       </ThemedText>

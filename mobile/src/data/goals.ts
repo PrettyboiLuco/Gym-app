@@ -185,10 +185,7 @@ export function listGoalVersions(db: Db, goalId: string) {
 }
 
 async function insertVersion(db: Db, goalId: string, validFrom: string, status: GoalVersion['status'], v: Partial<GoalVersion>) {
-  const last = await db.getFirstAsync<{ version: number | null }>(
-    'SELECT MAX(version) AS version FROM goal_version WHERE goal_id = ?',
-    goalId
-  );
+  const last = await db.getFirstAsync<{ version: number | null }>('SELECT MAX(version) AS version FROM goal_version WHERE goal_id = ?', goalId);
   await db.runAsync(
     `INSERT INTO goal_version (id, goal_id, version, valid_from, status, direction, target_kg, start_kg, exercise_id,
      target_reps, habit, per_week, target_cm, target_steps, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -319,9 +316,7 @@ export async function drinkGoalDays(db: Db, fromDay: string, goalMl: number): Pr
 // ------------------------------------------------------------------------------ Körpermaße
 
 export function listMeasurements(db: Db) {
-  return db.getAllAsync<Measurement>(
-    'SELECT id, day, site, cm FROM body_measurement ORDER BY day DESC, recorded_at_utc DESC, rowid DESC'
-  );
+  return db.getAllAsync<Measurement>('SELECT id, day, site, cm FROM body_measurement ORDER BY day DESC, recorded_at_utc DESC, rowid DESC');
 }
 
 /** Speichert mehrere Maße eines Tages in einem Schritt. */
@@ -329,14 +324,7 @@ export async function addMeasurements(db: Db, day: string, values: Partial<Recor
   await db.withTransactionAsync(async () => {
     for (const [site, cm] of Object.entries(values)) {
       if (cm === undefined) continue;
-      await db.runAsync(
-        'INSERT INTO body_measurement (id, day, site, cm, recorded_at_utc) VALUES (?, ?, ?, ?, ?)',
-        newId(),
-        day,
-        site,
-        cm,
-        nowUtc()
-      );
+      await db.runAsync('INSERT INTO body_measurement (id, day, site, cm, recorded_at_utc) VALUES (?, ?, ?, ?, ?)', newId(), day, site, cm, nowUtc());
     }
   });
 }

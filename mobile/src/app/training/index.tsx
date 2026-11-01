@@ -1,20 +1,21 @@
 import { router } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { CardioRow } from '@/components/cardio-row';
+import { MeterBar } from '@/components/charts';
 import { ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
+import { showToast } from '@/components/toast';
 import { TrainingBlock, type WeekDay } from '@/components/today-widgets';
-import { loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
-import { MeterBar } from '@/components/charts';
-import type { MuscleGroup } from '@/domain/exercises';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { StyleSheet, View } from 'react-native';
 import { Spacing } from '@/constants/theme';
+import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
-import { todayDay } from '@/domain/time';
+import { loadProfile } from '@/data/profile';
+import { loadTimedRun } from '@/data/routines';
 import {
   expireTemporaryPlans,
   getActiveSession,
@@ -24,23 +25,22 @@ import {
   startSession,
   type PlanSummary,
 } from '@/data/training';
+import { activeEquipment, deloadOffer, saveDeloadState, startDeload, type DeloadState } from '@/data/training-stats';
+import { loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
+import { shiftDay, weekStart } from '@/domain/dates';
+import type { MuscleGroup } from '@/domain/exercises';
+import { EQUIPMENT } from '@/domain/exercises';
+import { temporaryEnd } from '@/domain/planner';
 import { COMEBACK_DAYS, daysSince } from '@/domain/progression';
-import { loadTimedRun } from '@/data/routines';
+import { todayDay } from '@/domain/time';
 import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
+import { DELOAD_RULES_VERSION, type EquipmentProfile } from '@/domain/training-stats';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t, tOptional } from '@/i18n';
-import { CardioRow } from '@/components/cardio-row';
-import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
-import { shiftDay, weekStart } from '@/domain/dates';
-import { loadProfile } from '@/data/profile';
 import { useModules } from '@/providers/profile-provider';
-import type { EquipmentProfile } from '@/domain/training-stats';
-import { activeEquipment, deloadOffer, saveDeloadState, startDeload, type DeloadState } from '@/data/training-stats';
-import { EQUIPMENT } from '@/domain/exercises';
-import { temporaryEnd } from '@/domain/planner';
-import { showToast } from '@/components/toast';
 
 async function loadOverview(db: Db) {
   // Abgelaufene befristete Fassungen zuerst beenden (TRAIN-008), damit die Liste stimmt.
@@ -140,7 +140,8 @@ export default function TrainingScreen() {
             action: t('training.newPlan'),
             go: () => router.push('/training/plan/neu'),
           };
-  const subtitle = active || timed ? undefined : hasFinished ? (pauseDays === 0 ? t('training.lastToday') : t('training.lastDays', { count: pauseDays })) : undefined;
+  const subtitle =
+    active || timed ? undefined : hasFinished ? (pauseDays === 0 ? t('training.lastToday') : t('training.lastDays', { count: pauseDays })) : undefined;
 
   if (!loaded) {
     return (
@@ -182,7 +183,7 @@ export default function TrainingScreen() {
             }}
           />
           <ThemedText type="small" themeColor="textSecondary">
-            {t('deload.hint')}
+            {t('deload.hint', { version: DELOAD_RULES_VERSION })}
           </ThemedText>
         </Card>
       ) : null}
@@ -191,9 +192,19 @@ export default function TrainingScreen() {
 
       {/* Wochenvolumen: sortierte Balkenliste (taste-skill „Who ranks?“), eine Farbe, Zahl rechts. */}
       {muscles.length > 0 ? (
-        <Card title={t('training.muscleTitle')} trailing={<ThemedText type="small" themeColor="textSecondary">{t('training.muscleUnit')}</ThemedText>}>
+        <Card
+          title={t('training.muscleTitle')}
+          trailing={
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('training.muscleUnit')}
+            </ThemedText>
+          }>
           {muscles.map((m) => (
-            <View key={m.group} style={styles.barRow} accessible accessibilityLabel={`${t(`muscle.${m.group}`)}: ${t('training.muscleSets', { count: m.sets })}`}>
+            <View
+              key={m.group}
+              style={styles.barRow}
+              accessible
+              accessibilityLabel={`${t(`muscle.${m.group}`)}: ${t('training.muscleSets', { count: m.sets })}`}>
               <View style={styles.barHead}>
                 <ThemedText type="small">{t(`muscle.${m.group}`)}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary" style={styles.num}>
@@ -274,7 +285,13 @@ export default function TrainingScreen() {
         />
       </Card>
 
-      <Card title={t('cardio.weekTitle')} trailing={<ThemedText type="small" themeColor="textSecondary">{t('cardio.week', { minutes: formatNumber(data.cardioMinutes, 0) })}</ThemedText>}>
+      <Card
+        title={t('cardio.weekTitle')}
+        trailing={
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('cardio.week', { minutes: formatNumber(data.cardioMinutes, 0) })}
+          </ThemedText>
+        }>
         {[...data.cardioOpen, ...data.cardioRecent].map((c) => (
           <CardioRow key={c.id} entry={c} onPress={() => router.push({ pathname: '/training/cardio', params: { id: c.id } })} />
         ))}
@@ -284,10 +301,25 @@ export default function TrainingScreen() {
         </ThemedText>
       </Card>
 
-      {modules.routinen ? <Card title={t('training.routinesTitle')}>
-        <ListRow icon="stretch" title={t('training.stretchTitle')} subtitle={t('training.stretchSubtitle')} accessory="›" onPress={() => router.push('/training/stretch')} />
-        <ListRow icon="bolt" title={t('training.hiitTitle')} subtitle={t('training.hiitSubtitle')} accessory="›" onPress={() => router.push('/training/hiit')} last />
-      </Card> : null}
+      {modules.routinen ? (
+        <Card title={t('training.routinesTitle')}>
+          <ListRow
+            icon="stretch"
+            title={t('training.stretchTitle')}
+            subtitle={t('training.stretchSubtitle')}
+            accessory="›"
+            onPress={() => router.push('/training/stretch')}
+          />
+          <ListRow
+            icon="bolt"
+            title={t('training.hiitTitle')}
+            subtitle={t('training.hiitSubtitle')}
+            accessory="›"
+            onPress={() => router.push('/training/hiit')}
+            last
+          />
+        </Card>
+      ) : null}
 
       <Card>
         <ListRow icon="clock" title={t('training.historyTitle')} accessory="›" onPress={() => router.push('/training/history')} />

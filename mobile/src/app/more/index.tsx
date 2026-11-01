@@ -9,10 +9,10 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { saveAppearance } from '@/data/appearance';
-import { useDb } from '@/providers/store-provider';
 import { type AppearanceChoice, APPEARANCES } from '@/domain/appearance';
 import { setAppearance, useAppearance } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 type InfoKey = 'privacy' | 'sources' | 'language';
 
@@ -60,16 +60,42 @@ export default function MoreScreen() {
         />
       </Card>
       <Card title={t('more.settingsTitle')}>
-        <ListRow icon="person" title={t('progress.profileOpen')} subtitle={t('progress.profileTitle')} accessory="›" onPress={() => router.push('/progress/profile')} />
+        <ListRow
+          icon="person"
+          title={t('progress.profileOpen')}
+          subtitle={t('progress.profileTitle')}
+          accessory="›"
+          onPress={() => router.push('/progress/profile')}
+        />
         <ListRow icon="list" title={t('modules.title')} subtitle={t('modules.subtitle')} accessory="›" onPress={() => router.push('/more/modules')} />
-        <ListRow icon="bell" title={t('reminders.title')} subtitle={t('more.remindersSubtitle')} accessory="›" onPress={() => router.push('/more/notifications')} />
+        <ListRow
+          icon="bell"
+          title={t('reminders.title')}
+          subtitle={t('more.remindersSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/more/notifications')}
+        />
         <ListRow icon="database" title={t('dataScreen.title')} subtitle={t('more.dataSubtitle')} accessory="›" onPress={() => router.push('/more/data')} />
-        <ListRow icon="lock" title={t('security.title')} subtitle={t('more.securitySubtitle')} accessory="›" onPress={() => router.push('/more/security')} last />
+        <ListRow
+          icon="lock"
+          title={t('security.title')}
+          subtitle={t('more.securitySubtitle')}
+          accessory="›"
+          onPress={() => router.push('/more/security')}
+          last
+        />
       </Card>
       <Card title={t('more.helpTitle')}>
         <ListRow icon="book" title={t('learn.title')} subtitle={t('learn.subtitle')} accessory="›" onPress={() => router.push('/more/learn')} />
         <ListRow icon="help" title={t('help.title')} subtitle={t('more.helpSubtitle')} accessory="›" onPress={() => router.push('/more/help')} />
-        <ListRow icon="chat" title={t('feedback.title')} subtitle={t('more.feedbackSubtitle')} accessory="›" onPress={() => router.push('/more/feedback')} last />
+        <ListRow
+          icon="chat"
+          title={t('feedback.title')}
+          subtitle={t('more.feedbackSubtitle')}
+          accessory="›"
+          onPress={() => router.push('/more/feedback')}
+          last
+        />
       </Card>
       <Card title={t('more.aboutTitle')}>
         {info('privacy', t('more.privacyTitle'), 'shield', t('more.privacy'))}

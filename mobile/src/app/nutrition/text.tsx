@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
 import { Choice, Field } from '@/components/fields';
-import { foodTitle } from '@/format/food-title';
 import { readTarget, targetParams, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -26,14 +25,15 @@ import {
   type MealTemplate,
   type RecipeSummary,
 } from '@/data/nutrition';
-import { useDb } from '@/providers/store-provider';
-import type { FoodFacts } from '@/domain/diet';
 import { parsePortions } from '@/domain/basis-foods';
+import type { FoodFacts } from '@/domain/diet';
 import { guessDrinkType, isPlainWater, matchScore, MAX_FOOD_TEXT, parseFoodText, resolveAmount, type FoodTextItem } from '@/domain/food-text';
 import { parseAmount } from '@/domain/nutrition';
+import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 /** Was gebucht wird: Lebensmittel (Menge in g/ml), Rezept (Portionen oder g), Vorlage (komplett) oder Wasser (ml). */
 type Candidate = {
@@ -51,7 +51,13 @@ const SKIP = 'skip';
 const WATER: Candidate = { key: 'wasser', label: '', food: null, recipe: null, template: null, water: true, facts: null };
 
 /** Synonyme eines Grundnahrungsmittels (A4), z. B. „Hühnchen“ für Hähnchenbrust. */
-const synonymsOf = (f: Food) => (f.searchTerms ? f.searchTerms.split('|').map((x) => x.trim()).filter(Boolean) : []);
+const synonymsOf = (f: Food) =>
+  f.searchTerms
+    ? f.searchTerms
+        .split('|')
+        .map((x) => x.trim())
+        .filter(Boolean)
+    : [];
 
 /** Bis zu 3 passende eigene Lebensmittel, Rezepte oder Vorlagen je Teil, bester Treffer zuerst. */
 async function findCandidates(db: Db, item: FoodTextItem, templates: MealTemplate[], recipes: RecipeSummary[]): Promise<Candidate[]> {
@@ -80,7 +86,11 @@ async function findCandidates(db: Db, item: FoodTextItem, templates: MealTemplat
   // Allergene von Rezepten/Vorlagen aus den Zutaten (COACH-009).
   for (const c of best) {
     if (c.recipe) c.facts = await recipeFacts(db, c.recipe.versionId);
-    if (c.template) c.facts = await factsForFoods(db, c.template.items.map((i) => i.foodId));
+    if (c.template)
+      c.facts = await factsForFoods(
+        db,
+        c.template.items.map((i) => i.foodId)
+      );
   }
   return best;
 }
@@ -217,7 +227,15 @@ export default function FoodTextScreen() {
                 label={t('foodText.use')}
                 options={[...row.candidates.map((c) => c.key), SKIP]}
                 value={row.choice}
-                onChange={(choice) => update(index, { choice, amount: amountFor(row.item, row.candidates.find((c) => c.key === choice)) })}
+                onChange={(choice) =>
+                  update(index, {
+                    choice,
+                    amount: amountFor(
+                      row.item,
+                      row.candidates.find((c) => c.key === choice)
+                    ),
+                  })
+                }
                 format={(key) => (key === SKIP ? t('foodText.skip') : (row.candidates.find((c) => c.key === key)?.label ?? key))}
               />
             )}

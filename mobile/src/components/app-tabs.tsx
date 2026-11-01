@@ -2,10 +2,10 @@ import { NativeTabs } from 'expo-router/native-tabs';
 
 import { MiniPlayer } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
-import { useLiveTraining } from '@/providers/live-training';
-import { useModules } from '@/providers/profile-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
+import { useLiveTraining } from '@/providers/live-training';
+import { useModules } from '@/providers/profile-provider';
 
 export default function AppTabs() {
   const scheme = useColorScheme();

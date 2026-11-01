@@ -2,10 +2,10 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { BASIS_FOODS } from '../basis-foods-data';
-import { BOOK_INGREDIENTS } from '../recipe-book-data';
-import { BOOK_TO_BASIS } from '../recipe-book-basis';
 import { MICRO_KEYS, editDistance, fuzzyBasis, scaleMicros, sumMicros } from '../basis-foods';
+import { BASIS_FOODS } from '../basis-foods-data';
+import { BOOK_TO_BASIS } from '../recipe-book-basis';
+import { BOOK_INGREDIENTS } from '../recipe-book-data';
 import { foldText } from '../text';
 
 // Abweichung von Atwater (4/4/9 + 2 für Ballaststoffe) ist hier echt: Alkohol (7 kcal/g), Backtriebmittel,
@@ -46,7 +46,21 @@ describe('Grundnahrungsmittel-Liste', () => {
 
   test('wichtige Grundnahrungsmittel sind dabei', () => {
     const names = BASIS_FOODS.map((f) => foldText([f.name, ...f.synonyms].join(' ')));
-    for (const q of ['haferflocken', 'reis', 'banane', 'magerquark', 'skyr', 'ei', 'haehnchenbrust', 'kartoffel', 'olivenoel', 'brokkoli', 'lachs', 'tofu', 'vollmilch'])
+    for (const q of [
+      'haferflocken',
+      'reis',
+      'banane',
+      'magerquark',
+      'skyr',
+      'ei',
+      'haehnchenbrust',
+      'kartoffel',
+      'olivenoel',
+      'brokkoli',
+      'lachs',
+      'tofu',
+      'vollmilch',
+    ])
       expect([q, names.some((n) => n.split(' ').some((w) => w.startsWith(q)))]).toEqual([q, true]);
   });
 });

@@ -4,8 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { mediaFor } from '@/domain/media';
-import { EXERCISE_MEDIA } from '@/media/exercise-media';
 import { t } from '@/i18n';
+import { EXERCISE_MEDIA } from '@/media/exercise-media';
 
 /** Bild zur Übung aus dem Verzeichnis (Phase 9.1); ohne Eintrag nichts (dann gilt die Textanleitung). */
 export function ExerciseMedia({ exerciseId, label }: { exerciseId: string; label: string }) {

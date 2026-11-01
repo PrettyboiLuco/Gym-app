@@ -22,7 +22,9 @@ export const HELP_QUESTIONS: HelpQuestion[] = HELP_SECTIONS.flatMap((s) => [...s
  * Leere Suche = alle Fragen. `text` liefert Frage und Antwort in der aktuellen Sprache.
  */
 export function searchHelp(query: string, text: (id: HelpQuestion) => { q: string; a: string }): HelpQuestion[] {
-  const words = normalize(query).split(' ').filter((w) => w.length > 0);
+  const words = normalize(query)
+    .split(' ')
+    .filter((w) => w.length > 0);
   if (words.length === 0) return HELP_QUESTIONS;
   return HELP_QUESTIONS.filter((id) => {
     const { q, a } = text(id);

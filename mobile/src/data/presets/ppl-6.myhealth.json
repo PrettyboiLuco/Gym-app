@@ -3,14 +3,7 @@
   "version": 1,
   "name": "Drücken/Ziehen/Beine 6×",
   "note": "Sechs Tage pro Woche (Mo–Sa), Drücken, Ziehen, Beine zweimal. Nur mit guter Erholung und genug Schlaf; bei wenig Zeit lieber Ober/Unter 4×.",
-  "weekdays": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-  ],
+  "weekdays": [1, 2, 3, 4, 5, 6],
   "days": [
     {
       "name": "Drücken A",
@@ -18,50 +11,35 @@
         {
           "exercise": "bankdruecken",
           "sets": 3,
-          "reps": [
-            6,
-            10
-          ],
+          "reps": [6, 10],
           "rest": 150,
           "rir": "1–2"
         },
         {
           "exercise": "schulterdruecken_kh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 120,
           "rir": "1–2"
         },
         {
           "exercise": "dips_brust",
           "sets": 2,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1"
         },
         {
           "exercise": "seitheben",
           "sets": 3,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "trizepsdruecken_kabel",
           "sets": 3,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         }
@@ -73,50 +51,35 @@
         {
           "exercise": "langhantelrudern",
           "sets": 3,
-          "reps": [
-            6,
-            10
-          ],
+          "reps": [6, 10],
           "rest": 150,
           "rir": "1–2"
         },
         {
           "exercise": "latzug",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 120,
           "rir": "1–2"
         },
         {
           "exercise": "face_pulls",
           "sets": 3,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "bizepscurls_lh",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "reverse_flys_kh",
           "sets": 2,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         }
@@ -128,50 +91,35 @@
         {
           "exercise": "kniebeuge",
           "sets": 3,
-          "reps": [
-            6,
-            10
-          ],
+          "reps": [6, 10],
           "rest": 180,
           "rir": "1–2"
         },
         {
           "exercise": "rumaenisches_kreuzheben",
           "sets": 3,
-          "reps": [
-            8,
-            10
-          ],
+          "reps": [8, 10],
           "rest": 150,
           "rir": "1–2"
         },
         {
           "exercise": "beinstrecker",
           "sets": 2,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "beinbeuger",
           "sets": 2,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "wadenheben",
           "sets": 3,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         }
@@ -183,50 +131,35 @@
         {
           "exercise": "schraegbankdruecken_lh",
           "sets": 3,
-          "reps": [
-            8,
-            10
-          ],
+          "reps": [8, 10],
           "rest": 150,
           "rir": "1–2"
         },
         {
           "exercise": "schulterpresse_maschine",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 120,
           "rir": "1"
         },
         {
           "exercise": "butterfly",
           "sets": 2,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "seitheben_kabel",
           "sets": 3,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "trizeps_ueberkopf_kabel",
           "sets": 2,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         }
@@ -238,50 +171,35 @@
         {
           "exercise": "klimmzuege_unterstuetzt",
           "sets": 3,
-          "reps": [
-            6,
-            10
-          ],
+          "reps": [6, 10],
           "rest": 120,
           "rir": "1–2"
         },
         {
           "exercise": "rudern_kabel",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 120,
           "rir": "1–2"
         },
         {
           "exercise": "rudern_brustgestuetzt_kh",
           "sets": 2,
-          "reps": [
-            10,
-            12
-          ],
+          "reps": [10, 12],
           "rest": 90,
           "rir": "1"
         },
         {
           "exercise": "bizepscurls_kabel",
           "sets": 3,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "face_pulls",
           "sets": 2,
-          "reps": [
-            12,
-            15
-          ],
+          "reps": [12, 15],
           "rest": 60,
           "rir": "0–1"
         }
@@ -293,50 +211,35 @@
         {
           "exercise": "beinpresse",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 150,
           "rir": "1–2"
         },
         {
           "exercise": "hip_thrust",
           "sets": 3,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 120,
           "rir": "1"
         },
         {
           "exercise": "bulgarische_kniebeuge",
           "sets": 2,
-          "reps": [
-            8,
-            12
-          ],
+          "reps": [8, 12],
           "rest": 90,
           "rir": "1"
         },
         {
           "exercise": "beinbeuger",
           "sets": 2,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         },
         {
           "exercise": "wadenheben",
           "sets": 3,
-          "reps": [
-            10,
-            15
-          ],
+          "reps": [10, 15],
           "rest": 60,
           "rir": "0–1"
         }

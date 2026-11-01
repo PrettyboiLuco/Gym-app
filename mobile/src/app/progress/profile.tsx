@@ -3,18 +3,18 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, MultiChoice } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { CalculatorFields, UnitFields } from '@/components/profile-fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { useProfile } from '@/providers/profile-provider';
-import { parseProfileForm, profileToForm, type ProfileForm, type ProfileProblem } from '@/domain/profile';
 import { EQUIPMENT } from '@/domain/exercises';
 import { GOALS, LEVELS } from '@/domain/planner';
+import { parseProfileForm, profileToForm, type ProfileForm, type ProfileProblem } from '@/domain/profile';
+import { todayDay } from '@/domain/time';
 import { HEIGHT_RANGE } from '@/domain/units';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatLength, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
 
 /** Profil und Einheiten bearbeiten (Register COACH-001, UX-003, COACH-010). */
 export default function ProfileScreen() {

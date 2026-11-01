@@ -1,8 +1,8 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { findClaims } from '../claims';
-import { BOOK_INGREDIENTS } from '../recipe-book-data';
 import { ALL_BOOK_RECIPES, BOOK_GOALS, filterBook, limitsFor, perPortion, RECIPES as BOOK_RECIPES, recipeDiet, scaledIngredients } from '../recipe-book';
+import { BOOK_INGREDIENTS } from '../recipe-book-data';
 
 describe('Rezeptbuch', () => {
   test('jedes Ziel hat mindestens 12 Rezepte, IDs sind eindeutig', () => {

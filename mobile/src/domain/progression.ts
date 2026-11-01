@@ -12,10 +12,10 @@
 //    und neu aufbauen oder Übung/Bereich wechseln.
 // 6. Sonst: gleiches Gewicht, eine Wiederholung mehr.
 
+import { DAY_MS } from './dates';
 import type { Equipment } from './exercises';
 import type { LoadMode } from './logger';
 import { kgToUnit, unitToKg, type WeightUnit } from './units';
-import { DAY_MS } from './dates';
 
 export const PROGRESSION_RULES_VERSION = 1;
 
@@ -92,9 +92,7 @@ function invertForAssist(advice: Advice, history: PastSession[], equipment: Equi
     case 'stagnation':
       return { ...advice, weightKg: roundToStep(assist * 1.1 + unitToKg(step, unit), step, unit) };
     case 'wiedereinstieg':
-      return advice.seconds !== null
-        ? advice
-        : { ...advice, weightKg: roundToStep(assist * (1 + advice.percent / 100) + unitToKg(step, unit), step, unit) };
+      return advice.seconds !== null ? advice : { ...advice, weightKg: roundToStep(assist * (1 + advice.percent / 100) + unitToKg(step, unit), step, unit) };
     case 'halten':
     case 'mehrWdh':
       return { ...advice, weightKg: assist };
@@ -138,7 +136,8 @@ function adviceV1(history: PastSession[], target: Target, equipment: Equipment, 
   const atWeight = last.sets.filter((s) => s.weightKg === weight);
   const allTop = atWeight.length >= target.sets && atWeight.every((s) => (s.reps ?? 0) >= target.repsMax!);
   if (allTop) {
-    if (weight === 0 && (equipment === 'koerpergewicht' || equipment === 'band' || equipment === 'gymnastikball')) return { kind: 'variante', reps: target.repsMax };
+    if (weight === 0 && (equipment === 'koerpergewicht' || equipment === 'band' || equipment === 'gymnastikball'))
+      return { kind: 'variante', reps: target.repsMax };
     return { kind: 'mehrGewicht', weightKg: roundToStep(weight + unitToKg(step, unit), step, unit), reps: target.repsMin };
   }
 
@@ -156,11 +155,7 @@ function adviceV1(history: PastSession[], target: Target, equipment: Equipment, 
 
   // Stagnation: die letzten drei Einheiten mit gleichem Höchstgewicht, Wiederholungen nicht gestiegen.
   const recent = history.filter((h) => h.sets.length > 0).slice(0, 3);
-  if (
-    recent.length === 3 &&
-    recent.every((h) => topWeight(h.sets) === weight) &&
-    totalReps(recent[0].sets, weight) <= totalReps(recent[2].sets, weight)
-  ) {
+  if (recent.length === 3 && recent.every((h) => topWeight(h.sets) === weight) && totalReps(recent[0].sets, weight) <= totalReps(recent[2].sets, weight)) {
     return { kind: 'stagnation', weightKg: roundToStep(weight * 0.9, step, unit), reps: target.repsMin };
   }
 

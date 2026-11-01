@@ -1,43 +1,26 @@
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
 import { router, Stack } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
-import { Button, Card } from '@/components/card';
 import { cancelRunAlerts, syncRunAlerts } from '@/components/alerts';
-import { exerciseName } from '@/format/exercise-name';
+import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton } from '@/components/fields';
+import { KeepAwake } from '@/components/keep-awake';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { finishTimedSession, loadTimedRun, loadVoice, saveTimedRun, saveVoice } from '@/data/routines';
-import { useDb } from '@/providers/store-provider';
 import { listExercises, type Exercise } from '@/data/training';
-import {
-  pauseRun,
-  resumeRun,
-  runDoneSeconds,
-  runElapsedMs,
-  runRoundsDone,
-  skipStep,
-  timelineState,
-  type Step,
-  type TimedRun,
-} from '@/domain/timeline';
+import { nowMs } from '@/domain/time';
+import { pauseRun, resumeRun, runDoneSeconds, runElapsedMs, runRoundsDone, skipStep, timelineState, type Step, type TimedRun } from '@/domain/timeline';
 import { formatClock } from '@/domain/training';
+import { exerciseName } from '@/format/exercise-name';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t, tOptional } from '@/i18n';
-
-// Zeitpunkt für Aktionen (in Event-Handlern, nicht beim Rendern).
-const nowMs = () => Date.now();
-
-function KeepAwake() {
-  useKeepAwake();
-  return null;
-}
+import { useDb } from '@/providers/store-provider';
 
 type Outcome = { status: 'abgeschlossen' | 'abgebrochen'; minutes: number; kind: TimedRun['kind']; pain: boolean };
 
@@ -162,10 +145,7 @@ export default function RunScreen() {
         {outcome.kind === 'dehnen' && outcome.status === 'abgeschlossen' ? (
           <Button label={t('run.flexLink')} variant="secondary" onPress={() => router.replace('/training/stretch')} />
         ) : null}
-        <Button
-          label={outcome.kind === 'aufwaermen' || outcome.kind === 'cooldown' ? t('run.backToWorkout') : t('run.close')}
-          onPress={() => router.back()}
-        />
+        <Button label={outcome.kind === 'aufwaermen' || outcome.kind === 'cooldown' ? t('run.backToWorkout') : t('run.close')} onPress={() => router.back()} />
       </Screen>
     );
   }
@@ -209,7 +189,7 @@ export default function RunScreen() {
   return (
     <Screen withHeader>
       <Stack.Screen options={{ title: run.title }} />
-      {!paused && Platform.OS !== 'web' ? <KeepAwake /> : null}
+      <KeepAwake when={!paused} />
       <Card>
         <ThemedText type="smallBold" style={{ color: active ? theme.tint : theme.textSecondary }} accessibilityLiveRegion="polite">
           {paused ? t('run.paused') : stepLabel}
@@ -218,7 +198,9 @@ export default function RunScreen() {
           {nameOf(step.exerciseId)}
           {step.side ? ` – ${t(`run.side.${step.side}`)}` : ''}
         </ThemedText>
-        <ThemedText type="subtitle" style={styles.clock}>{formatClock(state.remainingMs)}</ThemedText>
+        <ThemedText type="subtitle" style={styles.clock}>
+          {formatClock(state.remainingMs)}
+        </ThemedText>
         <ThemedText themeColor="textSecondary">
           {t('run.progress', { index: step.index + 1, count: exerciseCount })}
           {rounds > 1 ? ` · ${t('run.round', { round: step.round, rounds })}` : ''}
@@ -232,10 +214,7 @@ export default function RunScreen() {
       </Card>
 
       <View style={styles.row}>
-        <Button
-          label={paused ? t('run.resume') : t('run.pause')}
-          onPress={() => update(paused ? resumeRun(run, nowMs()) : pauseRun(run, nowMs()))}
-        />
+        <Button label={paused ? t('run.resume') : t('run.pause')} onPress={() => update(paused ? resumeRun(run, nowMs()) : pauseRun(run, nowMs()))} />
         <Button label={t('run.skip')} variant="secondary" onPress={() => update(skipStep(run, nowMs()))} />
       </View>
 

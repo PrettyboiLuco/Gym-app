@@ -55,10 +55,7 @@ async function versionDraft(db: Db, kind: RoutineKind, v: VersionRow): Promise<R
 /** Aktive Version einer Routine als bearbeitbarer Entwurf. */
 export async function loadRoutineDraft(db: Db, routineId: string): Promise<{ versionId: string; draft: RoutineDraft } | null> {
   const r = await db.getFirstAsync<{ kind: RoutineKind }>('SELECT kind FROM routine WHERE id = ?', routineId);
-  const v = await db.getFirstAsync<VersionRow>(
-    `SELECT ${VERSION_COLUMNS} FROM routine_version WHERE routine_id = ? AND active = 1`,
-    routineId
-  );
+  const v = await db.getFirstAsync<VersionRow>(`SELECT ${VERSION_COLUMNS} FROM routine_version WHERE routine_id = ? AND active = 1`, routineId);
   if (!r || !v) return null;
   return { versionId: v.id, draft: await versionDraft(db, r.kind, v) };
 }
@@ -82,10 +79,7 @@ export async function saveRoutine(db: Db, routineId: string | null, draft: Routi
   await db.withTransactionAsync(async () => {
     const now = nowUtc();
     if (!routineId) await db.runAsync('INSERT INTO routine (id, kind, created_at_utc) VALUES (?, ?, ?)', id, draft.kind, now);
-    const last = await db.getFirstAsync<{ version: number | null }>(
-      'SELECT MAX(version) AS version FROM routine_version WHERE routine_id = ?',
-      id
-    );
+    const last = await db.getFirstAsync<{ version: number | null }>('SELECT MAX(version) AS version FROM routine_version WHERE routine_id = ?', id);
     await db.runAsync('UPDATE routine_version SET active = 0 WHERE routine_id = ?', id);
     const versionId = newId();
     await db.runAsync(
@@ -219,10 +213,7 @@ export function getTimedSession(db: Db, id: string) {
 
 /** Aufwärmen/Cool-down, die zu einem Krafttraining gehören. */
 export function timedSessionsForWorkout(db: Db, workoutSessionId: string) {
-  return db.getAllAsync<TimedSession>(
-    `SELECT ${SESSION_COLUMNS} FROM timed_session WHERE workout_session_id = ? ORDER BY started_at_utc`,
-    workoutSessionId
-  );
+  return db.getAllAsync<TimedSession>(`SELECT ${SESSION_COLUMNS} FROM timed_session WHERE workout_session_id = ? ORDER BY started_at_utc`, workoutSessionId);
 }
 
 export async function deleteTimedSession(db: Db, id: string) {
@@ -249,13 +240,7 @@ export function listFlexibilityTests(db: Db) {
 }
 
 export async function addFlexibilityTest(db: Db, day: string, cm: number) {
-  await db.runAsync(
-    "INSERT INTO flexibility_test (id, day, test, cm, recorded_at_utc) VALUES (?, ?, 'finger_boden', ?, ?)",
-    newId(),
-    day,
-    cm,
-    nowUtc()
-  );
+  await db.runAsync("INSERT INTO flexibility_test (id, day, test, cm, recorded_at_utc) VALUES (?, ?, 'finger_boden', ?, ?)", newId(), day, cm, nowUtc());
 }
 
 export async function deleteFlexibilityTest(db: Db, id: string) {

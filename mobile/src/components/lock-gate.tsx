@@ -7,8 +7,8 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { unlock } from '@/data/app-lock';
 import { loadAppLock } from '@/data/reminders';
-import { useDb } from '@/providers/store-provider';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 /** Nach so langer Zeit im Hintergrund wird wieder gesperrt. */
 const RELOCK_MS = 60_000;

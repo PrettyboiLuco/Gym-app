@@ -7,8 +7,8 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { loadCoachSetup } from '@/data/coach';
 import { DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
-import { ALL_BOOK_RECIPES, BOOK_GOALS, BOOK_TAGS, filterBook, goalForCoach, type BookGoal, type BookTag } from '@/domain/recipe-book';
 import { MEALS, type Meal } from '@/domain/nutrition';
+import { ALL_BOOK_RECIPES, BOOK_GOALS, BOOK_TAGS, filterBook, goalForCoach, type BookGoal, type BookTag } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
 import { formatNumber, t } from '@/i18n';
 
@@ -24,10 +24,11 @@ type TagOption = BookTag | 'alle';
 export default function RecipeBookScreen() {
   // Aus dem Wochenplan (A9): Tag wird an die Rezeptansicht weitergegeben.
   const { planDay } = useLocalSearchParams<{ planDay?: string }>();
-  const { data } = useLoad(
-    async (db) => ({ setup: await loadCoachSetup(db), settings: await loadNutritionSettings(db), loaded: true }),
-    { setup: null as Awaited<ReturnType<typeof loadCoachSetup>>, settings: DEFAULT_SETTINGS, loaded: false }
-  );
+  const { data } = useLoad(async (db) => ({ setup: await loadCoachSetup(db), settings: await loadNutritionSettings(db), loaded: true }), {
+    setup: null as Awaited<ReturnType<typeof loadCoachSetup>>,
+    settings: DEFAULT_SETTINGS,
+    loaded: false,
+  });
   const suggested = goalForCoach(data.setup?.goal ?? null);
   const [goalChoice, setGoal] = useState<GoalOption | null>(null);
   const [meal, setMeal] = useState<MealOption>('alle');
@@ -57,20 +58,8 @@ export default function RecipeBookScreen() {
         returnKeyType="search"
       />
       <Card>
-        <Choice
-          label={t('book.theme')}
-          options={['alle', ...BOOK_TAGS] as const}
-          value={tag}
-          onChange={setTag}
-          format={(g) => t(`book.tags.${g}`)}
-        />
-        <Choice
-          label={t('book.goal')}
-          options={['alle', ...BOOK_GOALS] as const}
-          value={goal}
-          onChange={setGoal}
-          format={(g) => t(`book.goals.${g}`)}
-        />
+        <Choice label={t('book.theme')} options={['alle', ...BOOK_TAGS] as const} value={tag} onChange={setTag} format={(g) => t(`book.tags.${g}`)} />
+        <Choice label={t('book.goal')} options={['alle', ...BOOK_GOALS] as const} value={goal} onChange={setGoal} format={(g) => t(`book.goals.${g}`)} />
         {goal !== 'alle' ? (
           <ThemedText type="small" themeColor="textSecondary">
             {t(`book.goalHint.${goal}`)}

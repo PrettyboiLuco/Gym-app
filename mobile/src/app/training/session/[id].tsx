@@ -1,33 +1,29 @@
-import { useKeepAwake } from 'expo-keep-awake';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 
+import { syncRestAlert } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
-import { MeterBar } from '@/components/charts';
-import { haptic } from '@/components/haptics';
-import { SetCheck } from '@/components/set-check';
-import { RirChoice, SetDetails } from '@/components/set-details';
 import { CardioRow } from '@/components/cardio-row';
-import { listCardioForSession, type CardioEntry } from '@/data/cardio';
-import { exerciseName } from '@/format/exercise-name';
+import { MeterBar } from '@/components/charts';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow } from '@/components/fields';
+import { haptic } from '@/components/haptics';
+import { KeepAwake } from '@/components/keep-awake';
 import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
+import { SetCheck } from '@/components/set-check';
+import { RirChoice, SetDetails } from '@/components/set-details';
 import { ThemedText } from '@/components/themed-text';
+import { holdLookup, routineMinutes, startRoutineRun } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
+import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
-import { useUnits } from '@/providers/profile-provider';
 import { loadProfile } from '@/data/profile';
-import { activeEquipment } from '@/data/training-stats';
 import { loadReminders } from '@/data/reminders';
 import { timedSessionsForWorkout, type TimedSession } from '@/data/routines';
-import { syncRestAlert } from '@/components/alerts';
-import { holdLookup, routineMinutes, startRoutineRun } from '@/components/timed';
-import { useDb } from '@/providers/store-provider';
 import {
   addSet,
   completeSet,
@@ -59,31 +55,27 @@ import {
   type SessionInfo,
   type SetRow,
 } from '@/data/training';
-import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
+import { activeEquipment } from '@/data/training-stats';
 import { EQUIPMENT, type MuscleGroup } from '@/domain/exercises';
-import { replacementOptions } from '@/domain/planner';
 import { defaultPlateSetup, loadModeOf, setLabels, supersetLetters, usesPlates, warmupSets, type LoadMode, type PlateSetup } from '@/domain/logger';
+import { replacementOptions } from '@/domain/planner';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep, type Advice, type PastSession } from '@/domain/progression';
+import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
+import { nowMs } from '@/domain/time';
 import { extendRest, formatClock, isStaleSession, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, parseDecimal, type WeightUnit } from '@/domain/units';
+import { exerciseName } from '@/format/exercise-name';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
+import { useUnits } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 type Inputs = Record<string, { weight: string; reps: string }>;
 
 // Übungen rücken weich nach, wenn eine fertige Übung zusammenklappt (nur Handy; im Web verschiebt Reanimated sonst das Layout).
 const cardLayout = Platform.OS === 'web' ? undefined : LinearTransition.springify().stiffness(180).damping(22);
-
-// Zeitpunkt für Timer-Aktionen (in Event-Handlern, nicht beim Rendern).
-const nowMs = () => Date.now();
-
-/** Hält den Bildschirm wach, solange ein Training läuft. */
-function KeepAwake() {
-  useKeepAwake();
-  return null;
-}
 
 function formatSets(sets: { weightKg: number | null; reps: number | null; seconds: number | null }[], unit: WeightUnit) {
   return sets
@@ -177,9 +169,12 @@ export default function SessionScreen() {
 
   // Zeitgeber des Countdowns; beim Verlassen des Bildschirms aufräumen.
   const holdTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (holdTimeout.current) clearTimeout(holdTimeout.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (holdTimeout.current) clearTimeout(holdTimeout.current);
+    },
+    []
+  );
 
   async function updateTimer(next: RestTimer) {
     setTimer(next);
@@ -216,14 +211,7 @@ export default function SessionScreen() {
     const previous = own[own.length - 1];
     const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
     return {
-      weight:
-        previous?.weightKg != null
-          ? shown(previous.weightKg)
-          : lastTime
-            ? shown(lastTime.weightKg)
-            : bodyweight
-              ? '0'
-              : '',
+      weight: previous?.weightKg != null ? shown(previous.weightKg) : lastTime ? shown(lastTime.weightKg) : bodyweight ? '0' : '',
       reps: previous?.reps != null ? String(previous.reps) : lastTime?.reps != null ? String(lastTime.reps) : '',
     };
   }
@@ -318,7 +306,12 @@ export default function SessionScreen() {
    * (sonst stünde eine Dauer von Stunden oder Tagen in der Zusammenfassung) oder verwerfen, wenn nichts gemacht wurde.
    */
   async function closeStale(keep: boolean) {
-    const lastSet = sets.filter((s) => s.completedAt).map((s) => s.completedAt!).sort().at(-1) ?? session?.startedAt;
+    const lastSet =
+      sets
+        .filter((s) => s.completedAt)
+        .map((s) => s.completedAt!)
+        .sort()
+        .at(-1) ?? session?.startedAt;
     await finishSession(db, id, keep ? 'abgeschlossen' : 'abgebrochen', keep ? undefined : 'vergessen', lastSet);
     await updateTimer(stopRest(timer));
     setRestFocus(false);
@@ -412,7 +405,12 @@ export default function SessionScreen() {
   async function addWarmups(exerciseId: string) {
     const plan = warmupPlan(exerciseId);
     if (plan.length === 0) return;
-    const ids = await addWarmupSets(db, id, exerciseId, plan.map((p) => p.reps));
+    const ids = await addWarmupSets(
+      db,
+      id,
+      exerciseId,
+      plan.map((p) => p.reps)
+    );
     setInputs((i) => ({
       ...i,
       ...Object.fromEntries(ids.map((setId, k) => [setId, { weight: formatNumber(plan[k].weight, 2), reps: String(plan[k].reps) }])),
@@ -449,8 +447,7 @@ export default function SessionScreen() {
   // Cool-down noch bis 3 Stunden nach dem Ende anbieten.
   const recentlyFinished = session.finishedAt !== null && Date.parse(session.finishedAt) > loadedAtMs - 3 * 3600_000;
   const showWarmup = active && session.warmup !== 0 && !warmupDone && sets.every((s) => !s.completedAt);
-  const showCooldown =
-    session.cooldown !== 0 && !cooldownDone && session.status !== 'abgebrochen' && (active ? doneCountOf(sets) > 0 : recentlyFinished);
+  const showCooldown = session.cooldown !== 0 && !cooldownDone && session.status !== 'abgebrochen' && (active ? doneCountOf(sets) > 0 : recentlyFinished);
   const order = [...new Set(sets.map((s) => s.exerciseId))];
   const doneCount = sets.filter((s) => s.completedAt).length;
   // Was gerade dran ist: der erste offene Satz in Trainingsreihenfolge (bei Supersätzen im Wechsel).
@@ -550,10 +547,8 @@ export default function SessionScreen() {
           />
         ) : null
       }>
-      <Stack.Screen
-        options={{ title: session.dayName ? `${session.planName} – ${session.dayName}` : t('session.free') }}
-      />
-      {active && Platform.OS !== 'web' ? <KeepAwake /> : null}
+      <Stack.Screen options={{ title: session.dayName ? `${session.planName} – ${session.dayName}` : t('session.free') }} />
+      <KeepAwake when={active} />
       {active && loadedAtMs > 0 && isStaleSession(session.startedAt, loadedAtMs) ? (
         <Card title={t('session.staleTitle')}>
           <ThemedText>
@@ -586,7 +581,11 @@ export default function SessionScreen() {
       {active && sets.length > 0 ? (
         <MeterBar progress={doneCount / sets.length} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
       ) : null}
-      {warmupDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.warmupDone')}</ThemedText> : null}
+      {warmupDone ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('session.warmupDone')}
+        </ThemedText>
+      ) : null}
       {blockMessage ? <ThemedText>{blockMessage}</ThemedText> : null}
 
       {cardioCard(cardio.filter((c) => c.atEnd === 0))}
@@ -636,261 +635,259 @@ export default function SessionScreen() {
         }
         return (
           <Animated.View key={exerciseId} layout={cardLayout}>
-          <Card title={nameOf(exerciseId)}>
-            {hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {exerciseName(exercise)}
-              </ThemedText>
-            ) : null}
-            {active && exerciseId === currentId ? (
-              <View style={styles.nowRow}>
-                <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
-                <ThemedText type="small">{t('session.now')}</ThemedText>
-              </View>
-            ) : null}
-            <ExerciseMedia exerciseId={exerciseId} label={nameOf(exerciseId)} />
-            <ThemedText type="small" themeColor="textSecondary">
-              {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
-            </ThemedText>
-            {advice ? (
-              <>
-                <ThemedText type="small">{adviceText(advice)}</ThemedText>
-                {advice.kind !== 'variante' ? (
-                  <Button label={t('session.adviceApply')} variant="secondary" onPress={() => applyAdvice(exerciseId, advice)} />
-                ) : null}
-              </>
-            ) : null}
-            {target.plannedSeconds != null ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('session.targetSeconds', { seconds: target.plannedSeconds })}
-              </ThemedText>
-            ) : null}
-            {isTimed(exerciseId) && active ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('session.holdHint')}
-              </ThemedText>
-            ) : null}
-            {target.plannedSeconds == null && target.plannedRepsMin != null ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })}
-                {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
-              </ThemedText>
-            ) : null}
-            {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
-            {rows[0].superset != null ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('logger.supersetWith', {
-                  letter: letters.get(rows[0].superset) ?? '',
-                  names: [...new Set(sets.filter((s) => s.superset === rows[0].superset && s.exerciseId !== exerciseId).map((s) => nameOf(s.exerciseId)))].join(', '),
-                })}
-              </ThemedText>
-            ) : null}
-            {modeOf(exerciseId) !== 'normal' && !isTimed(exerciseId) ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {t(`logger.load.${modeOf(exerciseId) as 'einseitig' | 'unterstuetzt' | 'zusatzgewicht'}`)}
-              </ThemedText>
-            ) : null}
-            {rows.map((row, index) => {
-              const value = inputs[row.id] ?? suggestion(row);
-              const label = setLabels(rows.map((r) => r.setType))[index];
-              return (
-                <View key={row.id}>
-                <View style={styles.setRow}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('logger.details', { n: label })}
-                    accessibilityState={{ expanded: detailFor === row.id }}
-                    onPress={() => setDetailFor((d) => (d === row.id ? null : row.id))}
-                    style={styles.setNumberHit}>
-                    <ThemedText type="smallBold" themeColor={row.completedAt ? 'textSecondary' : 'text'} style={styles.setNumber}>
-                      {label}
-                    </ThemedText>
-                  </Pressable>
-                  {row.completedAt ? (
-                    <>
-                      <ThemedText style={[styles.flex, styles.doneText]}>
-                        {row.seconds != null
-                          ? t('session.setDoneSeconds', { seconds: row.seconds })
-                          : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
-                        {row.rir != null ? ` · ${t('logger.rirShort', { rir: row.rir === 4 ? '4+' : row.rir })}` : ''}
-                      </ThemedText>
-                      {active ? (
-                        <SetCheck
-                          done
-                          accessibilityLabel={`${t('session.undo')} ${label}`}
-                          onPress={async () => {
-                            await reopenSet(db, row.id);
-                            await load();
-                          }}
-                        />
-                      ) : null}
-                    </>
-                  ) : active ? (
-                    <>
-                      {isTimed(exerciseId) ? null : (
-                      <TextInput
-                        value={value.weight}
-                        onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...value, weight } }))}
-                        placeholder={t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
-                        placeholderTextColor={theme.textSecondary}
-                        keyboardType="decimal-pad"
-                        accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
-                        style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-                      />
-                      )}
-                      <TextInput
-                        value={value.reps}
-                        onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...value, reps } }))}
-                        placeholder={isTimed(exerciseId) ? t('session.seconds') : t('session.reps')}
-                        placeholderTextColor={theme.textSecondary}
-                        keyboardType="number-pad"
-                        accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${label}`}
-                        style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-                      />
-                      {isTimed(exerciseId) ? (
-                        hold?.rowId === row.id ? (
-                          <Button
-                            label={`■ ${formatClock(holdLeftMs)}`}
-                            accessibilityLabel={`${t('session.holdStop')} ${label}`}
-                            onPress={stopHold}
-                          />
-                        ) : (
-                          <Button
-                            label="▶"
-                            accessibilityLabel={`${t('session.holdStart')} ${label}`}
-                            variant="secondary"
-                            disabled={hold !== null}
-                            onPress={() => startHold(row, index, value)}
-                          />
-                        )
-                      ) : null}
-                      <SetCheck done={false} accessibilityLabel={`${t('session.done')} ${label}`} onPress={() => complete(row, index)} />
-                      <Button
-                        label="−"
-                        accessibilityLabel={`${t('session.removeSet')} ${label}`}
-                        variant="secondary"
-                        onPress={async () => {
-                          await deleteOpenSet(db, row.id);
-                          await load();
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <ThemedText themeColor="textSecondary" style={styles.flex}>
-                      {t('session.notDone')}
-                    </ThemedText>
-                  )}
-                </View>
-                {askRirFor === row.id && !restFocus && row.completedAt ? (
-                  <View style={styles.inlineAsk}>
-                    <RirChoice
-                      label={t('logger.rirAsk')}
-                      allowEmpty={false}
-                      value={row.rir}
-                      onChange={async (rir) => {
-                        setAskRirFor(null);
-                        await changeSet(row.id, { rir });
-                      }}
-                    />
-                  </View>
-                ) : null}
-                {row.note && detailFor !== row.id ? (
-                  <ThemedText type="small" themeColor="textSecondary" style={styles.setNote}>
-                    {row.note}
-                  </ThemedText>
-                ) : null}
-                {detailFor === row.id ? (
-                  <SetDetails
-                    setType={row.setType}
-                    rir={row.rir}
-                    note={row.note}
-                    targetRir={hints[exerciseId]?.rir ?? null}
-                    onChange={(change) => changeSet(row.id, change)}
-                    plates={
-                      exercise && usesPlates(exercise.equipment) && !isTimed(exerciseId)
-                        ? {
-                            weightText: row.completedAt ? shown(row.weightKg ?? 0) : value.weight,
-                            unit: units.weight,
-                            setup: plateSetup ?? defaultPlateSetup(units.weight),
-                            onSetup: changePlates,
-                          }
-                        : null
-                    }
-                  />
-                ) : null}
-                </View>
-              );
-            })}
-            {invalid && rows.some((r) => r.id === invalid) ? (
-              <ThemedText style={{ color: theme.danger }}>
-                {isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}
-              </ThemedText>
-            ) : null}
-            {active && warmupPlan(exerciseId).length > 0 ? (
-              <>
-                <Button
-                  label={t('logger.warmup', { count: warmupPlan(exerciseId).length })}
-                  variant="secondary"
-                  onPress={() => addWarmups(exerciseId)}
-                />
+            <Card title={nameOf(exerciseId)}>
+              {hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? (
                 <ThemedText type="small" themeColor="textSecondary">
-                  {t('logger.warmupHint', {
-                    list: warmupPlan(exerciseId)
-                      .map((w) => `${formatNumber(w.weight, 2)} ${units.weight} × ${w.reps}`)
-                      .join(' · '),
+                  {exerciseName(exercise)}
+                </ThemedText>
+              ) : null}
+              {active && exerciseId === currentId ? (
+                <View style={styles.nowRow}>
+                  <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
+                  <ThemedText type="small">{t('session.now')}</ThemedText>
+                </View>
+              ) : null}
+              <ExerciseMedia exerciseId={exerciseId} label={nameOf(exerciseId)} />
+              <ThemedText type="small" themeColor="textSecondary">
+                {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
+              </ThemedText>
+              {advice ? (
+                <>
+                  <ThemedText type="small">{adviceText(advice)}</ThemedText>
+                  {advice.kind !== 'variante' ? (
+                    <Button label={t('session.adviceApply')} variant="secondary" onPress={() => applyAdvice(exerciseId, advice)} />
+                  ) : null}
+                </>
+              ) : null}
+              {target.plannedSeconds != null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('session.targetSeconds', { seconds: target.plannedSeconds })}
+                </ThemedText>
+              ) : null}
+              {isTimed(exerciseId) && active ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('session.holdHint')}
+                </ThemedText>
+              ) : null}
+              {target.plannedSeconds == null && target.plannedRepsMin != null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })}
+                  {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
+                </ThemedText>
+              ) : null}
+              {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
+              {rows[0].superset != null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('logger.supersetWith', {
+                    letter: letters.get(rows[0].superset) ?? '',
+                    names: [
+                      ...new Set(sets.filter((s) => s.superset === rows[0].superset && s.exerciseId !== exerciseId).map((s) => nameOf(s.exerciseId))),
+                    ].join(', '),
                   })}
                 </ThemedText>
-              </>
-            ) : null}
-            {active ? (
-              <Button
-                label={t('session.addSet')}
-                variant="secondary"
-                onPress={async () => {
-                  await addSet(db, id, exerciseId);
-                  await load();
-                }}
-              />
-            ) : null}
-            {active && hasOpen && exercise ? (
-              busyFor === exerciseId ? (
-                <View style={styles.busy}>
-                  <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
-                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))).map((alt) => (
-                    <ListRow
-                      key={alt.id}
-                      title={exerciseName(byId.get(alt.id))}
-                      subtitle={t(`equipment.${alt.equipment}`)}
-                      accessory="⇄"
-                      onPress={() => replaceWith(exerciseId, alt.id)}
-                    />
-                  ))}
-                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))).length === 0 ? (
-                    <ThemedText type="small">{t('session.busyNone')}</ThemedText>
-                  ) : null}
+              ) : null}
+              {modeOf(exerciseId) !== 'normal' && !isTimed(exerciseId) ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t(`logger.load.${modeOf(exerciseId) as 'einseitig' | 'unterstuetzt' | 'zusatzgewicht'}`)}
+                </ThemedText>
+              ) : null}
+              {rows.map((row, index) => {
+                const value = inputs[row.id] ?? suggestion(row);
+                const label = setLabels(rows.map((r) => r.setType))[index];
+                return (
+                  <View key={row.id}>
+                    <View style={styles.setRow}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t('logger.details', { n: label })}
+                        accessibilityState={{ expanded: detailFor === row.id }}
+                        onPress={() => setDetailFor((d) => (d === row.id ? null : row.id))}
+                        style={styles.setNumberHit}>
+                        <ThemedText type="smallBold" themeColor={row.completedAt ? 'textSecondary' : 'text'} style={styles.setNumber}>
+                          {label}
+                        </ThemedText>
+                      </Pressable>
+                      {row.completedAt ? (
+                        <>
+                          <ThemedText style={[styles.flex, styles.doneText]}>
+                            {row.seconds != null
+                              ? t('session.setDoneSeconds', { seconds: row.seconds })
+                              : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
+                            {row.rir != null ? ` · ${t('logger.rirShort', { rir: row.rir === 4 ? '4+' : row.rir })}` : ''}
+                          </ThemedText>
+                          {active ? (
+                            <SetCheck
+                              done
+                              accessibilityLabel={`${t('session.undo')} ${label}`}
+                              onPress={async () => {
+                                await reopenSet(db, row.id);
+                                await load();
+                              }}
+                            />
+                          ) : null}
+                        </>
+                      ) : active ? (
+                        <>
+                          {isTimed(exerciseId) ? null : (
+                            <TextInput
+                              value={value.weight}
+                              onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...value, weight } }))}
+                              placeholder={t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
+                              placeholderTextColor={theme.textSecondary}
+                              keyboardType="decimal-pad"
+                              accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
+                              style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+                            />
+                          )}
+                          <TextInput
+                            value={value.reps}
+                            onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...value, reps } }))}
+                            placeholder={isTimed(exerciseId) ? t('session.seconds') : t('session.reps')}
+                            placeholderTextColor={theme.textSecondary}
+                            keyboardType="number-pad"
+                            accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${label}`}
+                            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+                          />
+                          {isTimed(exerciseId) ? (
+                            hold?.rowId === row.id ? (
+                              <Button label={`■ ${formatClock(holdLeftMs)}`} accessibilityLabel={`${t('session.holdStop')} ${label}`} onPress={stopHold} />
+                            ) : (
+                              <Button
+                                label="▶"
+                                accessibilityLabel={`${t('session.holdStart')} ${label}`}
+                                variant="secondary"
+                                disabled={hold !== null}
+                                onPress={() => startHold(row, index, value)}
+                              />
+                            )
+                          ) : null}
+                          <SetCheck done={false} accessibilityLabel={`${t('session.done')} ${label}`} onPress={() => complete(row, index)} />
+                          <Button
+                            label="−"
+                            accessibilityLabel={`${t('session.removeSet')} ${label}`}
+                            variant="secondary"
+                            onPress={async () => {
+                              await deleteOpenSet(db, row.id);
+                              await load();
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <ThemedText themeColor="textSecondary" style={styles.flex}>
+                          {t('session.notDone')}
+                        </ThemedText>
+                      )}
+                    </View>
+                    {askRirFor === row.id && !restFocus && row.completedAt ? (
+                      <View style={styles.inlineAsk}>
+                        <RirChoice
+                          label={t('logger.rirAsk')}
+                          allowEmpty={false}
+                          value={row.rir}
+                          onChange={async (rir) => {
+                            setAskRirFor(null);
+                            await changeSet(row.id, { rir });
+                          }}
+                        />
+                      </View>
+                    ) : null}
+                    {row.note && detailFor !== row.id ? (
+                      <ThemedText type="small" themeColor="textSecondary" style={styles.setNote}>
+                        {row.note}
+                      </ThemedText>
+                    ) : null}
+                    {detailFor === row.id ? (
+                      <SetDetails
+                        setType={row.setType}
+                        rir={row.rir}
+                        note={row.note}
+                        targetRir={hints[exerciseId]?.rir ?? null}
+                        onChange={(change) => changeSet(row.id, change)}
+                        plates={
+                          exercise && usesPlates(exercise.equipment) && !isTimed(exerciseId)
+                            ? {
+                                weightText: row.completedAt ? shown(row.weightKg ?? 0) : value.weight,
+                                unit: units.weight,
+                                setup: plateSetup ?? defaultPlateSetup(units.weight),
+                                onSetup: changePlates,
+                              }
+                            : null
+                        }
+                      />
+                    ) : null}
+                  </View>
+                );
+              })}
+              {invalid && rows.some((r) => r.id === invalid) ? (
+                <ThemedText style={{ color: theme.danger }}>{isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}</ThemedText>
+              ) : null}
+              {active && warmupPlan(exerciseId).length > 0 ? (
+                <>
+                  <Button label={t('logger.warmup', { count: warmupPlan(exerciseId).length })} variant="secondary" onPress={() => addWarmups(exerciseId)} />
                   <ThemedText type="small" themeColor="textSecondary">
-                    {t('session.busyHint')}
+                    {t('logger.warmupHint', {
+                      list: warmupPlan(exerciseId)
+                        .map((w) => `${formatNumber(w.weight, 2)} ${units.weight} × ${w.reps}`)
+                        .join(' · '),
+                    })}
                   </ThemedText>
-                  <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
-                </View>
-              ) : (
-                <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
-              )
-            ) : null}
-            {active && allDone ? (
-              <Button
-                label={t('session.hideSets')}
-                variant="secondary"
-                onPress={() =>
-                  setOpenDone((o) => {
-                    const n = new Set(o);
-                    n.delete(exerciseId);
-                    return n;
-                  })
-                }
-              />
-            ) : null}
-          </Card>
+                </>
+              ) : null}
+              {active ? (
+                <Button
+                  label={t('session.addSet')}
+                  variant="secondary"
+                  onPress={async () => {
+                    await addSet(db, id, exerciseId);
+                    await load();
+                  }}
+                />
+              ) : null}
+              {active && hasOpen && exercise ? (
+                busyFor === exerciseId ? (
+                  <View style={styles.busy}>
+                    <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
+                    {replacementOptions(
+                      exercise,
+                      exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
+                    ).map((alt) => (
+                      <ListRow
+                        key={alt.id}
+                        title={exerciseName(byId.get(alt.id))}
+                        subtitle={t(`equipment.${alt.equipment}`)}
+                        accessory="⇄"
+                        onPress={() => replaceWith(exerciseId, alt.id)}
+                      />
+                    ))}
+                    {replacementOptions(
+                      exercise,
+                      exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
+                    ).length === 0 ? (
+                      <ThemedText type="small">{t('session.busyNone')}</ThemedText>
+                    ) : null}
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {t('session.busyHint')}
+                    </ThemedText>
+                    <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
+                  </View>
+                ) : (
+                  <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
+                )
+              ) : null}
+              {active && allDone ? (
+                <Button
+                  label={t('session.hideSets')}
+                  variant="secondary"
+                  onPress={() =>
+                    setOpenDone((o) => {
+                      const n = new Set(o);
+                      n.delete(exerciseId);
+                      return n;
+                    })
+                  }
+                />
+              ) : null}
+            </Card>
           </Animated.View>
         );
       })}
@@ -905,7 +902,11 @@ export default function SessionScreen() {
           <Button label={t('session.cooldownStart')} variant={active ? 'danger' : 'primary'} onPress={() => startBlock('cooldown')} />
         </Card>
       ) : null}
-      {cooldownDone ? <ThemedText type="small" themeColor="textSecondary">{t('session.cooldownDone')}</ThemedText> : null}
+      {cooldownDone ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('session.cooldownDone')}
+        </ThemedText>
+      ) : null}
 
       <Card>
         <Field
@@ -928,11 +929,7 @@ export default function SessionScreen() {
       {active ? (
         <>
           <Button label={t('session.addExercise')} onPress={() => setPicking(true)} />
-          <Button
-            label={t('cardio.addInSession')}
-            variant="secondary"
-            onPress={() => router.push({ pathname: '/training/cardio', params: { session: id } })}
-          />
+          <Button label={t('cardio.addInSession')} variant="secondary" onPress={() => router.push({ pathname: '/training/cardio', params: { session: id } })} />
           <Card>
             <Choice
               label={t('session.restAuto')}
@@ -960,17 +957,9 @@ export default function SessionScreen() {
               </ThemedText>
             ) : null}
           </Card>
-          <ConfirmButton
-            label={t('session.finish')}
-            confirmLabel={t('session.finish')}
-            onConfirm={() => finish('abgeschlossen')}
-          />
+          <ConfirmButton label={t('session.finish')} confirmLabel={t('session.finish')} onConfirm={() => finish('abgeschlossen')} />
           <Card>
-            <ConfirmButton
-              label={t('session.pain')}
-              confirmLabel={t('session.painConfirm')}
-              onConfirm={() => finish('abgebrochen')}
-            />
+            <ConfirmButton label={t('session.pain')} confirmLabel={t('session.painConfirm')} onConfirm={() => finish('abgebrochen')} />
             <ThemedText type="small" themeColor="textSecondary">
               {t('session.painHint')}
             </ThemedText>

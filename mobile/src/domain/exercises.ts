@@ -21,19 +21,7 @@ export const EQUIPMENT = [
   'gymnastikball',
   'faszienrolle',
 ] as const;
-export const MUSCLE_GROUPS = [
-  'brust',
-  'ruecken',
-  'schultern',
-  'arme',
-  'beine',
-  'gesaess',
-  'waden',
-  'bauch',
-  'huefte',
-  'nacken',
-  'ganzkoerper',
-] as const;
+export const MUSCLE_GROUPS = ['brust', 'ruecken', 'schultern', 'arme', 'beine', 'gesaess', 'waden', 'bauch', 'huefte', 'nacken', 'ganzkoerper'] as const;
 
 /** Art der Übung (Kap. 21.2, STRETCH-007). */
 export const EXERCISE_KINDS = ['kraft', 'dehnung_statisch', 'dehnung_dynamisch', 'mobilitaet'] as const;
@@ -182,14 +170,34 @@ type Meta = { pattern: MovementPattern; level: Level; alternatives: string[] };
  * heißt: ähnliches Muster, andere Geräte. Leistungswerte sind nicht übertragbar (TRAIN-014).
  */
 export const EXERCISE_META: Record<string, Meta> = {
-  kniebeuge: { pattern: 'kniebeuge', level: 'fortgeschritten', alternatives: ['beinpresse', 'goblet_kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'] },
-  beinpresse: { pattern: 'kniebeuge', level: 'einsteiger', alternatives: ['goblet_kniebeuge', 'kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'] },
+  kniebeuge: {
+    pattern: 'kniebeuge',
+    level: 'fortgeschritten',
+    alternatives: ['beinpresse', 'goblet_kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'],
+  },
+  beinpresse: {
+    pattern: 'kniebeuge',
+    level: 'einsteiger',
+    alternatives: ['goblet_kniebeuge', 'kniebeuge', 'bulgarische_kniebeuge', 'kniebeuge_koerpergewicht'],
+  },
   goblet_kniebeuge: { pattern: 'kniebeuge', level: 'einsteiger', alternatives: ['beinpresse', 'kniebeuge', 'kniebeuge_koerpergewicht'] },
   kniebeuge_koerpergewicht: { pattern: 'kniebeuge', level: 'einsteiger', alternatives: ['goblet_kniebeuge', 'beinpresse', 'ausfallschritte_wechsel'] },
   sprungkniebeuge: { pattern: 'kniebeuge', level: 'fortgeschritten', alternatives: ['kniebeuge_koerpergewicht', 'goblet_kniebeuge'] },
-  kreuzheben: { pattern: 'hueftstreckung', level: 'fortgeschritten', alternatives: ['rumaenisches_kreuzheben', 'rumaenisches_kreuzheben_kh', 'hip_thrust', 'beckenheben'] },
-  rumaenisches_kreuzheben: { pattern: 'hueftstreckung', level: 'fortgeschritten', alternatives: ['rumaenisches_kreuzheben_kh', 'beinbeuger', 'hip_thrust', 'beckenheben'] },
-  rumaenisches_kreuzheben_kh: { pattern: 'hueftstreckung', level: 'einsteiger', alternatives: ['rumaenisches_kreuzheben', 'beinbeuger', 'hip_thrust', 'beckenheben'] },
+  kreuzheben: {
+    pattern: 'hueftstreckung',
+    level: 'fortgeschritten',
+    alternatives: ['rumaenisches_kreuzheben', 'rumaenisches_kreuzheben_kh', 'hip_thrust', 'beckenheben'],
+  },
+  rumaenisches_kreuzheben: {
+    pattern: 'hueftstreckung',
+    level: 'fortgeschritten',
+    alternatives: ['rumaenisches_kreuzheben_kh', 'beinbeuger', 'hip_thrust', 'beckenheben'],
+  },
+  rumaenisches_kreuzheben_kh: {
+    pattern: 'hueftstreckung',
+    level: 'einsteiger',
+    alternatives: ['rumaenisches_kreuzheben', 'beinbeuger', 'hip_thrust', 'beckenheben'],
+  },
   hip_thrust: { pattern: 'hueftstreckung', level: 'einsteiger', alternatives: ['beckenheben', 'rumaenisches_kreuzheben_kh', 'rumaenisches_kreuzheben'] },
   beckenheben: { pattern: 'hueftstreckung', level: 'einsteiger', alternatives: ['hip_thrust', 'rumaenisches_kreuzheben_kh'] },
   ausfallschritte: { pattern: 'ausfallschritt', level: 'einsteiger', alternatives: ['bulgarische_kniebeuge', 'ausfallschritte_wechsel', 'beinpresse'] },
@@ -200,18 +208,38 @@ export const EXERCISE_META: Record<string, Meta> = {
   wadenheben: { pattern: 'waden', level: 'einsteiger', alternatives: ['wadenheben_koerpergewicht'] },
   wadenheben_koerpergewicht: { pattern: 'waden', level: 'einsteiger', alternatives: ['wadenheben'] },
 
-  bankdruecken: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'brustpresse', 'schraegbankdruecken_kh', 'liegestuetze'] },
+  bankdruecken: {
+    pattern: 'druecken_horizontal',
+    level: 'einsteiger',
+    alternatives: ['bankdruecken_kh', 'brustpresse', 'schraegbankdruecken_kh', 'liegestuetze'],
+  },
   bankdruecken_kh: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken', 'brustpresse', 'liegestuetze'] },
   brustpresse: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'bankdruecken', 'liegestuetze'] },
   schraegbankdruecken_kh: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['bankdruecken_kh', 'brustpresse', 'liegestuetze'] },
   liegestuetze: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['liegestuetze_knie', 'bankdruecken_kh', 'brustpresse'] },
   liegestuetze_knie: { pattern: 'druecken_horizontal', level: 'einsteiger', alternatives: ['liegestuetze', 'brustpresse'] },
-  schulterdruecken_kh: { pattern: 'druecken_vertikal', level: 'einsteiger', alternatives: ['schulterpresse_maschine', 'schulterdruecken_lh', 'pike_liegestuetze'] },
-  schulterdruecken_lh: { pattern: 'druecken_vertikal', level: 'fortgeschritten', alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine', 'pike_liegestuetze'] },
-  schulterpresse_maschine: { pattern: 'druecken_vertikal', level: 'einsteiger', alternatives: ['schulterdruecken_kh', 'schulterdruecken_lh', 'pike_liegestuetze'] },
+  schulterdruecken_kh: {
+    pattern: 'druecken_vertikal',
+    level: 'einsteiger',
+    alternatives: ['schulterpresse_maschine', 'schulterdruecken_lh', 'pike_liegestuetze'],
+  },
+  schulterdruecken_lh: {
+    pattern: 'druecken_vertikal',
+    level: 'fortgeschritten',
+    alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine', 'pike_liegestuetze'],
+  },
+  schulterpresse_maschine: {
+    pattern: 'druecken_vertikal',
+    level: 'einsteiger',
+    alternatives: ['schulterdruecken_kh', 'schulterdruecken_lh', 'pike_liegestuetze'],
+  },
   pike_liegestuetze: { pattern: 'druecken_vertikal', level: 'fortgeschritten', alternatives: ['schulterdruecken_kh', 'schulterpresse_maschine'] },
   // Ersatz zuerst andere Fly-Übungen (Katalog seit 31.10.2026), Drücken nur als letzte Möglichkeit.
-  butterfly: { pattern: 'brust_isolation', level: 'einsteiger', alternatives: ['cable_flys_sitzend', 'cable_crossover', 'fliegende_kh', 'fliegende_band', 'bankdruecken_kh'] },
+  butterfly: {
+    pattern: 'brust_isolation',
+    level: 'einsteiger',
+    alternatives: ['cable_flys_sitzend', 'cable_crossover', 'fliegende_kh', 'fliegende_band', 'bankdruecken_kh'],
+  },
   seitheben: { pattern: 'schulter_isolation', level: 'einsteiger', alternatives: ['seitheben_kabel'] },
   seitheben_kabel: { pattern: 'schulter_isolation', level: 'einsteiger', alternatives: ['seitheben'] },
   trizepsdruecken_kabel: { pattern: 'trizeps', level: 'einsteiger', alternatives: ['trizeps_ueberkopf_kh', 'bankdips', 'dips'] },

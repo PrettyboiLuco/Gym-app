@@ -14,13 +14,7 @@ export function listSteps(db: Db, fromDay = '0000-01-01') {
 }
 
 /** Tagesstand speichern; ein neuer eigener Eintrag ersetzt den alten nicht, der neueste gilt. */
-export async function addSteps(
-  db: Db,
-  day: string,
-  steps: number,
-  source: StepSource = 'manuell',
-  window: { fromUtc: string; toUtc: string } | null = null
-) {
+export async function addSteps(db: Db, day: string, steps: number, source: StepSource = 'manuell', window: { fromUtc: string; toUtc: string } | null = null) {
   await db.runAsync(
     `INSERT INTO steps_entry (id, day, steps, source, window_from_utc, window_to_utc, fetched_at_utc)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,

@@ -14,5 +14,3 @@ export const WordRise = {
 
 /** Gleiche Feder für alles, was sich bewegt (Karten, Diagramme, Ringe), damit die App einen Rhythmus hat. */
 export const Spring = WordRise.spring;
-
-export const Durations = { fast: 150, base: 300, slow: 700 } as const;

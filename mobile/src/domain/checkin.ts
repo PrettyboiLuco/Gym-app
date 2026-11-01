@@ -12,10 +12,10 @@
 // - Status krank/verletzt/Pause in der Woche (A6.7): kein Kalorienvorschlag.
 
 import type { V2Result } from './adaptive';
+import { daysBetween, shiftDay } from './dates';
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { weekAverage } from './nutrition';
 import { weightTrend, type WeightEntry } from './weight';
-import { daysBetween, shiftDay } from './dates';
 
 export const CHECKIN_RULES_VERSION = 1;
 export const CHECKIN_EVERY_DAYS = 7;

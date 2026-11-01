@@ -2,8 +2,8 @@
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
-import { shiftDay as shift } from '@/domain/dates';
 import { weeklyCheckin } from '@/domain/checkin';
+import { shiftDay as shift } from '@/domain/dates';
 import { EMPTY_PROFILE } from '@/domain/profile';
 
 import { expenditure, loadCheckinRules, saveCheckinRules } from '../adaptive';

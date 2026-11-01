@@ -82,7 +82,9 @@ export function MuscleMap({ sets }: { sets: Partial<Record<MuscleGroup, number>>
       <View style={styles.legend}>
         {[0, 1, 2, 3, 4].map((level) => (
           <View key={level} style={styles.legendItem}>
-            <View style={[styles.swatch, { backgroundColor: level === 0 ? theme.backgroundSelected : theme.accent, opacity: [1, 0.35, 0.55, 0.78, 1][level] }]} />
+            <View
+              style={[styles.swatch, { backgroundColor: level === 0 ? theme.backgroundSelected : theme.accent, opacity: [1, 0.35, 0.55, 0.78, 1][level] }]}
+            />
             <ThemedText type="small" themeColor="textSecondary">
               {t(`stats.level.${level}`)}
             </ThemedText>

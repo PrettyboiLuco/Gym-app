@@ -3,10 +3,20 @@ import { StyleSheet, View } from 'react-native';
 import { Choice, Field, MultiChoice } from '@/components/fields';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { BAR_OPTIONS_KG, BAR_OPTIONS_LB, DEFAULT_PLATES_KG, DEFAULT_PLATES_LB, platesPerSide, RIR_OPTIONS, SET_TYPES, type PlateSetup, type SetType } from '@/domain/logger';
+import {
+  BAR_OPTIONS_KG,
+  BAR_OPTIONS_LB,
+  DEFAULT_PLATES_KG,
+  DEFAULT_PLATES_LB,
+  platesPerSide,
+  RIR_OPTIONS,
+  SET_TYPES,
+  type PlateSetup,
+  type SetType,
+} from '@/domain/logger';
+import { parseDecimal, type WeightUnit } from '@/domain/units';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
-import { parseDecimal, type WeightUnit } from '@/domain/units';
 
 const rirKey = (rir: number | null) => (rir === null ? 'leer' : String(rir));
 
@@ -56,15 +66,18 @@ export function SetDetails({
   const theme = useTheme();
   return (
     <View style={[styles.panel, { borderColor: theme.hairline }]}>
-      <Choice chips label={t('logger.setType')} options={SET_TYPES} value={setType} onChange={(v) => onChange({ setType: v })} format={(v) => t(`logger.types.${v}`)} />
+      <Choice
+        chips
+        label={t('logger.setType')}
+        options={SET_TYPES}
+        value={setType}
+        onChange={(v) => onChange({ setType: v })}
+        format={(v) => t(`logger.types.${v}`)}
+      />
       <ThemedText type="small" themeColor="textSecondary">
         {t(`logger.typeHint.${setType}`)}
       </ThemedText>
-      <RirChoice
-        label={targetRir ? t('logger.rirWithTarget', { target: targetRir }) : t('logger.rir')}
-        value={rir}
-        onChange={(v) => onChange({ rir: v })}
-      />
+      <RirChoice label={targetRir ? t('logger.rirWithTarget', { target: targetRir }) : t('logger.rir')} value={rir} onChange={(v) => onChange({ rir: v })} />
       <Field
         label={t('logger.note')}
         defaultValue={note ?? ''}

@@ -1,21 +1,20 @@
 // Datenbankzugriffe für Schlaf und den wöchentlichen Check-in (Phase 9.2, COACH-006, COACH-008).
 
 import { weekDays, type CheckinInput, type CheckinResult, type CheckinSuggestion } from '@/domain/checkin';
+import type { MacroChoice } from '@/domain/coach';
+import { shiftDay } from '@/domain/dates';
+import type { Goal } from '@/domain/energy';
 import type { Profile } from '@/domain/profile';
 import { stepsAverage } from '@/domain/steps';
 
-import type { MacroChoice } from '@/domain/coach';
-import type { Goal } from '@/domain/energy';
-
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
-import { saveCheck, statusDuring } from './readiness';
 import { activeWeightGoal, adjustCalorieGoal, calorieGoalOn, trainingDays } from './goals';
 import { daySums, loadNutritionSettings } from './nutrition';
+import { saveCheck, statusDuring } from './readiness';
 import { listSteps } from './steps';
 import { listActivePlans } from './training';
 import { listWeights } from './weights';
-import { shiftDay } from '@/domain/dates';
 
 // --------------------------------------------------------------------------- Einrichtung (C1)
 

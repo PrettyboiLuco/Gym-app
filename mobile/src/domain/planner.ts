@@ -33,16 +33,7 @@ export const SPLITS = ['ganzkoerper', 'ober_unter', 'ppl', 'arnold', 'ou_ppl'] a
 export type SplitId = (typeof SPLITS)[number];
 export type SplitChoice = SplitId | 'auto';
 
-export const DAY_TYPES = [
-  'ganzkoerper',
-  'oberkoerper',
-  'unterkoerper',
-  'push',
-  'pull',
-  'beine',
-  'brust_ruecken',
-  'schultern_arme',
-] as const;
+export const DAY_TYPES = ['ganzkoerper', 'oberkoerper', 'unterkoerper', 'push', 'pull', 'beine', 'brust_ruecken', 'schultern_arme'] as const;
 export type DayType = (typeof DAY_TYPES)[number];
 
 /** 20 bis 180 Minuten je Einheit; Trainingstage 2 bis 6 (TRAIN-004, siehe inputConflicts). */
@@ -62,7 +53,7 @@ export const SPLIT_FITS: Record<SplitId, readonly number[]> = {
   ou_ppl: [5],
 };
 
-export function autoSplit(days: number): SplitId {
+function autoSplit(days: number): SplitId {
   if (days <= 3) return 'ganzkoerper';
   if (days === 4) return 'ober_unter';
   if (days === 5) return 'ou_ppl';
@@ -79,7 +70,7 @@ export function chooseSplit(requested: SplitChoice, days: number): SplitDecision
 }
 
 /** Tagesarten in einer Reihenfolge, in der gleiche Tage nicht direkt aufeinander folgen. */
-export function splitDays(split: SplitId, days: number): DayType[] {
+function splitDays(split: SplitId, days: number): DayType[] {
   const cycle: Record<SplitId, DayType[]> = {
     ganzkoerper: ['ganzkoerper'],
     ober_unter: ['oberkoerper', 'unterkoerper'],
@@ -119,16 +110,7 @@ export function dayNames(types: DayType[], name: (type: DayType, letter: string 
 // ------------------------------------------------------------------------------------- Ergebnis
 
 export type ChangeKind = 'behalten' | 'verschoben' | 'reduziert' | 'ersetzt' | 'entfernt';
-export type Reason =
-  | 'zeitbudget'
-  | 'redundant'
-  | 'seltener'
-  | 'geraet'
-  | 'ausgeschlossen'
-  | 'keinErsatz'
-  | 'aufteilung'
-  | 'gesperrt'
-  | 'supersatz';
+export type Reason = 'zeitbudget' | 'redundant' | 'seltener' | 'geraet' | 'ausgeschlossen' | 'keinErsatz' | 'aufteilung' | 'gesperrt' | 'supersatz';
 
 /** Was mit einer Übung des bisherigen Plans passiert (TRAIN-009: jeweils mit Grund). */
 export type ExerciseChange = {
@@ -220,7 +202,10 @@ function emptyProposal(draft: PlanDraft, conflicts: Conflict[]): PlanProposal {
 
 /** Reihenfolge im Tag: Grundübungen zuerst, Rumpf und Ganzkörper (z. B. Burpees) am Ende. */
 function rank(pattern: MovementPattern): number {
-  if (isCompound(pattern)) return ['kniebeuge', 'hueftstreckung', 'druecken_horizontal', 'ziehen_vertikal', 'druecken_vertikal', 'ziehen_horizontal', 'ausfallschritt'].indexOf(pattern);
+  if (isCompound(pattern))
+    return ['kniebeuge', 'hueftstreckung', 'druecken_horizontal', 'ziehen_vertikal', 'druecken_vertikal', 'ziehen_horizontal', 'ausfallschritt'].indexOf(
+      pattern
+    );
   if (pattern === 'rumpf') return 20;
   if (pattern === 'ganzkoerper') return 30;
   return 10;
@@ -317,8 +302,7 @@ function note(fit: Fit, origin: string | null, reason: Reason) {
 
 /** Niedrigste Priorität zuerst: Isolation vor Grundübung, später im Plan vor früher. */
 function byLowPriority(patternOfSlot: (s: Slot) => MovementPattern) {
-  return (a: Slot, b: Slot) =>
-    Number(isCompound(patternOfSlot(a))) - Number(isCompound(patternOfSlot(b))) || b.order - a.order;
+  return (a: Slot, b: Slot) => Number(isCompound(patternOfSlot(a))) - Number(isCompound(patternOfSlot(b))) || b.order - a.order;
 }
 
 /**
@@ -343,9 +327,7 @@ function reduceOnce(day: WorkDay, plan: WorkDay[], pat: (s: Slot) => MovementPat
   // Bei Doppelten zuerst aus der Gruppe, die an diesem Tag am stärksten vertreten ist (Ausgewogenheit).
   const crowd = (s: Slot) => day.items.filter((o) => PATTERN_GROUP[pat(o)] === PATTERN_GROUP[pat(s)]).length;
   const low = byLowPriority(pat);
-  const duplicate = free
-    .filter((s) => elsewhere(s, (o) => o.exerciseId === s.exerciseId))
-    .sort((a, b) => crowd(b) - crowd(a) || low(a, b))[0];
+  const duplicate = free.filter((s) => elsewhere(s, (o) => o.exerciseId === s.exerciseId)).sort((a, b) => crowd(b) - crowd(a) || low(a, b))[0];
   if (duplicate) {
     remove(duplicate, 'seltener');
     return true;
@@ -380,9 +362,7 @@ function reduceOnce(day: WorkDay, plan: WorkDay[], pat: (s: Slot) => MovementPat
 function fitDays(plan: WorkDay[], budget: number, extra: (items: PlanItemDraft[]) => number, reduce: (day: WorkDay) => boolean): Conflict[] {
   const stuck = new Set<WorkDay>();
   for (let guard = 0; guard < 1000; guard++) {
-    const over = plan
-      .filter((d) => !stuck.has(d) && minutesOf(d, extra) > budget)
-      .sort((a, b) => minutesOf(b, extra) - minutesOf(a, extra));
+    const over = plan.filter((d) => !stuck.has(d) && minutesOf(d, extra) > budget).sort((a, b) => minutesOf(b, extra) - minutesOf(a, extra));
     if (over.length === 0) break;
     if (!reduce(over[0])) stuck.add(over[0]);
   }
@@ -462,12 +442,42 @@ const TEMPLATE_SLOTS: Record<DayType, MovementPattern[][]> = {
 
 // Neue Gerätearten hinten: Vorlagen ändern sich für bestehende Ausstattungen nicht.
 const EQUIPMENT_ORDER: Record<Level, Equipment[]> = {
-  einsteiger: ['maschine', 'kurzhantel', 'kabel', 'kabel_crossover', 'kabel_doppel', 'langhantel', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'],
-  fortgeschritten: ['langhantel', 'kurzhantel', 'kabel', 'kabel_crossover', 'kabel_doppel', 'maschine', 'koerpergewicht', 'smith', 'sz_stange', 'kettlebell', 'band', 'medizinball', 'gymnastikball', 'faszienrolle'],
+  einsteiger: [
+    'maschine',
+    'kurzhantel',
+    'kabel',
+    'kabel_crossover',
+    'kabel_doppel',
+    'langhantel',
+    'koerpergewicht',
+    'smith',
+    'sz_stange',
+    'kettlebell',
+    'band',
+    'medizinball',
+    'gymnastikball',
+    'faszienrolle',
+  ],
+  fortgeschritten: [
+    'langhantel',
+    'kurzhantel',
+    'kabel',
+    'kabel_crossover',
+    'kabel_doppel',
+    'maschine',
+    'koerpergewicht',
+    'smith',
+    'sz_stange',
+    'kettlebell',
+    'band',
+    'medizinball',
+    'gymnastikball',
+    'faszienrolle',
+  ],
 };
 
 /** Sätze, Wiederholungen und Pausen je Ziel (Vorschlag, TRAIN-018/O3: fachlich nicht abgenommen). */
-export function templateParams(goal: TrainingGoal, experience: Level, pattern: MovementPattern, measure: Measure): Params {
+function templateParams(goal: TrainingGoal, experience: Level, pattern: MovementPattern, measure: Measure): Params {
   const beginner = experience === 'einsteiger';
   if (measure === 'zeit') return { sets: beginner ? 2 : 3, repsMin: 1, repsMax: 1, restSeconds: 60, targetSeconds: beginner ? 30 : 45 };
   const compound = isCompound(pattern);
@@ -497,7 +507,8 @@ function pickForPattern(
   usage: Map<string, number>,
   onDay: ReadonlySet<string>
 ): PlannerExercise | null {
-  const order = pattern === 'rumpf' || pattern === 'ganzkoerper' ? (['koerpergewicht', ...EQUIPMENT_ORDER[experience]] as Equipment[]) : EQUIPMENT_ORDER[experience];
+  const order =
+    pattern === 'rumpf' || pattern === 'ganzkoerper' ? (['koerpergewicht', ...EQUIPMENT_ORDER[experience]] as Equipment[]) : EQUIPMENT_ORDER[experience];
   // Einsteiger bekommen nur Einsteiger-Übungen; gibt es keine, bleibt der Baustein leer.
   const options = candidates
     .filter((e) => patternOf(e) === pattern && !onDay.has(e.id) && (experience === 'fortgeschritten' || levelOf(e.id) === 'einsteiger'))

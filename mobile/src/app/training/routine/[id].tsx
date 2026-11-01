@@ -3,36 +3,21 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName } from '@/format/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { routineMinutes, startRoutineRun, templateName } from '@/components/timed';
 import { Spacing } from '@/constants/theme';
-import {
-  activateRoutineVersion,
-  archiveRoutine,
-  listRoutineVersions,
-  loadRoutineDraft,
-  saveRoutine,
-  type RoutineVersionInfo,
-} from '@/data/routines';
-import { useDb } from '@/providers/store-provider';
+import { activateRoutineVersion, archiveRoutine, listRoutineVersions, loadRoutineDraft, saveRoutine, type RoutineVersionInfo } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
-import {
-  findTemplate,
-  formNumber,
-  ROUTINE_DEFAULTS,
-  validateRoutine,
-  type RoutineDraft,
-  type RoutineKind,
-  type Template,
-} from '@/domain/routines';
+import { findTemplate, formNumber, ROUTINE_DEFAULTS, validateRoutine, type RoutineDraft, type RoutineKind, type Template } from '@/domain/routines';
 import { moveItem } from '@/domain/training';
+import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t, tOptional } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 type Form = {
   name: string;
@@ -194,7 +179,13 @@ export default function RoutineScreen() {
     );
   }
 
-  const title = !editing ? t('routine.titleTemplate') : routineId ? t('routine.titleEdit') : currentKind === 'hiit' ? t('routine.titleNewHiit') : t('routine.titleNew');
+  const title = !editing
+    ? t('routine.titleTemplate')
+    : routineId
+      ? t('routine.titleEdit')
+      : currentKind === 'hiit'
+        ? t('routine.titleNewHiit')
+        : t('routine.titleNew');
 
   return (
     <Screen withHeader>
@@ -244,10 +235,20 @@ export default function RoutineScreen() {
                       {sideNote}
                     </ThemedText>
                     {index > 0 ? (
-                      <Button label="↑" accessibilityLabel={`${t('common.moveUp')} ${exerciseName(exercise)}`} variant="secondary" onPress={() => change({ items: moveItem(form.items, index, index - 1) })} />
+                      <Button
+                        label="↑"
+                        accessibilityLabel={`${t('common.moveUp')} ${exerciseName(exercise)}`}
+                        variant="secondary"
+                        onPress={() => change({ items: moveItem(form.items, index, index - 1) })}
+                      />
                     ) : null}
                     {index < form.items.length - 1 ? (
-                      <Button label="↓" accessibilityLabel={`${t('common.moveDown')} ${exerciseName(exercise)}`} variant="secondary" onPress={() => change({ items: moveItem(form.items, index, index + 1) })} />
+                      <Button
+                        label="↓"
+                        accessibilityLabel={`${t('common.moveDown')} ${exerciseName(exercise)}`}
+                        variant="secondary"
+                        onPress={() => change({ items: moveItem(form.items, index, index + 1) })}
+                      />
                     ) : null}
                     <Button label={t('common.remove')} variant="danger" onPress={() => change({ items: form.items.filter((_, i) => i !== index) })} />
                   </View>
@@ -276,18 +277,54 @@ export default function RoutineScreen() {
         <Card>
           {currentKind === 'dehnen' ? (
             <View style={styles.numbers}>
-              <Field label={t('routine.switch')} value={form.switch} keyboardType="number-pad" style={styles.numberField} onChangeText={(v) => change({ switch: v })} />
-              <Field label={t('routine.transition')} value={form.transition} keyboardType="number-pad" style={styles.numberField} onChangeText={(v) => change({ transition: v })} />
+              <Field
+                label={t('routine.switch')}
+                value={form.switch}
+                keyboardType="number-pad"
+                style={styles.numberField}
+                onChangeText={(v) => change({ switch: v })}
+              />
+              <Field
+                label={t('routine.transition')}
+                value={form.transition}
+                keyboardType="number-pad"
+                style={styles.numberField}
+                onChangeText={(v) => change({ transition: v })}
+              />
             </View>
           ) : (
             <>
               <View style={styles.numbers}>
-                <Field label={t('routine.work')} value={form.work} keyboardType="number-pad" style={styles.numberField} onChangeText={(v) => change({ work: v })} />
-                <Field label={t('routine.rest')} value={form.rest} keyboardType="number-pad" style={styles.numberField} onChangeText={(v) => change({ rest: v })} />
+                <Field
+                  label={t('routine.work')}
+                  value={form.work}
+                  keyboardType="number-pad"
+                  style={styles.numberField}
+                  onChangeText={(v) => change({ work: v })}
+                />
+                <Field
+                  label={t('routine.rest')}
+                  value={form.rest}
+                  keyboardType="number-pad"
+                  style={styles.numberField}
+                  onChangeText={(v) => change({ rest: v })}
+                />
               </View>
               <View style={styles.numbers}>
-                <Field label={t('routine.rounds')} value={form.rounds} keyboardType="number-pad" style={styles.numberField} onChangeText={(v) => change({ rounds: v })} />
-                <Field label={t('routine.roundRest')} value={form.roundRest} keyboardType="number-pad" style={styles.numberField} onChangeText={(v) => change({ roundRest: v })} />
+                <Field
+                  label={t('routine.rounds')}
+                  value={form.rounds}
+                  keyboardType="number-pad"
+                  style={styles.numberField}
+                  onChangeText={(v) => change({ rounds: v })}
+                />
+                <Field
+                  label={t('routine.roundRest')}
+                  value={form.roundRest}
+                  keyboardType="number-pad"
+                  style={styles.numberField}
+                  onChangeText={(v) => change({ roundRest: v })}
+                />
               </View>
             </>
           )}

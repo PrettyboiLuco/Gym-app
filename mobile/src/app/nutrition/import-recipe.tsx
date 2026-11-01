@@ -4,19 +4,19 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field } from '@/components/fields';
-import { foodTitle } from '@/format/food-title';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { fetchPage, saveImportedRecipe } from '@/data/meal-plan';
 import { searchFoods, type Food } from '@/data/nutrition';
-import { useDb } from '@/providers/store-provider';
 import { parsePortions } from '@/domain/basis-foods';
 import { parseAmount } from '@/domain/nutrition';
 import { extractRecipe, lineGrams, parseIngredientLine, type IngredientLine } from '@/domain/recipe-import';
+import { foodTitle } from '@/format/food-title';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 const SKIP = 'weglassen';
 type Row = { line: IngredientLine; candidates: Food[]; choice: string; amount: string };
@@ -66,7 +66,10 @@ export default function ImportRecipeScreen() {
 
   async function loadPaste() {
     setProblem(null);
-    const lines = paste.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+    const lines = paste
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
     if (!lines.length) return setProblem(t('recipeImport.pasteEmpty'));
     setSteps([]);
     await prepare(lines);
@@ -106,7 +109,15 @@ export default function ImportRecipeScreen() {
   return (
     <Screen withHeader>
       <Card title={t('recipeImport.linkTitle')}>
-        <Field label={t('recipeImport.url')} value={url} onChangeText={setUrl} autoCapitalize="none" autoCorrect={false} keyboardType="url" placeholder="https://…" />
+        <Field
+          label={t('recipeImport.url')}
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          placeholder="https://…"
+        />
         <Button label={t('recipeImport.load')} disabled={busy || !/^https?:\/\//.test(url.trim())} onPress={loadLink} />
         <ThemedText type="small" themeColor="textSecondary">
           {t('recipeImport.linkHint')}

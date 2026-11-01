@@ -27,10 +27,7 @@ export const CAFFEINE_DRINKS: CaffeineDrink[] = [
   { id: 'colaZero', ml: 330, caffeineMg: 33, kcal: 1, carbs: 0, sugar: 0, drinkType: 'softdrink' },
 ];
 
-
 /** Koffein nach einer Uhrzeit (Standard 14 Uhr) – für das Journal in A6 (Schlaf). */
 export function lateCaffeineMg(events: { caffeineMg: number | null; occurredAt: string }[], fromHourLocal = 14): number {
-  return events
-    .filter((e) => e.caffeineMg != null && new Date(e.occurredAt).getHours() >= fromHourLocal)
-    .reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
+  return events.filter((e) => e.caffeineMg != null && new Date(e.occurredAt).getHours() >= fromHourLocal).reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
 }

@@ -21,11 +21,7 @@ export function restingEnergy(kg: number, cm: number, age: number, term: Formula
 }
 
 /** Tagesbedarf-Schätzung: Ruheenergie × Aktivitätsfaktor aus einer dokumentierten Tabelle. */
-export function energyEstimate(
-  resting: number,
-  level: string,
-  activityTable: Record<string, number>
-): number {
+export function energyEstimate(resting: number, level: string, activityTable: Record<string, number>): number {
   const factor = activityTable[level];
   if (factor === undefined) throw new Error('unknown activity level');
   return resting * factor;
@@ -34,12 +30,7 @@ export function energyEstimate(
 export type TargetResult = { status: 'vorschlag'; kcal: number } | { status: 'fachpruefung' };
 
 /** Zielvorschlag; unterhalb der Untergrenze gibt es keine Zahl, sondern einen Prüfhinweis. */
-export function calorieTarget(
-  estimate: number,
-  goal: Goal,
-  delta: number,
-  floor: number
-): TargetResult {
+export function calorieTarget(estimate: number, goal: Goal, delta: number, floor: number): TargetResult {
   if (goal === 'halten' && delta !== 0) throw new Error('maintain requires zero delta');
   if (goal === 'abnehmen' && delta >= 0) throw new Error('loss requires deficit');
   if (goal === 'zunehmen' && delta <= 0) throw new Error('gain requires surplus');

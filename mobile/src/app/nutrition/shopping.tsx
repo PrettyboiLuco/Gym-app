@@ -46,7 +46,9 @@ export default function ShoppingScreen() {
     <Screen withHeader>
       <Card>
         <ThemedText type="small">
-          {data.items.length ? t('shopping.summary', { open, total: data.items.length, from: data.from ? formatDay(data.from) : '', to: data.to ? formatDay(data.to) : '' }) : t('shopping.empty')}
+          {data.items.length
+            ? t('shopping.summary', { open, total: data.items.length, from: data.from ? formatDay(data.from) : '', to: data.to ? formatDay(data.to) : '' })
+            : t('shopping.empty')}
         </ThemedText>
         {data.items.length ? (
           <View style={styles.row}>

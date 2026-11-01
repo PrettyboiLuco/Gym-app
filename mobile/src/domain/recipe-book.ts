@@ -3,11 +3,11 @@
 // Richtwerte für übliche Produkte; maßgeblich bleiben die Angaben auf der Packung.
 
 import type { Allergen, FoodDiet } from './diet';
+import { roundDigits } from './math';
 import type { Meal, NutrientBasis, Nutrients } from './nutrition';
 import { BOOK_INGREDIENTS, BOOK_RECIPES } from './recipe-book-data';
 import { MORE_BOOK_RECIPES } from './recipe-book-more';
 import { foldText } from './text';
-import { roundDigits } from './math';
 
 export const BOOK_GOALS = ['diaet_hart', 'diaet', 'erhalt', 'aufbau', 'masse'] as const;
 export type BookGoal = (typeof BOOK_GOALS)[number];
@@ -68,7 +68,6 @@ export type BookRecipeView = BookRecipe & {
   tags: BookTag[];
 };
 
-
 export function ingredient(id: string): BookIngredient {
   const ing = BOOK_INGREDIENTS[id];
   if (!ing) throw new Error(`unknown ingredient ${id}`);
@@ -94,17 +93,17 @@ export function recipeDiet(recipe: BookRecipe): FoodDiet {
   return 'vegan';
 }
 
-export function recipeAllergens(recipe: BookRecipe): Allergen[] {
+function recipeAllergens(recipe: BookRecipe): Allergen[] {
   return [...new Set(recipe.ingredients.flatMap(([id]) => ingredient(id).allergens))];
 }
 
-export function recipeTags(recipe: BookRecipe): BookTag[] {
+function recipeTags(recipe: BookRecipe): BookTag[] {
   const tags = new Set(recipe.tags ?? []);
   if (recipe.ingredients.some(([id]) => id === 'suesskartoffel')) tags.add('suesskartoffel');
   return BOOK_TAGS.filter((t) => tags.has(t));
 }
 
-export function viewRecipe(recipe: BookRecipe): BookRecipeView {
+function viewRecipe(recipe: BookRecipe): BookRecipeView {
   return { ...recipe, perPortion: perPortion(recipe), diet: recipeDiet(recipe), allergens: recipeAllergens(recipe), tags: recipeTags(recipe) };
 }
 
@@ -136,7 +135,9 @@ export type BookFilter = {
 };
 
 export function filterBook(recipes: readonly BookRecipeView[], filter: BookFilter): BookRecipeView[] {
-  const words = foldText(filter.query ?? '').split(/\s+/).filter(Boolean);
+  const words = foldText(filter.query ?? '')
+    .split(/\s+/)
+    .filter(Boolean);
   return recipes.filter((r) => {
     if (filter.goal !== null && r.goal !== filter.goal) return false;
     if (filter.meal !== null && r.meal !== filter.meal) return false;

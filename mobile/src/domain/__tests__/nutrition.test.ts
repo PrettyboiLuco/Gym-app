@@ -1,7 +1,28 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { shiftDay } from '../dates';
-import { drinkTotals, fractionOf, barcodeVariants, isValidBarcode, productCodeFromScan, normalizeOffProduct, nutrientsForAmount, parseAmount, parseNutrient, per100FromTotal, sumNutrients, totalOf, weekAverage, foodToForm, parseFoodForm, type FoodForm, parseRecipeForm, type RecipeForm, parseSettingsForm, type SettingsForm } from '../nutrition';
+import {
+  drinkTotals,
+  fractionOf,
+  barcodeVariants,
+  isValidBarcode,
+  productCodeFromScan,
+  normalizeOffProduct,
+  nutrientsForAmount,
+  parseAmount,
+  parseNutrient,
+  per100FromTotal,
+  sumNutrients,
+  totalOf,
+  weekAverage,
+  foodToForm,
+  parseFoodForm,
+  type FoodForm,
+  parseRecipeForm,
+  type RecipeForm,
+  parseSettingsForm,
+  type SettingsForm,
+} from '../nutrition';
 
 const nutella = { kcal: 539, protein: 6.3, carbs: 57.5, fat: 30.9, fiber: null };
 
@@ -11,8 +32,7 @@ describe('Nährwerte für eine Menge', () => {
     expect(n.kcal).toBeCloseTo(107.8);
     expect(n.fat).toBeCloseTo(6.18);
   });
-  test('unbekannter Wert bleibt unbekannt', () =>
-    expect(nutrientsForAmount({ ...nutella, protein: null }, 20, 'g', 'g').protein).toBeNull());
+  test('unbekannter Wert bleibt unbekannt', () => expect(nutrientsForAmount({ ...nutella, protein: null }, 20, 'g', 'g').protein).toBeNull());
   test('g und ml nicht ohne Dichte', () => expect(() => nutrientsForAmount(nutella, 20, 'g', 'ml')).toThrow());
 });
 
@@ -30,16 +50,17 @@ describe('Summen', () => {
     expect(per100.kcal).toBe(150);
     expect(nutrientsForAmount(per100, 200, 'g', 'g').kcal).toBe(300);
   });
-  test('1 von 4 Portionen', () => expect(fractionOf({ kcal: 1200, protein: null, carbs: 0, fat: 40, fiber: null }, 0.25)).toEqual({
-    fiber: null,
-    kcal: 300,
-    protein: null,
-    carbs: 0,
-    fat: 10,
-    sugar: null,
-    satFat: null,
-    salt: null,
-  }));
+  test('1 von 4 Portionen', () =>
+    expect(fractionOf({ kcal: 1200, protein: null, carbs: 0, fat: 40, fiber: null }, 0.25)).toEqual({
+      fiber: null,
+      kcal: 300,
+      protein: null,
+      carbs: 0,
+      fat: 10,
+      sugar: null,
+      satFat: null,
+      salt: null,
+    }));
 });
 
 describe('Eingaben', () => {
@@ -126,8 +147,7 @@ describe('Open Food Facts einlesen', () => {
     });
   });
   test('kcal aus dem älteren kJ-Feld energy_100g, wenn sonst nichts da ist', () => {
-    const only = (nutriments: Record<string, number>) =>
-      normalizeOffProduct({ status: 1, product: { product_name: 'Alt', nutriments } }, '1')?.per100.kcal;
+    const only = (nutriments: Record<string, number>) => normalizeOffProduct({ status: 1, product: { product_name: 'Alt', nutriments } }, '1')?.per100.kcal;
     expect(only({ energy_100g: 2255 })).toBeCloseTo(539, 0);
     expect(only({ 'energy-kcal_100g': 540, energy_100g: 2255 })).toBe(540);
     expect(only({ 'energy-kj_100g': 418.4, energy_100g: 9999 })).toBe(100);
@@ -203,9 +223,12 @@ describe('Formular Lebensmittel', () => {
       problems: [],
     }));
   test('Fehler werden gesammelt', () =>
-    expect(
-      parseFoodForm({ ...base, name: ' ', kcal: 'abc', serving: '0', barcode: '4000000000002' }).problems
-    ).toEqual(['name', 'nutrient', 'serving', 'barcode']));
+    expect(parseFoodForm({ ...base, name: ' ', kcal: 'abc', serving: '0', barcode: '4000000000002' }).problems).toEqual([
+      'name',
+      'nutrient',
+      'serving',
+      'barcode',
+    ]));
   test('mehr als 100 g Makros pro 100 g ist ein Tippfehler', () =>
     expect(parseFoodForm({ ...base, protein: '60', carbs: '50', fat: '1' }).problems).toEqual(['macros']));
   test('hin und zurück ergibt dasselbe', () => {
@@ -223,12 +246,14 @@ describe('Formular Rezept', () => {
       portions: null,
       ingredients: [{ foodId: 'a', amount: 400 }],
     }));
-  test('Endgewicht oder Portionen nötig', () =>
-    expect(parseRecipeForm({ ...base, endWeight: '' }).problems).toEqual(['needOne']));
+  test('Endgewicht oder Portionen nötig', () => expect(parseRecipeForm({ ...base, endWeight: '' }).problems).toEqual(['needOne']));
   test('Fehler werden gesammelt', () =>
-    expect(
-      parseRecipeForm({ name: '', endWeight: '0', portions: '0', ingredients: [{ foodId: 'a', amount: 'x' }] }).problems
-    ).toEqual(['name', 'amount', 'endWeight', 'portions']));
+    expect(parseRecipeForm({ name: '', endWeight: '0', portions: '0', ingredients: [{ foodId: 'a', amount: 'x' }] }).problems).toEqual([
+      'name',
+      'amount',
+      'endWeight',
+      'portions',
+    ]));
   test('keine Zutaten', () => expect(parseRecipeForm({ ...base, ingredients: [] }).problems).toEqual(['ingredients']));
 });
 
@@ -242,11 +267,7 @@ describe('Formular Einstellungen', () => {
   test('Kalorienziel wird getrennt zurückgegeben (versioniert gespeichert)', () =>
     expect(parseSettingsForm({ ...base, kcalGoal: '2300' }).kcalGoal).toBe(2300));
   test('Tippfehler werden abgefangen', () =>
-    expect(parseSettingsForm({ ...base, kcalGoal: '25000', drinkGoal: '1,5', glassSizes: [] }).problems).toEqual([
-      'kcal',
-      'drink',
-      'glasses',
-    ]));
+    expect(parseSettingsForm({ ...base, kcalGoal: '25000', drinkGoal: '1,5', glassSizes: [] }).problems).toEqual(['kcal', 'drink', 'glasses']));
 });
 
 describe('Produktnummer aus gescannten Codes (GS1 „Sunrise 2027“)', () => {
@@ -265,8 +286,7 @@ describe('Produktnummer aus gescannten Codes (GS1 „Sunrise 2027“)', () => {
     expect(productCodeFromScan(']d2010400638133393117271231')).toBe('4006381333931');
     expect(productCodeFromScan('\u001d010400638133393110L1')).toBe('4006381333931');
   });
-  test('GTIN-14 ohne führende 0 bleibt 14-stellig', () =>
-    expect(productCodeFromScan('(01)14006381333938')).toBe('14006381333938'));
+  test('GTIN-14 ohne führende 0 bleibt 14-stellig', () => expect(productCodeFromScan('(01)14006381333938')).toBe('14006381333938'));
   test('kein Produktcode: normale Adresse, falsche Prüfziffer, Text', () => {
     expect(productCodeFromScan('https://www.example.com/aktion')).toBeNull();
     expect(productCodeFromScan('https://id.gs1.org/01/04006381333932')).toBeNull();

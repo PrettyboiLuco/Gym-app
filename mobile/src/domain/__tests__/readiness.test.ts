@@ -4,7 +4,21 @@ import { describe, expect, test } from '@jest/globals';
 
 import { breathPhaseAt, cycleSeconds } from '../breathing';
 import { shiftDay } from '../dates';
-import { autoFactors, bedtimeFor, hoursBetween, journalFindings, lighterSets, loadRatio, offersFor, readiness, sessionLoad, sleepStats, statusOn, type DailyCheck, type Factor } from '../readiness';
+import {
+  autoFactors,
+  bedtimeFor,
+  hoursBetween,
+  journalFindings,
+  lighterSets,
+  loadRatio,
+  offersFor,
+  readiness,
+  sessionLoad,
+  sleepStats,
+  statusOn,
+  type DailyCheck,
+  type Factor,
+} from '../readiness';
 
 const TODAY = '2026-11-01';
 const check = (day: string, v: Partial<DailyCheck> = {}): DailyCheck => ({
@@ -79,7 +93,11 @@ describe('Schlaf', () => {
   });
   test('Schlafschuld zählt nur Stunden unter dem Ziel; Streuung der Zeiten', () => {
     const nights = [6, 8.5, 7, 6.5, 8].map((h, i) =>
-      check(shiftDay(TODAY, -i), { sleepHours: h, wakeTime: ['06:30', '07:00', '06:45', '06:30', '07:15'][i], bedTime: ['23:30', '00:15', '23:45', '23:00', '23:15'][i] })
+      check(shiftDay(TODAY, -i), {
+        sleepHours: h,
+        wakeTime: ['06:30', '07:00', '06:45', '06:30', '07:15'][i],
+        bedTime: ['23:30', '00:15', '23:45', '23:00', '23:15'][i],
+      })
     );
     const s = sleepStats(nights, TODAY, 8);
     expect(s).toMatchObject({ nights: 5, debtHours: 4.5 });
@@ -105,10 +123,7 @@ describe('Journal', () => {
   });
   test('Unterschied erst ab je 5 Tagen und ab 0,5', () => {
     const day = (i: number, f: Factor[], energy: number) => ({ ...check(shiftDay(TODAY, -i), { energy }), allFactors: f });
-    const days = [
-      ...Array.from({ length: 5 }, (_, i) => day(i, ['alkohol'], 3)),
-      ...Array.from({ length: 6 }, (_, i) => day(10 + i, [], 4)),
-    ];
+    const days = [...Array.from({ length: 5 }, (_, i) => day(i, ['alkohol'], 3)), ...Array.from({ length: 6 }, (_, i) => day(10 + i, [], 4))];
     const found = journalFindings(days);
     expect(found[0]).toMatchObject({ factor: 'alkohol', metric: 'energy', withAvg: 3, withoutAvg: 4, withDays: 5, diff: -1 });
     expect(journalFindings(days.slice(1))).toEqual([]);

@@ -4,13 +4,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import type { LiveTraining } from '@/providers/live-training';
+import { localDay, timeZone } from '@/domain/time';
 import { formatClock, isRestVisible, isStaleSession, restRemainingMs } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
-import { localDay, timeZone } from '@/domain/time';
+import type { LiveTraining } from '@/providers/live-training';
 
 /**
  * Mini-Player über der Tab-Leiste, solange ein Training oder Ablauf läuft (wie der Musik-Player in Apple Music):
@@ -34,10 +34,10 @@ export function MiniPlayer({ live, compact = false }: { live: LiveTraining; comp
     : stale
       ? t('mini.since', { date: formatDay(localDay(new Date(live.session!.startedAt), timeZone)) })
       : resting
-      ? `${t('session.restTitle')} ${formatClock(restRemainingMs(live.timer, now))}`
-      : live.session
-        ? t('mini.elapsed', { minutes: Math.max(0, Math.floor((now - Date.parse(live.session.startedAt)) / 60_000)) })
-        : null;
+        ? `${t('session.restTitle')} ${formatClock(restRemainingMs(live.timer, now))}`
+        : live.session
+          ? t('mini.elapsed', { minutes: Math.max(0, Math.floor((now - Date.parse(live.session.startedAt)) / 60_000)) })
+          : null;
   const go = () => (live.timedTitle ? router.push('/training/run') : router.push(`/training/session/${live.session!.id}`));
 
   return (

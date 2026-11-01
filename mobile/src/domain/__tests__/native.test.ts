@@ -4,7 +4,18 @@ import { describe, expect, test } from '@jest/globals';
 
 import { backupSummary, checkBackup } from '../backup';
 import { EMPTY_FEEDBACK, feedbackText, isEmptyFeedback } from '../feedback';
-import { drinkTimes, formatTime, IOS_NOTIFICATION_LIMIT, parseTime, reminderCount, timerAlertBudget, toExpoWeekday, upcomingAlerts, validateReminders, DEFAULT_REMINDERS } from '../reminders';
+import {
+  drinkTimes,
+  formatTime,
+  IOS_NOTIFICATION_LIMIT,
+  parseTime,
+  reminderCount,
+  timerAlertBudget,
+  toExpoWeekday,
+  upcomingAlerts,
+  validateReminders,
+  DEFAULT_REMINDERS,
+} from '../reminders';
 import { parseSteps, stepGoalDays, stepsAverage, stepsForDay, type StepEntry } from '../steps';
 import { hiitSteps } from '../timeline';
 
@@ -37,7 +48,17 @@ describe('Erinnerungen (UX-007, TIME-011)', () => {
 });
 
 describe('Timer-Hinweise bei gesperrtem Handy (UX-006, HEALTH-012)', () => {
-  const steps = hiitSteps({ items: [{ exerciseId: 'a', bothSides: false }, { exerciseId: 'b', bothSides: false }], workSeconds: 20, restSeconds: 10, rounds: 1, roundRestSeconds: 0, prepSeconds: 0 });
+  const steps = hiitSteps({
+    items: [
+      { exerciseId: 'a', bothSides: false },
+      { exerciseId: 'b', bothSides: false },
+    ],
+    workSeconds: 20,
+    restSeconds: 10,
+    rounds: 1,
+    roundRestSeconds: 0,
+    prepSeconds: 0,
+  });
   test('kommende Wechsel ab jetzt, letzter ist das Ende', () => {
     const alerts = upcomingAlerts(steps, 5_000, 1_000_000);
     expect(alerts.map((a) => a.kind)).toEqual(['pause', 'belastung', 'ende']);
@@ -46,7 +67,14 @@ describe('Timer-Hinweise bei gesperrtem Handy (UX-006, HEALTH-012)', () => {
   });
   test('vergangene Wechsel werden nicht geplant', () => expect(upcomingAlerts(steps, 25_000, 0).map((a) => a.kind)).toEqual(['belastung', 'ende']));
   test('Obergrenze für geplante Mitteilungen', () => {
-    const long = hiitSteps({ items: [{ exerciseId: 'a', bothSides: false }], workSeconds: 10, restSeconds: 0, rounds: 20, roundRestSeconds: 5, prepSeconds: 0 });
+    const long = hiitSteps({
+      items: [{ exerciseId: 'a', bothSides: false }],
+      workSeconds: 10,
+      restSeconds: 0,
+      rounds: 20,
+      roundRestSeconds: 5,
+      prepSeconds: 0,
+    });
     expect(upcomingAlerts(long, 0, 0, 10)).toHaveLength(10);
   });
   test('Timer-Hinweise + Erinnerungen + Pausen-Hinweis bleiben unter der iOS-Grenze von 64', () => {
@@ -63,7 +91,13 @@ describe('Timer-Hinweise bei gesperrtem Handy (UX-006, HEALTH-012)', () => {
 });
 
 describe('Schritte (HEALTH-005–007)', () => {
-  const e = (day: string, steps: number, source: StepEntry['source'], fetchedAt: string): StepEntry => ({ id: `${day}${fetchedAt}`, day, steps, source, fetchedAt });
+  const e = (day: string, steps: number, source: StepEntry['source'], fetchedAt: string): StepEntry => ({
+    id: `${day}${fetchedAt}`,
+    day,
+    steps,
+    source,
+    fetchedAt,
+  });
   const entries = [
     e('2026-10-30', 6000, 'manuell', '2026-10-30T10:00:00Z'),
     e('2026-10-30', 9000, 'manuell', '2026-10-30T20:00:00Z'),
@@ -83,7 +117,15 @@ describe('Schritte (HEALTH-005–007)', () => {
 });
 
 describe('Sicherungsdatei prüfen (TECH-014)', () => {
-  const valid = { app: 'gym-app', format: 1, schemaVersion: 7, exportedAt: '2026-10-30T10:00:00Z', tables: { workout_session: [{}, {}] }, appState: {}, photos: null };
+  const valid = {
+    app: 'gym-app',
+    format: 1,
+    schemaVersion: 7,
+    exportedAt: '2026-10-30T10:00:00Z',
+    tables: { workout_session: [{}, {}] },
+    appState: {},
+    photos: null,
+  };
   test('gültige Datei', () => {
     const { manifest, problem } = checkBackup(JSON.stringify(valid), 7);
     expect(problem).toBeNull();
@@ -103,7 +145,12 @@ describe('Feedback (BUS-002, BUS-016)', () => {
   const usage = { workouts: 3, sets: 40, diaryDays: 5, stretchSessions: 2, hiitSessions: 1, activeGoals: 2, weightEntries: 6, firstUseDay: '2026-10-29' };
   test('leere Antworten werden erkannt', () => expect(isEmptyFeedback(EMPTY_FEEDBACK)).toBe(true));
   test('Text enthält nur Beantwortetes', () => {
-    const text = feedbackText({ ...EMPTY_FEEDBACK, missing: 'Pläne zum Nachmachen', pay: 'bis4' }, null, { app: 'Myhealth', version: '1.0.0', date: '2026-10-30' }, labels);
+    const text = feedbackText(
+      { ...EMPTY_FEEDBACK, missing: 'Pläne zum Nachmachen', pay: 'bis4' },
+      null,
+      { app: 'Myhealth', version: '1.0.0', date: '2026-10-30' },
+      labels
+    );
     expect(text).toContain('feedback.text.missing: Pläne zum Nachmachen');
     expect(text).toContain('feedback.text.pay: feedback.pay.bis4');
     expect(text).not.toContain('feedback.text.annoying');

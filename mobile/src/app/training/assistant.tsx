@@ -2,16 +2,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { exerciseName, exerciseSynonyms } from '@/format/exercise-name';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { loadPlannerPrefs, savePlannerPrefs, type PlannerPrefs } from '@/data/planner';
-import { useProfile } from '@/providers/profile-provider';
-import { useDb } from '@/providers/store-provider';
 import {
   activatePlanVersion,
   activeVersion,
@@ -23,6 +19,8 @@ import {
   type Exercise,
   type PlanSummary,
 } from '@/data/training';
+import { activeEquipment, loadPreferredWeekdays, loadSecondsPerSet, savePreferredWeekdays } from '@/data/training-stats';
+import { shiftDay } from '@/domain/dates';
 import { EQUIPMENT, type Equipment, type Level } from '@/domain/exercises';
 import {
   buildTemplate,
@@ -38,12 +36,14 @@ import {
   type SplitChoice,
   type TrainingGoal,
 } from '@/domain/planner';
+import { todayDay } from '@/domain/time';
 import { formatClock, parseWholeNumber, type PlanDraft } from '@/domain/training';
-import { activeEquipment, loadPreferredWeekdays, loadSecondsPerSet, savePreferredWeekdays } from '@/data/training-stats';
 import { DURATIONS, isEmptyWish, parseWish, validateWish, type Duration, type Wish } from '@/domain/wish';
+import { exerciseName, exerciseSynonyms } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t, tOptional } from '@/i18n';
-import { shiftDay } from '@/domain/dates';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 type Mode = 'umbau' | 'vorlage';
 type Status = 'frei' | 'behalten' | 'ersetzen';
@@ -132,11 +132,7 @@ export default function AssistantScreen() {
       setCurrent(draft);
       setDays(String(Math.min(6, Math.max(2, draft.days.length))));
       const ids = [...new Set(draft.days.flatMap((d) => d.items.map((i) => i.exerciseId)))];
-      setStatus(
-        Object.fromEntries(
-          ids.map((id) => [id, prefs.locked.includes(id) ? 'behalten' : prefs.blockedExercises.includes(id) ? 'ersetzen' : 'frei'])
-        )
-      );
+      setStatus(Object.fromEntries(ids.map((id) => [id, prefs.locked.includes(id) ? 'behalten' : prefs.blockedExercises.includes(id) ? 'ersetzen' : 'frei'])));
     });
     return () => {
       cancelled = true;
@@ -372,8 +368,20 @@ export default function AssistantScreen() {
         ) : (
           <>
             <Choice label={t('assistant.goal')} options={GOALS} value={goal} onChange={edit(setGoal)} format={(v) => t(`trainingGoal.${v}`)} />
-            <Choice label={t('assistant.experience')} options={LEVELS} value={experience} onChange={edit(setExperience)} format={(v) => t(`exercises.levelOption.${v}`)} />
-            <MultiChoice label={t('assistant.available')} options={EQUIPMENT} value={available} onChange={edit(setAvailable)} format={(v) => t(`equipment.${v}`)} />
+            <Choice
+              label={t('assistant.experience')}
+              options={LEVELS}
+              value={experience}
+              onChange={edit(setExperience)}
+              format={(v) => t(`exercises.levelOption.${v}`)}
+            />
+            <MultiChoice
+              label={t('assistant.available')}
+              options={EQUIPMENT}
+              value={available}
+              onChange={edit(setAvailable)}
+              format={(v) => t(`equipment.${v}`)}
+            />
             <Field label={t('assistant.planName')} value={planName} onChangeText={edit(setPlanName)} />
           </>
         )}
@@ -540,7 +548,11 @@ function ProposalView({
           <ThemedText type="small">{t('assistant.beginner')}</ThemedText>
         </Card>
       ) : null}
-      {homeOnly ? <ThemedText type="small" themeColor="textSecondary">{t('assistant.homeHint')}</ThemedText> : null}
+      {homeOnly ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('assistant.homeHint')}
+        </ThemedText>
+      ) : null}
 
       {proposal.draft.days.map((day, i) => (
         <Card key={i} title={t('assistant.dayTitle', { day: day.name, minutes: proposal.dayMinutes[i], budget })}>
@@ -577,4 +589,3 @@ function dropInvalid(wish: Wish): Wish {
   if (copy.minutes !== undefined && (copy.minutes < MINUTES_RANGE.min || copy.minutes > MINUTES_RANGE.max)) delete copy.minutes;
   return copy;
 }
-

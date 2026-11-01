@@ -4,15 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
-import { showToast } from '@/components/toast';
 import { ThemedText } from '@/components/themed-text';
+import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
 import { loadReminders } from '@/data/reminders';
-import { useDb } from '@/providers/store-provider';
 import { archiveSupplement, listSupplements, loggedDays, saveSupplement, setTaken } from '@/data/supplements';
+import { shiftDay } from '@/domain/dates';
+import { suggestSupplementNames } from '@/domain/supplement-names';
 import {
   EMPTY_SUPPLEMENT_FORM,
   MAX_SUPPLEMENT_REMINDERS,
@@ -25,13 +25,12 @@ import {
   type SupplementForm,
   type SupplementProblem,
 } from '@/domain/supplements';
-import { suggestSupplementNames } from '@/domain/supplement-names';
+import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
-import { shiftDay } from '@/domain/dates';
+import { useDb } from '@/providers/store-provider';
 
-const amountText = (s: Supplement) =>
-  s.amount === null || s.unit === null ? '' : `${formatNumber(s.amount, 3)} ${t(`supplements.units.${s.unit}`)}`;
+const amountText = (s: Supplement) => (s.amount === null || s.unit === null ? '' : `${formatNumber(s.amount, 3)} ${t(`supplements.units.${s.unit}`)}`);
 
 /**
  * Supplement-Tracker (Entscheidung 31.10.2026): erfassen, abhaken, auf Wunsch erinnern. Keine Empfehlungen, keine
@@ -175,19 +174,9 @@ export default function SupplementsScreen() {
             onChangeText={(name) => setForm((f) => ({ ...f, name }))}
           />
           {suggestions.length > 0 ? (
-            <Presets
-              label={t('supplements.suggestion')}
-              options={suggestions}
-              onChange={(name) => setForm((f) => ({ ...f, name }))}
-              format={(name) => name}
-            />
+            <Presets label={t('supplements.suggestion')} options={suggestions} onChange={(name) => setForm((f) => ({ ...f, name }))} format={(name) => name} />
           ) : null}
-          <Field
-            label={t('supplements.amount')}
-            value={form.amount}
-            keyboardType="decimal-pad"
-            onChangeText={(amount) => setForm((f) => ({ ...f, amount }))}
-          />
+          <Field label={t('supplements.amount')} value={form.amount} keyboardType="decimal-pad" onChangeText={(amount) => setForm((f) => ({ ...f, amount }))} />
           {form.amount.trim() !== '' ? (
             <Choice
               label={t('supplements.unit')}

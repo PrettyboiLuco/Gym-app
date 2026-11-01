@@ -1,8 +1,8 @@
 // Datenbank-Migrationen. Jede Version kommt als neuer Eintrag ans Ende; bestehende Einträge
 // werden nie geändert, damit vorhandene Daten bei Updates erhalten bleiben.
 
-import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
 import { CATALOG_ADDED, CATALOG_EXERCISES, CATALOG_STRETCHES, MOVED_TO_CROSSOVER, STRETCH_ADDED } from '@/domain/exercise-catalog';
+import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, MOVEMENT_PATTERNS, STARTER_EXERCISES, STRETCH_EXERCISES } from '@/domain/exercises';
 import { SUPPLEMENT_UNITS } from '@/domain/supplements';
 
 import type { Db } from './db';
@@ -48,10 +48,12 @@ const catalogInserts = (filter: (id: string) => boolean) =>
 // Ab Version 14: weitere Dehn-, Mobilitäts- und Faszienrollen-Übungen.
 const laterStretchIds = new Set(Object.values(STRETCH_ADDED).flat());
 const catalogStretchInserts = (filter: (id: string) => boolean) =>
-  CATALOG_STRETCHES.filter((e) => filter(e.id)).map(
-  (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
+  CATALOG_STRETCHES.filter((e) => filter(e.id))
+    .map(
+      (e) => `INSERT INTO exercise (id, name_key, custom_name, equipment, muscle_group, created_at_utc, kind, sides, hold_seconds, measure)
      VALUES ('${e.id}', 'exercises.${e.id}', NULL, '${e.equipment}', '${e.muscleGroup}', '2026-10-31T00:00:00Z', '${e.kind}', '${e.sides}', ${e.holdSeconds}, 'zeit');`
-  ).join('\n');
+    )
+    .join('\n');
 
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
 const supplementUnits = SUPPLEMENT_UNITS.map((u) => `'${u}'`).join(', ');
@@ -212,10 +214,13 @@ export const MIGRATIONS: string[] = [
      utc_offset_min INTEGER NOT NULL,
      diary_date TEXT NOT NULL
    );
-   CREATE INDEX consumption_diary ON consumption_event (diary_date);`.replaceAll('NUTRIENTS', `kcal REAL CHECK (kcal IS NULL OR kcal >= 0),
+   CREATE INDEX consumption_diary ON consumption_event (diary_date);`.replaceAll(
+    'NUTRIENTS',
+    `kcal REAL CHECK (kcal IS NULL OR kcal >= 0),
      protein REAL CHECK (protein IS NULL OR protein >= 0),
      carbs REAL CHECK (carbs IS NULL OR carbs >= 0),
-     fat REAL CHECK (fat IS NULL OR fat >= 0)`),
+     fat REAL CHECK (fat IS NULL OR fat >= 0)`
+  ),
 
   // Version 4: Körper, Ziele, Kalorienziel (Register GOAL-001–005, UX-002, CALC, COACH-004)
   // Ziele sind versioniert mit Gültig-ab-Datum: ein neues Ziel ändert vergangene Tage nicht (GOAL-002).

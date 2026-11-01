@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
-import { foodTitle } from '@/format/food-title';
 import { formatKcal, readTarget, targetParams, whenFor, type TargetParams } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -32,6 +31,7 @@ import {
 import { searchProducts, type OffError } from '@/data/off';
 import { dietCheck, needsAttention, type FoodFacts } from '@/domain/diet';
 import type { FoodDraft } from '@/domain/nutrition';
+import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -40,15 +40,14 @@ async function loadAdd(db: Db, query: string) {
   if (query.trim()) {
     return { results: await searchFoods(db, query), favorites: [], recent: [], templates: [], recipes: [], facts: {} };
   }
-  const [favorites, recent, templates, recipes] = await Promise.all([
-    listFavoriteFoods(db),
-    recentFoods(db),
-    listTemplates(db),
-    listRecipes(db),
-  ]);
+  const [favorites, recent, templates, recipes] = await Promise.all([listFavoriteFoods(db), recentFoods(db), listTemplates(db), listRecipes(db)]);
   // Allergene von Vorlagen und Rezepten aus den Zutaten, für das Warnzeichen (COACH-009).
   const facts: Record<string, FoodFacts> = {};
-  for (const tpl of templates) facts[tpl.id] = await factsForFoods(db, tpl.items.map((i) => i.foodId));
+  for (const tpl of templates)
+    facts[tpl.id] = await factsForFoods(
+      db,
+      tpl.items.map((i) => i.foodId)
+    );
   for (const r of recipes) facts[r.versionId] = await recipeFacts(db, r.versionId);
   return { results: [] as Food[], favorites, recent, templates, recipes, facts };
 }
@@ -164,11 +163,7 @@ export default function AddScreen() {
       {query.trim() ? (
         <>
           <Card title={t('nutrition.search.local')}>
-            {data.results.length === 0 ? (
-              <ThemedText themeColor="textSecondary">{t('nutrition.search.localEmpty')}</ThemedText>
-            ) : (
-              data.results.map(foodRow)
-            )}
+            {data.results.length === 0 ? <ThemedText themeColor="textSecondary">{t('nutrition.search.localEmpty')}</ThemedText> : data.results.map(foodRow)}
           </Card>
           <Card>
             <Button label={searching ? '…' : t('nutrition.search.online')} onPress={searchOnline} disabled={searching} />

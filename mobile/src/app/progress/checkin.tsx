@@ -3,24 +3,24 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow } from '@/components/fields';
-import { timeZone, todayDay } from '@/domain/time';
 import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { checkinInput, deleteSleep, listCheckins, listSleep, loadCoachSetup, saveCheckin, saveSleep, type CheckinRecord, type SleepEntry } from '@/data/coach';
-import { needsRecalc } from '@/domain/coach';
-import type { Db } from '@/data/db';
-import { useProfile } from '@/providers/profile-provider';
 import { expenditure, loadCheckinRules, saveCheckinRules, type ExpenditureData } from '@/data/adaptive';
+import { checkinInput, deleteSleep, listCheckins, listSleep, loadCoachSetup, saveCheckin, saveSleep, type CheckinRecord, type SleepEntry } from '@/data/coach';
+import type { Db } from '@/data/db';
 import { buildReport, reportSections } from '@/data/report';
 import { ADAPTIVE_RULES_VERSION, suggestV2 } from '@/domain/adaptive';
 import { applyV2, weekDays, weeklyCheckin, type CheckinResult } from '@/domain/checkin';
+import { needsRecalc } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
 import type { Profile } from '@/domain/profile';
+import { timeZone, todayDay } from '@/domain/time';
 import { parseDecimal } from '@/domain/units';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
 
 const QUALITY = ['keine', '1', '2', '3', '4', '5'] as const;
 
@@ -54,7 +54,17 @@ async function loadCheckin(db: Db, profile: Profile) {
   const hideNumbers = input.sensitive || input.hideNumbers;
   // Schritte oder Gym-Tage deutlich anders als bei der Einrichtung → neu berechnen anbieten (C9).
   const recalc = setup !== null && needsRecalc(setup.steps, result.summary.stepsAvg, setup.gymDays, result.summary.workouts);
-  return { weekEnd, result, sleep, history, recalc, energy, rules, hideNumbers, monthSections: reportSections(month).filter((sec) => !hideNumbers || sec.title !== t('report.nutrition')) };
+  return {
+    weekEnd,
+    result,
+    sleep,
+    history,
+    recalc,
+    energy,
+    rules,
+    hideNumbers,
+    monthSections: reportSections(month).filter((sec) => !hideNumbers || sec.title !== t('report.nutrition')),
+  };
 }
 
 /** Wöchentlicher Check-in (Phase 9.2, COACH-006, -008, -010): Überblick, ein Vorschlag, du entscheidest. */
@@ -251,7 +261,13 @@ export default function CheckinScreen() {
           format={(d) => formatDay(d)}
         />
         <Field label={t('checkin.sleepHours')} value={hours} onChangeText={setHours} keyboardType="decimal-pad" placeholder="7,5" />
-        <Choice label={t('checkin.sleepQuality')} options={QUALITY} value={quality} onChange={setQuality} format={(v) => t(`checkin.sleepQualityOption.${v}`)} />
+        <Choice
+          label={t('checkin.sleepQuality')}
+          options={QUALITY}
+          value={quality}
+          onChange={setQuality}
+          format={(v) => t(`checkin.sleepQualityOption.${v}`)}
+        />
         {sleepError ? <ThemedText style={{ color: theme.danger }}>{t('checkin.sleepInvalid')}</ThemedText> : null}
         <Button label={t('checkin.sleepSave')} onPress={addSleep} />
         {data.sleep.slice(0, 7).map((entry) => (
@@ -308,17 +324,19 @@ function ExpenditureCard({ data }: { data: ExpenditureData }) {
         </ThemedText>
       )}
       {data.weeks.some((w) => w.completeDays > 0) ? <ThemedText type="smallBold">{t('adaptive.weeksTitle')}</ThemedText> : null}
-      {data.weeks.filter(() => data.weeks.some((w) => w.completeDays > 0)).map((w) => (
-        <ThemedText key={w.to} type="small">
-          {t('adaptive.weekLine', {
-            from: formatDay(w.from),
-            to: formatDay(w.to),
-            intake: w.intakeAvg === null ? '–' : formatKcal(Math.round(w.intakeAvg)),
-            days: w.completeDays,
-            out: w.expenditure === null ? '–' : formatKcal(w.expenditure),
-          })}
-        </ThemedText>
-      ))}
+      {data.weeks
+        .filter(() => data.weeks.some((w) => w.completeDays > 0))
+        .map((w) => (
+          <ThemedText key={w.to} type="small">
+            {t('adaptive.weekLine', {
+              from: formatDay(w.from),
+              to: formatDay(w.to),
+              intake: w.intakeAvg === null ? '–' : formatKcal(Math.round(w.intakeAvg)),
+              days: w.completeDays,
+              out: w.expenditure === null ? '–' : formatKcal(w.expenditure),
+            })}
+          </ThemedText>
+        ))}
       <ThemedText type="small" themeColor="textSecondary">
         {t('adaptive.hint', { version: ADAPTIVE_RULES_VERSION })}
       </ThemedText>

@@ -35,12 +35,19 @@ describe('Cardio', () => {
     const planId = await savePlan(db, null, {
       name: 'P',
       days: [
-        { name: 'Beine', items: [{ exerciseId: 'beinpresse', sets: 3, repsMin: 8, repsMax: 12, restSeconds: 120 }], cardio: [{ activity: 'laufband', minutes: 15, atEnd: true }] },
+        {
+          name: 'Beine',
+          items: [{ exerciseId: 'beinpresse', sets: 3, repsMin: 8, repsMax: 12, restSeconds: 120 }],
+          cardio: [{ activity: 'laufband', minutes: 15, atEnd: true }],
+        },
         { name: 'Cardio', items: [], cardio: [{ activity: 'rudergeraet', minutes: 30, atEnd: false }] },
       ],
     });
     const draft = await loadPlanDraft(db, planId);
-    expect(draft?.days.map((d) => d.cardio)).toEqual([[{ activity: 'laufband', minutes: 15, atEnd: true }], [{ activity: 'rudergeraet', minutes: 30, atEnd: false }]]);
+    expect(draft?.days.map((d) => d.cardio)).toEqual([
+      [{ activity: 'laufband', minutes: 15, atEnd: true }],
+      [{ activity: 'rudergeraet', minutes: 30, atEnd: false }],
+    ]);
     const [plan] = await listActivePlans(db);
     const sessionId = await startSession(db, plan.days[1].id);
     const [entry] = await listCardioForSession(db, sessionId);

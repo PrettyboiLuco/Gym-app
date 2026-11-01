@@ -3,6 +3,8 @@
 // - Essen und Getränke sind dieselbe Tabelle: ein Ereignis, beide Ansichten (TIME-005/006).
 // - Tagebuchdatum, Verzehrzeit, Erfassungszeit und Zeitzone getrennt (TIME-001/003).
 
+import { fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
+import { BASIS_FOODS } from '@/domain/basis-foods-data';
 import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
   barcodeVariants,
@@ -17,9 +19,6 @@ import {
   type Nutrients,
   type Prep,
 } from '@/domain/nutrition';
-
-import { BASIS_FOODS } from '@/domain/basis-foods-data';
-import { fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
 import { foldText } from '@/domain/text';
 
 import { readState, writeState } from './app-state';
@@ -93,11 +92,11 @@ export async function factsForFoods(db: Db, foodIds: (string | null)[]): Promise
 }
 
 export async function recipeFacts(db: Db, versionId: string): Promise<FoodFacts> {
-  const rows = await db.getAllAsync<{ foodId: string | null }>(
-    'SELECT food_id AS foodId FROM recipe_ingredient WHERE recipe_version_id = ?',
-    versionId
+  const rows = await db.getAllAsync<{ foodId: string | null }>('SELECT food_id AS foodId FROM recipe_ingredient WHERE recipe_version_id = ?', versionId);
+  return factsForFoods(
+    db,
+    rows.map((r) => r.foodId)
   );
-  return factsForFoods(db, rows.map((r) => r.foodId));
 }
 
 const listText = (list: Allergen[] | null | undefined) => (list == null ? null : JSON.stringify(list));
@@ -144,12 +143,11 @@ export async function searchFoods(db: Db, query: string, limit = 50) {
   );
   if (rows.length >= 5 || folded.length < 4) return rows;
   // Tippfehler: unscharf in der Liste suchen und die passenden Einträge nachladen.
-  const ids = fuzzyBasis(q, BASIS_FOODS, 10).map((f) => f.id).filter((id) => !rows.some((r) => r.catalogId === id));
+  const ids = fuzzyBasis(q, BASIS_FOODS, 10)
+    .map((f) => f.id)
+    .filter((id) => !rows.some((r) => r.catalogId === id));
   if (ids.length === 0) return rows;
-  const extra = await db.getAllAsync<Food>(
-    `SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND catalog_id IN (${ids.map(() => '?').join(', ')})`,
-    ...ids
-  );
+  const extra = await db.getAllAsync<Food>(`SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND catalog_id IN (${ids.map(() => '?').join(', ')})`, ...ids);
   extra.sort((a, b) => ids.indexOf(a.catalogId!) - ids.indexOf(b.catalogId!));
   return [...rows, ...extra].slice(0, limit);
 }
@@ -446,10 +444,7 @@ export async function logWater(db: Db, amountMl: number, when: When, name: strin
 }
 
 export function listDay(db: Db, diaryDate: string) {
-  return db.getAllAsync<ConsumptionEvent>(
-    `SELECT ${EVENT_COLUMNS} FROM consumption_event WHERE diary_date = ? ORDER BY occurred_at_utc`,
-    diaryDate
-  );
+  return db.getAllAsync<ConsumptionEvent>(`SELECT ${EVENT_COLUMNS} FROM consumption_event WHERE diary_date = ? ORDER BY occurred_at_utc`, diaryDate);
 }
 
 export function getEvent(db: Db, id: string) {
@@ -516,7 +511,15 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
 
 /** Summen pro Tag für die Wochenansicht. */
 export function daySums(db: Db, fromDate: string, toDate: string) {
-  return db.getAllAsync<{ day: string; kcal: number | null; entries: number; unknownKcal: number; protein: number | null; fiber: number | null; flagged: number }>(
+  return db.getAllAsync<{
+    day: string;
+    kcal: number | null;
+    entries: number;
+    unknownKcal: number;
+    protein: number | null;
+    fiber: number | null;
+    flagged: number;
+  }>(
     `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal, COUNT(*) AS entries, SUM(e.protein) AS protein, SUM(e.fiber) AS fiber,
        SUM(CASE WHEN e.kcal IS NULL THEN 1 ELSE 0 END) AS unknownKcal, COALESCE(MAX(d.incomplete), 0) AS flagged
      FROM consumption_event e LEFT JOIN diary_day d ON d.day = e.diary_date
@@ -577,9 +580,7 @@ export type MealTemplate = {
 };
 
 export async function listTemplates(db: Db): Promise<MealTemplate[]> {
-  const templates = await db.getAllAsync<{ id: string; name: string }>(
-    'SELECT id, name FROM meal_template ORDER BY name COLLATE NOCASE'
-  );
+  const templates = await db.getAllAsync<{ id: string; name: string }>('SELECT id, name FROM meal_template ORDER BY name COLLATE NOCASE');
   const result: MealTemplate[] = [];
   for (const tpl of templates) {
     const items = await db.getAllAsync<{ foodId: string; name: string; amount: number; unit: NutrientBasis; kcal: number | null }>(
@@ -635,10 +636,7 @@ export async function saveRecipe(db: Db, recipeId: string | null, draft: RecipeD
   await db.withTransactionAsync(async () => {
     const now = nowUtc();
     if (!recipeId) await db.runAsync('INSERT INTO recipe (id, created_at_utc) VALUES (?, ?)', id, now);
-    const last = await db.getFirstAsync<{ version: number | null }>(
-      'SELECT MAX(version) AS version FROM recipe_version WHERE recipe_id = ?',
-      id
-    );
+    const last = await db.getFirstAsync<{ version: number | null }>('SELECT MAX(version) AS version FROM recipe_version WHERE recipe_id = ?', id);
     await db.runAsync('UPDATE recipe_version SET active = 0 WHERE recipe_id = ?', id);
     const versionId = newId();
     await db.runAsync(
@@ -725,13 +723,7 @@ export async function loadRecipeDraft(db: Db, recipeId: string): Promise<RecipeD
  * Bucht einen Teil eines Rezepts: nach Gramm (braucht Endgewicht) oder nach Portionen
  * (braucht Portionsanzahl). Ohne passende Angabe wird nichts erfunden (FOOD-017).
  */
-export async function logRecipe(
-  db: Db,
-  versionId: string,
-  part: { grams: number } | { portions: number },
-  meal: Meal,
-  when: When
-) {
+export async function logRecipe(db: Db, versionId: string, part: { grams: number } | { portions: number }, meal: Meal, when: When) {
   const v = await db.getFirstAsync<{ name: string; endWeightG: number | null; portions: number | null }>(
     'SELECT name, end_weight_g AS endWeightG, portions FROM recipe_version WHERE id = ?',
     versionId

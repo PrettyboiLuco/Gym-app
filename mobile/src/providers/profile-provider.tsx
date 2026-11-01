@@ -1,13 +1,12 @@
-import type { Modules } from '@/domain/modules';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-
-import { EMPTY_PROFILE, type Profile } from '@/domain/profile';
-import type { Units } from '@/domain/units';
-
-import { setAppearance } from '@/hooks/use-color-scheme';
 
 import { loadAppearance } from '@/data/appearance';
 import { loadOnboardingDone, loadProfile, saveOnboardingDone, saveProfile } from '@/data/profile';
+import type { Modules } from '@/domain/modules';
+import { EMPTY_PROFILE, type Profile } from '@/domain/profile';
+import type { Units } from '@/domain/units';
+import { setAppearance } from '@/hooks/use-color-scheme';
+
 import { useDb } from './store-provider';
 
 type ProfileState = {
@@ -58,9 +57,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, onboardingDone: true }));
   }, [db]);
 
-  return (
-    <ProfileContext.Provider value={{ ...state, updateProfile, finishOnboarding, reload }}>{children}</ProfileContext.Provider>
-  );
+  return <ProfileContext.Provider value={{ ...state, updateProfile, finishOnboarding, reload }}>{children}</ProfileContext.Provider>;
 }
 
 export function useProfile(): ProfileState {

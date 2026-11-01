@@ -67,10 +67,7 @@ export function estimateOneRepMax(weightKg: number, reps: number): number | null
 }
 
 /** Bestes geschätztes 1RM aus mehreren Sätzen (Aufwärmsätze und unterstützte Übungen zählen nicht). */
-export function bestOneRepMax(
-  sets: { weightKg: number | null; reps: number | null; setType?: SetType | null }[],
-  mode: LoadMode
-): number | null {
+export function bestOneRepMax(sets: { weightKg: number | null; reps: number | null; setType?: SetType | null }[], mode: LoadMode): number | null {
   if (mode === 'unterstuetzt') return null;
   let best: number | null = null;
   for (const s of sets) {
@@ -122,7 +119,17 @@ export function platesPerSide(target: number, setup: PlateSetup): { plates: numb
 export function warmupSets(workWeight: number, step: number, unit: WeightUnit): { weight: number; reps: number }[] {
   const min = unit === 'lb' ? 45 : 20;
   if (!(workWeight >= min)) return [];
-  const scheme = workWeight >= 2 * min ? [[0.5, 8], [0.7, 5], [0.85, 3]] : [[0.5, 8], [0.75, 4]];
+  const scheme =
+    workWeight >= 2 * min
+      ? [
+          [0.5, 8],
+          [0.7, 5],
+          [0.85, 3],
+        ]
+      : [
+          [0.5, 8],
+          [0.75, 4],
+        ];
   const round = (w: number) => Math.max(step, Math.round(w / step) * step);
   const result: { weight: number; reps: number }[] = [];
   for (const [factor, reps] of scheme) {
@@ -157,9 +164,7 @@ export function setOrder(items: PlannedSets[]): SetSlot[] {
       const rounds = Math.max(...block.map((b) => b.item.sets));
       for (let r = 0; r < rounds; r++) {
         const inRound = block.filter((b) => b.item.sets > r);
-        inRound.forEach((b, k) =>
-          slots.push({ itemIndex: b.index, restSeconds: k === inRound.length - 1 ? b.item.restSeconds : 0, superset: group })
-        );
+        inRound.forEach((b, k) => slots.push({ itemIndex: b.index, restSeconds: k === inRound.length - 1 ? b.item.restSeconds : 0, superset: group }));
       }
     }
     i = j;

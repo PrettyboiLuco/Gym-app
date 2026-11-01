@@ -1,16 +1,16 @@
 // Bericht für Trainer oder Arzt (A5.5) und „Zusammenfassung für deine KI“ (A5.6): Zahlen eines Zeitraums, ohne
 // Bewertung. Gleiche Grundlage für PDF und Text, damit beide dasselbe sagen.
 
-import { exerciseName } from '@/format/exercise-name';
+import { daysBetween } from '@/domain/dates';
 import { estimateOneRepMax } from '@/domain/logger';
+import { mean } from '@/domain/math';
 import { localDay, timeZone } from '@/domain/time';
+import { exerciseName } from '@/format/exercise-name';
 import { formatDay, formatNumber, t } from '@/i18n';
 
 import type { Db } from './db';
 import { calorieGoalOn, listActiveGoals } from './goals';
 import { listExercises } from './training';
-import { daysBetween } from '@/domain/dates';
-import { mean } from '@/domain/math';
 
 export const REPORT_WEEKS = ['4', '8', '12', '26'] as const;
 export type ReportWeeks = (typeof REPORT_WEEKS)[number];
@@ -40,7 +40,6 @@ export function periodFor(weeks: number, today: string): { from: string; to: str
   return { from: d.toISOString().slice(0, 10), to: today };
 }
 
-
 export async function buildReport(db: Db, from: string, to: string): Promise<Report> {
   const weights = await db.getAllAsync<{ day: string; kg: number }>(
     'SELECT day, kg FROM weight_entry WHERE day BETWEEN ? AND ? ORDER BY day, recorded_at_utc',
@@ -48,9 +47,7 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     to
   );
   const kgs = weights.map((w) => w.kg);
-  const weight = weights.length
-    ? { first: kgs[0], last: kgs[kgs.length - 1], min: Math.min(...kgs), max: Math.max(...kgs), count: weights.length }
-    : null;
+  const weight = weights.length ? { first: kgs[0], last: kgs[kgs.length - 1], min: Math.min(...kgs), max: Math.max(...kgs), count: weights.length } : null;
 
   const ms = await db.getAllAsync<{ site: string; cm: number }>('SELECT site, cm FROM body_measurement WHERE day BETWEEN ? AND ? ORDER BY day', from, to);
   const sites = new Map<string, { first: number; last: number }>();
@@ -184,7 +181,13 @@ export function reportSections(r: Report): { title: string; lines: string[] }[] 
     title: t('report.nutrition'),
     lines: r.nutrition
       ? [
-          t('report.nutritionLine', { days: r.nutrition.days, kcal: n(r.nutrition.kcal), protein: n(r.nutrition.protein), carbs: n(r.nutrition.carbs), fat: n(r.nutrition.fat) }),
+          t('report.nutritionLine', {
+            days: r.nutrition.days,
+            kcal: n(r.nutrition.kcal),
+            protein: n(r.nutrition.protein),
+            carbs: n(r.nutrition.carbs),
+            fat: n(r.nutrition.fat),
+          }),
           ...(r.nutrition.goalKcal ? [t('report.goal', { kcal: n(r.nutrition.goalKcal) })] : []),
         ]
       : [t('report.none')],
@@ -222,5 +225,11 @@ export function reportHtml(r: Report, created: string): string {
 /** Text für die Zwischenablage (KI-Assistent, Nachricht an den Trainer). */
 export function reportText(r: Report): string {
   const head = `${t('report.aiIntro', { from: formatDay(r.from), to: formatDay(r.to) })}\n`;
-  return head + reportSections(r).map((sec) => `\n## ${sec.title}\n${sec.lines.map((l) => `- ${l}`).join('\n')}`).join('\n') + '\n';
+  return (
+    head +
+    reportSections(r)
+      .map((sec) => `\n## ${sec.title}\n${sec.lines.map((l) => `- ${l}`).join('\n')}`)
+      .join('\n') +
+    '\n'
+  );
 }

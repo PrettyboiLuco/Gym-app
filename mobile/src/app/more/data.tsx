@@ -1,25 +1,25 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 
+import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '@/data/backup';
-import { EXPORT_AREAS, type ExportArea } from '@/data/export-csv';
-import { shareCsv } from '@/data/export';
 import { pickBackup, readPhotoBase64, shareBackup, writePhotoBase64 } from '@/data/backup-files';
-import { applyReminders } from '@/components/alerts';
+import { shareCsv } from '@/data/export';
+import { EXPORT_AREAS, type ExportArea } from '@/data/export-csv';
 import { cancelEverything, notificationPermission } from '@/data/notifications';
-import { loadReminders } from '@/data/reminders';
 import { photoExists, PHOTOS_SUPPORTED, removeAllPhotoFiles } from '@/data/photo-files';
 import { deletePhoto, listPhotos } from '@/data/photos';
-import { useProfile } from '@/providers/profile-provider';
-import { useDb } from '@/providers/store-provider';
+import { loadReminders } from '@/data/reminders';
 import { backupFileName, backupSummary, checkBackup, type BackupManifest } from '@/domain/backup';
+import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 /**
  * Deine Daten (Register TECH-013/014, LAW-006): Sicherung als Datei, Wiederherstellen, alles löschen.

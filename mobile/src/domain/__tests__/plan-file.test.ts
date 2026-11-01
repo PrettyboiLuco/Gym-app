@@ -6,7 +6,9 @@ import { CATALOG_EXERCISES, CATALOG_STRETCHES } from '../exercise-catalog';
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, STARTER_EXERCISES, STRETCH_EXERCISES } from '../exercises';
 import { parsePlanFile } from '../plan-file';
 
-const known = new Set([...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES, ...STRETCH_EXERCISES, ...CATALOG_EXERCISES, ...CATALOG_STRETCHES].map((e) => e.id));
+const known = new Set(
+  [...STARTER_EXERCISES, ...MORE_STRENGTH_EXERCISES, ...HIIT_EXERCISES, ...STRETCH_EXERCISES, ...CATALOG_EXERCISES, ...CATALOG_STRETCHES].map((e) => e.id)
+);
 
 describe('Plan-Datei', () => {
   test('Lucs Plan wird vollständig übernommen (64 Sätze, alle Übungen bekannt)', () => {
@@ -22,7 +24,10 @@ describe('Plan-Datei', () => {
     expect(r.draft.days[0].items[0]).toMatchObject({ exerciseId: 'cable_crossover', label: 'Cable Flys' });
     expect(r.draft.days[2].items[2]).toMatchObject({ exerciseId: 'rudern_maschine_hoch', label: 'High Row' });
     expect(r.draft.days.flatMap((d) => d.items).every((i) => i.label)).toBe(true);
-    expect(r.routines.map((x) => [x.name, x.items.length])).toEqual([['Lucs Dehnroutine', 10], ['Massagepistole', 6]]);
+    expect(r.routines.map((x) => [x.name, x.items.length])).toEqual([
+      ['Lucs Dehnroutine', 10],
+      ['Massagepistole', 6],
+    ]);
     expect(r.customExercises).toHaveLength(8);
     expect(r.goals).toEqual({ kcal: 3900, drinkMl: 5000 });
     expect(r.note).toContain('RIR');
@@ -34,16 +39,35 @@ describe('Plan-Datei', () => {
   });
   test('Abläufe und eigene Übungen werden geprüft', () => {
     const base = { format: 'myhealth-plan', version: 1, name: 'X', days: [{ name: 'A', items: [{ exercise: 'latzug', sets: 3, reps: [8, 12] }] }] };
-    expect(parsePlanFile(JSON.stringify({ ...base, routines: [{ name: 'R', items: [{ exercise: 'latzug', seconds: 2 }] }] }), known)).toMatchObject({ ok: false, error: 'routine' });
-    expect(parsePlanFile(JSON.stringify({ ...base, customExercises: [{ key: 'k', name: 'N', equipment: 'quatsch', muscleGroup: 'beine' }] }), known)).toMatchObject({ ok: false, error: 'custom' });
-    expect(parsePlanFile(JSON.stringify({ ...base, routines: [{ name: 'R', items: [{ exercise: 'eigen:fehlt', seconds: 30 }] }] }), known)).toMatchObject({ ok: false, error: 'unknownExercises', unknown: ['eigen:fehlt'] });
+    expect(parsePlanFile(JSON.stringify({ ...base, routines: [{ name: 'R', items: [{ exercise: 'latzug', seconds: 2 }] }] }), known)).toMatchObject({
+      ok: false,
+      error: 'routine',
+    });
+    expect(
+      parsePlanFile(JSON.stringify({ ...base, customExercises: [{ key: 'k', name: 'N', equipment: 'quatsch', muscleGroup: 'beine' }] }), known)
+    ).toMatchObject({ ok: false, error: 'custom' });
+    expect(parsePlanFile(JSON.stringify({ ...base, routines: [{ name: 'R', items: [{ exercise: 'eigen:fehlt', seconds: 30 }] }] }), known)).toMatchObject({
+      ok: false,
+      error: 'unknownExercises',
+      unknown: ['eigen:fehlt'],
+    });
   });
   test('Fehler werden erkannt statt still übernommen', () => {
     expect(parsePlanFile('kein json', known)).toMatchObject({ ok: false, error: 'json' });
     expect(parsePlanFile('{"format":"anders"}', known)).toMatchObject({ ok: false, error: 'format' });
-    const fremd = JSON.stringify({ format: 'myhealth-plan', version: 1, name: 'X', days: [{ name: 'A', items: [{ exercise: 'gibt_es_nicht', sets: 3, reps: [8, 12] }] }] });
+    const fremd = JSON.stringify({
+      format: 'myhealth-plan',
+      version: 1,
+      name: 'X',
+      days: [{ name: 'A', items: [{ exercise: 'gibt_es_nicht', sets: 3, reps: [8, 12] }] }],
+    });
     expect(parsePlanFile(fremd, known)).toMatchObject({ ok: false, error: 'unknownExercises', unknown: ['gibt_es_nicht'] });
-    const kaputt = JSON.stringify({ format: 'myhealth-plan', version: 1, name: 'X', days: [{ name: 'A', items: [{ exercise: 'latzug', sets: 0, reps: [8, 12] }] }] });
+    const kaputt = JSON.stringify({
+      format: 'myhealth-plan',
+      version: 1,
+      name: 'X',
+      days: [{ name: 'A', items: [{ exercise: 'latzug', sets: 0, reps: [8, 12] }] }],
+    });
     expect(parsePlanFile(kaputt, known)).toMatchObject({ ok: false, error: 'invalid' });
   });
 });

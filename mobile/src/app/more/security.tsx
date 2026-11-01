@@ -7,9 +7,9 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { canLock, unlock } from '@/data/app-lock';
 import { loadAppLock, saveAppLock } from '@/data/reminders';
-import { useDb } from '@/providers/store-provider';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { useDb } from '@/providers/store-provider';
 
 /** App-Sperre mit Face ID bzw. Gerätecode (Register LAW-006/TECH-013-Umfeld, GOAL-008-Folgepunkt). */
 export default function SecurityScreen() {
@@ -63,7 +63,11 @@ export default function SecurityScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('security.hint')}
         </ThemedText>
-        {message ? <ThemedText style={message === t('security.noPasscode') || message === t('security.notConfirmed') ? { color: theme.danger } : undefined}>{message}</ThemedText> : null}
+        {message ? (
+          <ThemedText style={message === t('security.noPasscode') || message === t('security.notConfirmed') ? { color: theme.danger } : undefined}>
+            {message}
+          </ThemedText>
+        ) : null}
       </Card>
     </Screen>
   );

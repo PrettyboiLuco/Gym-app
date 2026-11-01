@@ -1,8 +1,8 @@
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import type { ReactNode } from 'react';
 
-import type { Db } from '@/data/db';
 import { syncBasisFoods } from '@/data/basis-foods';
+import type { Db } from '@/data/db';
 import { migrate } from '@/data/migrations';
 
 /** Datenbank vorbereiten: Migrationen, dann die mitgelieferten Grundnahrungsmittel (A4, nur bei neuer Listen-Version). */

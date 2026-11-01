@@ -1,13 +1,13 @@
 // Trainingswoche Mo–So für „Heute“ und den Abschluss-Bildschirm: eine Quelle für Punkte und Zusammenfassung.
 
-import type { MuscleGroup } from '@/domain/exercises';
 import { shiftDay, weekStart } from '@/domain/dates';
+import type { MuscleGroup } from '@/domain/exercises';
 import { trainedDays } from '@/domain/summary';
 import { localDay, timeZone } from '@/domain/time';
 
+import { readState } from './app-state';
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
-import { readState } from './app-state';
 import type { Db } from './db';
 import { listExercises, listSessions } from './training';
 

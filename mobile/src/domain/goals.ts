@@ -2,11 +2,11 @@
 // jede Änderung als neue Version mit Gültig-ab-Datum. Keine Erfolgsgarantie und kein Zieldatum:
 // angezeigt wird nur, wo man gerade steht (GOAL-006).
 
+import { weekStart } from './dates';
 import { bmi, underweightLimitKg, UNDERWEIGHT_BMI, type Goal } from './energy';
 import { parseSteps } from './steps';
 import { parseWholeNumber } from './training';
 import { BODY_WEIGHT_RANGE, LIFT_RANGE, parseLengthIn, parseWeightIn, type LengthUnit, type WeightUnit } from './units';
-import { weekStart } from './dates';
 
 /** Bereich des Finger-Boden-Abstands in cm (0 = Boden erreicht). */
 export const FLEX_RANGE = { min: 0, max: 100 } as const;
@@ -146,10 +146,7 @@ export type WeightProgress = {
  * Fortschritt eines Gewichtsziels anhand des 7-Tage-Durchschnitts, nie eines Einzelwerts.
  * Ohne Trend gibt es keine Aussage.
  */
-export function weightProgress(
-  goal: { direction: Goal; targetKg: number | null; startKg: number | null },
-  trendKg: number | null
-): WeightProgress {
+export function weightProgress(goal: { direction: Goal; targetKg: number | null; startKg: number | null }, trendKg: number | null): WeightProgress {
   const changeKg = trendKg !== null && goal.startKg !== null ? trendKg - goal.startKg : null;
   if (trendKg === null || goal.targetKg === null || goal.direction === 'halten') {
     return { startKg: goal.startKg, currentKg: trendKg, targetKg: goal.targetKg, changeKg, remainingKg: null, reached: false };

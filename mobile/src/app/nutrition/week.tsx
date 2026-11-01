@@ -3,7 +3,6 @@ import { useState } from 'react';
 
 import { Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { formatKcal } from '@/components/nutrition-format';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -11,6 +10,7 @@ import type { Db } from '@/data/db';
 import { daySums, DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
 import { shiftDay } from '@/domain/dates';
 import { weekAverage } from '@/domain/nutrition';
+import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, t } from '@/i18n';
 
@@ -63,17 +63,10 @@ export default function WeekScreen() {
       <Card>
         {data.rows.map((r) => {
           const status =
-            r.entries === 0
-              ? t('nutrition.week.emptyDay')
-              : r.kcal === null || r.unknownKcal > 0 || r.flagged
-                ? t('nutrition.week.incompleteDay')
-                : null;
+            r.entries === 0 ? t('nutrition.week.emptyDay') : r.kcal === null || r.unknownKcal > 0 || r.flagged ? t('nutrition.week.incompleteDay') : null;
           const parts = data.hide
             ? [t('nutrition.week.entries', { count: r.entries }), status]
-            : [
-                r.entries === 0 ? null : r.kcal === null ? t('nutrition.kcalUnknown') : `${r.unknownKcal > 0 ? '≥ ' : ''}${formatKcal(r.kcal)}`,
-                status,
-              ];
+            : [r.entries === 0 ? null : r.kcal === null ? t('nutrition.kcalUnknown') : `${r.unknownKcal > 0 ? '≥ ' : ''}${formatKcal(r.kcal)}`, status];
           return <ListRow key={r.day} title={formatDay(r.day)} subtitle={parts.filter(Boolean).join(' · ')} />;
         })}
       </Card>

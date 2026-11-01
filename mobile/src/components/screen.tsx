@@ -29,11 +29,7 @@ export function Screen({
   return (
     <ThemedView style={styles.root}>
       <SafeAreaView style={styles.safeArea} edges={withHeader ? ['left', 'right'] : ['top', 'left', 'right']}>
-        <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets>
+        <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
           {title && !withHeader ? (
             <View style={styles.head}>
               <ThemedText type="subtitle" accessibilityRole="header">

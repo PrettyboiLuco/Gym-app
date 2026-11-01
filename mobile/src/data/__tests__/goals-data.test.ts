@@ -56,7 +56,7 @@ describe('Kalorienziel versioniert (GOAL-002)', () => {
   test('neues Ziel ändert vergangene Tage nicht', async () => {
     await setCalorieGoal(db, 2500, '2026-10-01');
     await setCalorieGoal(db, 2200, '2026-10-20', 'rechner', { resting: 1780 });
-    expect((await calorieGoalOn(db, '2026-09-30'))).toBeNull();
+    expect(await calorieGoalOn(db, '2026-09-30')).toBeNull();
     expect((await calorieGoalOn(db, '2026-10-10'))?.kcal).toBe(2500);
     expect((await calorieGoalOn(db, '2026-10-20'))?.kcal).toBe(2200);
     expect((await calorieGoalOn(db, '2026-10-20'))?.source).toBe('rechner');
@@ -117,9 +117,7 @@ describe('Ziele (GOAL-001, GOAL-002, GOAL-005)', () => {
     expect(versions[0].perWeek).toBe(5);
   });
   test('Kraftziel braucht eine vorhandene Übung', async () => {
-    await expect(
-      saveGoal(db, null, { kind: 'kraft', exerciseId: 'gibt-es-nicht', targetKg: 100, targetReps: 5 }, '2026-10-01', null)
-    ).rejects.toThrow();
+    await expect(saveGoal(db, null, { kind: 'kraft', exerciseId: 'gibt-es-nicht', targetKg: 100, targetReps: 5 }, '2026-10-01', null)).rejects.toThrow();
   });
 });
 

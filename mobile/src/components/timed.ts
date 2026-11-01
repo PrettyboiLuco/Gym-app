@@ -8,7 +8,7 @@ import { routineSteps, type RoutineDraft, type Template } from '@/domain/routine
 import { newRun, stepsTotalSeconds, type RunKind } from '@/domain/timeline';
 import { t } from '@/i18n';
 
-export function sidesLookup(exercises: Exercise[]): (id: string) => Sides {
+function sidesLookup(exercises: Exercise[]): (id: string) => Sides {
   const map = new Map(exercises.map((e) => [e.id, e.sides]));
   return (id) => map.get(id) ?? 'beidseitig';
 }

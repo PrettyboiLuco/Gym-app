@@ -13,8 +13,8 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { addPlanEntries, cleanEatenLinks, deletePlanEntry, listPlan, logPlanEntry, planNutrients } from '@/data/meal-plan';
 import { listRecipes, loadNutritionSettings, type RecipeSummary } from '@/data/nutrition';
-import { dayTotals, suggestWeek, type PlanEntry } from '@/domain/meal-plan';
 import { shiftDay, weekDays, weekStart } from '@/domain/dates';
+import { dayTotals, suggestWeek, type PlanEntry } from '@/domain/meal-plan';
 import { MEALS, type Nutrients } from '@/domain/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
@@ -99,13 +99,31 @@ export default function PlanScreen() {
           </ThemedText>
           <Button label="›" variant="secondary" size="compact" onPress={() => setMonday((m) => shiftDay(m, 7))} />
         </View>
-        <Choice label={t('mealPlan.snacks')} options={['nein', 'ja'] as const} value={snacks} onChange={setSnacks} format={(v) => t(`mealPlan.snacksOption.${v}`)} />
+        <Choice
+          label={t('mealPlan.snacks')}
+          options={['nein', 'ja'] as const}
+          value={snacks}
+          onChange={setSnacks}
+          format={(v) => t(`mealPlan.snacksOption.${v}`)}
+        />
         <Button label={t('mealPlan.suggest')} onPress={suggest} />
         <ThemedText type="small" themeColor="textSecondary">
           {t('mealPlan.suggestHint')}
         </ThemedText>
-        <ListRow icon="list" title={t('mealPlan.shopping')} accessory="›" onPress={() => router.push({ pathname: '/nutrition/shopping', params: { week: monday } })} />
-        <ListRow icon="globe" title={t('recipeImport.title')} subtitle={t('recipeImport.subtitle')} accessory="›" last onPress={() => router.push('/nutrition/import-recipe')} />
+        <ListRow
+          icon="list"
+          title={t('mealPlan.shopping')}
+          accessory="›"
+          onPress={() => router.push({ pathname: '/nutrition/shopping', params: { week: monday } })}
+        />
+        <ListRow
+          icon="globe"
+          title={t('recipeImport.title')}
+          subtitle={t('recipeImport.subtitle')}
+          accessory="›"
+          last
+          onPress={() => router.push('/nutrition/import-recipe')}
+        />
       </Card>
 
       {loaded
@@ -122,7 +140,10 @@ export default function PlanScreen() {
                     .filter((e) => e.meal === meal)
                     .map((e) => {
                       const n = data.nutrients.get(e.id);
-                      const facts = !hide && n?.kcal != null ? ` · ${formatKcal(n.kcal * e.portions)} · ${formatNumber((n.protein ?? 0) * e.portions, 0)} g ${t('mealPlan.protein')}` : '';
+                      const facts =
+                        !hide && n?.kcal != null
+                          ? ` · ${formatKcal(n.kcal * e.portions)} · ${formatNumber((n.protein ?? 0) * e.portions, 0)} g ${t('mealPlan.protein')}`
+                          : '';
                       return (
                         <View key={e.id} style={styles.entry}>
                           <ThemedText type="small" style={styles.flex}>
@@ -150,11 +171,19 @@ export default function PlanScreen() {
                       );
                     })
                 )}
-                {list.length === 0 ? <ThemedText type="small" themeColor="textSecondary">{t('mealPlan.empty')}</ThemedText> : null}
+                {list.length === 0 ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('mealPlan.empty')}
+                  </ThemedText>
+                ) : null}
                 {!hide && total ? (
                   <ThemedText type="small" themeColor="textSecondary">
                     {goal.kcal !== null
-                      ? t('mealPlan.totalGoal', { kcal: formatKcal(Math.round(total.kcal)), goal: formatKcal(goal.kcal), protein: formatNumber(total.protein, 0) })
+                      ? t('mealPlan.totalGoal', {
+                          kcal: formatKcal(Math.round(total.kcal)),
+                          goal: formatKcal(goal.kcal),
+                          protein: formatNumber(total.protein, 0),
+                        })
                       : t('mealPlan.total', { kcal: formatKcal(Math.round(total.kcal)), protein: formatNumber(total.protein, 0) })}
                     {total.unknown ? ` ${t('mealPlan.unknown', { count: total.unknown })}` : ''}
                   </ThemedText>

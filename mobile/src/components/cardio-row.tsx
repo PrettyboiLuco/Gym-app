@@ -28,9 +28,7 @@ export function CardioRow({ entry, onPress, active = true, last = false }: { ent
     ? cardioSummary(entry)
     : entry.timerStartedAt
       ? t('cardio.timerRunning', { time: formatClock(now - Date.parse(entry.timerStartedAt)) })
-      : [entry.plannedMinutes ? t('cardio.planned', { minutes: entry.plannedMinutes }) : null, active ? null : t('cardio.notDone')]
-          .filter(Boolean)
-          .join(' · ');
+      : [entry.plannedMinutes ? t('cardio.planned', { minutes: entry.plannedMinutes }) : null, active ? null : t('cardio.notDone')].filter(Boolean).join(' · ');
   return (
     <ListRow
       icon="clock"

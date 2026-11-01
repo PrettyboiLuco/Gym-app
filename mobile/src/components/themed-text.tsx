@@ -14,13 +14,7 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
   // Große Schrift (iPhone-Einstellung): Fließtext wächst frei mit, Überschriften und große Zahlen begrenzt (×1,4),
   // damit Titel und Kennzahlen nicht aus ihren Feldern laufen.
   const capped = type === 'title' || type === 'subtitle';
-  return (
-    <Text
-      maxFontSizeMultiplier={capped ? 1.4 : undefined}
-      style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]}
-      {...rest}
-    />
-  );
+  return <Text maxFontSizeMultiplier={capped ? 1.4 : undefined} style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]} {...rest} />;
 }
 
 const styles = StyleSheet.create({

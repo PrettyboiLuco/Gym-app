@@ -4,19 +4,19 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { Choice } from '@/components/fields';
 import { HeartLoop } from '@/components/heart-loop';
-import { Rise, RiseText } from '@/components/rise-text';
-import { todayDay } from '@/domain/time';
 import { UnitFields } from '@/components/profile-fields';
+import { Rise, RiseText } from '@/components/rise-text';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { saveCoachPending } from '@/data/coach';
 import { loadNutritionSettings, saveNutritionSettings } from '@/data/nutrition';
-import { useProfile } from '@/providers/profile-provider';
-import { useDb } from '@/providers/store-provider';
 import { parseProfileForm, profileToForm, type ProfileForm } from '@/domain/profile';
+import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 const STEPS = ['adult', 'sensitive', 'units'] as const;
 type Step = (typeof STEPS)[number];
@@ -76,16 +76,22 @@ export function Onboarding() {
             </Card>
           </Rise>
           <Rise delay={380}>
-          <Card title={t('onboarding.adultQuestion')}>
-            <View style={styles.row}>
-              <Button label={t('onboarding.yes')} onPress={() => { setAdult(true); setStep('sensitive'); }} />
-              <Button label={t('onboarding.no')} variant="secondary" onPress={() => setAdult(false)} />
-            </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('onboarding.adultHint')}
-            </ThemedText>
-            {adult === false ? <ThemedText style={{ color: theme.danger }}>{t('onboarding.minor')}</ThemedText> : null}
-          </Card>
+            <Card title={t('onboarding.adultQuestion')}>
+              <View style={styles.row}>
+                <Button
+                  label={t('onboarding.yes')}
+                  onPress={() => {
+                    setAdult(true);
+                    setStep('sensitive');
+                  }}
+                />
+                <Button label={t('onboarding.no')} variant="secondary" onPress={() => setAdult(false)} />
+              </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('onboarding.adultHint')}
+              </ThemedText>
+              {adult === false ? <ThemedText style={{ color: theme.danger }}>{t('onboarding.minor')}</ThemedText> : null}
+            </Card>
           </Rise>
           <Rise delay={500}>
             <ThemedText type="small" themeColor="textSecondary" style={styles.health}>

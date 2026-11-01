@@ -5,18 +5,15 @@ import { StyleSheet, View } from 'react-native';
 import { applyReminders } from '@/components/alerts';
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { dayLabel, extraSecondsFor } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { loadCoachSetup, saveCoachPending, saveCoachSetup, type CoachSetup } from '@/data/coach';
-import { loadNutritionSettings } from '@/data/nutrition';
 import { activeWeightGoal, saveGoal, setCalorieGoal } from '@/data/goals';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
-import { useProfile } from '@/providers/profile-provider';
+import { loadNutritionSettings } from '@/data/nutrition';
 import { loadReminders, saveReminders } from '@/data/reminders';
-import { useDb } from '@/providers/store-provider';
 import { listActivePlans, listExercises, savePlan, type Exercise } from '@/data/training';
 import { addWeight, listWeights } from '@/data/weights';
 import {
@@ -37,9 +34,12 @@ import { EQUIPMENT, type Equipment, type Level } from '@/domain/exercises';
 import { buildTemplate, LEVELS, MINUTE_PRESETS, type PlanProposal } from '@/domain/planner';
 import { ageOn, parseProfileForm, profileToForm, type ProfileForm } from '@/domain/profile';
 import { parseTime, WEEKDAYS } from '@/domain/reminders';
+import { todayDay } from '@/domain/time';
 import { BODY_WEIGHT_RANGE, HEIGHT_RANGE, parseWeightIn, weightInputText } from '@/domain/units';
 import { useTheme } from '@/hooks/use-theme';
 import { formatLength, formatNumber, formatWeight, t } from '@/i18n';
+import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 const STEPS = ['ziel', 'koerper', 'alltag', 'ergebnis', 'training', 'anbindungen'] as const;
 type Step = (typeof STEPS)[number];
@@ -52,7 +52,16 @@ const FAT_PRESETS = [0.2, 0.25, 0.3, 0.35, 0.4] as const;
 
 /** Wochentage als Vorschlag für eine Anzahl Gym-Tage, mit Pausen dazwischen. */
 function defaultWeekdays(count: number): number[] {
-  const patterns: Record<number, number[]> = { 0: [], 1: [3], 2: [2, 5], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 3, 5, 6], 6: [1, 2, 3, 4, 5, 6], 7: [1, 2, 3, 4, 5, 6, 7] };
+  const patterns: Record<number, number[]> = {
+    0: [],
+    1: [3],
+    2: [2, 5],
+    3: [1, 3, 5],
+    4: [1, 2, 4, 5],
+    5: [1, 2, 3, 5, 6],
+    6: [1, 2, 3, 4, 5, 6],
+    7: [1, 2, 3, 4, 5, 6, 7],
+  };
   return patterns[Math.min(7, Math.max(0, count))];
 }
 
@@ -94,30 +103,36 @@ export default function CoachSetupScreen() {
   // Bisherige Angaben übernehmen (neu einrichten bzw. Ziel ändern).
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadCoachSetup(db), listWeights(db), listExercises(db), listActivePlans(db), loadReminders(db), activeWeightGoal(db), loadNutritionSettings(db)]).then(
-      ([setup, weights, all, plans, reminders, weightGoal, settings]) => {
-        if (cancelled) return;
-        setHideNumbers(settings.hideNumbers);
-        const latest = weights[0] ? weightInputText(weights[0].kg, profile.units.weight) : '';
-        setWeightText(latest);
-        setWeightStart(latest);
-        setExercises(all);
-        setHasPlans(plans.length > 0);
-        if (plans.length > 0) setPlanChoice('vorhanden');
-        setReminderTime(reminders.training.time);
-        const g = setup?.goal ?? weightGoal?.direction ?? 'zunehmen';
-        setGoal(profile.sensitive && g === 'abnehmen' ? 'halten' : g);
-        if (setup) {
-          setDelta(setup.delta);
-          setStepsText(String(setup.steps));
-          setGymDays(setup.gymDays);
-          setSleepText(setup.sleepHours === null ? '' : formatNumber(setup.sleepHours));
-          setWeekdays(setup.trainingWeekdays);
-          setSplit(setup.split);
-          if (setup.macros) setMacroChoice(setup.macros);
-        } else setDelta(DEFAULT_DELTA[g]);
-      }
-    );
+    Promise.all([
+      loadCoachSetup(db),
+      listWeights(db),
+      listExercises(db),
+      listActivePlans(db),
+      loadReminders(db),
+      activeWeightGoal(db),
+      loadNutritionSettings(db),
+    ]).then(([setup, weights, all, plans, reminders, weightGoal, settings]) => {
+      if (cancelled) return;
+      setHideNumbers(settings.hideNumbers);
+      const latest = weights[0] ? weightInputText(weights[0].kg, profile.units.weight) : '';
+      setWeightText(latest);
+      setWeightStart(latest);
+      setExercises(all);
+      setHasPlans(plans.length > 0);
+      if (plans.length > 0) setPlanChoice('vorhanden');
+      setReminderTime(reminders.training.time);
+      const g = setup?.goal ?? weightGoal?.direction ?? 'zunehmen';
+      setGoal(profile.sensitive && g === 'abnehmen' ? 'halten' : g);
+      if (setup) {
+        setDelta(setup.delta);
+        setStepsText(String(setup.steps));
+        setGymDays(setup.gymDays);
+        setSleepText(setup.sleepHours === null ? '' : formatNumber(setup.sleepHours));
+        setWeekdays(setup.trainingWeekdays);
+        setSplit(setup.split);
+        if (setup.macros) setMacroChoice(setup.macros);
+      } else setDelta(DEFAULT_DELTA[g]);
+    });
     return () => {
       cancelled = true;
     };
@@ -142,10 +157,7 @@ export default function CoachSetupScreen() {
     sensitive: profile.sensitive,
   });
   const macroSet = kg !== null ? macroSettings(macroChoice, kg, goal, gymDays) : null;
-  const plan =
-    energy.status === 'ok' && macroSet !== null
-      ? buildPlan(energy.kcal, macroSet.protein, weekdays, energy.floor, split, macroSet.fatShare)
-      : null;
+  const plan = energy.status === 'ok' && macroSet !== null ? buildPlan(energy.kcal, macroSet.protein, weekdays, energy.floor, split, macroSet.fatShare) : null;
 
   const template: PlanProposal | null =
     planChoice === 'vorlage' && weekdays.length >= 2 && weekdays.length <= 6
@@ -179,7 +191,13 @@ export default function CoachSetupScreen() {
   function next() {
     setProblem(null);
     if (step === 'koerper') {
-      if (kg === null && !profile.sensitive) return setProblem(t('coach.problems.weight', { min: formatWeight(BODY_WEIGHT_RANGE.min, profile.units.weight, 0), max: formatWeight(BODY_WEIGHT_RANGE.max, profile.units.weight, 0) }));
+      if (kg === null && !profile.sensitive)
+        return setProblem(
+          t('coach.problems.weight', {
+            min: formatWeight(BODY_WEIGHT_RANGE.min, profile.units.weight, 0),
+            max: formatWeight(BODY_WEIGHT_RANGE.max, profile.units.weight, 0),
+          })
+        );
       if (!body) {
         const range = { min: formatLength(HEIGHT_RANGE.min, form.units.length), max: formatLength(HEIGHT_RANGE.max, form.units.length) };
         return setProblem(parsed.problems.map((p) => t(`profile.problems.${p}`, range)).join(' '));
@@ -271,7 +289,12 @@ export default function CoachSetupScreen() {
       {step === 'koerper' ? (
         <Card title={t('coach.bodyTitle')}>
           <Field label={t('coach.weight', { unit: profile.units.weight })} value={weightText} onChangeText={setWeightText} keyboardType="decimal-pad" />
-          <Field label={t('profile.height', { unit: form.units.length })} value={form.height} onChangeText={(height) => setForm((f) => ({ ...f, height }))} keyboardType="decimal-pad" />
+          <Field
+            label={t('profile.height', { unit: form.units.length })}
+            value={form.height}
+            onChangeText={(height) => setForm((f) => ({ ...f, height }))}
+            keyboardType="decimal-pad"
+          />
           <Field
             label={t('profile.birth')}
             placeholder={t('profile.birthPlaceholder')}
@@ -295,11 +318,23 @@ export default function CoachSetupScreen() {
       {step === 'alltag' ? (
         <Card title={t('coach.dayTitle')}>
           <Field label={t('coach.steps')} value={stepsText} onChangeText={setStepsText} keyboardType="number-pad" />
-          <Presets label={t('coach.steps')} options={STEP_PRESETS} value={steps ?? undefined} format={(v) => formatNumber(v, 0)} onChange={(v) => setStepsText(String(v))} />
+          <Presets
+            label={t('coach.steps')}
+            options={STEP_PRESETS}
+            value={steps ?? undefined}
+            format={(v) => formatNumber(v, 0)}
+            onChange={(v) => setStepsText(String(v))}
+          />
           <ThemedText type="small" themeColor="textSecondary">
             {t('coach.stepsHint')}
           </ThemedText>
-          <Choice label={t('coach.gymDays')} options={GYM_DAYS} value={String(gymDays) as (typeof GYM_DAYS)[number]} onChange={(v) => chooseGymDays(Number(v))} format={(v) => v} />
+          <Choice
+            label={t('coach.gymDays')}
+            options={GYM_DAYS}
+            value={String(gymDays) as (typeof GYM_DAYS)[number]}
+            onChange={(v) => chooseGymDays(Number(v))}
+            format={(v) => v}
+          />
           <Field label={t('coach.sleep')} value={sleepText} onChangeText={setSleepText} keyboardType="decimal-pad" placeholder="7,5" />
           <ThemedText type="small" themeColor="textSecondary">
             {t('coach.sleepHint')}
@@ -361,9 +396,7 @@ export default function CoachSetupScreen() {
                   />
                 </>
               ) : null}
-              {plan?.macros ? (
-                <ThemedText>{t('coach.macros', { ...plan.macros })}</ThemedText>
-              ) : null}
+              {plan?.macros ? <ThemedText>{t('coach.macros', { ...plan.macros })}</ThemedText> : null}
               <ThemedText type="small" themeColor="textSecondary">
                 {t('coach.resultHint')}
               </ThemedText>
@@ -409,9 +442,27 @@ export default function CoachSetupScreen() {
             />
             {planChoice === 'vorlage' ? (
               <>
-                <Choice label={t('assistant.experience')} options={LEVELS} value={experience} onChange={setExperience} format={(v) => t(`exercises.levelOption.${v}`)} />
-                <MultiChoice label={t('assistant.available')} options={EQUIPMENT} value={available} onChange={setAvailable} format={(v) => t(`equipment.${v}`)} />
-                <Presets label={t('assistant.minutes')} options={MINUTE_PRESETS} value={minutes} format={(m) => t('common.minutes', { value: m })} onChange={setMinutes} />
+                <Choice
+                  label={t('assistant.experience')}
+                  options={LEVELS}
+                  value={experience}
+                  onChange={setExperience}
+                  format={(v) => t(`exercises.levelOption.${v}`)}
+                />
+                <MultiChoice
+                  label={t('assistant.available')}
+                  options={EQUIPMENT}
+                  value={available}
+                  onChange={setAvailable}
+                  format={(v) => t(`equipment.${v}`)}
+                />
+                <Presets
+                  label={t('assistant.minutes')}
+                  options={MINUTE_PRESETS}
+                  value={minutes}
+                  format={(m) => t('common.minutes', { value: m })}
+                  onChange={setMinutes}
+                />
                 {weekdays.length < 2 || weekdays.length > 6 ? (
                   <ThemedText type="small">{t('coach.templateDays')}</ThemedText>
                 ) : template ? (
@@ -442,7 +493,9 @@ export default function CoachSetupScreen() {
               onChange={(v) => setReminder(v === 'an')}
               format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
             />
-            {reminder ? <Field label={t('coach.remindTime')} value={reminderTime} onChangeText={setReminderTime} keyboardType="numbers-and-punctuation" /> : null}
+            {reminder ? (
+              <Field label={t('coach.remindTime')} value={reminderTime} onChangeText={setReminderTime} keyboardType="numbers-and-punctuation" />
+            ) : null}
             <ThemedText type="small" themeColor="textSecondary">
               {t('coach.remindHint')}
             </ThemedText>

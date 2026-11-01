@@ -11,7 +11,15 @@ import { extractRecipe, lineGrams, parseIngredientLine, parseYield } from '../re
 const DAYS = weekDays('2026-11-02');
 
 describe('Wochenvorschlag', () => {
-  const base = { days: DAYS, recipes: ALL_BOOK_RECIPES, prefs: { diet: 'alles' as const, allergies: [] }, goalKcal: 2400, goalProtein: 160, existing: [], snacks: false };
+  const base = {
+    days: DAYS,
+    recipes: ALL_BOOK_RECIPES,
+    prefs: { diet: 'alles' as const, allergies: [] },
+    goalKcal: 2400,
+    goalProtein: 160,
+    existing: [],
+    snacks: false,
+  };
 
   test('3 Mahlzeiten je Tag, kcal nahe am Anteil, keine Wiederholung binnen 2 Tagen', () => {
     const plan = suggestWeek(base);
@@ -64,8 +72,19 @@ describe('Meal-Prep und Einkaufsliste', () => {
     const egg = items.find((i) => i.name.startsWith('Eier'))!;
     expect(egg.department).toBe('milch_eier');
     expect(egg.pieces).toBeGreaterThan(0);
-    expect(items.map((i) => i.department)).toEqual([...items.map((i) => i.department)].sort((a, b) => ['obst_gemuese', 'brot', 'fleisch_fisch', 'milch_eier', 'trocken', 'konserven', 'tiefkuehl', 'getraenke', 'sonstiges'].indexOf(a) - ['obst_gemuese', 'brot', 'fleisch_fisch', 'milch_eier', 'trocken', 'konserven', 'tiefkuehl', 'getraenke', 'sonstiges'].indexOf(b)));
-    const text = shoppingText(items, new Set([egg.key]), (d) => d.toUpperCase(), (i) => `${i.amount} ${i.basis}`);
+    expect(items.map((i) => i.department)).toEqual(
+      [...items.map((i) => i.department)].sort(
+        (a, b) =>
+          ['obst_gemuese', 'brot', 'fleisch_fisch', 'milch_eier', 'trocken', 'konserven', 'tiefkuehl', 'getraenke', 'sonstiges'].indexOf(a) -
+          ['obst_gemuese', 'brot', 'fleisch_fisch', 'milch_eier', 'trocken', 'konserven', 'tiefkuehl', 'getraenke', 'sonstiges'].indexOf(b)
+      )
+    );
+    const text = shoppingText(
+      items,
+      new Set([egg.key]),
+      (d) => d.toUpperCase(),
+      (i) => `${i.amount} ${i.basis}`
+    );
     expect(text).toContain(`☑ ${egg.amount} g ${egg.name}`);
   });
 

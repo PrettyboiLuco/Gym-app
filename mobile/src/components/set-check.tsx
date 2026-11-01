@@ -12,7 +12,17 @@ import { useTheme } from '@/hooks/use-theme';
  * Runder Haken für einen Satz. Offen: Ring mit blassem Haken. Erledigt: gefüllt (Lime, hell dunkles Grün),
  * der Haken federt auf (kurz über 1, dann 1) – Rückmeldung, kein Auftritt. Erneut tippen = rückgängig.
  */
-export function SetCheck({ done, onPress, accessibilityLabel, disabled }: { done: boolean; onPress: () => void; accessibilityLabel: string; disabled?: boolean }) {
+export function SetCheck({
+  done,
+  onPress,
+  accessibilityLabel,
+  disabled,
+}: {
+  done: boolean;
+  onPress: () => void;
+  accessibilityLabel: string;
+  disabled?: boolean;
+}) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
   const reduced = useReducedMotion();

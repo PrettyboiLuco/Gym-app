@@ -66,18 +66,13 @@ export function WeekStrip({ days, summary, celebrateToday = false }: { days: Wee
   const theme = useTheme();
   // Datenfarbe: dunkel Lime, hell das dunklere Grün (Lime auf Weiß hätte unter 3:1 Kontrast).
   const doneColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
-  const description = days
-    .map((d) => `${d.label}: ${d.done ? t('today.weekDone') : d.planned ? t('today.weekPlanned') : t('today.weekFree')}`)
-    .join(', ');
+  const description = days.map((d) => `${d.label}: ${d.done ? t('today.weekDone') : d.planned ? t('today.weekPlanned') : t('today.weekFree')}`).join(', ');
   return (
     <View accessible accessibilityLabel={`${summary}. ${description}`} style={styles.weekWrap}>
       <View style={styles.week}>
         {days.map((d, i) => (
           <View key={i} style={styles.day}>
-            <ThemedText
-              type="small"
-              themeColor={d.today ? 'text' : 'textSecondary'}
-              style={[styles.dayLabel, d.today && styles.dayLabelToday]}>
+            <ThemedText type="small" themeColor={d.today ? 'text' : 'textSecondary'} style={[styles.dayLabel, d.today && styles.dayLabelToday]}>
               {d.label}
             </ThemedText>
             <DayDot

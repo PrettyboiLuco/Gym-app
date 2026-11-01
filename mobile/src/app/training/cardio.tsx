@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton, Field } from '@/components/fields';
-import { todayDay } from '@/domain/time';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -21,6 +20,7 @@ import {
   type CardioForm,
   type CardioProblem,
 } from '@/domain/cardio';
+import { todayDay } from '@/domain/time';
 import { formatClock } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useNow } from '@/hooks/use-now';
@@ -110,9 +110,21 @@ export default function CardioScreen() {
     <Screen withHeader>
       {!inSession ? <DaySwitcher day={day} onChange={setDay} /> : null}
       <Card>
-        <Choice chips label={t('cardio.activity')} options={CARDIO_ACTIVITIES} value={activity} onChange={setActivity} format={(a) => t(`cardio.activities.${a}`)} />
+        <Choice
+          chips
+          label={t('cardio.activity')}
+          options={CARDIO_ACTIVITIES}
+          value={activity}
+          onChange={setActivity}
+          format={(a) => t(`cardio.activities.${a}`)}
+        />
         {activity === 'sonstiges' ? (
-          <Field label={t('cardio.customName')} value={customName ?? entry?.customName ?? ''} onChangeText={setCustomName} placeholder={t('cardio.customPlaceholder')} />
+          <Field
+            label={t('cardio.customName')}
+            value={customName ?? entry?.customName ?? ''}
+            onChangeText={setCustomName}
+            placeholder={t('cardio.customPlaceholder')}
+          />
         ) : null}
       </Card>
 
@@ -142,7 +154,14 @@ export default function CardioScreen() {
             {t('cardio.pace', { pace: formatClock(speed.minPerKm * 60_000), kmh: formatNumber(speed.kmh, 1) })}
           </ThemedText>
         ) : null}
-        {info.level ? <Field label={t(`cardio.level.${info.level}`)} value={current.level} onChangeText={set('level')} placeholder={info.level === 'steigung' ? '5 %' : '8'} /> : null}
+        {info.level ? (
+          <Field
+            label={t(`cardio.level.${info.level}`)}
+            value={current.level}
+            onChangeText={set('level')}
+            placeholder={info.level === 'steigung' ? '5 %' : '8'}
+          />
+        ) : null}
         <Field label={t('cardio.avgHr')} value={current.avgHr} onChangeText={set('avgHr')} keyboardType="number-pad" placeholder="135" />
         {problems.includes('hr') ? <ThemedText style={{ color: theme.danger }}>{t('cardio.problem.hr')}</ThemedText> : null}
         <Choice

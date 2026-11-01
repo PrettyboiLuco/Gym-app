@@ -54,7 +54,29 @@ const UNIT_WORDS: [RegExp, TextUnit, number][] = [
 ];
 
 /** Füllwörter, die nicht zum Namen gehören. */
-const FILLER = new Set(['etwas', 'bisschen', 'ca', 'circa', 'ungefaehr', 'eine', 'ein', 'einen', 'eines', 'von', 'vom', 'der', 'die', 'das', 'den', 'dem', 'gegessen', 'getrunken', 'hatte', 'ich', 'habe']);
+const FILLER = new Set([
+  'etwas',
+  'bisschen',
+  'ca',
+  'circa',
+  'ungefaehr',
+  'eine',
+  'ein',
+  'einen',
+  'eines',
+  'von',
+  'vom',
+  'der',
+  'die',
+  'das',
+  'den',
+  'dem',
+  'gegessen',
+  'getrunken',
+  'hatte',
+  'ich',
+  'habe',
+]);
 
 function parsePart(raw: string): FoodTextItem | null {
   const words = normalize(raw).replace(/,/g, '.').split(' ').filter(Boolean);
@@ -79,7 +101,10 @@ function parsePart(raw: string): FoodTextItem | null {
     }
     if (!FILLER.has(word)) rest.push(word);
   }
-  const name = rest.join(' ').replace(/[.\-/]+$/g, '').trim();
+  const name = rest
+    .join(' ')
+    .replace(/[.\-/]+$/g, '')
+    .trim();
   if (name.length < 2) return null;
   return { raw: raw.trim(), name, amount, unit };
 }

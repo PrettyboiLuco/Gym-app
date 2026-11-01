@@ -2,7 +2,22 @@
 
 import { lateCaffeineMg } from '@/domain/caffeine';
 import { shiftDay } from '@/domain/dates';
-import { autoFactors, BASELINE_DAYS, lighterSets, loadRatio, MANUAL_FACTORS, readiness, SLEEP_GOAL_DEFAULT, sessionLoad, statusOn, type DailyCheck, type Factor, type LoadDay, type Readiness, type Status } from '@/domain/readiness';
+import {
+  autoFactors,
+  BASELINE_DAYS,
+  lighterSets,
+  loadRatio,
+  MANUAL_FACTORS,
+  readiness,
+  SLEEP_GOAL_DEFAULT,
+  sessionLoad,
+  statusOn,
+  type DailyCheck,
+  type Factor,
+  type LoadDay,
+  type Readiness,
+  type Status,
+} from '@/domain/readiness';
 import { localDay, timeZone } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
@@ -182,7 +197,10 @@ export async function setSessionFeedback(db: Db, sessionId: string, effort: numb
 }
 
 export async function getSessionFeedback(db: Db, sessionId: string) {
-  const row = await db.getFirstAsync<{ effort: number | null; feedback: string | null }>('SELECT effort, feedback FROM workout_session WHERE id = ?', sessionId);
+  const row = await db.getFirstAsync<{ effort: number | null; feedback: string | null }>(
+    'SELECT effort, feedback FROM workout_session WHERE id = ?',
+    sessionId
+  );
   let feedback: Record<string, Record<string, number>> = {};
   try {
     feedback = row?.feedback ? JSON.parse(row.feedback) : {};
@@ -242,7 +260,10 @@ export async function readinessToday(db: Db, today: string): Promise<ReadinessTo
   ]);
   const check = checks.find((c) => c.day === today) ?? null;
   // Last bis gestern: das heutige Training soll die Ampel von heute nicht verändern.
-  const { ratio } = loadRatio(loads.filter((l) => l.day < today), shiftDay(today, -1));
+  const { ratio } = loadRatio(
+    loads.filter((l) => l.day < today),
+    shiftDay(today, -1)
+  );
   return { readiness: readiness(check, checks, ratio, status?.status ?? null), check, status, ratio };
 }
 
@@ -270,7 +291,7 @@ export async function lighterPlanToday(db: Db, offer: 'wenigerSaetze' | 'leicht'
   return 'angepasst';
 }
 
-export const lighterAppliedOn = (db: Db) => readState<string | null>(db, 'lighter_today', null);
+const lighterAppliedOn = (db: Db) => readState<string | null>(db, 'lighter_today', null);
 
 // ------------------------------------------------------------------------------------ Verlauf
 
@@ -288,7 +309,10 @@ export async function readinessHistory(db: Db, today: string, days = 28): Promis
   for (let i = 0; i < days; i++) {
     const day = shiftDay(today, -i);
     const check = checks.find((c) => c.day === day) ?? null;
-    const { ratio } = loadRatio(loads.filter((l) => l.day < day), shiftDay(day, -1));
+    const { ratio } = loadRatio(
+      loads.filter((l) => l.day < day),
+      shiftDay(day, -1)
+    );
     out.push({
       day,
       check,
