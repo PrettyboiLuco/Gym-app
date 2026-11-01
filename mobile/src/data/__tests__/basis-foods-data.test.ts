@@ -82,3 +82,9 @@ describe('Grundnahrungsmittel in der Datenbank', () => {
     expect(JSON.parse(e.microsJson!)).toEqual({ calcium: 430, vitB12: 2.5 });
   });
 });
+
+test('genauer Synonym-Treffer zuerst: „Eier“ → Hühnerei vor Aubergine („Eierfrucht“)', async () => {
+  await syncBasisFoods(db, BASIS_FOODS, 1);
+  const [first] = await searchFoods(db, 'Eier');
+  expect(first.name).toBe('Hühnerei (roh)');
+});

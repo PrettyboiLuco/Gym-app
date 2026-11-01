@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { Card } from '@/components/card';
@@ -22,6 +22,8 @@ type TagOption = BookTag | 'alle';
  * beides lässt sich umstellen. Jede Zeile zeigt das, wonach man auswählt: kcal und Eiweiß je Portion, Zeit.
  */
 export default function RecipeBookScreen() {
+  // Aus dem Wochenplan (A9): Tag wird an die Rezeptansicht weitergegeben.
+  const { planDay } = useLocalSearchParams<{ planDay?: string }>();
   const { data } = useLoad(
     async (db) => ({ setup: await loadCoachSetup(db), settings: await loadNutritionSettings(db), loaded: true }),
     { setup: null as Awaited<ReturnType<typeof loadCoachSetup>>, settings: DEFAULT_SETTINGS, loaded: false }
@@ -104,7 +106,7 @@ export default function RecipeBookScreen() {
             ].join(' · ')}
             accessory="›"
             last={i === list.length - 1}
-            onPress={() => router.push({ pathname: '/nutrition/book/[id]', params: { id: r.id } })}
+            onPress={() => router.push({ pathname: '/nutrition/book/[id]', params: planDay ? { id: r.id, planDay } : { id: r.id } })}
           />
         ))}
       </Card>

@@ -13,22 +13,25 @@ import { FigureStrip } from '@/components/today-widgets';
 import { Spacing } from '@/constants/theme';
 import { calorieGoalOn } from '@/data/goals';
 import { cachedMealTimes, DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
+import { addPlanEntries } from '@/data/meal-plan';
 import { copyBookRecipe, logBookRecipe } from '@/data/recipe-book';
+import { mealPrep } from '@/domain/meal-plan';
 import { suggestMealAt } from '@/domain/diet';
-import { MEALS, type Meal } from '@/domain/nutrition';
+import { MEALS, shiftDay, type Meal } from '@/domain/nutrition';
 import { findBookRecipe, scaledIngredients } from '@/domain/recipe-book';
 import { useLoad } from '@/hooks/use-load';
-import { formatNumber, t } from '@/i18n';
+import { formatDay, formatNumber, t } from '@/i18n';
 
 const SERVINGS = ['1', '2', '3', '4'] as const;
 const LOG_AMOUNTS = ['0.5', '1', '1.5', '2'] as const;
+const PREP_DAYS = ['2', '3', '4', '5'] as const;
 
 /**
  * Ein Rezept aus dem Rezeptbuch: Nährwerte je Portion, Zutaten für die gewünschte Portionszahl, Zubereitung.
  * Eintragen bucht Portionen direkt ins Tagebuch; „In meine Rezepte“ legt eine änderbare Kopie an.
  */
 export default function BookRecipeScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, planDay } = useLocalSearchParams<{ id: string; planDay?: string }>();
   const recipe = findBookRecipe(id);
   const { data, db } = useLoad(
     async (d) => ({ settings: await loadNutritionSettings(d), goal: (await calorieGoalOn(d, diaryToday()))?.kcal ?? null }),
@@ -38,6 +41,9 @@ export default function BookRecipeScreen() {
   const [meal, setMeal] = useState<Meal>(recipe?.meal === 'snack' ? 'snack' : suggestMealAt(new Date().getHours(), cachedMealTimes()));
   const [logAmount, setLogAmount] = useState<(typeof LOG_AMOUNTS)[number]>('1');
   const [busy, setBusy] = useState(false);
+  // Wochenplan und Meal-Prep (A9.1/A9.5)
+  const [planTo, setPlanTo] = useState(planDay ?? diaryToday());
+  const [prepDays, setPrepDays] = useState<(typeof PREP_DAYS)[number]>('4');
 
   if (!recipe) return <Screen withHeader>{null}</Screen>;
 
@@ -56,6 +62,20 @@ export default function BookRecipeScreen() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function plan() {
+    if (!recipe) return;
+    await addPlanEntries(db, [{ day: planTo, meal, source: 'buch', ref: recipe.id, name: recipe.name, portions: Number(logAmount) }]);
+    showToast(t('mealPlan.added', { day: formatDay(planTo) }));
+    if (planDay) router.dismissTo('/nutrition/plan');
+  }
+
+  async function prep() {
+    if (!recipe) return;
+    await addPlanEntries(db, mealPrep({ meal, source: 'buch', ref: recipe.id, name: recipe.name }, planTo, Number(prepDays)));
+    showToast(t('mealPlan.prepAdded', { count: Number(prepDays), from: formatDay(planTo) }));
+    router.push('/nutrition/plan');
   }
 
   async function copy() {
@@ -156,6 +176,26 @@ export default function BookRecipeScreen() {
           onPress={log}
         />
         <Button label={t('book.copy')} variant="secondary" onPress={() => (busy ? undefined : copy())} />
+      </Card>
+
+      <Card title={t('mealPlan.planTitle')}>
+        <Choice
+          label={t('mealPlan.planDay')}
+          options={[0, 1, 2, 3, 4, 5, 6].map((i) => shiftDay(planDay ?? diaryToday(), i))}
+          value={planTo}
+          onChange={setPlanTo}
+          format={(d) => formatDay(d).slice(0, 5)}
+          chips
+        />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('mealPlan.planUses', { meal: t(`nutrition.meals.${meal}`), portions: formatNumber(Number(logAmount), 1) })}
+        </ThemedText>
+        <Button label={t('mealPlan.planAdd')} variant="secondary" onPress={plan} />
+        <Choice label={t('mealPlan.prepDays')} options={PREP_DAYS} value={prepDays} onChange={setPrepDays} format={(d) => t('mealPlan.prepDaysOption', { count: d })} />
+        <Button label={t('mealPlan.prep', { count: Number(prepDays) })} variant="secondary" onPress={prep} />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('mealPlan.prepHint', { scaled: Number(prepDays) })}
+        </ThemedText>
       </Card>
 
       {recipe.allergens.length > 0 ? (

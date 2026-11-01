@@ -313,6 +313,7 @@ export default function DiaryScreen() {
 
       <Card>
         <ListRow icon="calendar" title={t('nutrition.weekLink')} subtitle={t('nutrition.weekLinkSub')} accessory="›" onPress={() => router.push({ pathname: '/nutrition/week', params: { day } })} />
+        <ListRow icon="calendar" title={t('mealPlan.title')} subtitle={t('mealPlan.linkSub')} accessory="›" onPress={() => router.push('/nutrition/plan')} />
         <ListRow icon="book" title={t('book.title')} subtitle={t('book.linkSub', { count: ALL_BOOK_RECIPES.length })} accessory="›" onPress={() => router.push('/nutrition/book')} />
         <ListRow icon="book" title={t('nutrition.recipesLink')} accessory="›" onPress={() => router.push('/nutrition/recipes')} />
         <ListRow icon="pill" title={t('supplements.link')} accessory="›" onPress={() => router.push('/nutrition/supplements')} />

@@ -126,6 +126,8 @@ export async function searchFoods(db: Db, query: string, limit = 50) {
   const rows = await db.getAllAsync<Food>(
     `SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND (name LIKE ? OR brand LIKE ? OR barcode = ? OR search_terms LIKE ?)
      ORDER BY favorite DESC,
+       -- Name oder Synonym genau gleich („Eier“ → Hühnerei) vor Teiltreffern („Eierfrucht“ → Aubergine)
+       CASE WHEN lower(name) = lower(?) OR ('|' || search_terms || '|') LIKE ? THEN 0 ELSE 1 END,
        CASE WHEN catalog_id IS NOT NULL OR catalog_origin IS NOT NULL THEN 0 WHEN source = 'eigen' THEN 1 ELSE 2 END,
        CASE WHEN name LIKE ? OR search_terms LIKE ? THEN 0 ELSE 1 END,
        length(name), name COLLATE NOCASE LIMIT ?`,
@@ -133,6 +135,8 @@ export async function searchFoods(db: Db, query: string, limit = 50) {
     like,
     q,
     `%${folded}%`,
+    q,
+    `%| ${folded} |%`,
     `${q}%`,
     `% ${folded}%`,
     limit

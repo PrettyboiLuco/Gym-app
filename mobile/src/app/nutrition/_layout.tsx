@@ -27,6 +27,9 @@ export default function NutritionLayout() {
       <Stack.Screen name="recipe/[id]" options={{ title: t('nutrition.recipe.titleEdit') }} />
       <Stack.Screen name="recipe-log/[id]" options={{ title: t('nutrition.recipe.log.title') }} />
       <Stack.Screen name="week" options={{ title: t('nutrition.week.title') }} />
+      <Stack.Screen name="plan" options={{ title: t('mealPlan.title') }} />
+      <Stack.Screen name="shopping" options={{ title: t('shopping.title') }} />
+      <Stack.Screen name="import-recipe" options={{ title: t('recipeImport.title') }} />
       <Stack.Screen name="settings" options={{ title: t('nutrition.settings.title') }} />
       <Stack.Screen name="supplements" options={{ title: t('supplements.title') }} />
     </Stack>

@@ -658,6 +658,26 @@ export const MIGRATIONS: string[] = [
      incomplete INTEGER NOT NULL DEFAULT 0 CHECK (incomplete IN (0, 1)),
      updated_at_utc TEXT NOT NULL
    );`,
+
+  // Version 25: Essen planen (Ausbauplan A9). Wochenplan aus Rezeptbuch oder eigenen Rezepten (Quelle + Verweis, Name
+  // als Schnappschuss), gegessen = Verweis auf den Tagebucheintrag. Abgehakte Einträge der Einkaufsliste je Woche.
+  `CREATE TABLE meal_plan (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     meal TEXT NOT NULL CHECK (meal IN ('fruehstueck', 'mittag', 'abend', 'snack')),
+     source TEXT NOT NULL CHECK (source IN ('buch', 'eigen')),
+     ref TEXT NOT NULL,
+     name TEXT NOT NULL,
+     portions REAL NOT NULL CHECK (portions > 0 AND portions <= 20),
+     eaten_event_id TEXT,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX meal_plan_day ON meal_plan (day);
+   CREATE TABLE shopping_check (
+     key TEXT PRIMARY KEY NOT NULL,
+     checked INTEGER NOT NULL CHECK (checked IN (0, 1)),
+     updated_at_utc TEXT NOT NULL
+   );`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

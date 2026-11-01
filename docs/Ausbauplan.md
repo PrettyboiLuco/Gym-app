@@ -27,7 +27,8 @@ mit der Fachperson statt vieler einzelner.
 | A6 | **fertig** (01.11.2026) – Datenbank-Version 23, Regeln Bereitschaft v1 (Fachprüfung offen, Mappe Abschnitt I); 2 Wochen Morgen-Check durch Luc offen |
 | A7 | **fertig** (01.11.2026) – Datenbank-Version 24, Schätzung Fassung 1, Check-in Fassung 2 wählbar (Fachprüfung offen, Mappe Abschnitt J); Test nach 3–4 Wochen Daten durch Luc offen |
 | A8 | **fertig** (01.11.2026) – 5 Vorlagen, Deload v1 (Fachprüfung offen, Mappe Abschnitt K), Geräteprofile, Muskelkarte, Statistik; Gerätetest durch Luc offen |
-| A9–A11 | offen |
+| A9 | **fertig** (01.11.2026) – Datenbank-Version 25, Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep; Supermarkt-Test durch Luc offen |
+| A10–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -339,6 +340,45 @@ nur aus Strichen → erst sichtbar, wenn es erfasste Tage gibt.
 | A9.5 | Meal-Prep: Portionen eines Rezepts über mehrere Tage verteilen |
 
 **Fertig, wenn:** Luc für eine Woche plant, die Einkaufsliste im Supermarkt nutzt und ein Rezept per Link übernimmt.
+
+**Umgesetzt (A9, 01.11.2026):**
+- **Datenbank:** Migration 25 mit `meal_plan` (Rezeptbuch oder eigenes Rezept, Portionen, Verweis auf den
+  Tagebucheintrag) und `shopping_check`.
+- **„Ernährung → Wochenplan“:**
+  - Wochen blättern; sonntags öffnet direkt die kommende Woche.
+  - „Freie Plätze vorschlagen“ füllt ab heute Frühstück, Mittag, Abend (Snacks wahlweise) aus dem Rezeptbuch,
+    passend zu Ernährungsweise und Allergien.
+  - Die Portionen (½–2) treffen den Anteil am kcal-Ziel; zu wenig Eiweiß und Wiederholungen binnen 2 Tagen kosten
+    Punkte. Ohne Zufall: gleiche Eingabe ergibt gleichen Vorschlag.
+  - Tagessumme gegen das Ziel; im Modus „ohne Zahlen“ ausgeblendet.
+  - „Gegessen“ trägt mit einem Tippen ein (nur bis heute). Wird der Tagebucheintrag gelöscht, ist der Plan-Eintrag
+    wieder offen.
+  - Eigene Rezepte, auch per Link übernommene, lassen sich ebenfalls einplanen.
+- **Rezeptansicht:** „Für diesen Tag planen“ und Meal-Prep: 2–5 Portionen auf aufeinanderfolgende Tage, je 1
+  Portion zur gleichen Mahlzeit.
+- **Einkaufsliste:**
+  - aus allen noch nicht gegessenen Mahlzeiten ab heute; gleiche Zutaten über die Grundnahrungsmittel
+    zusammengefasst und aufgerundet
+  - 9 Abteilungen (TK und Konserven am Namen erkannt), Stückzahl bei Eiern, Gemüse und Ähnlichem
+  - Häkchen je Woche; Teilen als Text mit ☐/☑
+- **Rezept per Link:**
+  - Das schema.org-Rezept wird gelesen (auch in `@graph`) mit Name, Portionen, Zutaten und Schritten.
+  - Die Zutatenzeilen werden zerlegt (Menge, Einheit, Name; ½, 1/2, Dezimalkomma, kg/l/cl). Löffel, Stück und
+    Scheiben werden über die Portionen der Grundnahrungsmittel in Gramm umgerechnet.
+  - Je Zeile gibt es drei Vorschläge oder „weglassen“, die Menge ist änderbar. Gespeichert wird als eigenes Rezept.
+  - Ausweichweg: Zutaten als Text einfügen.
+
+**Beim Lückencheck nach A9 gefunden und geschlossen:**
+- Per Link übernommene Rezepte ließen sich nicht einplanen.
+- „Gegessen“ stand auch an zukünftigen Tagen.
+- „0,5 kg“ wurde als „0“ gelesen.
+- „Eier“ schlug Rührei, Aubergine („Eierfrucht“) und Pfifferlinge vor statt des Hühnereis. Genaue Treffer bei Name
+  oder Synonym kommen jetzt zuerst, auch in der Lebensmittelsuche.
+- Sonntags zeigte der Plan nur vergangene, leere Tage.
+- Die Einkaufsliste hätte bereits gegessene Mahlzeiten mitgezählt.
+
+**Grenze:** Im Browser blocken viele Rezeptseiten das Laden (CORS) – auf dem iPhone nicht; dort bleibt sonst das
+Einfügen der Zutaten.
 
 ## A10 – Körper, Rückmeldung und Motivation
 

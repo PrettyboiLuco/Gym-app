@@ -38,6 +38,8 @@ export const BACKUP_TABLES = [
   'daily_check',
   'status_period',
   'diary_day',
+  'meal_plan',
+  'shopping_check',
   'checkin',
   'supplement',
   'supplement_log',
