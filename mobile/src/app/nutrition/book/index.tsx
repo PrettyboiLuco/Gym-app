@@ -2,12 +2,12 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { Card } from '@/components/card';
-import { Choice, ListRow } from '@/components/fields';
+import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { loadCoachSetup } from '@/data/coach';
 import { DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
-import { ALL_BOOK_RECIPES, BOOK_GOALS, filterBook, goalForCoach, type BookGoal } from '@/domain/recipe-book';
+import { ALL_BOOK_RECIPES, BOOK_GOALS, BOOK_TAGS, filterBook, goalForCoach, type BookGoal, type BookTag } from '@/domain/recipe-book';
 import { MEALS, type Meal } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
 import { formatNumber, t } from '@/i18n';
@@ -15,6 +15,7 @@ import { formatNumber, t } from '@/i18n';
 type GoalOption = BookGoal | 'alle';
 type MealOption = Meal | 'alle';
 type DietOption = 'alles' | 'vegetarisch' | 'vegan';
+type TagOption = BookTag | 'alle';
 
 /**
  * Rezeptbuch: mitgelieferte Rezepte nach Ziel. Startet mit dem Ziel aus dem Coach und der eigenen Ernährungsweise;
@@ -29,6 +30,8 @@ export default function RecipeBookScreen() {
   const [goalChoice, setGoal] = useState<GoalOption | null>(null);
   const [meal, setMeal] = useState<MealOption>('alle');
   const [dietChoice, setDiet] = useState<DietOption | null>(null);
+  const [tag, setTag] = useState<TagOption>('alle');
+  const [query, setQuery] = useState('');
   const goal = goalChoice ?? suggested ?? 'alle';
   const diet = dietChoice ?? data.settings.diet;
 
@@ -36,11 +39,29 @@ export default function RecipeBookScreen() {
     goal: goal === 'alle' ? null : goal,
     meal: meal === 'alle' ? null : meal,
     diet,
+    tag: tag === 'alle' ? null : tag,
+    query,
   });
 
   return (
     <Screen withHeader>
+      <Field
+        label={t('book.search')}
+        value={query}
+        onChangeText={setQuery}
+        placeholder={t('book.searchPlaceholder')}
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        returnKeyType="search"
+      />
       <Card>
+        <Choice
+          label={t('book.theme')}
+          options={['alle', ...BOOK_TAGS] as const}
+          value={tag}
+          onChange={setTag}
+          format={(g) => t(`book.tags.${g}`)}
+        />
         <Choice
           label={t('book.goal')}
           options={['alle', ...BOOK_GOALS] as const}

@@ -616,7 +616,7 @@ export const de = {
   },
   book: {
     title: 'Rezeptbuch',
-    linkSub: '{{count}} Rezepte für Diät, Erhalt und Aufbau',
+    linkSub: '{{count}} Rezepte: Diät, Aufbau, Masse, Snacks, Waffeln, Pancakes',
     open: 'Rezeptbuch öffnen ({{count}} Rezepte)',
     goal: 'Ziel',
     goals: {
@@ -635,6 +635,17 @@ export const de = {
       masse: 'Über 1.050 kcal pro Portion – wenn hohe Kalorienziele schwer zu schaffen sind.',
     },
     fromCoach: 'Passt zu deinem Ziel im Coach.',
+    search: 'Suchen',
+    searchPlaceholder: 'z. B. Waffeln, Lachs, Süßkartoffel',
+    theme: 'Thema',
+    tags: {
+      alle: 'Alle',
+      waffeln: 'Waffeln',
+      pancakes: 'Pancakes',
+      milchreis: 'Milchreis',
+      suesskartoffel: 'Süßkartoffel',
+      mealprep: 'Meal Prep',
+    },
     diet: 'Ernährungsweise',
     diets: { alles: 'Alles', vegetarisch: 'Vegetarisch', vegan: 'Vegan' },
     count: {

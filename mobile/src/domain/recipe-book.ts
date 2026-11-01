@@ -5,6 +5,7 @@
 import type { Allergen, FoodDiet } from './diet';
 import type { Meal, NutrientBasis, Nutrients } from './nutrition';
 import { BOOK_INGREDIENTS, BOOK_RECIPES } from './recipe-book-data';
+import { MORE_BOOK_RECIPES } from './recipe-book-more';
 
 export const BOOK_GOALS = ['diaet_hart', 'diaet', 'erhalt', 'aufbau', 'masse'] as const;
 export type BookGoal = (typeof BOOK_GOALS)[number];
@@ -18,6 +19,10 @@ export type BookIngredient = {
   allergens: Allergen[];
 };
 
+/** Themen zum Stöbern; „Süßkartoffel“ ergibt sich aus den Zutaten. */
+export const BOOK_TAGS = ['waffeln', 'pancakes', 'milchreis', 'suesskartoffel', 'mealprep'] as const;
+export type BookTag = (typeof BOOK_TAGS)[number];
+
 export type BookRecipe = {
   id: string;
   name: string;
@@ -30,6 +35,7 @@ export type BookRecipe = {
   ingredients: [string, number][];
   steps: string[];
   tip?: string;
+  tags?: BookTag[];
 };
 
 /**
@@ -44,6 +50,12 @@ export const GOAL_LIMITS: Record<BookGoal, { minKcal: number; maxKcal: number; p
   masse: { minKcal: 1050, maxKcal: 1800, proteinShare: 0.12, minProtein: 45 },
 };
 
+/** Grenzen für ein Rezept: Snacks dürfen kleiner sein (40 % der Mindest-kcal, halbes Mindest-Eiweiß). */
+export function limitsFor(recipe: Pick<BookRecipe, 'goal' | 'meal'>) {
+  const lim = GOAL_LIMITS[recipe.goal];
+  return recipe.meal === 'snack' ? { ...lim, minKcal: Math.round(lim.minKcal * 0.4), minProtein: lim.minProtein / 2 } : lim;
+}
+
 export type BookIngredientLine = { id: string; name: string; amount: number; basis: NutrientBasis };
 
 export type BookRecipeView = BookRecipe & {
@@ -51,6 +63,7 @@ export type BookRecipeView = BookRecipe & {
   perPortion: Nutrients;
   diet: FoodDiet;
   allergens: Allergen[];
+  tags: BookTag[];
 };
 
 const round = (v: number, digits = 1) => Math.round(v * 10 ** digits) / 10 ** digits;
@@ -84,8 +97,14 @@ export function recipeAllergens(recipe: BookRecipe): Allergen[] {
   return [...new Set(recipe.ingredients.flatMap(([id]) => ingredient(id).allergens))];
 }
 
+export function recipeTags(recipe: BookRecipe): BookTag[] {
+  const tags = new Set(recipe.tags ?? []);
+  if (recipe.ingredients.some(([id]) => id === 'suesskartoffel')) tags.add('suesskartoffel');
+  return BOOK_TAGS.filter((t) => tags.has(t));
+}
+
 export function viewRecipe(recipe: BookRecipe): BookRecipeView {
-  return { ...recipe, perPortion: perPortion(recipe), diet: recipeDiet(recipe), allergens: recipeAllergens(recipe) };
+  return { ...recipe, perPortion: perPortion(recipe), diet: recipeDiet(recipe), allergens: recipeAllergens(recipe), tags: recipeTags(recipe) };
 }
 
 /** Zutaten für eine gewünschte Portionszahl (gerundet auf 5 g, kleine Mengen auf 1 g). */
@@ -98,21 +117,36 @@ export function scaledIngredients(recipe: BookRecipe, portions: number): BookIng
   });
 }
 
-export const ALL_BOOK_RECIPES: BookRecipeView[] = BOOK_RECIPES.map(viewRecipe);
+/** Alle Rezepte: Grundstock und Erweiterung (Waffeln, Pancakes, Milchreis, Süßkartoffel, Snacks …). */
+export const RECIPES: BookRecipe[] = [...BOOK_RECIPES, ...MORE_BOOK_RECIPES];
+export const ALL_BOOK_RECIPES: BookRecipeView[] = RECIPES.map(viewRecipe);
 
 export function findBookRecipe(id: string): BookRecipeView | null {
   return ALL_BOOK_RECIPES.find((r) => r.id === id) ?? null;
 }
 
-export type BookFilter = { goal: BookGoal | null; meal: Meal | null; diet: 'alles' | 'vegetarisch' | 'vegan' };
+export type BookFilter = {
+  goal: BookGoal | null;
+  meal: Meal | null;
+  diet: 'alles' | 'vegetarisch' | 'vegan';
+  tag?: BookTag | null;
+  /** Suche in Name und Zutaten (Groß-/Kleinschreibung egal). */
+  query?: string;
+};
+
+const fold = (s: string) => s.toLocaleLowerCase('de-DE').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
 
 export function filterBook(recipes: readonly BookRecipeView[], filter: BookFilter): BookRecipeView[] {
-  return recipes.filter(
-    (r) =>
-      (filter.goal === null || r.goal === filter.goal) &&
-      (filter.meal === null || r.meal === filter.meal) &&
-      (filter.diet === 'alles' || (filter.diet === 'vegetarisch' ? r.diet !== 'nicht_vegetarisch' : r.diet === 'vegan'))
-  );
+  const words = fold(filter.query ?? '').split(/\s+/).filter(Boolean);
+  return recipes.filter((r) => {
+    if (filter.goal !== null && r.goal !== filter.goal) return false;
+    if (filter.meal !== null && r.meal !== filter.meal) return false;
+    if (filter.diet !== 'alles' && (filter.diet === 'vegetarisch' ? r.diet === 'nicht_vegetarisch' : r.diet !== 'vegan')) return false;
+    if (filter.tag && !r.tags.includes(filter.tag)) return false;
+    if (words.length === 0) return true;
+    const text = fold([r.name, ...r.ingredients.map(([id]) => ingredient(id).name)].join(' '));
+    return words.every((w) => text.includes(w));
+  });
 }
 
 /** Passendes Ziel aus dem Coach-Ziel (abnehmen → Diät, zunehmen → Aufbau, halten → Erhalt). */
