@@ -39,7 +39,7 @@ import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 
 // Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
-type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string; seconds: string; rir?: string; note?: string };
+type ItemForm = { exerciseId: string; sets: string; repsMin: string; repsMax: string; rest: string; seconds: string; rir?: string; note?: string; label?: string };
 type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean };
 type PlanForm = { name: string; days: DayForm[] };
 
@@ -63,6 +63,7 @@ function toForm(draft: PlanDraft): PlanForm {
         seconds: i.targetSeconds == null ? '' : String(i.targetSeconds),
         rir: i.rir ?? '',
         note: i.note ?? '',
+        label: i.label ?? '',
       })),
     })),
   };
@@ -87,6 +88,7 @@ function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDr
         targetSeconds: timed(i.exerciseId) ? num(i.seconds) : null,
         rir: i.rir?.trim() || null,
         note: i.note?.trim() || null,
+        label: i.label?.trim() || null,
       })),
     })),
   };
@@ -230,9 +232,14 @@ export default function PlanEditorScreen() {
           {day.items.map((item, itemIndex) => (
             <View key={itemIndex} style={[styles.item, { borderColor: theme.backgroundSelected }]}>
               <View style={styles.itemHeader}>
-                <ThemedText type="smallBold" style={styles.flex}>
-                  {exerciseName(byId.get(item.exerciseId))}
-                </ThemedText>
+                <View style={styles.flex}>
+                  <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
+                  {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {exerciseName(byId.get(item.exerciseId))}
+                    </ThemedText>
+                  ) : null}
+                </View>
                 {itemIndex > 0 ? (
                   <Button
                     label="↑"
@@ -272,6 +279,12 @@ export default function PlanEditorScreen() {
                   {t('plan.timedHint')}
                 </ThemedText>
               ) : null}
+              <Field
+                label={t('plan.label')}
+                value={item.label ?? ''}
+                placeholder={exerciseName(byId.get(item.exerciseId))}
+                onChangeText={(label) => updateItem(dayIndex, itemIndex, { label })}
+              />
               <View style={styles.numbers}>
                 <Field
                   label={t('plan.rir')}

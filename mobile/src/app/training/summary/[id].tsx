@@ -14,7 +14,7 @@ import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { useUnits } from '@/data/profile-provider';
 import { timedSessionsForWorkout } from '@/data/routines';
-import { getSession, listExercises, listSessionSets, previousBests, type Exercise, type SessionInfo } from '@/data/training';
+import { getSession, listExercises, listSessionSets, planHintsForSession, previousBests, type Exercise, type PlanHint, type SessionInfo } from '@/data/training';
 import { loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
 import { findRecords, summarize, type Record } from '@/domain/summary';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -29,12 +29,13 @@ import { formatNumber, formatWeight, t } from '@/i18n';
  * Einmal beim Öffnen ein Erfolgs-Signal (bei Bestleistung deutlicher).
  */
 async function loadSummary(db: Db, id: string) {
-  const [session, sets, exercises, week, blocks] = await Promise.all([
+  const [session, sets, exercises, week, blocks, hints] = await Promise.all([
     getSession(db, id),
     listSessionSets(db, id),
     listExercises(db),
     loadTrainingWeek(db, todayDay()),
     timedSessionsForWorkout(db, id),
+    planHintsForSession(db, id),
   ]);
   const done = sets.filter((s) => s.completedAt);
   const records = session
@@ -49,7 +50,7 @@ async function loadSummary(db: Db, id: string) {
       )
     : [];
   const cooldownOffered = session?.cooldown !== 0 && !blocks.some((b) => b.kind === 'cooldown');
-  return { session, summary: session ? summarize(done, session.startedAt, session.finishedAt) : null, records, exercises, week, cooldownOffered, loaded: true };
+  return { session, summary: session ? summarize(done, session.startedAt, session.finishedAt) : null, records, exercises, hints, week, cooldownOffered, loaded: true };
 }
 
 export default function SummaryScreen() {
@@ -62,11 +63,12 @@ export default function SummaryScreen() {
     summary: null as ReturnType<typeof summarize> | null,
     records: [] as Record[],
     exercises: [] as Exercise[],
+    hints: {} as { [exerciseId: string]: PlanHint },
     week: { done: [], planned: [], goal: null, todayIndex: 0 } as TrainingWeek,
     cooldownOffered: false,
     loaded: false,
   }, id);
-  const { session, summary, records, exercises, week, cooldownOffered, loaded } = data;
+  const { session, summary, records, exercises, hints, week, cooldownOffered, loaded } = data;
 
   useEffect(() => {
     if (!loaded) return;
@@ -76,6 +78,7 @@ export default function SummaryScreen() {
   if (!session || !summary) return <Screen withHeader>{null}</Screen>;
 
   const byId = new Map(exercises.map((e) => [e.id, e]));
+  const nameOf = (exerciseId: string) => hints[exerciseId]?.label || exerciseName(byId.get(exerciseId));
   const dayLabels = [1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`));
   const days: WeekDay[] = dayLabels.map((label, i) => ({ label, done: !!week.done[i], planned: !!week.planned[i], today: i === week.todayIndex }));
   const doneDays = week.done.filter(Boolean).length;
@@ -130,14 +133,14 @@ export default function SummaryScreen() {
             <Pressable
               key={r.exerciseId}
               accessibilityRole="button"
-              accessibilityLabel={`${exerciseName(byId.get(r.exerciseId))}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
+              accessibilityLabel={`${nameOf(r.exerciseId)}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
               onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
               style={({ pressed }) => [styles.record, { opacity: pressed ? 0.7 : 1 }]}>
               <View style={[styles.recordMark, { backgroundColor: dark ? theme.accent : theme.tint }]}>
                 <ThemedText style={[styles.recordMarkText, { color: dark ? theme.onAccent : theme.onTint }]}>↑</ThemedText>
               </View>
               <View style={styles.flex}>
-                <ThemedText style={styles.recordName}>{exerciseName(byId.get(r.exerciseId))}</ThemedText>
+                <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {recordText(r)}
                 </ThemedText>

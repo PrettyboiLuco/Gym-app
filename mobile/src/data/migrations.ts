@@ -541,6 +541,8 @@ export const MIGRATIONS: string[] = [
   // Version 17: Plan-Übungen mit Anstrengung (RIR, Text wie „0–1“) und kurzem Hinweis (z. B. „Becken bleibt am Polster“).
   `ALTER TABLE plan_item ADD COLUMN rir TEXT;
    ALTER TABLE plan_item ADD COLUMN note TEXT;`,
+  // Version 18: Anzeigename je Plan-Übung (z. B. „Cable Flys“ statt des Katalognamens „Cable Crossover“).
+  `ALTER TABLE plan_item ADD COLUMN label TEXT;`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

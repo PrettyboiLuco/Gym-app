@@ -18,6 +18,10 @@ describe('Plan-Datei', () => {
     expect(r.draft.days.map((d) => d.items.reduce((s, i) => s + i.sets, 0))).toEqual([16, 18, 17, 13]);
     expect(r.draft.days.flatMap((d) => d.items).every((i) => i.rir && i.restSeconds === 240)).toBe(true);
     expect(r.weekdays).toEqual([1, 3, 5, 7]);
+    // Namen wie im PDF, Katalog-Übung dahinter bleibt für Verlauf und Bestleistungen.
+    expect(r.draft.days[0].items[0]).toMatchObject({ exerciseId: 'cable_crossover', label: 'Cable Flys' });
+    expect(r.draft.days[2].items[2]).toMatchObject({ exerciseId: 'rudern_maschine_hoch', label: 'High Row' });
+    expect(r.draft.days.flatMap((d) => d.items).every((i) => i.label)).toBe(true);
     expect(r.routines.map((x) => [x.name, x.items.length])).toEqual([['Lucs Dehnroutine', 10], ['Massagepistole', 6]]);
     expect(r.customExercises).toHaveLength(8);
     expect(r.goals).toEqual({ kcal: 3900, drinkMl: 5000 });

@@ -36,6 +36,7 @@ import {
   listSessionSets,
   loadProgressionOn,
   planHintsForSession,
+  type PlanHint,
   loadRestAuto,
   loadRestTimer,
   reopenSet,
@@ -99,7 +100,7 @@ export default function SessionScreen() {
   const [restFocus, setRestFocus] = useState(false);
   const [openDone, setOpenDone] = useState<Set<string>>(new Set());
   // RIR und Hinweise aus dem Plan (z. B. „Becken bleibt am Polster“).
-  const [hints, setHints] = useState<Record<string, { rir: string | null; note: string | null }>>({});
+  const [hints, setHints] = useState<Record<string, PlanHint>>({});
   const [restAuto, setRestAuto] = useState(true);
   // Steigerungsvorschläge (TRAIN-018) und Ersatz bei belegtem Gerät (TRAIN-016).
   const [progressionOn, setProgressionOn] = useState(true);
@@ -372,6 +373,8 @@ export default function SessionScreen() {
   if (!session) return <Screen withHeader>{null}</Screen>;
   const active = session.status === 'aktiv';
   const byId = byIdAll;
+  // Name aus dem Plan (z. B. „Cable Flys“) vor dem Katalognamen; Verlauf hängt weiter an der Übung.
+  const nameOf = (exerciseId: string) => hints[exerciseId]?.label || exerciseName(byIdAll.get(exerciseId));
   const warmupDone = blocks.some((b) => b.kind === 'aufwaermen' && b.status === 'abgeschlossen');
   const cooldownDone = blocks.some((b) => b.kind === 'cooldown' && b.status === 'abgeschlossen');
   // Cool-down noch bis 3 Stunden nach dem Ende anbieten.
@@ -398,7 +401,7 @@ export default function SessionScreen() {
         ? `${value.weight} ${units.weight} × ${value.reps}`
         : '';
     nextUp = {
-      title: exerciseName(byIdAll.get(nextRow.exerciseId)),
+      title: nameOf(nextRow.exerciseId),
       detail: [t('session.setOf', { n: index + 1, total: rowsOfNext.length }), what].filter(Boolean).join(' · '),
     };
   }
@@ -489,7 +492,7 @@ export default function SessionScreen() {
             <Animated.View key={exerciseId} layout={cardLayout}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${exerciseName(exercise)}: ${t('session.exerciseDone', { count: rows.length })}. ${t('session.showSets')}`}
+                accessibilityLabel={`${nameOf(exerciseId)}: ${t('session.exerciseDone', { count: rows.length })}. ${t('session.showSets')}`}
                 onPress={() => setOpenDone((o) => new Set(o).add(exerciseId))}
                 style={({ pressed }) => [
                   styles.doneCard,
@@ -500,7 +503,7 @@ export default function SessionScreen() {
                 </View>
                 <View style={styles.flex}>
                   <ThemedText style={styles.doneTitle} numberOfLines={1}>
-                    {exerciseName(exercise)}
+                    {nameOf(exerciseId)}
                   </ThemedText>
                   <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
                     {t('session.doneSummary', {
@@ -519,14 +522,19 @@ export default function SessionScreen() {
         }
         return (
           <Animated.View key={exerciseId} layout={cardLayout}>
-          <Card title={exerciseName(byId.get(exerciseId))}>
+          <Card title={nameOf(exerciseId)}>
+            {hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {exerciseName(exercise)}
+              </ThemedText>
+            ) : null}
             {active && exerciseId === currentId ? (
               <View style={styles.nowRow}>
                 <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
                 <ThemedText type="small">{t('session.now')}</ThemedText>
               </View>
             ) : null}
-            <ExerciseMedia exerciseId={exerciseId} label={exerciseName(byId.get(exerciseId))} />
+            <ExerciseMedia exerciseId={exerciseId} label={nameOf(exerciseId)} />
             <ThemedText type="small" themeColor="textSecondary">
               {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
             </ThemedText>
@@ -656,7 +664,7 @@ export default function SessionScreen() {
             {active && hasOpen && exercise ? (
               busyFor === exerciseId ? (
                 <View style={styles.busy}>
-                  <ThemedText type="smallBold">{t('session.busyTitle', { name: exerciseName(exercise) })}</ThemedText>
+                  <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
                   {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft')).map((alt) => (
                     <ListRow
                       key={alt.id}

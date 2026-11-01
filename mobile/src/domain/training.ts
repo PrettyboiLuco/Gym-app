@@ -14,6 +14,8 @@ export type PlanItemDraft = {
   rir?: string | null;
   /** Kurzer Hinweis zur Ausführung, wird im Training angezeigt. */
   note?: string | null;
+  /** Eigener Name im Plan (z. B. „Cable Flys“); Verlauf und Bestleistungen hängen weiter an der Katalog-Übung. */
+  label?: string | null;
 };
 /** Aufwärmen/Cool-down für diesen Tag vorschlagen (STRETCH-001/002). */
 export type PlanDayDraft = { name: string; items: PlanItemDraft[]; warmup?: boolean; cooldown?: boolean };

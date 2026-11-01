@@ -146,13 +146,19 @@ async function loadVersionDraft(db: Db, versionId: string, name: string): Promis
       targetSeconds: number | null;
       rir: string | null;
       note: string | null;
+      label: string | null;
     }>(
       `SELECT exercise_id AS exerciseId, sets, reps_min AS repsMin, reps_max AS repsMax, rest_seconds AS restSeconds,
-       target_seconds AS targetSeconds, rir, note FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
+       target_seconds AS targetSeconds, rir, note, label FROM plan_item WHERE plan_day_id = ? ORDER BY position`,
       day.id
     );
-    // RIR und Hinweis nur mitgeben, wenn gesetzt – so bleibt ein Plan ohne diese Angaben unverändert.
-    const clean = items.map(({ rir, note, ...rest }) => ({ ...rest, ...(rir ? { rir } : {}), ...(note ? { note } : {}) }));
+    // RIR, Hinweis und Anzeigename nur mitgeben, wenn gesetzt – so bleibt ein Plan ohne diese Angaben unverändert.
+    const clean = items.map(({ rir, note, label, ...rest }) => ({
+      ...rest,
+      ...(rir ? { rir } : {}),
+      ...(note ? { note } : {}),
+      ...(label ? { label } : {}),
+    }));
     draft.days.push({ name: day.name, items: clean, warmup: day.warmup === 1, cooldown: day.cooldown === 1 });
   }
   return draft;
@@ -203,8 +209,8 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, 
       for (const [itemIndex, item] of day.items.entries()) {
         const timed = item.targetSeconds != null;
         await db.runAsync(
-          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds, rir, note)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds, rir, note, label)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           newId(),
           dayId,
           itemIndex,
@@ -215,7 +221,8 @@ export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, 
           item.restSeconds,
           item.targetSeconds ?? null,
           item.rir?.trim() || null,
-          item.note?.trim() || null
+          item.note?.trim() || null,
+          item.label?.trim() || null
         );
       }
     }
@@ -640,14 +647,17 @@ export async function exerciseBests(db: Db, exerciseId: string): Promise<Exercis
 }
 
 /** RIR und Hinweise des Plantags eines Trainings, je Übung (für die Anzeige im Training). */
-export async function planHintsForSession(db: Db, sessionId: string): Promise<Record<string, { rir: string | null; note: string | null }>> {
-  const rows = await db.getAllAsync<{ exerciseId: string; rir: string | null; note: string | null }>(
-    `SELECT i.exercise_id AS exerciseId, i.rir, i.note FROM plan_item i
+export type PlanHint = { rir: string | null; note: string | null; label: string | null };
+
+/** RIR, Hinweis und Anzeigename der Plan-Übungen eines Trainings, je Übung (erste Nennung zählt). */
+export async function planHintsForSession(db: Db, sessionId: string): Promise<Record<string, PlanHint>> {
+  const rows = await db.getAllAsync<{ exerciseId: string } & PlanHint>(
+    `SELECT i.exercise_id AS exerciseId, i.rir, i.note, i.label FROM plan_item i
      JOIN workout_session s ON s.plan_day_id = i.plan_day_id
      WHERE s.id = ? ORDER BY i.position`,
     sessionId
   );
-  const result: Record<string, { rir: string | null; note: string | null }> = {};
-  for (const r of rows) if (!result[r.exerciseId]) result[r.exerciseId] = { rir: r.rir, note: r.note };
+  const result: Record<string, PlanHint> = {};
+  for (const r of rows) if (!result[r.exerciseId]) result[r.exerciseId] = { rir: r.rir, note: r.note, label: r.label };
   return result;
 }

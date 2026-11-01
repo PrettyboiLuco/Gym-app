@@ -8,58 +8,122 @@
     {
       "name": "Push (So)",
       "items": [
-        { "exercise": "cable_crossover", "sets": 3, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Cable Flys" },
-        { "exercise": "schraegbankdruecken_smith", "sets": 3, "reps": [6, 10], "rest": 240, "rir": "1–2", "note": "Schrägbankdrücken an der Multipresse" },
-        { "exercise": "butterfly", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1" },
-        { "exercise": "brustpresse", "sets": 2, "reps": [8, 12], "rest": 240, "rir": "1", "note": "Chest Press" },
-        { "exercise": "seitheben_kabel", "sets": 4, "reps": [12, 20], "rest": 240, "rir": "0–1" },
-        { "exercise": "french_press_kabel", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Trizepsstrecken am Kabel im Liegen" }
+        { "exercise": "cable_crossover", "name": "Cable Flys", "sets": 3, "reps": [10, 15], "rest": 240, "rir": "0–1" },
+        { "exercise": "schraegbankdruecken_smith", "name": "Schrägbankdrücken an der Multipresse", "sets": 3, "reps": [6, 10], "rest": 240, "rir": "1–2" },
+        { "exercise": "butterfly", "name": "Butterfly", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1" },
+        { "exercise": "brustpresse", "name": "Chest Press", "sets": 2, "reps": [8, 12], "rest": 240, "rir": "1" },
+        { "exercise": "seitheben_kabel", "name": "Seitheben am Kabel", "sets": 4, "reps": [12, 20], "rest": 240, "rir": "0–1" },
+        { "exercise": "french_press_kabel", "name": "Trizepsstrecken am Kabel im Liegen", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1" }
       ]
     },
     {
       "name": "Pull (Mo)",
       "items": [
-        { "exercise": "latzug", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Mit Zughilfen" },
-        { "exercise": "rudern_maschine", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Brustgestütztes Rudern, mit Zughilfen" },
-        { "exercise": "ueberzuege_kabel", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1", "note": "Mit Zughilfen" },
-        { "exercise": "reverse_butterfly", "sets": 3, "reps": [12, 20], "rest": 240, "rir": "0–1" },
-        { "exercise": "shrugs_kh", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1–2", "note": "Mit Zughilfen" },
-        { "exercise": "scottcurls_kabel", "sets": 3, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Preacher Curls am Kabel · optionaler 4. Satz nach einer normalen Arbeitswoche" },
-        { "exercise": "hammercurls", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1" }
+        { "exercise": "latzug", "name": "Latzug", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Mit Zughilfen" },
+        { "exercise": "rudern_maschine", "name": "Brustgestütztes Rudern", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Mit Zughilfen" },
+        { "exercise": "ueberzuege_kabel", "name": "Überzüge", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1", "note": "Mit Zughilfen" },
+        { "exercise": "reverse_butterfly", "name": "Reverse Butterfly", "sets": 3, "reps": [12, 20], "rest": 240, "rir": "0–1" },
+        { "exercise": "shrugs_kh", "name": "Shrugs", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1–2", "note": "Mit Zughilfen" },
+        { "exercise": "scottcurls_kabel", "name": "Preacher Curls am Kabel", "sets": 3, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Optionaler 4. Satz nach einer normalen Arbeitswoche" },
+        { "exercise": "hammercurls", "name": "Hammer Curls", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1" }
       ]
     },
     {
       "name": "Oberkörper (Mi)",
       "items": [
-        { "exercise": "cable_crossover", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Cable Flys" },
-        { "exercise": "brustpresse", "sets": 3, "reps": [6, 10], "rest": 240, "rir": "1–2", "note": "Chest Press – oder Schrägbank an der Multipresse, wöchentlich wechseln" },
-        { "exercise": "rudern_maschine_hoch", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "High Row, mit Zughilfen" },
-        { "exercise": "rudern_maschine", "sets": 2, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Brustgestütztes Rudern, enger / neutraler Griff, mit Zughilfen" },
-        { "exercise": "seitheben_kabel", "sets": 3, "reps": [12, 20], "rest": 240, "rir": "0–1" },
-        { "exercise": "trizeps_ueberkopf_kabel", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Im Wechsel mit den Kabel-Curls" },
-        { "exercise": "bizepscurls_kabel", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Kabel-Curls, im Wechsel mit dem Trizepsstrecken" }
+        { "exercise": "cable_crossover", "name": "Cable Flys", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1" },
+        { "exercise": "brustpresse", "name": "Chest Press", "sets": 3, "reps": [6, 10], "rest": 240, "rir": "1–2", "note": "Oder Schrägbank an der Multipresse, wöchentlich wechseln" },
+        { "exercise": "rudern_maschine_hoch", "name": "High Row", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Mit Zughilfen" },
+        { "exercise": "rudern_maschine", "name": "Brustgestütztes Rudern", "sets": 2, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "Enger / neutraler Griff, mit Zughilfen" },
+        { "exercise": "seitheben_kabel", "name": "Seitheben am Kabel", "sets": 3, "reps": [12, 20], "rest": 240, "rir": "0–1" },
+        { "exercise": "trizeps_ueberkopf_kabel", "name": "Trizepsstrecken über Kopf am Kabel", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Im Wechsel mit den Kabel-Curls" },
+        { "exercise": "bizepscurls_kabel", "name": "Kabel-Curls", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "0–1", "note": "Im Wechsel mit dem Trizepsstrecken" }
       ]
     },
     {
       "name": "Beine (Fr)",
       "items": [
-        { "exercise": "beinbeuger_sitzend", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1" },
-        { "exercise": "beinpresse", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "2", "note": "Becken bleibt am Polster – nur so tief, wie es am Polster bleibt" },
-        { "exercise": "beinstrecker", "sets": 3, "reps": [10, 15], "rest": 240, "rir": "0–1" },
-        { "exercise": "adduktoren_maschine", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1", "note": "Beine zusammendrücken · 2–3 Sätze, 3. Satz optional" },
-        { "exercise": "wadenheben_sitzend", "sets": 2, "reps": [10, 20], "rest": 240, "rir": "0–1", "note": "Optional · 2–3 Sätze" }
+        { "exercise": "beinbeuger_sitzend", "name": "Beinbeuger sitzend", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1" },
+        { "exercise": "beinpresse", "name": "Beinpresse", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "2", "note": "Becken bleibt am Polster – nur so tief, wie es am Polster bleibt" },
+        { "exercise": "beinstrecker", "name": "Beinstrecker", "sets": 3, "reps": [10, 15], "rest": 240, "rir": "0–1" },
+        { "exercise": "adduktoren_maschine", "name": "Adduktorenmaschine", "sets": 2, "reps": [10, 15], "rest": 240, "rir": "1", "note": "Beine zusammendrücken · 2–3 Sätze, 3. Satz optional" },
+        { "exercise": "wadenheben_sitzend", "name": "Wadenheben sitzend", "sets": 2, "reps": [10, 20], "rest": 240, "rir": "0–1", "note": "Optional · 2–3 Sätze" }
       ]
     }
   ],
   "customExercises": [
-    { "key": "curl_up", "name": "Curl-up (Hand unter dem Rücken)", "equipment": "koerpergewicht", "muscleGroup": "bauch", "kind": "mobilitaet", "sides": "beidseitig", "holdSeconds": 30 },
-    { "key": "hamstring_gurt", "name": "Hamstrings in Rückenlage mit Gurt", "equipment": "band", "muscleGroup": "beine", "kind": "dehnung_statisch", "sides": "einseitig", "holdSeconds": 40 },
-    { "key": "mp_waden", "name": "Massagepistole: Waden", "equipment": "koerpergewicht", "muscleGroup": "waden", "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 45 },
-    { "key": "mp_oberschenkel", "name": "Massagepistole: Oberschenkel vorne & Gesäß", "equipment": "koerpergewicht", "muscleGroup": "beine", "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 50 },
-    { "key": "mp_hamstrings", "name": "Massagepistole: Hamstrings (nicht in der Kniekehle)", "equipment": "koerpergewicht", "muscleGroup": "beine", "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 45 },
-    { "key": "mp_unterarme", "name": "Massagepistole: Unterarme (Beuger & Strecker)", "equipment": "koerpergewicht", "muscleGroup": "arme", "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 30 },
-    { "key": "mp_trapez", "name": "Massagepistole: Trapez & neben den Schulterblättern", "equipment": "koerpergewicht", "muscleGroup": "nacken", "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 40 },
-    { "key": "mp_unterer_ruecken", "name": "Massagepistole: unterer Rücken (nur Muskelstränge, niedrige Stufe)", "equipment": "koerpergewicht", "muscleGroup": "ruecken", "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 30 }
+    {
+      "key": "curl_up",
+      "name": "Curl-up (Hand unter dem Rücken)",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "bauch",
+      "kind": "mobilitaet",
+      "sides": "beidseitig",
+      "holdSeconds": 30
+    },
+    {
+      "key": "hamstring_gurt",
+      "name": "Hamstrings in Rückenlage mit Gurt",
+      "equipment": "band",
+      "muscleGroup": "beine",
+      "kind": "dehnung_statisch",
+      "sides": "einseitig",
+      "holdSeconds": 40
+    },
+    {
+      "key": "mp_waden",
+      "name": "Massagepistole: Waden",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "waden",
+      "kind": "mobilitaet",
+      "sides": "einseitig",
+      "holdSeconds": 45
+    },
+    {
+      "key": "mp_oberschenkel",
+      "name": "Massagepistole: Oberschenkel vorne & Gesäß",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "beine",
+      "kind": "mobilitaet",
+      "sides": "einseitig",
+      "holdSeconds": 50
+    },
+    {
+      "key": "mp_hamstrings",
+      "name": "Massagepistole: Hamstrings (nicht in der Kniekehle)",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "beine",
+      "kind": "mobilitaet",
+      "sides": "einseitig",
+      "holdSeconds": 45
+    },
+    {
+      "key": "mp_unterarme",
+      "name": "Massagepistole: Unterarme (Beuger & Strecker)",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "arme",
+      "kind": "mobilitaet",
+      "sides": "einseitig",
+      "holdSeconds": 30
+    },
+    {
+      "key": "mp_trapez",
+      "name": "Massagepistole: Trapez & neben den Schulterblättern",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "nacken",
+      "kind": "mobilitaet",
+      "sides": "einseitig",
+      "holdSeconds": 40
+    },
+    {
+      "key": "mp_unterer_ruecken",
+      "name": "Massagepistole: unterer Rücken (nur Muskelstränge, niedrige Stufe)",
+      "equipment": "koerpergewicht",
+      "muscleGroup": "ruecken",
+      "kind": "mobilitaet",
+      "sides": "einseitig",
+      "holdSeconds": 30
+    }
   ],
   "routines": [
     {

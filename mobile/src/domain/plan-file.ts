@@ -4,7 +4,8 @@
 //   "format": "myhealth-plan", "version": 1, "name": "…", "note": "Regeln, Pausen …",
 //   "weekdays": [7, 1, 3, 5],                       // Trainingstage ISO (1 = Mo … 7 = So), optional
 //   "days": [ { "name": "…", "items": [
-//       { "exercise": "<Übungs-ID oder eigen:schlüssel>", "sets": 3, "reps": [8, 12], "rest": 240, "rir": "1–2", "note": "…" } ] } ],
+//       { "exercise": "<Übungs-ID oder eigen:schlüssel>", "name": "Anzeigename (optional)", "sets": 3, "reps": [8, 12],
+//         "rest": 240, "rir": "1–2", "note": "…" } ] } ],
 //   "customExercises": [ { "key": "…", "name": "…", "equipment": "koerpergewicht", "muscleGroup": "ruecken",
 //                          "kind": "mobilitaet", "sides": "einseitig", "holdSeconds": 30 } ],   // optional
 //   "routines": [ { "name": "…", "kind": "dehnen", "items": [ { "exercise": "…", "seconds": 40 } ] } ],  // optional
@@ -113,6 +114,7 @@ export function parsePlanFile(text: string, knownExerciseIds: ReadonlySet<string
             targetSeconds: seconds,
             rir: str(item.rir),
             note: str(item.note),
+            label: str(item.name),
           };
         }),
       };

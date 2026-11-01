@@ -13,7 +13,7 @@ import { loadNutritionSettings } from '../nutrition';
 import { applyPlanImport } from '../plan-import';
 import { listRoutines, loadRoutineDraft } from '../routines';
 import { createTestDb } from '../testing/node-db';
-import { listActivePlans, listExercises, loadPlanDraft, savePlan } from '../training';
+import { listActivePlans, listExercises, loadPlanDraft, planHintsForSession, savePlan, startSession } from '../training';
 
 let db: Db & { close(): void };
 beforeEach(async () => {
@@ -42,6 +42,13 @@ describe('Plan übernehmen', () => {
     const draft = await loadPlanDraft(db, done.planId);
     expect(draft?.days.map((d) => d.name)).toEqual(['Push (So)', 'Pull (Mo)', 'Oberkörper (Mi)', 'Beine (Fr)']);
     expect(draft?.days[3].items[1]).toMatchObject({ exerciseId: 'beinpresse', sets: 3, rir: '2', note: expect.stringContaining('Polster') });
+    expect(draft?.days[0].items[3]).toMatchObject({ exerciseId: 'brustpresse', label: 'Chest Press' });
+    expect(draft?.days[1].items[4]).toMatchObject({ exerciseId: 'shrugs_kh', label: 'Shrugs', note: 'Mit Zughilfen' });
+
+    // Im Training steht der Name aus dem Plan.
+    const sessionId = await startSession(db, plans[0].days[0].id);
+    const hints = await planHintsForSession(db, sessionId);
+    expect(hints.cable_crossover).toMatchObject({ label: 'Cable Flys', rir: '0–1' });
 
     const routines = await listRoutines(db, 'dehnen');
     expect(routines.map((r) => r.name).sort()).toEqual(['Lucs Dehnroutine', 'Massagepistole']);

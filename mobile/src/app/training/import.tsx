@@ -120,7 +120,14 @@ export default function ImportPlanScreen() {
               {day.items.map((item, i) => (
                 <View key={`${item.exerciseId}-${i}`} style={styles.item}>
                   <View style={styles.row}>
-                    <ThemedText style={styles.flex}>{nameOf(item.exerciseId)}</ThemedText>
+                    <View style={styles.flex}>
+                      <ThemedText>{item.label || nameOf(item.exerciseId)}</ThemedText>
+                      {item.label && item.label !== nameOf(item.exerciseId) ? (
+                        <ThemedText type="small" themeColor="textSecondary">
+                          {nameOf(item.exerciseId)}
+                        </ThemedText>
+                      ) : null}
+                    </View>
                     <ThemedText themeColor="textSecondary" style={styles.num}>
                       {item.targetSeconds != null
                         ? t('planImport.timed', { sets: item.sets, seconds: item.targetSeconds })

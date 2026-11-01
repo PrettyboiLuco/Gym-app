@@ -172,6 +172,7 @@ export const de = {
     rir: 'RIR',
     note: 'Hinweis',
     notePlaceholder: 'z. B. Becken bleibt am Polster',
+    label: 'Name im Plan (optional)',
     timedHint: 'Zeit-Übung: Sekunden statt Wiederholungen.',
     warmup: 'Aufwärmen vorschlagen',
     cooldown: 'Cool-down vorschlagen',
