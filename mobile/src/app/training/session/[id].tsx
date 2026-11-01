@@ -21,6 +21,8 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
 import { useUnits } from '@/data/profile-provider';
+import { loadProfile } from '@/data/profile';
+import { activeEquipment } from '@/data/training-stats';
 import { loadReminders } from '@/data/reminders';
 import { timedSessionsForWorkout, type TimedSession } from '@/data/routines';
 import { syncRestAlert } from '@/components/alerts';
@@ -58,7 +60,7 @@ import {
   type SetRow,
 } from '@/data/training';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
-import type { MuscleGroup } from '@/domain/exercises';
+import { EQUIPMENT, type MuscleGroup } from '@/domain/exercises';
 import { replacementOptions } from '@/domain/planner';
 import { defaultPlateSetup, loadModeOf, setLabels, supersetLetters, usesPlates, warmupSets, type LoadMode, type PlateSetup } from '@/domain/logger';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep, type Advice, type PastSession } from '@/domain/progression';
@@ -100,6 +102,8 @@ export default function SessionScreen() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [sets, setSets] = useState<SetRow[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  // Geräte des gewählten Profils (A8.4) für „Gerät belegt“.
+  const [usable, setUsable] = useState<string[] | null>(null);
   const [last, setLast] = useState<Record<string, LastPerformance>>({});
   const [inputs, setInputs] = useState<Inputs>({});
   const [invalid, setInvalid] = useState<string | null>(null);
@@ -144,6 +148,7 @@ export default function SessionScreen() {
     ]);
     setProgressionOn(progression);
     setPlateSetup(await loadPlateSetup(db));
+    setUsable((await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT])).equipment);
     setCardio(await listCardioForSession(db, id));
     setHints(await planHintsForSession(db, id));
     setBlocks(timed);
@@ -851,7 +856,7 @@ export default function SessionScreen() {
               busyFor === exerciseId ? (
                 <View style={styles.busy}>
                   <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
-                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft')).map((alt) => (
+                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))).map((alt) => (
                     <ListRow
                       key={alt.id}
                       title={exerciseName(byId.get(alt.id))}
@@ -860,7 +865,7 @@ export default function SessionScreen() {
                       onPress={() => replaceWith(exerciseId, alt.id)}
                     />
                   ))}
-                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft')).length === 0 ? (
+                  {replacementOptions(exercise, exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))).length === 0 ? (
                     <ThemedText type="small">{t('session.busyNone')}</ThemedText>
                   ) : null}
                   <ThemedText type="small" themeColor="textSecondary">

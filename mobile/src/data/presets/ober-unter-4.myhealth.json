@@ -1,0 +1,269 @@
+{
+  "format": "myhealth-plan",
+  "version": 1,
+  "name": "Oberkörper/Unterkörper 4×",
+  "note": "Vier Tage pro Woche (z. B. Mo, Di, Do, Fr): zweimal Oberkörper, zweimal Unterkörper, jeweils eine schwerere und eine leichtere Variante.",
+  "weekdays": [
+    1,
+    2,
+    4,
+    5
+  ],
+  "days": [
+    {
+      "name": "Oberkörper 1",
+      "items": [
+        {
+          "exercise": "bankdruecken",
+          "sets": 3,
+          "reps": [
+            6,
+            8
+          ],
+          "rest": 180,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "langhantelrudern",
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 150,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "schulterdruecken_kh",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "latzug",
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 90,
+          "rir": "1"
+        },
+        {
+          "exercise": "trizepsdruecken_kabel",
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "bizepscurls_kh",
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        }
+      ]
+    },
+    {
+      "name": "Unterkörper 1",
+      "items": [
+        {
+          "exercise": "kniebeuge",
+          "sets": 3,
+          "reps": [
+            6,
+            8
+          ],
+          "rest": 180,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "rumaenisches_kreuzheben",
+          "sets": 3,
+          "reps": [
+            8,
+            10
+          ],
+          "rest": 150,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "beinpresse",
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 120,
+          "rir": "1"
+        },
+        {
+          "exercise": "beinbeuger",
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 90,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "wadenheben",
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "plank",
+          "sets": 2,
+          "rest": 60,
+          "seconds": 45
+        }
+      ]
+    },
+    {
+      "name": "Oberkörper 2",
+      "items": [
+        {
+          "exercise": "bankdruecken_kh",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "rudern_kabel",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "klimmzuege_unterstuetzt",
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "seitheben_kabel",
+          "sets": 3,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "face_pulls",
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "french_press_sz",
+          "sets": 2,
+          "reps": [
+            10,
+            12
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        }
+      ]
+    },
+    {
+      "name": "Unterkörper 2",
+      "items": [
+        {
+          "exercise": "kreuzheben",
+          "sets": 2,
+          "reps": [
+            4,
+            6
+          ],
+          "rest": 180,
+          "rir": "2"
+        },
+        {
+          "exercise": "bulgarische_kniebeuge",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 90,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "hip_thrust",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1"
+        },
+        {
+          "exercise": "beinstrecker",
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "wadenheben",
+          "sets": 3,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "beinheben",
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
 import { exerciseName } from '@/components/exercise-name';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
+import { loadSecondsPerSet } from '@/data/training-stats';
 import { todayDay } from '@/components/nutrition-format';
 import { blockSeconds as blockSecondsOf } from '@/components/planner-helpers';
 import { Screen } from '@/components/screen';
@@ -141,6 +142,8 @@ export default function PlanEditorScreen() {
   // Stand beim Öffnen bzw. letzten Laden; Abweichung heißt „ungespeichert“.
   const [baseline, setBaseline] = useState(() => JSON.stringify(EMPTY_FORM));
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  // Eigene Satzzeit (A8.3) für die Dauer je Tag, sonst 45 s.
+  const [secondsPerSet, setSecondsPerSet] = useState(45);
   const [versions, setVersions] = useState<PlanVersionInfo[]>([]);
   // Aktive Fassung; ist sie befristet, bleibt sie es auch nach dem Bearbeiten (TRAIN-008).
   const [active, setActive] = useState<PlanVersionInfo | null>(null);
@@ -160,6 +163,10 @@ export default function PlanEditorScreen() {
   }
 
   // Nur beim Öffnen laden; danach gilt der Formularzustand.
+  useEffect(() => {
+    loadSecondsPerSet(db).then((v) => v && setSecondsPerSet(v));
+  }, [db]);
+
   useEffect(() => {
     let cancelled = false;
     fetchEditor(db, id, isNew).then((data) => {
@@ -437,7 +444,7 @@ export default function PlanEditorScreen() {
                   value:
                     estimateDayMinutes(
                       draft.days[dayIndex].items.filter((i) => i.sets > 0 && i.restSeconds >= 0 && (i.targetSeconds ?? 0) >= 0),
-                      45,
+                      secondsPerSet,
                       60,
                       (day.warmup ? blockSeconds(day, 'aufwaermen') : 0) + (day.cooldown ? blockSeconds(day, 'cooldown') : 0)
                     ) + (draft.days[dayIndex].cardio ?? []).reduce((sum, c) => sum + Math.max(0, c.minutes), 0),

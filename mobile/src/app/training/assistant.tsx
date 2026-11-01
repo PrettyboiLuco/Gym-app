@@ -39,6 +39,7 @@ import {
   type TrainingGoal,
 } from '@/domain/planner';
 import { formatClock, parseWholeNumber, type PlanDraft } from '@/domain/training';
+import { activeEquipment, loadPreferredWeekdays, loadSecondsPerSet, savePreferredWeekdays } from '@/data/training-stats';
 import { DURATIONS, isEmptyWish, parseWish, validateWish, type Duration, type Wish } from '@/domain/wish';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t, tOptional } from '@/i18n';
@@ -50,9 +51,16 @@ const SPLIT_OPTIONS: readonly SplitChoice[] = ['auto', ...SPLITS];
 
 type Applied = { planId: string; previousVersionId: string | null };
 
-async function loadBase(db: Db) {
-  const [plans, exercises, prefs] = await Promise.all([listActivePlans(db), listExercises(db), loadPlannerPrefs(db)]);
-  return { plans, exercises, prefs };
+async function loadBase(db: Db, studio: Equipment[]) {
+  const [plans, exercises, prefs, secondsPerSet, weekdays, equipment] = await Promise.all([
+    listActivePlans(db),
+    listExercises(db),
+    loadPlannerPrefs(db),
+    loadSecondsPerSet(db),
+    loadPreferredWeekdays(db),
+    activeEquipment(db, studio),
+  ]);
+  return { plans, exercises, prefs, secondsPerSet, weekdays, equipment };
 }
 
 /** Planassistent (Phase 8): Plan umbauen oder Vorlage, Vorschau mit Gründen, erst dann übernehmen. */
@@ -84,22 +92,35 @@ export default function AssistantScreen() {
   const [openHow, setOpenHow] = useState<string | null>(null);
   const [applied, setApplied] = useState<Applied | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  // A8.3/A8.4: eigene Satzzeit, bevorzugte Wochentage, Supersätze beim Kürzen, Geräteprofil
+  const [secondsPerSet, setSecondsPerSet] = useState<number | null>(null);
+  const [weekdays, setWeekdays] = useState<number[]>([]);
+  const [supersets, setSupersets] = useState<'ja' | 'nein'>('ja');
+  const [equipmentName, setEquipmentName] = useState<string | null>(null);
+  const [profileBlocked, setProfileBlocked] = useState<Equipment[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    loadBase(db).then((data) => {
+    loadBase(db, profile.equipment ?? [...EQUIPMENT]).then((data) => {
       if (cancelled) return;
       setPlans(data.plans);
       setExercises(data.exercises);
       setPrefs(data.prefs);
       setBlockedEquipment(data.prefs.blockedEquipment);
+      setSecondsPerSet(data.secondsPerSet);
+      setWeekdays(data.weekdays);
+      if (data.weekdays.length >= 2 && data.weekdays.length <= 6) setDays(String(data.weekdays.length));
+      // Geräteprofil: Vorlage nur mit diesen Geräten, Umbau ersetzt alles andere
+      setAvailable(data.equipment.equipment);
+      setProfileBlocked(EQUIPMENT.filter((e) => !data.equipment.equipment.includes(e)));
+      setEquipmentName(tOptional(`equipmentProfiles.names.${data.equipment.profile.id}`) ?? data.equipment.profile.name);
       if (data.plans.length === 0) setMode('vorlage');
       else setPlanId((id) => (id && data.plans.some((p) => p.planId === id) ? id : data.plans[0].planId));
     });
     return () => {
       cancelled = true;
     };
-  }, [db]);
+  }, [db, profile.equipment]);
 
   // Bisherigen Plan laden; Status der Übungen aus den gemerkten Einstellungen.
   useEffect(() => {
@@ -196,9 +217,11 @@ export default function AssistantScreen() {
       split,
       dayName: dayLabel,
       extraSeconds: extraSecondsFor(exercises),
+      secondsPerSet,
+      supersets: supersets === 'ja',
     };
     if (mode === 'umbau' && current) {
-      setProposal(rebuildPlan({ ...shared, current, locked, blockedEquipment, blockedExercises }));
+      setProposal(rebuildPlan({ ...shared, current, locked, blockedEquipment: [...new Set([...blockedEquipment, ...profileBlocked])], blockedExercises }));
     } else {
       const name = planName.trim() || t('assistant.planNameDefault', { split: t(`split.${split === 'auto' ? 'ganzkoerper' : split}`), days: dayCount });
       const result = buildTemplate({ ...shared, goal, experience, available, blockedEquipment: [], blockedExercises: [], planName: name });
@@ -212,6 +235,7 @@ export default function AssistantScreen() {
 
   async function apply() {
     if (!proposal || !canApply(proposal)) return;
+    if (weekdays.length) await savePreferredWeekdays(db, weekdays);
     if (mode === 'umbau' && planId && current) {
       const previous = await activeVersion(db, planId);
       // Aus einer befristeten Fassung heraus geändert: zurück geht es trotzdem zur gewohnten Fassung.
@@ -287,6 +311,22 @@ export default function AssistantScreen() {
 
       <Card title={t('assistant.frameTitle')}>
         <Choice label={t('assistant.days')} options={DAY_OPTIONS} value={days as (typeof DAY_OPTIONS)[number]} onChange={edit(setDays)} format={(v) => v} />
+        <MultiChoice
+          label={t('assistant.weekdays')}
+          options={['1', '2', '3', '4', '5', '6', '7'] as const}
+          value={weekdays.map(String) as ('1' | '2' | '3' | '4' | '5' | '6' | '7')[]}
+          onChange={(list) => {
+            const next = list.map(Number).sort();
+            setWeekdays(next);
+            if (next.length >= 2 && next.length <= 6) edit(setDays)(String(next.length));
+          }}
+          format={(d) => t(`reminders.dayShort.${d}`)}
+        />
+        {weekdays.length > 0 && (weekdays.length < 2 || weekdays.length > 6) ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('assistant.weekdaysRange')}
+          </ThemedText>
+        ) : null}
         <Field label={t('assistant.minutes')} value={minutes} onChangeText={edit(setMinutes)} keyboardType="number-pad" />
         <Presets
           label={t('assistant.minutes')}
@@ -295,6 +335,17 @@ export default function AssistantScreen() {
           format={(m) => t('common.minutes', { value: m })}
           onChange={(m) => edit(setMinutes)(String(m))}
         />
+        <Choice
+          label={t('assistant.supersets')}
+          options={['ja', 'nein'] as const}
+          value={supersets}
+          onChange={edit(setSupersets)}
+          format={(v) => t(`assistant.supersetsOption.${v}`)}
+        />
+        <ThemedText type="small" themeColor="textSecondary">
+          {secondsPerSet ? t('assistant.ownSetTime', { seconds: secondsPerSet }) : t('assistant.defaultSetTime')}
+          {equipmentName ? ` ${t('assistant.equipmentProfile', { name: equipmentName })}` : ''}
+        </ThemedText>
         <Choice
           label={t('assistant.split')}
           options={SPLIT_OPTIONS}

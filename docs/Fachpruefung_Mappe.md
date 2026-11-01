@@ -153,6 +153,19 @@ werden, bis diese Regeln freigegeben sind.
 | J5 | Vorschlag Fassung 2 | Ziel = Verbrauch + Abstand aus der Coach-Einrichtung, auf 50 gerundet, höchstens ±200 kcal je Woche, unter 100 kcal Unterschied kein Vorschlag | Grenzen freigeben? Soll Fassung 2 Standard werden? | | |
 | J6 | Schutz | nie unter 1.200 kcal, kein Senken bei Untergewicht (BMI < 18,5), keine Zahlen bei sensibler Situation, „ohne Zahlen“ oder Status krank/verletzt/Pause | Weitere Ausschlüsse? | | |
 
+## K. Programme, Deload und Zeitschätzung (Ausbauplan A8)
+
+Fundstellen: `mobile/src/domain/training-stats.ts` (Deload Fassung 1, `DELOAD_RULES_VERSION`; Satzzeit),
+`mobile/src/domain/planner.ts` (Supersätze beim Kürzen), `mobile/src/data/presets/*.myhealth.json` (Vorlagen).
+
+| ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| K1 | Deload-Zeitpunkt | Angebot ab 8 Trainingswochen am Stück (Woche ohne Training beendet den Block), „später“ = 1 Woche; nie automatisch | Intervall (6–10 Wochen) und Zählweise freigeben? | | |
+| K2 | Deload-Inhalt | halbe Sätze (aufgerundet, mind. 1), gleiche Übungen, Wiederholungen und Gewichte, RIR 3; bis Sonntag | Freigeben? Auch Gewicht reduzieren? | | |
+| K3 | Supersätze beim Kürzen | Gegenspieler (Drücken/Ziehen, Bizeps/Trizeps, Brust-Isolation/hintere Schulter, Schulter-Isolation/Rumpf) werden gekoppelt, bevor Sätze oder Übungen gestrichen werden; keine Zeitübungen | Paare freigeben? | | |
+| K4 | Eigene Satzzeit | Median über die letzten 10 Trainings (mind. 3): Dauer − geplante Pausen − 60 s Wechsel je Übung, geteilt durch die Sätze; Grenzen 20–150 s | Freigeben? | | |
+| K5 | Programm-Vorlagen | Ganzkörper 3×, Kraft-Basis 3× (feste 5 Wdh. = lineare Steigerung über die vorhandene Steigerungsregel), Zuhause mit Kurzhanteln 3×, Ober/Unter 4×, Drücken/Ziehen/Beine 6×; Sätze, Wiederholungen, Pausen und RIR je Übung in den Dateien | Volumen und Pausen der Vorlagen freigeben? | | |
+
 ## H. Beispielrechnungen zum Nachprüfen
 
 Mit dem echten Code der App berechnet (30.10.2026). Werte in kcal bzw. g pro Tag.
@@ -182,7 +195,7 @@ Eiweiß-Spanne 96–160 g.
 | | |
 |---|---|
 | Name, Qualifikation | |
-| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Bereitschaft 1 · Energiebedarf 1 / Check-in 2 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
+| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 · Bereitschaft 1 · Energiebedarf 1 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
 | Geltungsbereich | gesunde Erwachsene 18+ (Kalorien 19–78 J.), Ausschlüsse siehe G2 |
 | Datum, Unterschrift | |
 

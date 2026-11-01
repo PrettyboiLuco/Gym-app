@@ -1,0 +1,203 @@
+{
+  "format": "myhealth-plan",
+  "version": 1,
+  "name": "Ganzkörper 3×",
+  "note": "Drei Ganzkörper-Tage pro Woche (z. B. Mo, Mi, Fr), A/B/C im Wechsel. Steigerung: alle Sätze am oberen Ende geschafft, dann etwas mehr Gewicht.",
+  "weekdays": [
+    1,
+    3,
+    5
+  ],
+  "days": [
+    {
+      "name": "Ganzkörper A",
+      "items": [
+        {
+          "exercise": "kniebeuge",
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 150,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "bankdruecken",
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 150,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "latzug",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "rumaenisches_kreuzheben",
+          "sets": 2,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "seitheben",
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "plank",
+          "sets": 2,
+          "rest": 60,
+          "seconds": 45
+        }
+      ]
+    },
+    {
+      "name": "Ganzkörper B",
+      "items": [
+        {
+          "exercise": "kreuzheben",
+          "sets": 2,
+          "reps": [
+            5,
+            8
+          ],
+          "rest": 180,
+          "rir": "2"
+        },
+        {
+          "exercise": "schulterdruecken_kh",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "rudern_kabel",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "ausfallschritte",
+          "sets": 2,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 90,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "trizepsdruecken_kabel",
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "bizepscurls_kh",
+          "sets": 2,
+          "reps": [
+            10,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        }
+      ]
+    },
+    {
+      "name": "Ganzkörper C",
+      "items": [
+        {
+          "exercise": "beinpresse",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "bankdruecken_kh",
+          "sets": 3,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "klimmzuege_unterstuetzt",
+          "sets": 3,
+          "reps": [
+            6,
+            10
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "hip_thrust",
+          "sets": 2,
+          "reps": [
+            8,
+            12
+          ],
+          "rest": 120,
+          "rir": "1–2"
+        },
+        {
+          "exercise": "face_pulls",
+          "sets": 2,
+          "reps": [
+            12,
+            15
+          ],
+          "rest": 60,
+          "rir": "0–1"
+        },
+        {
+          "exercise": "crunches",
+          "sets": 2,
+          "reps": [
+            12,
+            20
+          ],
+          "rest": 60
+        }
+      ]
+    }
+  ]
+}

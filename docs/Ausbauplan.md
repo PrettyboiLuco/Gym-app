@@ -26,7 +26,8 @@ mit der Fachperson statt vieler einzelner.
 | A5 | **fertig** (01.11.2026) – CSV-Export, Import Strong/Hevy/Gewicht, PDF-Bericht, KI-Zusammenfassung; Test mit echten Strong-/Hevy-Dateien durch Luc offen |
 | A6 | **fertig** (01.11.2026) – Datenbank-Version 23, Regeln Bereitschaft v1 (Fachprüfung offen, Mappe Abschnitt I); 2 Wochen Morgen-Check durch Luc offen |
 | A7 | **fertig** (01.11.2026) – Datenbank-Version 24, Schätzung Fassung 1, Check-in Fassung 2 wählbar (Fachprüfung offen, Mappe Abschnitt J); Test nach 3–4 Wochen Daten durch Luc offen |
-| A8–A11 | offen |
+| A8 | **fertig** (01.11.2026) – 5 Vorlagen, Deload v1 (Fachprüfung offen, Mappe Abschnitt K), Geräteprofile, Muskelkarte, Statistik; Gerätetest durch Luc offen |
+| A9–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -301,6 +302,31 @@ nur aus Strichen → erst sichtbar, wenn es erfasste Tage gibt.
 | A8.6 | **Monats- und Jahresstatistik:** Trainings, Sätze, Volumen, Cardio-Minuten, Bestleistungen je Zeitraum; Volumen je Übung |
 
 **Fertig, wenn:** Luc eine Vorlage übernehmen, ein Geräteprofil wechseln und seine Muskelkarte und Monatszahlen sehen kann.
+
+**Umgesetzt (A8, 01.11.2026):**
+- **Programm-Vorlagen** als Plan-Dateien: Ganzkörper 3×, Kraft-Basis 3× (lineare Steigerung über feste 5 Wdh.),
+  Zuhause mit Kurzhanteln 3×, Ober/Unter 4×, Drücken/Ziehen/Beine 6× und Lucs Plan. Übernommen wird mit Vorschau
+  über „Plan übernehmen“; ein Test prüft, dass jede Vorlage gültig ist und in etwa 75 Minuten passt.
+- **Leichte Woche:** wird nach 8 Trainingswochen am Stück auf dem Trainings-Tab angeboten (halbe Sätze, RIR 3,
+  bis Sonntag). „Später“ fragt nach einer Woche wieder.
+- **Planassistent:**
+  - bevorzugte Wochentage (auch für die Wochenpunkte, wenn der Coach keine hat)
+  - beim Kürzen erst Supersätze aus Gegenspielern
+  - Dauer aus der eigenen Satzzeit (auch im Plan-Editor)
+  - Geräteprofil: Vorlage nur mit diesen Geräten, Umbau ersetzt alles andere
+- **Geräteprofile** Studio, Zuhause und Hotel; die Geräte sind je Profil wählbar. „Gerät belegt“ zeigt nur
+  Ersatzübungen, die mit dem aktiven Profil gehen.
+- **Statistik & Muskelkarte:** Karte vorne/hinten mit Wochensätzen je Muskelgruppe (nur Menge, zusätzlich als
+  Liste) und blätterbaren Wochen. Monats- und Jahreszahlen: Trainings, Arbeitssätze, Volumen, Cardio,
+  Bestleistungen des Zeitraums und Volumen je Übung.
+
+**Beim Lückencheck nach A8 gefunden und geschlossen:**
+- Wurde eine Übung aus einem Supersatz gestrichen, blieb ihr Partner als „Supersatz allein“ zurück. Er wird jetzt
+  wieder aufgelöst.
+- Bei Drücken/Ziehen/Beine gibt es keine Gegenspieler-Paare. Dort wird wie bisher gekürzt, und der Test prüft das
+  bei Ganzkörper.
+- Der Plan-Editor rechnete weiter mit 45 s je Satz und wich damit vom Assistenten ab.
+- Eine leichte Woche während einer laufenden befristeten Fassung kehrt zu dieser zurück.
 
 ## A9 – Essen planen
 

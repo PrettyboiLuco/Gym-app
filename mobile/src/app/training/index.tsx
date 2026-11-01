@@ -30,11 +30,17 @@ import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, t } from '@/i18n';
+import { formatNumber, t, tOptional } from '@/i18n';
 import { CardioRow } from '@/components/cardio-row';
 import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
 import { weekStart } from '@/domain/goals';
 import { shiftDay } from '@/domain/nutrition';
+import { loadProfile } from '@/data/profile';
+import type { EquipmentProfile } from '@/domain/training-stats';
+import { activeEquipment, deloadOffer, saveDeloadState, startDeload, type DeloadState } from '@/data/training-stats';
+import { EQUIPMENT } from '@/domain/exercises';
+import { temporaryEnd } from '@/domain/planner';
+import { showToast } from '@/components/toast';
 
 async function loadOverview(db: Db) {
   // Abgelaufene befristete Fassungen zuerst beenden (TRAIN-008), damit die Liste stimmt.
@@ -47,6 +53,8 @@ async function loadOverview(db: Db) {
     loadTrainingWeek(db, todayDay()),
   ]);
   const muscles = await loadWeekSetsByMuscle(db, todayDay());
+  const deload = await deloadOffer(db, todayDay());
+  const equipment = await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT]);
   // Cardio dieser Woche (A2): Minuten und die letzten Einträge.
   const monday = weekStart(todayDay());
   const cardioWeek = await listCardio(db, monday, todayDay());
@@ -73,12 +81,14 @@ async function loadOverview(db: Db) {
     cardioMinutes: cardioWeek.reduce((sum, c) => sum + (c.minutes ?? 0), 0),
     cardioRecent: cardioRecent.slice(0, 3),
     cardioOpen,
+    deload,
+    equipmentProfile: equipment.profile,
   };
 }
 
 export default function TrainingScreen() {
   const theme = useTheme();
-  const { data, db, loaded } = useLoad(loadOverview, {
+  const { data, db, loaded, reload } = useLoad(loadOverview, {
     active: null,
     plans: [] as PlanSummary[],
     suggestions: {} as Record<string, number>,
@@ -91,6 +101,8 @@ export default function TrainingScreen() {
     cardioMinutes: 0,
     cardioRecent: [] as CardioEntry[],
     cardioOpen: [] as CardioEntry[],
+    deload: { due: false, weeks: 0, state: { intervalWeeks: 8, lastEnd: null, snoozedUntil: null } as DeloadState },
+    equipmentProfile: { id: 'studio', name: 'Studio', equipment: [] as EquipmentProfile['equipment'] },
   });
   const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
   const dark = useColorScheme() === 'dark';
@@ -146,6 +158,31 @@ export default function TrainingScreen() {
       {!active && pauseDays >= COMEBACK_DAYS ? (
         <Card title={t('training.comebackTitle')}>
           <ThemedText type="small">{t('training.comeback', { days: pauseDays })}</ThemedText>
+        </Card>
+      ) : null}
+
+      {data.deload.due && !active ? (
+        <Card title={t('deload.title')}>
+          <ThemedText type="small">{t('deload.text', { weeks: data.deload.weeks })}</ThemedText>
+          <Button
+            label={t('deload.start')}
+            onPress={async () => {
+              const ok = await startDeload(db, todayDay(), temporaryEnd('woche', todayDay()), t('deload.note'));
+              showToast(ok ? t('deload.started') : t('readiness.offerNoPlan'));
+              await reload();
+            }}
+          />
+          <Button
+            label={t('deload.later')}
+            variant="secondary"
+            onPress={async () => {
+              await saveDeloadState(db, { ...data.deload.state, snoozedUntil: shiftDay(todayDay(), 6) });
+              await reload();
+            }}
+          />
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('deload.hint')}
+          </ThemedText>
         </Card>
       ) : null}
 
@@ -224,6 +261,7 @@ export default function TrainingScreen() {
             onPress={() => router.push(`/training/plan/${p.planId}`)}
           />
         ))}
+        <ListRow icon="list" title={t('programs.title')} subtitle={t('programs.subtitle')} accessory="›" onPress={() => router.push('/training/programs')} />
         <ListRow icon="book" title={t('planImport.open')} subtitle={t('planImport.openSub')} accessory="›" onPress={() => router.push('/training/import')} />
         <ListRow
           icon="sparkle"
@@ -252,6 +290,14 @@ export default function TrainingScreen() {
 
       <Card>
         <ListRow icon="clock" title={t('training.historyTitle')} accessory="›" onPress={() => router.push('/training/history')} />
+        <ListRow icon="target" title={t('stats.title')} subtitle={t('stats.subtitle')} accessory="›" onPress={() => router.push('/training/stats')} />
+        <ListRow
+          icon="dumbbell"
+          title={t('equipmentProfiles.title')}
+          value={tOptional(`equipmentProfiles.names.${data.equipmentProfile.id}`) ?? data.equipmentProfile.name}
+          accessory="›"
+          onPress={() => router.push('/training/equipment')}
+        />
         <ListRow icon="dumbbell" title={t('training.exercisesTitle')} accessory="›" onPress={() => router.push('/training/exercises')} last />
       </Card>
     </Screen>

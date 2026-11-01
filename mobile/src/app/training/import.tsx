@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -13,6 +13,7 @@ import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { pickBackup } from '@/data/backup-files';
 import { applyPlanImport } from '@/data/plan-import';
+import { findProgram } from '@/data/programs';
 import lucsPlan from '@/data/presets/lucs-training.myhealth.json';
 import { listExercises, type Exercise } from '@/data/training';
 import { CUSTOM_PREFIX, parsePlanFile, type PlanFileResult } from '@/domain/plan-file';
@@ -31,7 +32,12 @@ type YesNo = 'ja' | 'nein';
 export default function ImportPlanScreen() {
   const theme = useTheme();
   const { data: exercises, db } = useLoad((d) => listExercises(d), [] as Exercise[]);
-  const [text, setText] = useState('');
+  // Aus „Programm-Vorlagen“ (A8.1): die gewählte Vorlage ist schon eingesetzt.
+  const { preset } = useLocalSearchParams<{ preset?: string }>();
+  const [text, setText] = useState(() => {
+    const program = findProgram(preset);
+    return program ? JSON.stringify(program.file) : '';
+  });
   const [busy, setBusy] = useState(false);
   const [replace, setReplace] = useState<YesNo>('ja');
   const [goals, setGoals] = useState<YesNo>('ja');

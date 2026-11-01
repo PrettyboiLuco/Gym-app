@@ -290,3 +290,29 @@ describe('Befristung (TRAIN-008)', () => {
     expect(temporaryEnd('zwei_wochen', '2026-10-28')).toBe('2026-11-10');
   });
 });
+
+describe('A8.3: Supersätze beim Kürzen und eigene Satzzeit', () => {
+  test('mit Supersätzen bleiben mehr Sätze erhalten; Partner stehen direkt nacheinander', () => {
+    // Ganzkörper: Drücken und Ziehen am selben Tag (bei Push/Pull/Beine gibt es keine Gegenspieler-Paare).
+    const without = rebuildPlan(input({ days: 3, minutes: 40, split: 'ganzkoerper' }));
+    const withSs = rebuildPlan(input({ days: 3, minutes: 40, split: 'ganzkoerper', supersets: true }));
+    const total = (p: typeof without) => p.draft.days.reduce((n, d) => n + d.items.reduce((m, i) => m + i.sets, 0), 0);
+    expect(total(withSs)).toBeGreaterThan(total(without));
+    const paired = withSs.draft.days.flatMap((d) => d.items.map((it, idx) => ({ it, idx, items: d.items }))).filter((x) => x.it.superset != null);
+    expect(paired.length).toBeGreaterThan(0);
+    for (const x of paired) {
+      const partners = x.items.map((i, j) => ({ i, j })).filter((p) => p.i.superset === x.it.superset);
+      expect(partners).toHaveLength(2);
+      expect(Math.abs(partners[0].j - partners[1].j)).toBe(1);
+    }
+    expect(withSs.changes.some((c) => c.reasons.includes('supersatz'))).toBe(true);
+  });
+
+  test('langsamere eigene Satzzeit ergibt längere Tage', () => {
+    const fast = rebuildPlan(input({ days: 6, minutes: 180, secondsPerSet: 30 }));
+    const slow = rebuildPlan(input({ days: 6, minutes: 180, secondsPerSet: 90 }));
+    expect(slow.dayMinutes[0]).toBeGreaterThan(fast.dayMinutes[0]);
+    // Danach gilt wieder der Standard (keine Wirkung auf die nächste Planung ohne Angabe)
+    expect(rebuildPlan(input({ days: 6, minutes: 180 })).dayMinutes[0]).toBe(rebuildPlan(input({ days: 6, minutes: 180, secondsPerSet: 45 })).dayMinutes[0]);
+  });
+});

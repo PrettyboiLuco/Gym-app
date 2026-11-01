@@ -128,7 +128,8 @@ export type Reason =
   | 'ausgeschlossen'
   | 'keinErsatz'
   | 'aufteilung'
-  | 'gesperrt';
+  | 'gesperrt'
+  | 'supersatz';
 
 /** Was mit einer Übung des bisherigen Plans passiert (TRAIN-009: jeweils mit Grund). */
 export type ExerciseChange = {
@@ -175,6 +176,10 @@ type Shared = {
   dayName: (type: DayType, letter: string | null) => string;
   blockedEquipment: Equipment[];
   blockedExercises: string[];
+  /** Eigene Sekunden je Satz aus früheren Trainings (A8.3); ohne = 45 s. */
+  secondsPerSet?: number | null;
+  /** Beim Kürzen zuerst Gegenspieler als Supersatz koppeln, statt Sätze oder Übungen zu streichen (A8.3). */
+  supersets?: boolean;
 };
 
 export type RebuildInput = Shared & {
@@ -226,9 +231,42 @@ function toItem(slot: Slot): PlanItemDraft {
   return { exerciseId: slot.exerciseId, ...slot.params };
 }
 
+/** Sekunden je Satz für die Dauer; wird am Anfang jeder Planung gesetzt (eigene Satzzeit oder 45 s). */
+let secondsPerSet = 45;
+
 function minutesOf(day: WorkDay, extra: (items: PlanItemDraft[]) => number): number {
   const items = day.items.map(toItem);
-  return items.length === 0 ? 0 : estimateDayMinutes(items, 45, 60, extra(items));
+  return items.length === 0 ? 0 : estimateDayMinutes(items, secondsPerSet, 60, extra(items));
+}
+
+/** Gegenspieler, die als Supersatz gut im Wechsel laufen (Drücken/Ziehen, Bizeps/Trizeps). */
+const SUPERSET_PAIRS: [MovementPattern, MovementPattern][] = [
+  ['druecken_horizontal', 'ziehen_horizontal'],
+  ['druecken_vertikal', 'ziehen_vertikal'],
+  ['druecken_horizontal', 'ziehen_vertikal'],
+  ['druecken_vertikal', 'ziehen_horizontal'],
+  ['bizeps', 'trizeps'],
+  ['brust_isolation', 'hintere_schulter'],
+  ['schulter_isolation', 'rumpf'],
+];
+
+/** Koppelt ein Paar Gegenspieler ohne Supersatz; true, wenn etwas gekoppelt wurde. */
+function supersetOnce(day: WorkDay, pat: (s: Slot) => MovementPattern, fit: Fit | null): boolean {
+  const open = day.items.filter((s) => s.params.superset == null && s.params.targetSeconds == null);
+  for (const [a, b] of SUPERSET_PAIRS) {
+    const first = open.find((s) => pat(s) === a);
+    const second = open.find((s) => s !== first && pat(s) === b);
+    if (!first || !second) continue;
+    const next = Math.max(0, ...day.items.map((s) => s.params.superset ?? 0)) + 1;
+    first.params = { ...first.params, superset: next };
+    second.params = { ...second.params, superset: next };
+    if (fit) {
+      note(fit, first.origin, 'supersatz');
+      note(fit, second.origin, 'supersatz');
+    }
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -290,11 +328,16 @@ function byLowPriority(patternOfSlot: (s: Slot) => MovementPattern) {
  * Isolationsübung entfernen → Grundübung entfernen, wenn die Bewegung an einem anderen Tag vorkommt.
  * Gesperrte Übungen werden nie angefasst. Pausen werden nicht gekürzt.
  */
-function reduceOnce(day: WorkDay, plan: WorkDay[], pat: (s: Slot) => MovementPattern, fit: Fit): boolean {
+function reduceOnce(day: WorkDay, plan: WorkDay[], pat: (s: Slot) => MovementPattern, fit: Fit, supersets = false): boolean {
+  if (supersets && supersetOnce(day, pat, fit)) {
+    sortDay(day, pat);
+    return true;
+  }
   const free = day.items.filter((s) => !s.locked).sort(byLowPriority(pat));
   const elsewhere = (s: Slot, test: (o: Slot) => boolean) => plan.some((d) => d !== day && d.items.some(test));
   const remove = (slot: Slot, reason: Reason) => {
     day.items = day.items.filter((s) => s !== slot);
+    cleanSupersets(day);
     note(fit, slot.origin, reason);
   };
 
@@ -355,8 +398,27 @@ function fitDays(plan: WorkDay[], budget: number, extra: (items: PlanItemDraft[]
   return conflicts;
 }
 
+/** Supersatz mit nur noch einer Übung (Partner wurde gestrichen) wieder auflösen. */
+function cleanSupersets(day: WorkDay) {
+  for (const slot of day.items) {
+    if (slot.params.superset != null && day.items.filter((o) => o.params.superset === slot.params.superset).length < 2) {
+      const { superset: _drop, ...rest } = slot.params;
+      slot.params = rest;
+    }
+  }
+}
+
 function sortDay(day: WorkDay, pat: (s: Slot) => MovementPattern) {
+  cleanSupersets(day);
   day.items.sort((a, b) => rank(pat(a)) - rank(pat(b)) || a.order - b.order);
+  // Supersatz-Partner direkt nacheinander, an der Stelle des ersten.
+  const out: Slot[] = [];
+  for (const slot of day.items) {
+    if (out.includes(slot)) continue;
+    out.push(slot);
+    if (slot.params.superset != null) out.push(...day.items.filter((o) => o !== slot && o.params.superset === slot.params.superset));
+  }
+  day.items = out;
 }
 
 // ----------------------------------------------------------------------------- Vorlagen-Bausteine
@@ -495,6 +557,7 @@ function availability(blockedEquipment: Equipment[], blockedExercises: string[],
  * ist nur ein Vorschlag; gespeichert wird erst nach Bestätigung als neue Planversion (TRAIN-010).
  */
 export function rebuildPlan(input: RebuildInput): PlanProposal {
+  secondsPerSet = input.secondsPerSet ?? 45;
   const early = inputConflicts(input.days, input.minutes);
   if (early.length > 0) return emptyProposal(input.current, early);
   const byId = new Map(input.exercises.map((e) => [e.id, e]));
@@ -591,7 +654,7 @@ export function rebuildPlan(input: RebuildInput): PlanProposal {
 
   // 6. Zeitbudget je Tag einhalten, sonst Konflikt mit echter Dauer (TRAIN-007).
   const fit: Fit = { reasons: new Map() };
-  conflicts.push(...fitDays(plan, input.minutes, extra, (day) => reduceOnce(day, plan, pat, fit)));
+  conflicts.push(...fitDays(plan, input.minutes, extra, (day) => reduceOnce(day, plan, pat, fit, input.supersets)));
 
   // 7. Entwurf und Änderungsliste.
   const oldDays = input.current.days;
@@ -644,6 +707,7 @@ export function rebuildPlan(input: RebuildInput): PlanProposal {
  * mit Varianten statt hundert ungeprüfter Kopien. Nur kuratierte Übungen.
  */
 export function buildTemplate(input: TemplateInput): PlanProposal {
+  secondsPerSet = input.secondsPerSet ?? 45;
   const early = inputConflicts(input.days, input.minutes);
   const empty: PlanDraft = { name: input.planName, days: [] };
   if (early.length > 0) return emptyProposal(empty, early);
@@ -667,8 +731,13 @@ export function buildTemplate(input: TemplateInput): PlanProposal {
 
   // Zeitbudget: zuerst die unwichtigsten Bausteine (am Ende), ab 3 Übungen erst Sätze kürzen.
   const reduce = (day: WorkDay) => {
+    if (input.supersets && supersetOnce(day, pat, null)) {
+      sortDay(day, pat);
+      return true;
+    }
     if (day.items.length > 3) {
       day.items.pop();
+      cleanSupersets(day);
       return true;
     }
     for (const compound of [false, true]) {
@@ -680,6 +749,7 @@ export function buildTemplate(input: TemplateInput): PlanProposal {
     }
     if (day.items.length > 2) {
       day.items.pop();
+      cleanSupersets(day);
       return true;
     }
     return false;

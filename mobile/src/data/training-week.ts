@@ -8,13 +8,14 @@ import { localDay } from '@/domain/time';
 
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
+import { readState } from './app-state';
 import type { Db } from './db';
 import { listExercises, listSessions } from './training';
 
 export type TrainingWeek = { done: boolean[]; planned: boolean[]; goal: number | null; todayIndex: number };
 
 export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingWeek> {
-  const [sessions, setup] = await Promise.all([listSessions(db, 30), loadCoachSetup(db)]);
+  const [sessions, setup, preferred] = await Promise.all([listSessions(db, 30), loadCoachSetup(db), readState<number[]>(db, 'preferred_weekdays', [])]);
   const monday = weekStart(today);
   const cardio = await cardioMinutesByDay(db, monday);
   const days = [
@@ -24,8 +25,8 @@ export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingW
   ];
   return {
     done: trainedDays(days, monday),
-    // Geplante Trainingstage aus dem Coach (ISO: 1 = Montag … 7 = Sonntag).
-    planned: Array.from({ length: 7 }, (_, i) => (setup?.trainingWeekdays ?? []).includes(i + 1)),
+    // Geplante Trainingstage aus dem Coach, sonst die bevorzugten Tage aus dem Planassistenten (A8.3); ISO 1 = Montag.
+    planned: Array.from({ length: 7 }, (_, i) => (setup?.trainingWeekdays?.length ? setup.trainingWeekdays : preferred).includes(i + 1)),
     goal: setup?.gymDays ?? null,
     todayIndex: trainedDays([today], monday).indexOf(true),
   };
