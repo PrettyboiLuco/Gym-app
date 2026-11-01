@@ -1,177 +1,339 @@
-# Ausbauplan A1–A7 (nach der Wettbewerbsanalyse)
+# Ausbauplan A1–A11 (nach der Wettbewerbsanalyse)
 
-Grundlage: `docs/recherche/reports/Was Myhealth noch fehlt.md` (01.11.2026). Entscheidung Luc: alle Expo-Go-Schritte
-umsetzen, **außer Übungsbildern** – die macht Luc selbst mit Higgsfield (siehe „Parallel“ unten).
+Grundlage: `docs/recherche/reports/Was Myhealth noch fehlt.md` (01.11.2026). Entscheidung Luc: alles umsetzen, was
+ohne Development Build geht, **außer Übungsbildern** – die macht Luc mit Higgsfield (siehe „Parallel“).
 
-**So arbeiten wir wie bisher:** Claude Code baut eine Phase → Tests, Lint und Browser-Durchlauf → Expo-Go-Link →
-Luc testet auf dem iPhone → erst wenn „Fertig, wenn“ erfüllt ist, kommt die nächste Phase. Jede Phase ist ein eigener
-Commit (oder mehrere), jede Datenbank-Änderung eine eigene Migration mit Test „alte Daten bleiben erhalten“.
+**Vollständigkeit:** Jede Lücke aus dem Bericht ist unten genau einer Stelle zugeordnet – einer Phase A1–A11, dem
+Development Build (D1–D12), einer offenen Entscheidung von Luc (E1–E5) oder „bewusst weglassen“ (W). Die Tabelle
+„Abdeckung“ am Ende prüft das Punkt für Punkt. Was dort nicht steht, ist nicht vergessen, sondern war nicht im Bericht.
+
+**So arbeiten wir:** Claude Code baut eine Phase → Tests, Lint und Browser-Durchlauf → Expo-Go-Link → Luc testet auf dem
+iPhone → erst wenn „Fertig, wenn“ erfüllt ist, kommt die nächste Phase. Jede Datenbank-Änderung ist eine eigene
+Migration mit Test „alte Daten bleiben erhalten“ und landet in Sicherung und Export.
 
 **Grundsätze bleiben:** kein Konto, kein Server, keine KI-Kosten, keine Werbung, alles lokal. Neue Automatikregeln
-(markiert mit **Fachprüfung**) laufen versioniert und werden gesammelt in `docs/Fachpruefung_Mappe.md` nachgetragen –
-ein Termin mit der Fachperson statt vieler einzelner.
+(**Fachprüfung**) laufen versioniert und werden gesammelt in `docs/Fachpruefung_Mappe.md` nachgetragen – ein Termin
+mit der Fachperson statt vieler einzelner.
 
-**Reihenfolge und warum:** A1 und A2 liefern die Trainingsdaten (RIR, Cardio), die A6 braucht. A3 und A4 machen das
-Ernährungstagebuch vollständiger, was A7 genauer macht. A5 (Export/Import) steht in der Mitte, weil er die neuen
-Felder aus A1–A4 gleich mit abdeckt.
+| Phase | Inhalt | Fachprüfung |
+|---|---|---|
+| A1 | Logger-Paket: Satztypen, RIR pro Satz, Notizen, Supersätze, Übungsvarianten, 1RM, Scheibenrechner | Steigerung v2 (vorbereitet, aus) |
+| A2 | Cardio | nein |
+| A3 | Ernährung schneller eintragen | nein |
+| A4 | Grundnahrungsmittel offline (inkl. Mikronährstoffe) | nein |
+| A5 | Export, Import, Berichte | nein |
+| A6 | Bereitschaft Stufe 1, Schlaf, Status | **ja** |
+| A7 | Adaptiver Energiebedarf | **ja** |
+| A8 | Programme und Auswertung im Training | Deload **ja** |
+| A9 | Essen planen: Wochenplan, Einkaufsliste, Rezept-Import | nein |
+| A10 | Körper, Rückmeldung und Motivation | nein |
+| A11 | Qualität: Barrierefreiheit, Module, Aufräumen | nein |
 
-| Phase | Inhalt | Datenbank | Fachprüfung |
-|---|---|---|---|
-| A1 | Logger-Paket: Satztypen, RIR pro Satz, Notizen, geschätztes 1RM, Scheibenrechner | v19 | nur Steigerung v2 (vorbereitet, aus) |
-| A2 | Cardio: Geräte, Minuten, Strecke, Anstrengung | v20 | nein |
-| A3 | Ernährung schneller: Schnelleintrag, Packung, Zucker/Fett/Salz, OFF-Test | v21 | nein |
-| A4 | Grundnahrungsmittel offline (deutsch, mit Portionen) | v22 | nein |
-| A5 | Export (CSV) und Import (Strong, Hevy, Gewicht) | – | nein |
-| A6 | Bereitschaft Stufe 1: Morgen-Check, Anstrengung, Trainingslast, Ampel | v23 | **ja** |
-| A7 | Adaptiver Energiebedarf aus Essen und Gewichtstrend | v24 | **ja** |
+**Reihenfolge und warum:** A1/A2 liefern RIR und Cardio für A6 und A8. A3/A4 machen das Tagebuch vollständiger für A7
+und A9. A5 kommt nach A1–A4, damit der Export die neuen Felder gleich enthält. A10 setzt auf A6 (Konstanz, Monatsbilanz)
+auf. A11 räumt am Ende auf.
 
 ---
+
+## Schritt 0 – Freigabe-Blocker (Luc, läuft parallel)
+
+Nicht Code, aber Voraussetzung für die Veröffentlichung (`docs/Freigabematrix.md`): Gerätetests Datenverlust und Timer
+(R1, R6), Fachperson beauftragen (R3 – bekommt die Regeln aus A1, A6, A7, A8 gebündelt), Rechtsprüfung (R5, R8),
+Developer-Konto, App-Name, Datenschutz-URL (R7).
 
 ## A1 – Logger-Paket
 
-**Ziel:** Alles, was Umsteiger von Hevy/Strong beim Loggen erwarten.
-
 | # | Schritt |
 |---|---|
-| A1.1 | Migration v19: `set_log.set_type` (`arbeit` · `aufwaermen` · `drop` · `versagen`, Standard `arbeit`), `set_log.rir` (0–5, leer = nicht angegeben), `set_log.note`, `workout_session.note` |
-| A1.2 | Im Training: Tippen auf die Satznummer öffnet die Satzart (Kürzel A / D / V statt Nummer); nach dem Abhaken optional RIR-Chips (0 · 1 · 2 · 3 · 4+), vorbelegt mit dem Ziel-RIR aus dem Plan |
-| A1.3 | Notiz je Satz (kurz) und je Training (am Ende im Abschluss-Bildschirm und im Verlauf sichtbar) |
-| A1.4 | Aufwärmsätze zählen nicht für Bestleistungen, Volumen und Steigerung; Drop- und Versagenssätze zählen fürs Volumen |
-| A1.5 | „Aufwärmsätze vorschlagen“ je Übung: 2–3 Sätze aus dem Arbeitsgewicht (z. B. 50 % × 8, 70 % × 5, 85 % × 3), als Satzart Aufwärmen eingefügt, jederzeit löschbar |
-| A1.6 | Geschätztes 1RM (Epley, nur bis 12 Wdh.) im Kraftverlauf als umschaltbare Linie und beim Abschluss („geschätzt“, kein Ersatz für einen Test) |
-| A1.7 | Scheibenrechner am Gewichtsfeld: Stange (20 / 15 / 10 kg oder eigene), vorhandene Scheiben einstellbar, zeigt Scheiben je Seite |
-| A1.8 | Steigerungsregel v2 vorbereitet: nutzt RIR (alle Sätze RIR ≥ 3 → früher steigern, RIR 0 bei verfehlten Wdh. → halten). **Bleibt aus**, bis die Fachperson sie freigibt; v1 läuft weiter |
+| A1.1 | Migration: `set_log.set_type` (arbeit · aufwaermen · drop · versagen), `set_log.rir` (0–5), `set_log.note`, `workout_session.note` |
+| A1.2 | Im Training: Tippen auf die Satznummer → Satzart (Kürzel A / D / V); vor einem Drop-Satz startet keine Pause |
+| A1.3 | Nach dem Abhaken optional RIR-Chips (0 · 1 · 2 · 3 · 4+), vorbelegt mit dem Ziel-RIR aus dem Plan |
+| A1.4 | Notiz je Satz und je Training (im Abschluss und im Verlauf sichtbar); Übungsnotiz aus dem Plan bleibt |
+| A1.5 | Aufwärmsätze zählen nicht für Bestleistungen, Volumen und Steigerung; Drop/Versagen zählen fürs Volumen |
+| A1.6 | „Aufwärmsätze vorschlagen“ (z. B. 50 % × 8, 70 % × 5, 85 % × 3), jederzeit löschbar |
+| A1.7 | **Supersätze/Zirkel** – vorher auf dem Gerät prüfen, ob es heute schon geht. Sonst: Gruppierung in `plan_item` (Migration), im Training automatisches Weiterspringen, Pause erst nach der Runde; der Planassistent darf beim Kürzen Supersätze anbieten |
+| A1.8 | **Übungsvarianten:** einseitig (Gewicht je Seite), unterstützt (Gegengewicht, z. B. Klimmzug-Maschine – weniger ist schwerer) und Körpergewicht mit Zusatzgewicht (Dip + 10 kg) |
+| A1.9 | Geschätztes 1RM (Epley, bis 12 Wdh.) im Kraftverlauf umschaltbar und im Abschluss („geschätzt“) |
+| A1.10 | Scheibenrechner: Stange (20 / 15 / 10 kg oder eigene), vorhandene Scheiben, Scheiben je Seite |
+| A1.11 | Steigerungsregel v2 mit RIR vorbereitet, **aus** bis zur Fachfreigabe; v1 läuft weiter |
 
-**Tests:** Migration mit alten Daten; Bestleistung ignoriert Aufwärmsätze; Volumen mit Drop-Sätzen; Epley-Werte;
-Scheibenrechner (z. B. 102,5 kg mit 20-kg-Stange → 25 + 15 + 1,25 je Seite); Sicherung enthält die neuen Felder.
-
-**Fertig, wenn:** Luc ein ganzes Training mit Aufwärmsätzen, RIR und einer Notiz loggen kann, die Bestleistungen
-stimmen und der Scheibenrechner im Gym richtig rechnet.
+**Fertig, wenn:** Luc ein Training mit Aufwärmsätzen, RIR, Notiz und einem Supersatz loggt, die Bestleistungen stimmen
+und der Scheibenrechner im Gym richtig rechnet.
 
 ## A2 – Cardio
 
-**Ziel:** Ausdauer gehört zum Training und zur Trainingslast – ohne Kalorien-Gutschrift (HEALTH-007).
-
 | # | Schritt |
 |---|---|
-| A2.1 | Übungsart `cardio` im Katalog: Laufband, Fahrrad-Ergometer, Spinning, Crosstrainer, Rudergerät, Treppensteiger, Stepper, Seilspringen, Gehen, Laufen, Radfahren, Schwimmen (draußen = ohne GPS, nur Eintrag) |
-| A2.2 | Migration v20: `cardio_log` (Training oder allein, Übung, Minuten, Strecke km optional, Ø-Puls optional, Anstrengung 1–10, Steigung/Stufe optional, Notiz) |
-| A2.3 | Im Plan: Cardio-Übung mit Ziel-Minuten (bis 180 min; die 10-min-Grenze für Zeit-Sätze gilt nur für Kraft-Zeitübungen) |
-| A2.4 | Im Training: Cardio-Zeile mit Stoppuhr oder direkter Eingabe; „Cardio eintragen“ auch ohne Plan aus dem Training-Tab |
-| A2.5 | Wochenansicht: Cardio-Minuten je Woche, Hinweis auf die WHO-Orientierung (150–300 min moderat pro Woche) als Information, nicht als Ziel |
-| A2.6 | Verlauf, Abschluss-Bildschirm und Wochenpunkte zählen Cardio-Einheiten mit |
+| A2.1 | Übungsart `cardio`: Laufband, Fahrrad-Ergometer, Spinning, Crosstrainer, Rudergerät, Treppensteiger, Stepper, Seilspringen, Gehen, Laufen, Radfahren, Schwimmen (ohne GPS, nur Eintrag) |
+| A2.2 | Migration `cardio_log`: im Training oder allein, Minuten, Strecke optional, Ø-Puls optional, Anstrengung 1–10, Stufe/Steigung, Notiz |
+| A2.3 | Im Plan: Cardio mit Ziel-Minuten (bis 180; die 10-min-Grenze bleibt nur für Kraft-Zeitübungen) |
+| A2.4 | Im Training Stoppuhr oder direkte Eingabe; „Cardio eintragen“ auch ohne Plan |
+| A2.5 | Cardio-Minuten je Woche, WHO-Orientierung (150–300 min moderat) als Information, nicht als Ziel |
+| A2.6 | Verlauf, Abschluss und Wochenpunkte zählen Cardio mit; **keine** Kalorien-Gutschrift (HEALTH-007) |
 
-**Tests:** Migration; Cardio ohne Training; Wochensumme; keine Änderung am Kalorienziel; Sicherung.
-
-**Fertig, wenn:** Luc nach dem Krafttraining 15 min Laufband eintragen kann und es in Woche und Verlauf auftaucht.
+**Fertig, wenn:** Luc nach dem Krafttraining 15 min Laufband einträgt und es in Woche und Verlauf auftaucht.
 
 ## A3 – Ernährung schneller eintragen
 
-**Ziel:** Weniger Tippen im Alltag, mehr Nährwerte aus den Daten, die schon da sind.
-
 | # | Schritt |
 |---|---|
-| A3.1 | **Schnelleintrag**: nur kcal (Pflicht) und optional Eiweiß/KH/Fett, Name optional, Mahlzeit wählbar – für Kantine, Restaurant, „ungefähr“ |
-| A3.2 | Migration v21: `food.package_amount` (aus OFF `product_quantity`), Knöpfe „1 Portion“ / „1 Packung“ / „½ Packung“ in der Mengenwahl |
-| A3.3 | Migration v21: Zucker, gesättigte Fettsäuren, Salz je 100 g für Lebensmittel, Einträge und Rezept-Zutaten (aus OFF übernommen, im eigenen Formular eingebbar); Anzeige in Lebensmittel und Tagesübersicht, ohne Bewertung |
-| A3.4 | Ganzen Tag kopieren (gestern → heute), zusätzlich zum vorhandenen „Wie am Vortag“ je Mahlzeit |
-| A3.5 | Tagesgrenze einstellbar (z. B. Tag endet um 4 Uhr) – für Spätschicht und spätes Essen nach dem Training |
-| A3.6 | „Nicht gefunden“ nach dem Scan: Formular mit Barcode vorausgefüllt, Hinweis „Etikett abtippen“ |
-| A3.7 | **OFF-Test** `docs/OFF_Test.md`: 50 typische Produkte (Liste vorbereitet), Luc scannt im Supermarkt/zu Hause, Ergebnis: gefunden ja/nein, Werte richtig ja/nein → Trefferquote dokumentiert |
+| A3.1 | **Schnelleintrag:** nur kcal (Pflicht), optional Eiweiß/KH/Fett, Name optional |
+| A3.2 | Migration `food.package_amount` (aus OFF), Knöpfe „1 Portion“ / „1 Packung“ / „½ Packung“ |
+| A3.3 | Migration: Zucker, gesättigte Fettsäuren, Salz für Lebensmittel, Einträge, Rezept-Zutaten; aus OFF übernommen, im Formular eingebbar; Anzeige ohne Bewertung |
+| A3.4 | Ganzen Tag kopieren (zusätzlich zu „Wie am Vortag“ je Mahlzeit) |
+| A3.5 | Tagesgrenze einstellbar (z. B. Tag endet um 4 Uhr) |
+| A3.6 | Nach erfolglosem Scan: Formular mit Barcode vorausgefüllt, Hinweis „Etikett abtippen“ |
+| A3.7 | **Koffein** in mg: Schätzwert je Getränketyp (Kaffee, Espresso, Tee, Energy) beim Eintragen, änderbar; Tagessumme (Grundlage fürs Journal in A6) |
+| A3.8 | **OFF-Test** `docs/OFF_Test.md`: 50 typische Produkte (Liste von Claude), Luc scannt, Trefferquote und Werte dokumentiert |
 
-**Tests:** Schnelleintrag zählt in Tag und Woche; Packungsgröße aus OFF; neue Nährwerte bleiben „unbekannt“ statt 0;
-Tagesgrenze verschiebt Einträge richtig; Migration und Sicherung.
-
-**Fertig, wenn:** Luc ein Kantinenessen in unter 10 Sekunden einträgt und der OFF-Test dokumentiert ist.
+**Fertig, wenn:** ein Kantinenessen in unter 10 Sekunden eingetragen ist und der OFF-Test dokumentiert ist.
 
 ## A4 – Grundnahrungsmittel offline
 
-**Ziel:** „Apfel“, „Reis gekocht“, „Hähnchenbrust“ sofort finden – ohne Internet, mit deutschen Namen und Portionen.
+| # | Schritt |
+|---|---|
+| A4.1 | Quelle und Lizenz klären: BLS (bevorzugt, wenn frei nutzbar) oder USDA FoodData Central (CC0) – Ergebnis in `docs/Entscheidungen.md` |
+| A4.2 | Kuratierte Liste mit ca. 400–600 Grundnahrungsmitteln, roh **und** gekocht, deutsch benannt |
+| A4.3 | Je Eintrag kcal, Eiweiß, KH, Fett, Ballaststoffe, Zucker, gesättigte Fettsäuren, Salz **und die wichtigsten Vitamine/Mineralstoffe**, soweit die Quelle sie hat (Anzeige im Lebensmittel und als Tagessumme, ohne Bewertung) |
+| A4.4 | Portionen: Stück (1 Ei ≈ 60 g), Scheibe, EL, TL, Tasse, Handvoll |
+| A4.5 | Migration: Herkunft `basis`; Liste als Datei in der App, beim Start eingespielt/aktualisiert, eigene Lebensmittel bleiben unberührt |
+| A4.6 | Suche: Grundnahrungsmittel → eigene → OFF; Synonyme (Hähnchen/Hühnchen, Quark/Topfen), tippfehler-tolerant |
+| A4.7 | Freitext-Eingabe und „In meine Rezepte übernehmen“ nutzen die Grundnahrungsmittel |
+
+**Fertig, wenn:** Luc einen Tag mit frischen Lebensmitteln ohne Barcode und ohne Internet eintragen kann.
+
+## A5 – Export, Import und Berichte
 
 | # | Schritt |
 |---|---|
-| A4.1 | Quelle und Lizenz klären: Bundeslebensmittelschlüssel (BLS, bevorzugt, wenn frei nutzbar) oder USDA FoodData Central (gemeinfrei, CC0) mit deutschen Namen. Ergebnis in `docs/Entscheidungen.md` |
-| A4.2 | Kuratierte Liste mit ca. 400–600 Grundnahrungsmitteln: Obst, Gemüse, Getreide/Beilagen roh **und** gekocht, Fleisch/Fisch, Milchprodukte, Eier, Nüsse, Öle, Brot, Getränke; je kcal, Eiweiß, KH, Fett, Ballaststoffe, Zucker, gesättigte Fettsäuren, Salz |
-| A4.3 | Portionen je Lebensmittel: Stück (1 Ei ≈ 60 g, 1 Apfel mittel ≈ 150 g), Scheibe, EL, TL, Tasse, Handvoll |
-| A4.4 | Migration v22: Herkunft `basis` für Lebensmittel; mitgelieferte Liste als Datei in der App, beim Start eingespielt bzw. aktualisiert (eigene Änderungen bleiben unberührt) |
-| A4.5 | Suche: Grundnahrungsmittel zuerst, dann eigene, dann OFF; Synonyme (Hähnchen/Hühnchen, Kartoffel/Erdapfel, Quark/Topfen) und Tippfehler-tolerant |
-| A4.6 | Freitext („200 g Reis gekocht und 2 Eier“) und „In meine Rezepte übernehmen“ aus dem Rezeptbuch nutzen die Grundnahrungsmittel statt neue eigene anzulegen |
+| A5.1 | CSV-Export je Bereich (Sätze mit Satzart/RIR/Notiz, Cardio, Tagebuch, Gewicht, Maße, Schlaf/Morgen-Check, Ziele), Excel-tauglich (Semikolon, UTF-8 mit BOM), über das Teilen-Menü |
+| A5.2 | Komplettsicherung (JSON) bleibt der Weg für Umzug und Wiederherstellung |
+| A5.3 | Import aus **Strong** und **Hevy** (CSV): Vorschau, Übungsnamen automatisch zuordnen, unklare per Auswahl, kg/lb, Doppelte überspringen; Bestleistungen und Kraftverlauf rechnen sich daraus |
+| A5.4 | Import von Gewichtswerten (CSV Datum + Gewicht) |
+| A5.5 | **PDF-Bericht** für Trainer oder Arzt: Zeitraum wählbar; Gewicht, Maße, Training (Häufigkeit, Volumen, Bestleistungen), Ernährung (Ø kcal/Makros), Schlaf; teilbar, ohne Bewertung |
+| A5.6 | **„Zusammenfassung für deine KI kopieren“:** strukturierter Text der letzten 4 Wochen in die Zwischenablage – Luc entscheidet selbst, wohin |
+| A5.7 | **Trainer-Rückweg:** Trainer schickt einen Plan als `myhealth-plan`-Datei (gibt es schon), zurück geht der PDF-Bericht oder der Trainings-CSV |
 
-**Tests:** Plausibilität aller Werte (Energie passt zu den Makros, wie beim Rezeptbuch); keine doppelten Namen;
-Portionen > 0; Suche findet Synonyme; Aktualisierung der Liste überschreibt keine eigenen Lebensmittel.
+**Offener Punkt:** echte Strong-/Hevy-Exportdateien zum Testen (von Luc, falls vorhanden – sonst nach dokumentiertem Aufbau).
 
-**Fertig, wenn:** Luc einen ganzen Tag mit frischen Lebensmitteln ohne Barcode und ohne Internet eintragen kann.
+**Fertig, wenn:** ein Strong- oder Hevy-Export im Verlauf erscheint, der CSV in Numbers sauber aufgeht und der
+PDF-Bericht lesbar ist.
 
-## A5 – Export und Import
-
-**Ziel:** Vertrauen ohne Konto (deine Daten gehören dir) und leichter Umstieg von anderen Apps.
-
-| # | Schritt |
-|---|---|
-| A5.1 | Export als CSV je Bereich: Trainingssätze (mit Satzart, RIR, Notiz), Cardio, Ernährungstagebuch, Gewicht, Maße, Schlaf/Morgen-Check, Ziele; über das Teilen-Menü (Dateien, Mail, AirDrop) |
-| A5.2 | Die vorhandene Komplettsicherung (JSON) bleibt der Weg für Umzug und Wiederherstellung; Export ist zum Anschauen und Weiterverwenden (Excel, Numbers) |
-| A5.3 | Import aus **Strong** (CSV) und **Hevy** (CSV): Vorschau mit Anzahl Trainings/Sätze, Zuordnung der Übungsnamen zum Katalog (automatisch, unklare per Auswahlliste), kg/lb, Doppelte (gleiches Datum + Übung) werden übersprungen |
-| A5.4 | Import von Gewichtswerten (CSV mit Datum und Gewicht, z. B. aus Waagen-Apps) |
-| A5.5 | Importierte Trainings landen als abgeschlossene Einheiten im Verlauf, Bestleistungen und Kraftverlauf werden daraus berechnet |
-
-**Tests:** Beispieldateien im Strong- und Hevy-Format (nach deren dokumentiertem Aufbau), Umlaute und Kommazahlen,
-lb → kg, Doppelte, unbekannte Übungen; Export → Excel-taugliches CSV (Semikolon, UTF-8 mit BOM).
-
-**Fertig, wenn:** Ein Strong- oder Hevy-Export (falls Luc einen hat, sonst Testdatei) vollständig im Verlauf erscheint
-und der Export in Numbers/Excel sauber aufgeht.
-
-## A6 – Bereitschaft Stufe 1 (Fachprüfung)
-
-**Ziel:** Jeden Morgen eine ehrliche Antwort auf „Wie hart heute?“ – aus Schlaf, Befinden und der echten
-Trainingslast. Grundlage für Stufe 2 mit HRV und Ruhepuls nach dem Development Build.
+## A6 – Bereitschaft Stufe 1, Schlaf und Status (Fachprüfung)
 
 | # | Schritt |
 |---|---|
-| A6.1 | Migration v23: `daily_check` (Tag, Schlaf von–bis oder Stunden, Schlafqualität 1–5, Energie 1–5, Muskelkater 1–5, Status normal/krank/verletzt/Pause, Notiz); vorhandene Schlafeinträge werden übernommen; Felder für HRV und Ruhepuls schon angelegt (leer bis Stufe 2) |
-| A6.2 | **Morgen-Check** auf „Heute“: 4 Antippen, unter 15 Sekunden; optional Erinnerung am Morgen |
-| A6.3 | **Anstrengung nach dem Training** (1–10, „Wie anstrengend war das Training insgesamt?“) im Abschluss-Bildschirm; Migration `workout_session.effort` |
-| A6.4 | **Trainingslast** je Einheit = Dauer × Anstrengung (Kraft und Cardio); Last der letzten 7 Tage gegen den Wochenschnitt der letzten 28 Tage |
-| A6.5 | **Ampel** (Regeln v1, versioniert): Vergleich mit dem eigenen Schnitt der letzten 28 Tage (Schlaf, Energie, Muskelkater) plus Laststeigerung; „krank“ = Pause. Immer mit Begründung und Rohwerten („6,0 h Schlaf, sonst 7,5 h · Last +45 %“) |
-| A6.6 | **Angebot statt Automatik:** Gelb → „Heute je Übung 1 Satz weniger?“, Rot → „Heute leicht oder Dehnen?“ – als befristete Planfassung wie bei „Woche ausgefallen“; nichts ändert sich ohne Tippen |
-| A6.7 | Verlauf: Bereitschaft, Schlaf und Last über 4 Wochen als Diagramm |
-| A6.8 | Wortwahl als Trainingsempfehlung, nie als Befund (keine Diagnose, kein „Infekt erkannt“); Begriffe in die Claims-Prüfung aufnehmen |
-| A6.9 | Regeln und Grenzwerte in die Fachprüfungs-Mappe |
+| A6.1 | Migration `daily_check`: Schlaf von–bis (oder Stunden), Schlafqualität 1–5, Energie 1–5, Muskelkater 1–5, Status, Notiz; bisherige Schlafeinträge werden übernommen; Felder für HRV/Ruhepuls angelegt (leer bis D4) |
+| A6.2 | **Morgen-Check** auf „Heute“: 4 Antippen, unter 15 Sekunden; optionale Erinnerung |
+| A6.3 | **Nach dem Training:** Anstrengung 1–10 (Migration `workout_session.effort`), optional Pump / Muskelkater / Gelenke je trainierter Muskelgruppe (1–3) |
+| A6.4 | **Trainingslast:** Dauer × Anstrengung (Kraft und Cardio); 7 Tage gegen den Wochenschnitt der letzten 28 Tage |
+| A6.5 | **Ampel** (Regeln v1): Vergleich mit dem eigenen 28-Tage-Schnitt (Schlaf, Energie, Muskelkater) plus Laststeigerung; immer mit Begründung und Rohwerten; wenige Daten → „noch am Lernen“ |
+| A6.6 | **Angebot statt Automatik:** Gelb → „je Übung 1 Satz weniger?“, Rot → „leicht oder Dehnen?“, als befristete Planfassung |
+| A6.7 | **Status krank / verletzt / Pause:** pausiert gemeinsam Erinnerungen, Wochenziele, Konstanz (A10) und Check-in-Vorschläge; Wiedereinstieg über die vorhandenen Regeln |
+| A6.8 | **Schlaf:** Schlafschuld über 14 Nächte (gegen das eigene Schlafziel), Regelmäßigkeit der Bett-/Aufstehzeit als Kennzahl, kein eigener „Schlaf-Score“ |
+| A6.9 | **Bettzeit-Erinnerung:** aus gewünschter Aufstehzeit und Schlafziel, im Mitteilungsbudget |
+| A6.10 | **Journal mit Auswirkungen:** automatisch aus dem Tagebuch (Alkohol, Koffein nach 14 Uhr, letzte Mahlzeit spät, kcal), dazu frei ankreuzbare Faktoren; Auswertung „an Tagen mit … war deine Energie/Leistung im Schnitt …“ erst ab genug Daten, mit Hinweis auf Zufall |
+| A6.11 | **Atemübung** (z. B. 4-7-8 / ruhiges Atmen) über den vorhandenen Ablauf-Runner |
+| A6.12 | Verlauf: Bereitschaft, Schlaf und Last über 4 Wochen; Wortwahl als Trainingsempfehlung, nie als Befund; Begriffe in die Claims-Prüfung; Regeln in die Fachprüfungs-Mappe |
 
-**Tests:** Ampel für typische und Grenzfälle (wenige Daten → „noch am Lernen“, krank, Schlaf kurz, Last hoch);
-Begründung immer vorhanden; Angebot ändert den Plan erst nach Bestätigung; Claims-Test.
-
-**Fertig, wenn:** Luc zwei Wochen lang morgens den Check macht und die Ampel nachvollziehbar findet.
+**Fertig, wenn:** Luc zwei Wochen lang morgens den Check macht und Ampel, Schlafschuld und Journal nachvollziehbar findet.
 
 ## A7 – Adaptiver Energiebedarf (Fachprüfung)
 
-**Ziel:** Der echte Verbrauch, geschätzt aus dem, was gegessen wurde, und wie sich das Gewicht entwickelt –
-statt nur Formel und ±100-Regel.
+| # | Schritt |
+|---|---|
+| A7.1 | Schätzung über 14–28 Tage: Ø Aufnahme + (Änderung des geglätteten Gewichtstrends × ca. 7.700 kcal/kg) ÷ Tage |
+| A7.2 | Tage als „nicht vollständig erfasst“ markierbar (zählen nicht); zu wenige Tage → Formel bleibt, „noch am Lernen“ |
+| A7.3 | Anzeige „Geschätzter Verbrauch 3.150 kcal (± 200)“ mit Rechenweg und Wochenverlauf Aufnahme gegen Verbrauch |
+| A7.4 | Check-in Regeln v2: Vorschlag = Verbrauch + Ziel-Abstand, Änderung je Woche begrenzt, auf 50 kcal gerundet, nur nach Bestätigung; v1 wählbar bis zur Freigabe |
+| A7.5 | **Monatsbericht** (Erweiterung des Wochen-Check-ins): Gewicht, Verbrauch, Training, Schlaf, Bestleistungen des Monats |
+| A7.6 | Schutzregeln bleiben (Untergrenzen, Untergewicht, „sensible Situation“ blendet Zahlen aus) |
+
+**Fertig, wenn:** nach 3–4 Wochen ein geschätzter Verbrauch mit Rechenweg erscheint und der Vorschlag nachvollziehbar ist.
+
+## A8 – Programme und Auswertung im Training
 
 | # | Schritt |
 |---|---|
-| A7.1 | Schätzung über 14–28 Tage: Ø Aufnahme + (Änderung des Gewichtstrends × ca. 7.700 kcal/kg) ÷ Tage; Gewichtstrend geglättet, damit Wasser-Schwankungen nicht durchschlagen |
-| A7.2 | Datenqualität: Tage können als „nicht vollständig erfasst“ markiert werden und zählen dann nicht; zu wenige Tage → Formel (Mifflin-St Jeor) bleibt, Hinweis „noch am Lernen“ |
-| A7.3 | Anzeige: „Geschätzter Verbrauch 3.150 kcal (± 200)“ mit Rechenweg und Verlauf (Aufnahme gegen geschätzten Verbrauch je Woche) |
-| A7.4 | Wochen-Check-in Regeln v2: Vorschlag = geschätzter Verbrauch + Ziel-Abstand (Aufbau/Diät/Halten), Änderung je Woche begrenzt, gerundet auf 50 kcal; weiter nur nach Bestätigung |
-| A7.5 | Schutzregeln bleiben: Untergrenzen, kein Defizit bei Untergewicht, „sensible Situation“ blendet Zahlen aus |
-| A7.6 | Regeln in die Fachprüfungs-Mappe; v1 bleibt wählbar, bis v2 freigegeben ist |
+| A8.1 | **Programm-Vorlagen** als `myhealth-plan`-Dateien in der App: z. B. Ganzkörper 3×, Oberkörper/Unterkörper 4×, Push/Pull/Beine 6×, Kraft-Basis 3× (lineare Steigerung), Zuhause mit Kurzhanteln; eigene Namen (keine geschützten Programmnamen ohne Rechtsprüfung) |
+| A8.2 | **Geplanter Deload** (Fachprüfung): alle 6–10 Wochen eine leichte Woche anbieten (halbe Sätze, gleiche Gewichte, RIR 3) – wie in Lucs Plan; als befristete Planfassung, nie automatisch |
+| A8.3 | **Zeitschätzung aus eigenen Satzzeiten** statt fester 45 s; **bevorzugte Wochentage** im Planassistenten |
+| A8.4 | **Geräteprofile** (Studio, Zuhause, Hotel): Planassistent und „Gerät belegt“ nutzen das gewählte Profil |
+| A8.5 | **Muskel-Körperkarte** (SVG, vorne/hinten): Wochensätze je Muskelgruppe farbig – nur Menge, keine „Erholung in %“ |
+| A8.6 | **Monats- und Jahresstatistik:** Trainings, Sätze, Volumen, Cardio-Minuten, Bestleistungen je Zeitraum; Volumen je Übung |
 
-**Tests:** Künstliche Verläufe mit bekanntem Verbrauch (die Schätzung trifft nach 3–4 Wochen auf ± 5 %); Lücken
-und unvollständige Tage; Wassersprünge; Grenzen und Schutzregeln.
+**Fertig, wenn:** Luc eine Vorlage übernehmen, ein Geräteprofil wechseln und seine Muskelkarte und Monatszahlen sehen kann.
 
-**Fertig, wenn:** Nach 3–4 Wochen Tagebuch und Wiegen zeigt die App Luc einen geschätzten Verbrauch mit Rechenweg,
-und der Check-in-Vorschlag ist nachvollziehbar.
+## A9 – Essen planen
+
+| # | Schritt |
+|---|---|
+| A9.1 | **Wochenplan aus dem Rezeptbuch:** Mahlzeiten auf Tage legen (von Hand oder Vorschlag passend zu kcal-/Eiweißziel und Ernährungsweise); Tagessumme gegen Ziel |
+| A9.2 | Geplante Mahlzeit mit einem Tippen als gegessen eintragen |
+| A9.3 | **Einkaufsliste** aus dem Wochenplan: Zutaten zusammengefasst und nach Abteilung sortiert, abhakbar, teilbar |
+| A9.4 | **Rezept-Import per Link:** Webseite laden, schema.org-Rezept lesen, Zutaten mit Grundnahrungsmitteln (A4) abgleichen, unklare per Auswahl |
+| A9.5 | Meal-Prep: Portionen eines Rezepts über mehrere Tage verteilen |
+
+**Fertig, wenn:** Luc für eine Woche plant, die Einkaufsliste im Supermarkt nutzt und ein Rezept per Link übernimmt.
+
+## A10 – Körper, Rückmeldung und Motivation
+
+| # | Schritt |
+|---|---|
+| A10.1 | **Fotos:** zwei beliebige Daten vergleichen, nebeneinander und als Überblendung (Schieber); gleiche Pose als Hilfslinie |
+| A10.2 | **Maße:** weitere Stellen (Wade, Nacken, Unterarm, Brust), Ziele für Maße, Messanleitung (Text; Bilder später über Higgsfield) |
+| A10.3 | **Einheiten:** ml/oz und ft/in zusätzlich zu kg/lb |
+| A10.4 | **Blutdruck-Tagebuch** (manuell, optional, nur Verlauf ohne Bewertung oder Grenzwerte) |
+| A10.5 | **Meilensteine** ohne Serien: 10./50./100. Training, erste 100 kg in einer Übung, 1.000 Sätze, 4 Wochen Plan geschafft |
+| A10.6 | **Wochen- und Monatsbilanz** „x von y Plan-Wochen“, Ruhetage zählen, nichts geht verloren (Form der Konstanz siehe E1) |
+| A10.7 | **Teilen-Karten** als Bild: Training, Bestleistung, Monatsbilanz – über das Teilen-Menü, ohne Konto |
+| A10.8 | **Lerninhalte:** 10–15 kurze Artikel (Progression, RIR, Eiweiß, Schlaf, Deload, Cardio), geprüft gegen falsche Versprechen |
+
+**Fertig, wenn:** Luc einen Foto-Vergleich mit Überblendung macht, einen Meilenstein bekommt und eine Teilen-Karte verschickt.
+
+## A11 – Qualität und Aufräumen
+
+| # | Schritt |
+|---|---|
+| A11.1 | **Module ein-/ausschaltbar** (z. B. Ernährung, Dehnen/HIIT, Coach aus für reine Lifter) – Tabs und „Heute“ passen sich an |
+| A11.2 | **VoiceOver-Prüfung** aller Hauptabläufe auf dem iPhone, Fehler beheben, Ergebnis in `docs/Geraetetest.md` |
+| A11.3 | `docs/Fahrplan.md` auf den Stand bringen (Plan-Import, Rezeptbuch, vergessenes Training, A1–A10) |
+| A11.4 | Fachprüfungs-Mappe vollständig (Regeln aus A1, A6, A7, A8) für den gebündelten Termin |
+
+**Fertig, wenn:** die Mappe vollständig ist und VoiceOver alle Hauptabläufe schafft.
 
 ---
 
+## Offene Entscheidungen von Luc (E1–E5)
+
+| # | Frage | Bericht empfiehlt | Wirkt auf |
+|---|---|---|---|
+| E1 | Verzeihende **Wochen-Konstanz** statt „keine Serien“? | ja: Ruhetage zählen, kein Verlust, abschaltbar, bei „sensibler Situation“ aus | A10.6 |
+| E2 | **Fasten-Timer** (16:8 usw.)? | nur „Kann“; bei „sensibler Situation“ ausblenden | sonst W |
+| E3 | **GLP-1-Begleitmodus** (Eiweiß + Krafttraining zum Muskelerhalt)? | strategisch interessant, braucht Rechts- und Fachprüfung | später |
+| E4 | **Gemessenes Körperfett** von der Waage anzeigen (keine eigene Schätzung)? | ja, nur anzeigen | D3 |
+| E5 | **Englisch** als zweite Sprache wann? | erst nach dem Deutschland-Start | Phase 11 |
+
 ## Parallel: Übungsbilder mit Higgsfield (Luc)
 
-Die Medien-Struktur in der App ist fertig (`mobile/src/media/exercise-media.ts`, `docs/Anleitung_Uebungsbilder.md`).
-Vorbereitung von Claude: Liste der 150 häufigsten Übungen (nach Plänen, Vorlagen und Lucs Plan), einheitliche
-Stilvorgabe (Hintergrund, Blickwinkel, Format, Dateiname = Übungs-ID). Luc erzeugt die Bilder, Claude bindet sie ein.
+Medien-Technik steht (`mobile/src/media/exercise-media.ts`, `docs/Anleitung_Uebungsbilder.md`). Claude liefert:
+Liste der 150 häufigsten Übungen, Stilvorgabe (Hintergrund, Blickwinkel, Format, Dateiname = Übungs-ID) und bindet
+die Bilder ein. Später auch Bilder für die Messanleitung (A10.2).
 
-## Danach: Development Build (ab MacBook)
+## Development Build (ab MacBook, D1–D12)
 
-Reihenfolge aus dem Bericht: Build-Grundlage → Live Activity (Pausentimer) → Apple Health lesen/schreiben →
-Bereitschaft Stufe 2 (HRV, Ruhepuls, Schlafschuld) → Widgets → Etikett-Scan auf dem Gerät → Siri/Kurzbefehle →
-Android + Health Connect → Apple Watch.
+| # | Inhalt |
+|---|---|
+| D1 | Build-Grundlage: EAS-Development-Build, Face ID im Build, SQLCipher-Verschlüsselung, offene Gerätetests |
+| D2 | Live Activity / Dynamic Island für den Pausentimer (Satz, nächste Übung, Restzeit) |
+| D3 | Apple Health **lesen** (Schritte, Schlaf mit Phasen, Gewicht, Körperfett nur anzeigen, Ruhepuls, HRV, VO2max, Workouts – Läufe in die Trainingslast) und **schreiben** (Krafttrainings, Gewicht, Wasser, Ernährung); Hinweis „vielleicht keine Freigabe“ bei leeren Daten |
+| D4 | Bereitschaft Stufe 2: HRV und Ruhepuls gegen 28–60-Tage-Baseline, Schlaf aus Health in Schlafschuld und Journal |
+| D5 | Widgets (kcal/Eiweiß übrig, nächstes Training, Wasser +250 ml, Ampel) |
+| D6 | Etikett-Scan auf dem Gerät (Texterkennung) für Produkte, die OFF nicht kennt |
+| D7 | Siri / Kurzbefehle („Wasser eintragen“, „Training starten“) |
+| D8 | Pulszonen im Training (mit Watch-Daten aus Health) |
+| D9 | Android + Health Connect (inkl. 30-Tage-Grenze, eigene RMSSD-Baseline) |
+| D10 | Apple-Watch-App zum Satz-Loggen |
+| D11 | Sync über die eigene iCloud des Nutzers (kein eigener Server) – vorher prüfen |
+| D12 | Optional: Kamera-HRV-Morgenmessung; In-App-Kauf erst nach Entscheidung zur Monetarisierung; Zyklusdaten nur nach Rechtsprüfung |
+
+## Bewusst weglassen (W)
+
+KI-Foto-Erkennung und Cloud-KI-Chat (Kosten, Server, Ungenauigkeit – Ersatz: A3, A4, A5.6, D6) · Lebensmittel-Score
+„gut/schlecht“ · Restaurant-Datenbank (Schnelleintrag reicht) · Laborwerte · „Biologisches Alter“ ·
+Krankheits-Frühwarnung · Smart Alarm/Schnarcherkennung · EKG/Vorhofflimmern/Blutdruck-Warnungen · eigene
+Körperfett-Schätzung · Social-Feed, Freunde, Bestenlisten, Challenges · Web-App, Wear OS · Musik im Training ·
+Kalorien-Gutschrift für Training · Supplement-Empfehlungen · Werbung · eigener Absturzdienst · GPS-Läufe.
+
+---
+
+## Abdeckung: jede Lücke aus dem Bericht → Stelle im Plan
+
+| Bereich | Lücke laut Bericht | Stelle |
+|---|---|---|
+| Training | Satztypen | A1.1–A1.2, A1.5 |
+| Training | RIR/RPE pro Satz | A1.3 (Regel A1.11) |
+| Training | geschätztes 1RM | A1.9 |
+| Training | Scheibenrechner | A1.10 |
+| Training | Aufwärmsatz-Rechner | A1.6 |
+| Training | Supersätze/Zirkel | A1.7 |
+| Training | Notizen | A1.4 |
+| Training | Cardio | A2 |
+| Training | Übungsbilder | Parallel (Luc, Higgsfield) |
+| Training | Import Strong/Hevy | A5.3 |
+| Training | Programmbibliothek | A8.1 |
+| Training | Deload/Mesozyklen | A8.2 |
+| Training | Feedback nach der Einheit | A6.3 |
+| Training | Muskel-Körperkarte | A8.5 |
+| Training | Monats-/Jahresstatistik, Volumen je Übung | A8.6 |
+| Training | Geräteprofile | A8.4 |
+| Training | Teilen-Karte | A10.7 |
+| Training | einseitig/unterstützt/Zusatzgewicht | A1.8 |
+| Training | Zeitschätzung, bevorzugte Wochentage | A8.3 |
+| Training | Apple-Watch-App | D10 |
+| Training | Musik | W |
+| Ernährung | Grundnahrungsmittel offline | A4 |
+| Ernährung | Schnelleintrag | A3.1 |
+| Ernährung | „1 Packung“, Tagesgrenze | A3.2, A3.5 |
+| Ernährung | OFF-Trefferquote | A3.8 |
+| Ernährung | adaptiver Energiebedarf | A7 |
+| Ernährung | Zucker, Salz, gesättigte Fette | A3.3 |
+| Ernährung | Vitamine/Mineralstoffe | A4.3 |
+| Ernährung | Etikett-Scan | D6 |
+| Ernährung | Foto-Erkennung | W |
+| Ernährung | „Was ich gegessen habe“ als Text | vorhanden + A4.7 |
+| Ernährung | Mahlzeitenplan + Einkaufsliste | A9.1–A9.3, A9.5 |
+| Ernährung | Rezept-Import per Link | A9.4 |
+| Ernährung | Fasten-Timer | E2 |
+| Ernährung | Koffein | A3.7 |
+| Ernährung | GLP-1-Modus | E3 |
+| Ernährung | Lebensmittel-Score, Restaurant-DB | W |
+| Ernährung | Ernährung in Health schreiben | D3 |
+| Körper | Schritte/Gewicht/Körperfett/Ruhepuls automatisch | D3 |
+| Körper | gemessenes Körperfett anzeigen | E4 → D3 |
+| Körper | Foto-Vergleich frei / Überblendung | A10.1 |
+| Körper | weitere Maße, Ziele für Maße | A10.2 |
+| Körper | Messanleitung, ml/oz, ft | A10.2, A10.3 |
+| Körper | PDF-Bericht | A5.5 |
+| Körper | VO2max | D3 |
+| Körper | Blutdruck-Tagebuch | A10.4 |
+| Körper | Laborwerte, biologisches Alter | W |
+| Körper | Zyklus | D12 (nach Rechtsprüfung) |
+| Schlaf/Herz | Schlaf aus Health | D3 |
+| Schlaf/Herz | HRV/Ruhepuls mit Baseline | D3, D4 |
+| Schlaf/Herz | Bereitschafts-Ampel | A6.5 (Stufe 1), D4 (Stufe 2) |
+| Schlaf/Herz | Trainingslast akut:chronisch | A6.4 |
+| Schlaf/Herz | Morgen-Check | A6.2 |
+| Schlaf/Herz | Status krank/verletzt/Pause | A6.7 |
+| Schlaf/Herz | Schlafschuld | A6.8 (D4 mit Health) |
+| Schlaf/Herz | Bettzeit-Empfehlung | A6.9 |
+| Schlaf/Herz | Journal mit Auswirkungen | A6.10 |
+| Schlaf/Herz | Schlaf-Score | A6.8 (bewusst nur Regelmäßigkeit) |
+| Schlaf/Herz | Monatsbericht | A7.5 |
+| Schlaf/Herz | Kamera-HRV | D12 |
+| Schlaf/Herz | Energieplan nach Tagesrhythmus | W (weit weg vom Kern; mit D4 neu prüfen) |
+| Schlaf/Herz | Stress-Wert / Atemübung | Atemübung A6.11, Stress-Wert D4 |
+| Schlaf/Herz | Pulszonen | D8 |
+| Schlaf/Herz | Krankheits-Frühwarnung, Smart Alarm, EKG usw. | W |
+| Plattform | Development Build | D1 |
+| Plattform | HealthKit lesen/schreiben | D3 |
+| Plattform | Live Activity | D2 |
+| Plattform | CSV/JSON-Export | A5.1–A5.2 |
+| Plattform | Widgets | D5 |
+| Plattform | SQLCipher, Face ID | D1 |
+| Plattform | Android + Health Connect | D9 |
+| Plattform | Siri/Kurzbefehle | D7 |
+| Plattform | VoiceOver-Audit | A11.2 |
+| Plattform | zweites Gerät/Sync | D11 |
+| Plattform | Englisch | E5 |
+| Plattform | Web-App, Wear OS | W |
+| Plattform | In-App-Kauf | D12 |
+| Motivation | Wochen-Konstanz | E1 → A10.6 |
+| Motivation | Meilensteine | A10.5 |
+| Motivation | Teilen-Karten | A10.7 |
+| Motivation | Lerninhalte | A10.8 |
+| Motivation | Module ein/aus | A11.1 |
+| Motivation | Trainer/Kunde-Modus | A5.7 |
+| Motivation | Social-Feed usw. | W |
+| Bericht-Fahrplan | „Zusammenfassung für deine KI kopieren“ | A5.6 |
+| Bericht-Fahrplan | Freigabe-Blocker | Schritt 0 |

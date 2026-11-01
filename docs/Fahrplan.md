@@ -647,11 +647,13 @@ abgeschnittene Zahl, zu wenig Kontrast von Lime auf Weiß behoben). 508 Tests, L
 Gewicht über 10 Tage, Mini-Player) im Browser durchgespielt. Spürbares und Federn nur auf dem iPhone prüfbar:
 Prüfliste in `docs/Geraetetest.md` (Abschnitt „Optik-Paket“).
 
-## Ausbau A1–A7 (nach der Wettbewerbsanalyse, 01.11.2026)
+## Ausbau A1–A11 (nach der Wettbewerbsanalyse, 01.11.2026)
 
 Fester Plan in `docs/Ausbauplan.md`: A1 Logger-Paket · A2 Cardio · A3 Ernährung schneller · A4 Grundnahrungsmittel
-offline · A5 Export/Import · A6 Bereitschaft Stufe 1 · A7 adaptiver Energiebedarf. Übungsbilder macht Luc parallel mit
-Higgsfield. Grundlage: `docs/recherche/reports/Was Myhealth noch fehlt.md`.
+offline · A5 Export/Import/Berichte · A6 Bereitschaft, Schlaf, Status · A7 adaptiver Energiebedarf · A8 Programme und
+Auswertung · A9 Essen planen · A10 Körper und Motivation · A11 Qualität. Danach Development Build D1–D12, offene
+Entscheidungen E1–E5, bewusst weggelassen W. Jede Lücke aus dem Bericht ist dort einer Stelle zugeordnet.
+Übungsbilder macht Luc parallel mit Higgsfield. Grundlage: `docs/recherche/reports/Was Myhealth noch fehlt.md`.
 
 ## Phase 11 – Nach dem Start
 
