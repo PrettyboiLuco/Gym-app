@@ -42,6 +42,15 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 | Freitext | Lokal, ohne KI und ohne Internet; KI vorerst nicht (kostenfreie Version, Entscheidung 30.10.2026). |
 | Beruf | Kein eigenes Feld – „Bewegung im Alltag“ im Profil enthält ihn bereits. |
 
+## Vorläufig umgesetzt (Ausbauplan A4/A5, 01.11.2026) – bitte bestätigen oder ändern
+
+| Thema | Vorläufige Lösung |
+|---|---|
+| Grundnahrungsmittel | **USDA SR28** (Standard Reference, Release 28, 2015) – als Werk der US-Regierung gemeinfrei, keine Namensnennung nötig (wird trotzdem in der App genannt). 441 Einträge, deutsch benannt, mit Synonymen, Portionen und 11 Vitaminen/Mineralstoffen. BLS (deutscher Bundeslebensmittelschlüssel) wäre fachlich näher an deutschen Produkten; er war aus der Bauumgebung nicht erreichbar und seine Nutzungsbedingungen sind noch ungeklärt. Bei US-Werten mit deutlicher Abweichung (z. B. Milch 3,25 statt 3,5 %, Magerquark, Räucherlachs) ist die Annäherung in `mobile/scripts/basis-foods/README.md` beschrieben. Wechsel auf BLS später möglich: Liste neu erzeugen, `BASIS_VERSION` erhöhen. |
+| Allergene/Ernährungsweise der Grundnahrungsmittel | Nur eindeutige Fälle gesetzt; Brot, Wurst, Süßes, Saucen, Margarine, Wein/Bier: „keine Aussage“ statt Vermutung. |
+| CSV-Export | Semikolon, Dezimalkomma, UTF-8 mit BOM (Excel in Deutschland). Je Bereich eine Datei. |
+| Import aus anderen Apps | Strong und Hevy (Trainings-CSV) sowie Gewichts-CSV. RPE wird als RIR = 10 − RPE übernommen. |
+
 ## Folgen für die Technik (Vorschlag)
 
 - **Expo / React Native (TypeScript)** bleibt der Kandidat (Option B, Kap. 09): Es ist am nächsten an der

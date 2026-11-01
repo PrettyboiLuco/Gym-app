@@ -22,7 +22,8 @@ mit der Fachperson statt vieler einzelner.
 | A1 | **fertig** (01.11.2026) – Datenbank-Version 19, 552 Tests; Gerätetest durch Luc offen |
 | A2 | **fertig** (01.11.2026) – Datenbank-Version 20; Gerätetest durch Luc offen |
 | A3 | **fertig** (01.11.2026) – Datenbank-Version 21, 566 Tests; OFF-Test (50 Produkte) durch Luc offen |
-| A4–A11 | offen |
+| A4 | **fertig** (01.11.2026) – Datenbank-Version 22, 441 Grundnahrungsmittel (USDA SR28); Gerätetest durch Luc offen |
+| A5–A11 | offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -152,6 +153,25 @@ und Produktansicht · alte Tests erwarteten die alte Form der Nährwerte.
 | A4.7 | Freitext-Eingabe und „In meine Rezepte übernehmen“ nutzen die Grundnahrungsmittel |
 
 **Fertig, wenn:** Luc einen Tag mit frischen Lebensmitteln ohne Barcode und ohne Internet eintragen kann.
+
+**Umgesetzt (A4, 01.11.2026):** Quelle USDA SR28 (gemeinfrei; BLS war nicht erreichbar, Begründung in
+`docs/Entscheidungen.md`). 441 Einträge in 15 Gruppen, roh und gekocht, deutsch benannt mit Synonymen, Portionen
+(Stück, Scheibe, EL, TL, Tasse, Glas, Handvoll) und 11 Vitaminen/Mineralstoffen. Erzeugt mit
+`mobile/scripts/basis-foods/` (Auswahl + Generator, nachvollziehbar). Migration 22: `catalog_id`/`catalog_origin`,
+Suchbegriffe, Portionen, Mikros an Lebensmittel und Eintrag. Beim Start eingespielt bzw. aktualisiert; vom Nutzer
+geänderte Einträge werden abgekoppelt und nie überschrieben. Suche: Favoriten → Grundnahrungsmittel → eigene →
+Produkte, Synonyme, Umlaute, ein Tippfehler. Vitamine/Mineralstoffe im Lebensmittel und als Tagessumme mit Angabe,
+wie viele Einträge Werte hatten (ohne Bewertung). Freitext nutzt Synonyme und Portionen („2 EL Haferflocken“,
+„2 Eier“ = Größe M). „In meine Rezepte übernehmen“ verknüpft 73 von 82 Rezeptbuch-Zutaten mit Grundnahrungsmitteln.
+
+**Beim Lückencheck nach A4 gefunden und geschlossen:** Butter, Butterschmalz, Kokosmilch, Zitronensaft, Brühe und
+Salz fehlten · Butter und Schweineschmalz waren als „vegan“, Eiernudeln ohne Ei, Kartoffelpüree ohne Milch
+eingestuft; Synonyme wie „Eierfrucht“ (Aubergine) oder „Mandelbutter“ lösten falsche Allergene aus → Regeln nur
+noch am Hauptnamen, Brot/Margarine/Wein „keine Aussage“, Test für Tierprodukte · Milch, Buttermilch, Kefir jetzt in
+ml · US-Tofu hatte deutlich weniger Eiweiß als deutscher → festerer Tofu · Zucker konnte über den Kohlenhydraten
+liegen (Messwerte der Quelle) → begrenzt · Stevia-Pulver (0 kcal, 100 g KH) entfernt · Freitext fand Synonyme,
+verwarf sie aber beim Bewerten · nach „Alle Daten löschen“ und nach Wiederherstellen einer älteren Sicherung
+fehlten die Grundnahrungsmittel bis zum nächsten Start.
 
 ## A5 – Export, Import und Berichte
 

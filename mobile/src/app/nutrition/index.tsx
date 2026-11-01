@@ -8,7 +8,8 @@ import { DaySwitcher } from '@/components/day-switcher';
 import { Icon } from '@/components/icon';
 import { Field, ListRow, Presets } from '@/components/fields';
 import { foodTitle } from '@/components/food-title';
-import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, whenFor } from '@/components/nutrition-format';
+import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, microLine, whenFor } from '@/components/nutrition-format';
+import { parseMicros, sumMicros } from '@/domain/basis-foods';
 import { showToast } from '@/components/toast';
 import { CAFFEINE_DRINKS, type CaffeineDrink } from '@/domain/caffeine';
 import { Screen } from '@/components/screen';
@@ -72,6 +73,9 @@ export default function DiaryScreen() {
   const { waterMl, allMl } = drinkTotals(drinks);
   const left = goal === null ? null : goal - sums.values.kcal;
   const caffeineMg = events.reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
+  // Vitamine und Mineralstoffe (A4): nur aus Einträgen mit Angaben, Abdeckung wird dazugeschrieben.
+  const microSum = sumMicros(events.filter((e) => e.kind === 'essen' || e.microsJson).map((e) => parseMicros(e.microsJson)));
+  const [showMicros, setShowMicros] = useState(false);
 
   function changeDay(next: string) {
     setDay(next);
@@ -158,6 +162,21 @@ export default function DiaryScreen() {
               {macroSumLine(sums)}
               {extraSumLine(sums) ? `\n${extraSumLine(sums)}` : ''}
             </ThemedText>
+            {microSum.known > 0 ? (
+              showMicros ? (
+                <>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {microLine(microSum.values)}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('micros.coverage', { known: microSum.known, total: microSum.total })}
+                  </ThemedText>
+                  <Button label={t('micros.hide')} variant="secondary" size="compact" onPress={() => setShowMicros(false)} />
+                </>
+              ) : (
+                <Button label={t('micros.show')} variant="secondary" size="compact" onPress={() => setShowMicros(true)} />
+              )
+            ) : null}
           </>
         )}
         {sums.unknown.kcal > 0 ? (

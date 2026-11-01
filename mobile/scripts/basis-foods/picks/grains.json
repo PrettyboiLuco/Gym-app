@@ -1,0 +1,2426 @@
+[
+ {
+  "ndb": "20444",
+  "name": "Reis, weiß (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Reis roh",
+   "Langkornreis roh",
+   "Weißer Reis ungekocht",
+   "Reis trocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 75
+   },
+   {
+    "label": "1 EL (roh)",
+    "g": 12
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 185
+   }
+  ],
+  "serving": 75,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20445",
+  "name": "Reis, weiß (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Reis gekocht",
+   "Langkornreis gekocht",
+   "Weißer Reis gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 158
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20036",
+  "name": "Naturreis (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Vollkornreis roh",
+   "Brauner Reis roh",
+   "Reis braun ungekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 75
+   },
+   {
+    "label": "1 EL (roh)",
+    "g": 12
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 185
+   }
+  ],
+  "serving": 75,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20037",
+  "name": "Naturreis (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Vollkornreis gekocht",
+   "Brauner Reis gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 202
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20446",
+  "name": "Parboiled Reis (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Parboiled-Reis roh",
+   "Spitzenlangkornreis parboiled"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 75
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 185
+   }
+  ],
+  "serving": 75,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20447",
+  "name": "Parboiled Reis (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Parboiled-Reis gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 158
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "08120",
+  "name": "Haferflocken",
+  "group": "getreide",
+  "synonyms": [
+   "Haferflocken zart",
+   "Haferflocken kernig",
+   "Oats",
+   "Hafer"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse",
+    "g": 81
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "08121",
+  "name": "Haferbrei mit Wasser (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Porridge",
+   "Oatmeal",
+   "Haferschleim"
+  ],
+  "portions": [
+   {
+    "label": "1 Schüssel",
+    "g": 250
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 234
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 250,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20033",
+  "name": "Haferkleie",
+  "group": "getreide",
+  "synonyms": [
+   "Oat bran",
+   "Haferkleie roh"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 6
+   },
+   {
+    "label": "1 Portion",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20420",
+  "name": "Nudeln (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Spaghetti roh",
+   "Pasta roh",
+   "Penne roh",
+   "Hartweizennudeln",
+   "Teigwaren"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse Spaghetti (roh)",
+    "g": 91
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20421",
+  "name": "Nudeln (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Spaghetti gekocht",
+   "Pasta gekocht",
+   "Penne gekocht",
+   "Teigwaren gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 230
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 124
+   }
+  ],
+  "serving": 230,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20124",
+  "name": "Vollkornnudeln (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Vollkornspaghetti roh",
+   "Vollkornpasta roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse Spaghetti (roh)",
+    "g": 91
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20125",
+  "name": "Vollkornnudeln (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Vollkornspaghetti gekocht",
+   "Vollkornpasta gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 230
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 117
+   }
+  ],
+  "serving": 230,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20409",
+  "name": "Eiernudeln (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Bandnudeln roh",
+   "Eierteigwaren",
+   "Spätzle trocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 38
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20410",
+  "name": "Eiernudeln (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Bandnudeln gekocht",
+   "Spätzle gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 230
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 160
+   }
+  ],
+  "serving": 230,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20133",
+  "name": "Reisnudeln (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Reisbandnudeln roh",
+   "Reis-Vermicelli"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 75
+   }
+  ],
+  "serving": 75,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20134",
+  "name": "Reisnudeln (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Reisbandnudeln gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 176
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20028",
+  "name": "Couscous (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Couscous trocken",
+   "Kuskus roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 70
+   },
+   {
+    "label": "1 EL (roh)",
+    "g": 11
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 173
+   }
+  ],
+  "serving": 70,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20029",
+  "name": "Couscous (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Couscous zubereitet",
+   "Kuskus gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 180
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 157
+   }
+  ],
+  "serving": 180,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20012",
+  "name": "Bulgur (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Bulgur trocken",
+   "Weizengrütze"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 70
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 140
+   }
+  ],
+  "serving": 70,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20013",
+  "name": "Bulgur (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Bulgur zubereitet"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 180
+   },
+   {
+    "label": "1 EL (gekocht)",
+    "g": 8
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 182
+   }
+  ],
+  "serving": 180,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20035",
+  "name": "Quinoa (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Quinoa trocken",
+   "Quinoa ungekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 EL (roh)",
+    "g": 11
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 170
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20137",
+  "name": "Quinoa (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Quinoa zubereitet"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 180
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 185
+   }
+  ],
+  "serving": 180,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20031",
+  "name": "Hirse (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Goldhirse",
+   "Hirse trocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 200
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20009",
+  "name": "Buchweizen (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Buchweizengrütze",
+   "Kascha",
+   "Buchweizen geröstet"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 164
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20005",
+  "name": "Perlgraupen (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Graupen",
+   "Gerste geschält",
+   "Gerstengraupen"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 200
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20140",
+  "name": "Dinkel (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Dinkelkörner",
+   "Dinkelreis",
+   "Spelt"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 174
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20141",
+  "name": "Dinkel (gekocht)",
+  "group": "getreide",
+  "synonyms": [
+   "Dinkelkörner gekocht",
+   "Dinkelreis gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 180
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 194
+   }
+  ],
+  "serving": 180,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "20481",
+  "name": "Weizenmehl (Type 405)",
+  "group": "getreide",
+  "synonyms": [
+   "Mehl",
+   "Weißmehl",
+   "Auszugsmehl",
+   "Weizenmehl hell",
+   "Type 550"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 TL",
+    "g": 3
+   },
+   {
+    "label": "1 Tasse",
+    "g": 125
+   }
+  ],
+  "serving": null,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20080",
+  "name": "Weizenvollkornmehl",
+  "group": "getreide",
+  "synonyms": [
+   "Vollkornmehl",
+   "Weizenmehl Vollkorn"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 TL",
+    "g": 3
+   },
+   {
+    "label": "1 Tasse",
+    "g": 120
+   }
+  ],
+  "serving": null,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20466",
+  "name": "Hartweizengrieß",
+  "group": "getreide",
+  "synonyms": [
+   "Grieß",
+   "Semola",
+   "Hartweizengries"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 12
+   },
+   {
+    "label": "1 Portion (für Brei)",
+    "g": 40
+   },
+   {
+    "label": "1 Tasse",
+    "g": 167
+   }
+  ],
+  "serving": 40,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20422",
+  "name": "Maisgrieß / Polenta (roh)",
+  "group": "getreide",
+  "synonyms": [
+   "Polenta",
+   "Maisgries",
+   "Maismehl"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Tasse",
+    "g": 157
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "20027",
+  "name": "Speisestärke (Maisstärke)",
+  "group": "getreide",
+  "synonyms": [
+   "Maisstärke",
+   "Stärke",
+   "Maisstärkemehl"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 8
+   },
+   {
+    "label": "1 TL",
+    "g": 3
+   }
+  ],
+  "serving": null,
+  "prep": null
+ },
+ {
+  "ndb": "19816",
+  "name": "Reiswaffeln (ungesalzen)",
+  "group": "getreide",
+  "synonyms": [
+   "Reiswaffel",
+   "Vollkorn-Reiswaffeln",
+   "Reiskekse"
+  ],
+  "portions": [
+   {
+    "label": "1 Reiswaffel",
+    "g": 9
+   },
+   {
+    "label": "2 Reiswaffeln",
+    "g": 18
+   }
+  ],
+  "serving": 18,
+  "prep": null
+ },
+ {
+  "ndb": "08020",
+  "name": "Cornflakes",
+  "group": "getreide",
+  "synonyms": [
+   "Corn Flakes",
+   "Maisflocken",
+   "Frühstücksflocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 30
+   },
+   {
+    "label": "1 Tasse",
+    "g": 28
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "18069",
+  "name": "Toastbrot (Weißbrot)",
+  "group": "brot",
+  "synonyms": [
+   "Weißbrot",
+   "Toast",
+   "Buttertoast",
+   "Sandwichbrot"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 29
+   }
+  ],
+  "serving": 58,
+  "prep": null
+ },
+ {
+  "ndb": "18075",
+  "name": "Vollkornbrot (Weizen)",
+  "group": "brot",
+  "synonyms": [
+   "Weizenvollkornbrot",
+   "Vollkorntoast",
+   "Vollkornbrot"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe (dünn)",
+    "g": 32
+   },
+   {
+    "label": "1 Scheibe (dick)",
+    "g": 50
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "18060",
+  "name": "Roggenmischbrot",
+  "group": "brot",
+  "synonyms": [
+   "Roggenbrot",
+   "Mischbrot",
+   "Graubrot",
+   "Bauernbrot"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 45
+   },
+   {
+    "label": "1 dünne Scheibe",
+    "g": 32
+   }
+  ],
+  "serving": 45,
+  "prep": null
+ },
+ {
+  "ndb": "18044",
+  "name": "Pumpernickel",
+  "group": "brot",
+  "synonyms": [
+   "Schwarzbrot",
+   "Roggenvollkornbrot dunkel"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 50
+   },
+   {
+    "label": "1 dünne Scheibe",
+    "g": 26
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "28397",
+  "name": "Mehrkornbrot",
+  "group": "brot",
+  "synonyms": [
+   "Körnerbrot",
+   "Mehrkorn",
+   "Vollkorn-Mehrkornbrot"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 45
+   },
+   {
+    "label": "1 dünne Scheibe",
+    "g": 26
+   }
+  ],
+  "serving": 45,
+  "prep": null
+ },
+ {
+  "ndb": "18029",
+  "name": "Baguette",
+  "group": "brot",
+  "synonyms": [
+   "Weißbrot französisch",
+   "Stangenweißbrot",
+   "Sauerteig-Weißbrot"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück (10 cm)",
+    "g": 40
+   },
+   {
+    "label": "1 ganzes Baguette",
+    "g": 250
+   }
+  ],
+  "serving": 80,
+  "prep": null
+ },
+ {
+  "ndb": "18353",
+  "name": "Weizenbrötchen",
+  "group": "brot",
+  "synonyms": [
+   "Brötchen",
+   "Semmel",
+   "Schrippe",
+   "Kaiserbrötchen",
+   "Wecken"
+  ],
+  "portions": [
+   {
+    "label": "1 Brötchen",
+    "g": 57
+   }
+  ],
+  "serving": 57,
+  "prep": null
+ },
+ {
+  "ndb": "18348",
+  "name": "Vollkornbrötchen",
+  "group": "brot",
+  "synonyms": [
+   "Vollkornsemmel",
+   "Weizenvollkornbrötchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Brötchen",
+    "g": 70
+   },
+   {
+    "label": "1 kleines Brötchen",
+    "g": 43
+   }
+  ],
+  "serving": 70,
+  "prep": null
+ },
+ {
+  "ndb": "18346",
+  "name": "Roggenbrötchen",
+  "group": "brot",
+  "synonyms": [
+   "Roggensemmel",
+   "Roggenmischbrötchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Brötchen",
+    "g": 60
+   },
+   {
+    "label": "1 kleines Brötchen",
+    "g": 36
+   }
+  ],
+  "serving": 60,
+  "prep": null
+ },
+ {
+  "ndb": "18216",
+  "name": "Knäckebrot (Roggen)",
+  "group": "brot",
+  "synonyms": [
+   "Knäcke",
+   "Roggenknäckebrot",
+   "Vollkornknäckebrot"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 11
+   }
+  ],
+  "serving": 22,
+  "prep": null
+ },
+ {
+  "ndb": "18408",
+  "name": "Bagel",
+  "group": "brot",
+  "synonyms": [
+   "Bagel natur",
+   "Bagel plain",
+   "Sesambagel"
+  ],
+  "portions": [
+   {
+    "label": "1 Bagel",
+    "g": 85
+   },
+   {
+    "label": "1 Mini-Bagel",
+    "g": 26
+   }
+  ],
+  "serving": 85,
+  "prep": null
+ },
+ {
+  "ndb": "18413",
+  "name": "Fladenbrot / Pita",
+  "group": "brot",
+  "synonyms": [
+   "Pita",
+   "Pitabrot",
+   "Fladenbrot",
+   "Döner-Brot"
+  ],
+  "portions": [
+   {
+    "label": "1 Pita",
+    "g": 60
+   },
+   {
+    "label": "1/4 Fladenbrot",
+    "g": 100
+   }
+  ],
+  "serving": 60,
+  "prep": null
+ },
+ {
+  "ndb": "18350",
+  "name": "Burgerbrötchen",
+  "group": "brot",
+  "synonyms": [
+   "Hamburgerbrötchen",
+   "Burger Bun",
+   "Hot-Dog-Brötchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Burgerbrötchen",
+    "g": 50
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "18364",
+  "name": "Weizentortilla (Wrap)",
+  "group": "brot",
+  "synonyms": [
+   "Wrap",
+   "Tortilla",
+   "Weizen-Tortilla",
+   "Tortilla-Wrap"
+  ],
+  "portions": [
+   {
+    "label": "1 Wrap (25 cm)",
+    "g": 62
+   },
+   {
+    "label": "1 kleine Tortilla",
+    "g": 48
+   }
+  ],
+  "serving": 62,
+  "prep": null
+ },
+ {
+  "ndb": "03217",
+  "name": "Zwieback",
+  "group": "brot",
+  "synonyms": [
+   "Zwieback klassisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 7
+   }
+  ],
+  "serving": 21,
+  "prep": null
+ },
+ {
+  "ndb": "11352",
+  "name": "Kartoffeln (roh)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Kartoffel roh",
+   "Kartoffeln mit Schale roh",
+   "Speisekartoffeln"
+  ],
+  "portions": [
+   {
+    "label": "1 mittelgroße Kartoffel",
+    "g": 120
+   },
+   {
+    "label": "1 große Kartoffel",
+    "g": 200
+   },
+   {
+    "label": "1 Portion",
+    "g": 200
+   }
+  ],
+  "serving": 200,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11367",
+  "name": "Kartoffeln (gekocht)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Salzkartoffeln",
+   "Pellkartoffeln",
+   "Kartoffeln geschält gekocht",
+   "Kartoffel gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 mittelgroße Kartoffel",
+    "g": 120
+   },
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 78
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11674",
+  "name": "Ofenkartoffel (mit Schale)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Backkartoffel",
+   "Folienkartoffel",
+   "Kartoffel gebacken"
+  ],
+  "portions": [
+   {
+    "label": "1 große Ofenkartoffel",
+    "g": 299
+   },
+   {
+    "label": "1 Portion",
+    "g": 200
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11657",
+  "name": "Kartoffelpüree (mit Milch)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Kartoffelbrei",
+   "Stampfkartoffeln",
+   "Püree"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse",
+    "g": 210
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11841",
+  "name": "Pommes frites (Backofen, ungesalzen)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Pommes",
+   "Ofenpommes",
+   "Fritten",
+   "Backofen-Pommes"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "10 Stück",
+    "g": 74
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11672",
+  "name": "Kartoffelpuffer",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Reibekuchen",
+   "Reiberdatschi",
+   "Kartoffelpfannkuchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Kartoffelpuffer",
+    "g": 60
+   },
+   {
+    "label": "1 kleiner Puffer",
+    "g": 37
+   }
+  ],
+  "serving": 180,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11507",
+  "name": "Süßkartoffel (roh)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Süsskartoffel roh",
+   "Batate"
+  ],
+  "portions": [
+   {
+    "label": "1 kleine Süßkartoffel",
+    "g": 130
+   },
+   {
+    "label": "1 große Süßkartoffel",
+    "g": 300
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 133
+   }
+  ],
+  "serving": 200,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11508",
+  "name": "Süßkartoffel (gebacken)",
+  "group": "kartoffeln",
+  "synonyms": [
+   "Süßkartoffel aus dem Ofen",
+   "Ofen-Süßkartoffel",
+   "Süßkartoffel gegart"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 große Süßkartoffel",
+    "g": 180
+   },
+   {
+    "label": "1 Tasse",
+    "g": 200
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16069",
+  "name": "Linsen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Tellerlinsen roh",
+   "Berglinsen roh",
+   "Braune Linsen trocken",
+   "Linsen getrocknet"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 EL (roh)",
+    "g": 12
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 192
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16070",
+  "name": "Linsen (gekocht)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Tellerlinsen gekocht",
+   "Braune Linsen gekocht",
+   "Linsen aus der Dose"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 150
+   },
+   {
+    "label": "1 EL (gekocht)",
+    "g": 12
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 198
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16144",
+  "name": "Rote Linsen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Rote Linsen trocken",
+   "Red lentils"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 192
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16056",
+  "name": "Kichererbsen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Kichererbsen getrocknet",
+   "Kichererbsen trocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 EL (roh)",
+    "g": 12
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 200
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16057",
+  "name": "Kichererbsen (gekocht)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Kichererbsen gegart"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 150
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 164
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16358",
+  "name": "Kichererbsen (Dose, abgetropft)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Kichererbsen Dose",
+   "Kichererbsen aus der Dose",
+   "Kichererbsen Glas"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (400 g, abgetropft)",
+    "g": 240
+   },
+   {
+    "label": "1 Portion",
+    "g": 120
+   }
+  ],
+  "serving": 120,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16032",
+  "name": "Kidneybohnen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Kidneybohnen getrocknet",
+   "Rote Bohnen roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 184
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16033",
+  "name": "Kidneybohnen (gekocht)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Rote Bohnen gekocht",
+   "Kidneybohnen gegart"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 150
+   },
+   {
+    "label": "1 EL (gekocht)",
+    "g": 11
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 177
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16145",
+  "name": "Kidneybohnen (Dose, abgetropft)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Kidneybohnen Dose",
+   "Rote Bohnen Dose",
+   "Kidneybohnen aus der Dose"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (400 g, abgetropft)",
+    "g": 250
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16014",
+  "name": "Schwarze Bohnen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Black Beans roh",
+   "Schwarze Bohnen getrocknet"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 194
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16015",
+  "name": "Schwarze Bohnen (gekocht)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Black Beans gekocht",
+   "Schwarze Bohnen gegart"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 150
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 172
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16049",
+  "name": "Weiße Bohnen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Weiße Bohnen getrocknet",
+   "Cannellini roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 202
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16050",
+  "name": "Weiße Bohnen (gekocht)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Weiße Bohnen gegart",
+   "Cannellini gekocht",
+   "Weiße Riesenbohnen gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (gekocht)",
+    "g": 150
+   },
+   {
+    "label": "1 EL (gekocht)",
+    "g": 11
+   },
+   {
+    "label": "1 Tasse (gekocht)",
+    "g": 179
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16085",
+  "name": "Schälerbsen (roh)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Erbsen getrocknet",
+   "Trockenerbsen",
+   "Spalterbsen",
+   "Gelbe Erbsen"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (roh)",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse (roh)",
+    "g": 197
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16006",
+  "name": "Baked Beans (Dose)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Gebackene Bohnen",
+   "Bohnen in Tomatensoße",
+   "Weiße Bohnen in Tomatensauce"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 Dose (415 g)",
+    "g": 415
+   },
+   {
+    "label": "1 Tasse",
+    "g": 254
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11212",
+  "name": "Edamame (TK, gekocht)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Edamame",
+   "Grüne Sojabohnen",
+   "Sojabohnen jung"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse",
+    "g": 155
+   }
+  ],
+  "serving": 100,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "16160",
+  "name": "Tofu natur (fest)",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Tofu",
+   "Naturtofu",
+   "Tofu fest"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 200
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "16114",
+  "name": "Tempeh",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Tempeh natur"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 200
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "16158",
+  "name": "Hummus",
+  "group": "huelsenfruechte",
+  "synonyms": [
+   "Humus",
+   "Kichererbsenpüree",
+   "Kichererbsen-Dip"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "12061",
+  "name": "Mandeln",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Mandeln naturbelassen",
+   "Mandelkerne",
+   "Mandeln roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll (ca. 25 Stück)",
+    "g": 30
+   },
+   {
+    "label": "1 EL gehackt",
+    "g": 8
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "12155",
+  "name": "Walnüsse",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Walnusskerne",
+   "Walnuss"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 Walnuss (2 Hälften)",
+    "g": 5
+   },
+   {
+    "label": "1 EL gehackt",
+    "g": 7
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "12120",
+  "name": "Haselnüsse",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Haselnusskerne",
+   "Haselnuss",
+   "Haselnüsse gemahlen"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 EL gemahlen",
+    "g": 5
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "12085",
+  "name": "Cashewkerne (geröstet, ungesalzen)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Cashews",
+   "Cashewnüsse",
+   "Cashew"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 EL",
+    "g": 9
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "12152",
+  "name": "Pistazien (geröstet, ungesalzen)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Pistazienkerne",
+   "Pistazie"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll (ca. 50 Kerne)",
+    "g": 28
+   }
+  ],
+  "serving": 28,
+  "prep": null
+ },
+ {
+  "ndb": "12131",
+  "name": "Macadamianüsse",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Macadamia",
+   "Macadamiakerne"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll (10-12 Stück)",
+    "g": 28
+   }
+  ],
+  "serving": 28,
+  "prep": null
+ },
+ {
+  "ndb": "12078",
+  "name": "Paranüsse",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Paranuss",
+   "Paranusskerne"
+  ],
+  "portions": [
+   {
+    "label": "1 Paranuss",
+    "g": 5
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "12147",
+  "name": "Pinienkerne",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Pinienkern",
+   "Pignoli"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 8
+   },
+   {
+    "label": "1 Portion",
+    "g": 15
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "12108",
+  "name": "Kokosraspeln (ungesüßt)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Kokosflocken",
+   "Kokosnuss getrocknet",
+   "Kokosraspel"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 5
+   },
+   {
+    "label": "1 Portion",
+    "g": 15
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "19821",
+  "name": "Studentenfutter (ungesalzen)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Trail Mix",
+   "Nuss-Frucht-Mischung",
+   "Nussmischung mit Rosinen"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 Tasse",
+    "g": 150
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "16390",
+  "name": "Erdnüsse (geröstet, ungesalzen)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Erdnüsse",
+   "Erdnusskerne",
+   "Erdnuss"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 Tasse",
+    "g": 146
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "16398",
+  "name": "Erdnussbutter (cremig, ohne Salz)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Erdnussmus",
+   "Peanut Butter",
+   "Erdnusscreme"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 16
+   },
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "2 EL",
+    "g": 32
+   }
+  ],
+  "serving": 16,
+  "prep": null
+ },
+ {
+  "ndb": "12195",
+  "name": "Mandelmus",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Mandelbutter",
+   "Almond Butter"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 16
+   },
+   {
+    "label": "1 TL",
+    "g": 5
+   }
+  ],
+  "serving": 16,
+  "prep": null
+ },
+ {
+  "ndb": "12166",
+  "name": "Tahini (Sesammus)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Sesampaste",
+   "Tahin",
+   "Sesammus"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 TL",
+    "g": 5
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "12036",
+  "name": "Sonnenblumenkerne",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Sonnenblumenkerne geschält",
+   "Sonnenblumensamen"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 9
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "12014",
+  "name": "Kürbiskerne",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Kürbiskerne geschält",
+   "Kürbissamen"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 8
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "12006",
+  "name": "Chiasamen",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Chia",
+   "Chia-Samen"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 12
+   },
+   {
+    "label": "1 TL",
+    "g": 4
+   }
+  ],
+  "serving": 12,
+  "prep": null
+ },
+ {
+  "ndb": "12220",
+  "name": "Leinsamen",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Leinsaat",
+   "Leinsamen ganz",
+   "Flachssamen"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 TL",
+    "g": 3
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "12023",
+  "name": "Sesam",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Sesamsaat",
+   "Sesamkörner",
+   "Sesam ungeschält"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 9
+   },
+   {
+    "label": "1 TL",
+    "g": 3
+   }
+  ],
+  "serving": 9,
+  "prep": null
+ },
+ {
+  "ndb": "12012",
+  "name": "Hanfsamen (geschält)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Hanfsamen",
+   "Hanfnüsse",
+   "Hemp seeds"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "3 EL",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "12167",
+  "name": "Maronen (geröstet)",
+  "group": "nuesse_samen",
+  "synonyms": [
+   "Esskastanien",
+   "Maroni",
+   "Kastanien geröstet"
+  ],
+  "portions": [
+   {
+    "label": "1 Marone",
+    "g": 8
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "04053",
+  "name": "Olivenöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Olivenöl extra vergine",
+   "Natives Olivenöl"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.5
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.5,
+  "prep": null
+ },
+ {
+  "ndb": "04582",
+  "name": "Rapsöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Rapskernöl",
+   "Canolaöl"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 14
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 14,
+  "prep": null
+ },
+ {
+  "ndb": "04506",
+  "name": "Sonnenblumenöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Pflanzenöl",
+   "Speiseöl"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.6
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.6,
+  "prep": null
+ },
+ {
+  "ndb": "04047",
+  "name": "Kokosöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Kokosfett",
+   "Kokosnussöl"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.6
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.6,
+  "prep": null
+ },
+ {
+  "ndb": "04058",
+  "name": "Sesamöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Sesamöl geröstet"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.6
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.6,
+  "prep": null
+ },
+ {
+  "ndb": "42231",
+  "name": "Leinöl (kaltgepresst)",
+  "group": "fette_oele",
+  "synonyms": [
+   "Leinsamenöl",
+   "Leinöl"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.6
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.6,
+  "prep": null
+ },
+ {
+  "ndb": "04528",
+  "name": "Walnussöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Walnussöl kaltgepresst"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.6
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.6,
+  "prep": null
+ },
+ {
+  "ndb": "04042",
+  "name": "Erdnussöl",
+  "group": "fette_oele",
+  "synonyms": [
+   "Erdnussöl raffiniert"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13.5
+   },
+   {
+    "label": "1 TL",
+    "g": 4.5
+   }
+  ],
+  "serving": 13.5,
+  "prep": null
+ },
+ {
+  "ndb": "04618",
+  "name": "Margarine (80 % Fett, ungesalzen)",
+  "group": "fette_oele",
+  "synonyms": [
+   "Margarine",
+   "Pflanzenmargarine",
+   "Streichfett"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (für 1 Brot)",
+    "g": 10
+   },
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 14
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "04128",
+  "name": "Halbfettmargarine (ca. 37 % Fett)",
+  "group": "fette_oele",
+  "synonyms": [
+   "Halbfettmargarine",
+   "Light-Margarine",
+   "Streichfett fettreduziert"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (für 1 Brot)",
+    "g": 10
+   },
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "04002",
+  "name": "Schweineschmalz",
+  "group": "fette_oele",
+  "synonyms": [
+   "Schmalz",
+   "Griebenschmalz",
+   "Schweinefett"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 13
+   },
+   {
+    "label": "1 TL",
+    "g": 4
+   }
+  ],
+  "serving": 13,
+  "prep": null
+ }
+]

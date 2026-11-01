@@ -2,11 +2,18 @@ import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import type { ReactNode } from 'react';
 
 import type { Db } from './db';
+import { syncBasisFoods } from './basis-foods';
 import { migrate } from './migrations';
+
+/** Datenbank vorbereiten: Migrationen, dann die mitgelieferten Grundnahrungsmittel (A4, nur bei neuer Listen-Version). */
+async function prepare(db: Db) {
+  await migrate(db);
+  await syncBasisFoods(db);
+}
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   return (
-    <SQLiteProvider databaseName="gym-app.db" onInit={(db) => migrate(db as unknown as Db)}>
+    <SQLiteProvider databaseName="gym-app.db" onInit={(db) => prepare(db as unknown as Db)}>
       {children}
     </SQLiteProvider>
   );

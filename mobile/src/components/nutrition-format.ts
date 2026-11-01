@@ -1,6 +1,7 @@
 // Gemeinsame Anzeige- und Navigationshilfen für den Ernährungsbereich.
 
 import { cachedDayEnd, cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
+import { MICRO_KEYS, MICRO_UNITS, type Micros } from '@/domain/basis-foods';
 import { suggestMealAt } from '@/domain/diet';
 import { localDay } from '@/domain/time';
 import {
@@ -65,6 +66,15 @@ export function extraLine(n: Nutrients) {
   const parts = (['sugar', 'satFat', 'salt'] as const)
     .filter((key) => n[key] != null)
     .map((key) => `${t(`nutrition.${key}`)} ${formatGram(n[key] ?? null)}`);
+  return parts.length ? parts.join(' · ') : null;
+}
+
+/** Vitamine und Mineralstoffe (A4), z. B. „Calcium 120 mg · Eisen 2,1 mg“ – nur bekannte Werte. */
+export function microLine(m: Micros | null) {
+  if (!m) return null;
+  const parts = MICRO_KEYS.filter((k) => m[k] != null && m[k]! > 0).map(
+    (k) => `${t(`micros.${k}`)} ${formatNumber(m[k]!, m[k]! < 10 ? 1 : 0)} ${MICRO_UNITS[k]}`
+  );
   return parts.length ? parts.join(' · ') : null;
 }
 

@@ -1,0 +1,2667 @@
+[
+ {
+  "ndb": "09003",
+  "name": "Apfel (mit Schale)",
+  "group": "obst",
+  "synonyms": [
+   "Äpfel",
+   "Apfel roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Apfel (klein)",
+    "g": 150
+   },
+   {
+    "label": "1 Apfel (mittel)",
+    "g": 180
+   },
+   {
+    "label": "1 Apfel (groß)",
+    "g": 220
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 125
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09040",
+  "name": "Banane",
+  "group": "obst",
+  "synonyms": [
+   "Bananen"
+  ],
+  "portions": [
+   {
+    "label": "1 Banane (klein)",
+    "g": 100
+   },
+   {
+    "label": "1 Banane (mittel)",
+    "g": 118
+   },
+   {
+    "label": "1 Banane (groß)",
+    "g": 136
+   },
+   {
+    "label": "1 Tasse Scheiben",
+    "g": 150
+   }
+  ],
+  "serving": 118,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09252",
+  "name": "Birne",
+  "group": "obst",
+  "synonyms": [
+   "Birnen"
+  ],
+  "portions": [
+   {
+    "label": "1 Birne (mittel)",
+    "g": 178
+   },
+   {
+    "label": "1 Birne (groß)",
+    "g": 230
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 140
+   }
+  ],
+  "serving": 178,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09200",
+  "name": "Orange",
+  "group": "obst",
+  "synonyms": [
+   "Apfelsine",
+   "Orangen",
+   "Apfelsinen"
+  ],
+  "portions": [
+   {
+    "label": "1 Orange (mittel)",
+    "g": 140
+   },
+   {
+    "label": "1 Orange (groß)",
+    "g": 184
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 180
+   }
+  ],
+  "serving": 140,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09218",
+  "name": "Mandarine",
+  "group": "obst",
+  "synonyms": [
+   "Mandarinen"
+  ],
+  "portions": [
+   {
+    "label": "1 Mandarine (klein)",
+    "g": 76
+   },
+   {
+    "label": "1 Mandarine (mittel)",
+    "g": 88
+   }
+  ],
+  "serving": 88,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09433",
+  "name": "Clementine",
+  "group": "obst",
+  "synonyms": [
+   "Clementinen",
+   "Klementine"
+  ],
+  "portions": [
+   {
+    "label": "1 Clementine",
+    "g": 74
+   }
+  ],
+  "serving": 74,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09132",
+  "name": "Weintrauben",
+  "group": "obst",
+  "synonyms": [
+   "Trauben",
+   "Tafeltrauben",
+   "Weintrauben hell",
+   "Weintrauben rot"
+  ],
+  "portions": [
+   {
+    "label": "10 Trauben",
+    "g": 49
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 80
+   },
+   {
+    "label": "1 Tasse",
+    "g": 151
+   }
+  ],
+  "serving": 80,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09316",
+  "name": "Erdbeeren",
+  "group": "obst",
+  "synonyms": [
+   "Erdbeere"
+  ],
+  "portions": [
+   {
+    "label": "1 Erdbeere (mittel)",
+    "g": 12
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 80
+   },
+   {
+    "label": "1 Schale (Portion)",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09050",
+  "name": "Heidelbeeren",
+  "group": "obst",
+  "synonyms": [
+   "Blaubeeren",
+   "Heidelbeere",
+   "Blaubeere"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 70
+   },
+   {
+    "label": "1 Schale (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Tasse",
+    "g": 148
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09302",
+  "name": "Himbeeren",
+  "group": "obst",
+  "synonyms": [
+   "Himbeere"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 60
+   },
+   {
+    "label": "1 Schale (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Tasse",
+    "g": 123
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09042",
+  "name": "Brombeeren",
+  "group": "obst",
+  "synonyms": [
+   "Brombeere"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 70
+   },
+   {
+    "label": "1 Schale (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Tasse",
+    "g": 144
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09070",
+  "name": "Kirschen",
+  "group": "obst",
+  "synonyms": [
+   "Süßkirschen",
+   "Kirsche"
+  ],
+  "portions": [
+   {
+    "label": "1 Kirsche",
+    "g": 7
+   },
+   {
+    "label": "10 Kirschen",
+    "g": 68
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09236",
+  "name": "Pfirsich",
+  "group": "obst",
+  "synonyms": [
+   "Pfirsiche"
+  ],
+  "portions": [
+   {
+    "label": "1 Pfirsich (klein)",
+    "g": 130
+   },
+   {
+    "label": "1 Pfirsich (mittel)",
+    "g": 150
+   },
+   {
+    "label": "1 Pfirsich (groß)",
+    "g": 175
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09191",
+  "name": "Nektarine",
+  "group": "obst",
+  "synonyms": [
+   "Nektarinen"
+  ],
+  "portions": [
+   {
+    "label": "1 Nektarine (klein)",
+    "g": 129
+   },
+   {
+    "label": "1 Nektarine (mittel)",
+    "g": 142
+   }
+  ],
+  "serving": 142,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09279",
+  "name": "Pflaume",
+  "group": "obst",
+  "synonyms": [
+   "Pflaumen",
+   "Zwetschge",
+   "Zwetschgen",
+   "Zwetschke"
+  ],
+  "portions": [
+   {
+    "label": "1 Pflaume",
+    "g": 66
+   },
+   {
+    "label": "1 Handvoll (3 Stück)",
+    "g": 200
+   }
+  ],
+  "serving": 66,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09021",
+  "name": "Aprikose",
+  "group": "obst",
+  "synonyms": [
+   "Aprikosen",
+   "Marille",
+   "Marillen"
+  ],
+  "portions": [
+   {
+    "label": "1 Aprikose",
+    "g": 35
+   },
+   {
+    "label": "3 Aprikosen",
+    "g": 105
+   }
+  ],
+  "serving": 35,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09148",
+  "name": "Kiwi",
+  "group": "obst",
+  "synonyms": [
+   "Kiwis",
+   "Kiwi grün",
+   "Kiwifrucht"
+  ],
+  "portions": [
+   {
+    "label": "1 Kiwi (mittel)",
+    "g": 69
+   },
+   {
+    "label": "1 Kiwi (groß)",
+    "g": 91
+   }
+  ],
+  "serving": 69,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09176",
+  "name": "Mango",
+  "group": "obst",
+  "synonyms": [
+   "Mangos",
+   "Mangofrucht"
+  ],
+  "portions": [
+   {
+    "label": "1 Mango (ohne Schale und Kern)",
+    "g": 336
+   },
+   {
+    "label": "1/2 Mango",
+    "g": 168
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 165
+   }
+  ],
+  "serving": 168,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09266",
+  "name": "Ananas",
+  "group": "obst",
+  "synonyms": [
+   "Ananasfrucht"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 85
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 165
+   }
+  ],
+  "serving": 165,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09326",
+  "name": "Wassermelone",
+  "group": "obst",
+  "synonyms": [
+   "Melone, Wasser-"
+  ],
+  "portions": [
+   {
+    "label": "1 Spalte",
+    "g": 286
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 152
+   }
+  ],
+  "serving": 286,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09184",
+  "name": "Honigmelone",
+  "group": "obst",
+  "synonyms": [
+   "Honigmelonen",
+   "Melone, Honig-"
+  ],
+  "portions": [
+   {
+    "label": "1 Spalte (1/8 Melone)",
+    "g": 160
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 170
+   }
+  ],
+  "serving": 160,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09111",
+  "name": "Grapefruit",
+  "group": "obst",
+  "synonyms": [
+   "Pampelmuse",
+   "Grapefruits"
+  ],
+  "portions": [
+   {
+    "label": "1/2 Grapefruit",
+    "g": 123
+   },
+   {
+    "label": "1 Grapefruit",
+    "g": 246
+   }
+  ],
+  "serving": 123,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09150",
+  "name": "Zitrone (ohne Schale)",
+  "group": "obst",
+  "synonyms": [
+   "Zitronen",
+   "Zitrone"
+  ],
+  "portions": [
+   {
+    "label": "1 Zitrone",
+    "g": 58
+   },
+   {
+    "label": "1 Spalte",
+    "g": 7
+   }
+  ],
+  "serving": 58,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09159",
+  "name": "Limette",
+  "group": "obst",
+  "synonyms": [
+   "Limetten",
+   "Limone"
+  ],
+  "portions": [
+   {
+    "label": "1 Limette",
+    "g": 67
+   },
+   {
+    "label": "1 Spalte",
+    "g": 7
+   }
+  ],
+  "serving": 67,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09037",
+  "name": "Avocado",
+  "group": "obst",
+  "synonyms": [
+   "Avocados"
+  ],
+  "portions": [
+   {
+    "label": "1 Avocado (ohne Schale und Kern)",
+    "g": 150
+   },
+   {
+    "label": "1/2 Avocado",
+    "g": 75
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 75,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09286",
+  "name": "Granatapfel",
+  "group": "obst",
+  "synonyms": [
+   "Granatäpfel",
+   "Granatapfelkerne"
+  ],
+  "portions": [
+   {
+    "label": "1 Granatapfel (essbarer Anteil)",
+    "g": 282
+   },
+   {
+    "label": "1 Portion Kerne (1/2 Tasse)",
+    "g": 87
+   },
+   {
+    "label": "1 EL Kerne",
+    "g": 10
+   }
+  ],
+  "serving": 87,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09089",
+  "name": "Feige (frisch)",
+  "group": "obst",
+  "synonyms": [
+   "Feigen",
+   "frische Feigen"
+  ],
+  "portions": [
+   {
+    "label": "1 Feige (mittel)",
+    "g": 50
+   },
+   {
+    "label": "1 Feige (groß)",
+    "g": 64
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09226",
+  "name": "Papaya",
+  "group": "obst",
+  "synonyms": [
+   "Papayas"
+  ],
+  "portions": [
+   {
+    "label": "1 Papaya (klein)",
+    "g": 157
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 145
+   }
+  ],
+  "serving": 145,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09084",
+  "name": "Johannisbeeren (rot/weiß)",
+  "group": "obst",
+  "synonyms": [
+   "rote Johannisbeeren",
+   "weiße Johannisbeeren",
+   "Träubele",
+   "Ribisel"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 60
+   },
+   {
+    "label": "1 Tasse",
+    "g": 112
+   }
+  ],
+  "serving": 112,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09307",
+  "name": "Rhabarber",
+  "group": "gemuese",
+  "synonyms": [
+   "Rhabarberstange"
+  ],
+  "portions": [
+   {
+    "label": "1 Stange",
+    "g": 51
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 122
+   }
+  ],
+  "serving": 51,
+  "prep": "roh"
+ },
+ {
+  "ndb": "09019",
+  "name": "Apfelmus (ungesüßt)",
+  "group": "obst",
+  "synonyms": [
+   "Apfelmark",
+   "Apfelkompott ungesüßt"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Portion (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Glas (360 g)",
+    "g": 360
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "09298",
+  "name": "Rosinen",
+  "group": "obst",
+  "synonyms": [
+   "Sultaninen",
+   "Trockentrauben"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 Päckchen (43 g)",
+    "g": 43
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "09291",
+  "name": "Trockenpflaumen",
+  "group": "obst",
+  "synonyms": [
+   "Dörrpflaumen",
+   "Backpflaumen",
+   "getrocknete Pflaumen"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück (entsteint)",
+    "g": 10
+   },
+   {
+    "label": "5 Stück",
+    "g": 48
+   }
+  ],
+  "serving": 48,
+  "prep": null
+ },
+ {
+  "ndb": "09032",
+  "name": "Aprikosen, getrocknet",
+  "group": "obst",
+  "synonyms": [
+   "Trockenaprikosen",
+   "getrocknete Aprikosen",
+   "Softaprikosen"
+  ],
+  "portions": [
+   {
+    "label": "1 Aprikosenhälfte",
+    "g": 3.5
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "09087",
+  "name": "Datteln, getrocknet",
+  "group": "obst",
+  "synonyms": [
+   "Dattel",
+   "Datteln"
+  ],
+  "portions": [
+   {
+    "label": "1 Dattel (entsteint)",
+    "g": 7
+   },
+   {
+    "label": "5 Datteln",
+    "g": 35
+   }
+  ],
+  "serving": 35,
+  "prep": null
+ },
+ {
+  "ndb": "09094",
+  "name": "Feigen, getrocknet",
+  "group": "obst",
+  "synonyms": [
+   "Trockenfeigen",
+   "getrocknete Feigen"
+  ],
+  "portions": [
+   {
+    "label": "1 Feige",
+    "g": 8.4
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "09079",
+  "name": "Cranberries, getrocknet (gesüßt)",
+  "group": "obst",
+  "synonyms": [
+   "getrocknete Cranberries",
+   "Moosbeeren getrocknet",
+   "Kranbeeren"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1/4 Tasse",
+    "g": 40
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "09054",
+  "name": "Heidelbeeren (TK)",
+  "group": "obst",
+  "synonyms": [
+   "Blaubeeren TK",
+   "tiefgekühlte Heidelbeeren"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 70
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "09318",
+  "name": "Erdbeeren (TK, ungesüßt)",
+  "group": "obst",
+  "synonyms": [
+   "Erdbeeren TK",
+   "tiefgekühlte Erdbeeren"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 80
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "09518",
+  "name": "Himbeeren (TK, ungesüßt)",
+  "group": "obst",
+  "synonyms": [
+   "Himbeeren TK",
+   "tiefgekühlte Himbeeren"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 60
+   },
+   {
+    "label": "1 Portion",
+    "g": 140
+   }
+  ],
+  "serving": 140,
+  "prep": null
+ },
+ {
+  "ndb": "11090",
+  "name": "Brokkoli",
+  "group": "gemuese",
+  "synonyms": [
+   "Broccoli",
+   "Brokkoli roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Röschen",
+    "g": 11
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Kopf",
+    "g": 500
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11091",
+  "name": "Brokkoli (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Broccoli gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Röschen",
+    "g": 12
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 78
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11457",
+  "name": "Spinat",
+  "group": "gemuese",
+  "synonyms": [
+   "Blattspinat",
+   "Babyspinat",
+   "Spinat roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "1 Portion (Salat)",
+    "g": 60
+   },
+   {
+    "label": "1 Beutel (125 g)",
+    "g": 125
+   }
+  ],
+  "serving": 30,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11458",
+  "name": "Spinat (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Blattspinat gekocht",
+   "Spinat gedünstet"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Tasse",
+    "g": 180
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11463",
+  "name": "Spinat (TK)",
+  "group": "gemuese",
+  "synonyms": [
+   "Blattspinat TK",
+   "Spinat tiefgekühlt"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Packung (450 g)",
+    "g": 450
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "11124",
+  "name": "Karotte",
+  "group": "gemuese",
+  "synonyms": [
+   "Möhre",
+   "Mohrrübe",
+   "Karotten",
+   "Möhren",
+   "Gelbe Rübe",
+   "Rüebli"
+  ],
+  "portions": [
+   {
+    "label": "1 Karotte (klein)",
+    "g": 50
+   },
+   {
+    "label": "1 Karotte (mittel)",
+    "g": 61
+   },
+   {
+    "label": "1 Karotte (groß)",
+    "g": 72
+   },
+   {
+    "label": "1 Tasse geraspelt",
+    "g": 110
+   }
+  ],
+  "serving": 61,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11125",
+  "name": "Karotte (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Möhren gekocht",
+   "Karotten gekocht",
+   "Mohrrüben gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1/2 Tasse Scheiben",
+    "g": 78
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11053",
+  "name": "Grüne Bohnen (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Prinzessbohnen",
+   "Brechbohnen",
+   "Buschbohnen",
+   "Fisolen"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Tasse",
+    "g": 125
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11729",
+  "name": "Grüne Bohnen (Dose, abgetropft)",
+  "group": "gemuese",
+  "synonyms": [
+   "Brechbohnen Dose",
+   "Bohnen aus der Dose"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Dose abgetropft (220 g)",
+    "g": 220
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "11135",
+  "name": "Blumenkohl",
+  "group": "gemuese",
+  "synonyms": [
+   "Karfiol",
+   "Blumenkohl roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Röschen",
+    "g": 13
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Kopf (mittel)",
+    "g": 575
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11136",
+  "name": "Blumenkohl (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Karfiol gekocht"
+  ],
+  "portions": [
+   {
+    "label": "3 Röschen",
+    "g": 54
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11099",
+  "name": "Rosenkohl (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Kohlsprossen",
+   "Rosenkohl"
+  ],
+  "portions": [
+   {
+    "label": "1 Röschen",
+    "g": 21
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11109",
+  "name": "Weißkohl",
+  "group": "gemuese",
+  "synonyms": [
+   "Weißkraut",
+   "Kraut",
+   "Kohl",
+   "Weißkohl roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (geraspelt)",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse gehackt",
+    "g": 89
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11110",
+  "name": "Weißkohl (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Weißkraut gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 75
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11112",
+  "name": "Rotkohl",
+  "group": "gemuese",
+  "synonyms": [
+   "Rotkraut",
+   "Blaukraut",
+   "Rotkohl roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (geraspelt)",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse gehackt",
+    "g": 89
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11113",
+  "name": "Rotkohl (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Rotkraut gekocht",
+   "Blaukraut gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 75
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11115",
+  "name": "Wirsing (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Wirsingkohl",
+   "Wirz"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Tasse",
+    "g": 145
+   }
+  ],
+  "serving": 150,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11116",
+  "name": "Pak Choi",
+  "group": "gemuese",
+  "synonyms": [
+   "Pak-Choi",
+   "Senfkohl",
+   "Bok Choy"
+  ],
+  "portions": [
+   {
+    "label": "1 Staude (klein)",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse geschnitten",
+    "g": 70
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11119",
+  "name": "Chinakohl",
+  "group": "gemuese",
+  "synonyms": [
+   "Peking-Kohl",
+   "Japankohl"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt",
+    "g": 14
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse geschnitten",
+    "g": 76
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11241",
+  "name": "Kohlrabi",
+  "group": "gemuese",
+  "synonyms": [
+   "Kohlrabi roh",
+   "Oberkohlrabi"
+  ],
+  "portions": [
+   {
+    "label": "1 Kohlrabi (mittel)",
+    "g": 250
+   },
+   {
+    "label": "1 Scheibe",
+    "g": 16
+   },
+   {
+    "label": "1 Tasse Stücke",
+    "g": 135
+   }
+  ],
+  "serving": 250,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11477",
+  "name": "Zucchini",
+  "group": "gemuese",
+  "synonyms": [
+   "Zucchetti",
+   "Zucchini roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Zucchini (mittel)",
+    "g": 196
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 124
+   }
+  ],
+  "serving": 196,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11422",
+  "name": "Kürbis",
+  "group": "gemuese",
+  "synonyms": [
+   "Speisekürbis",
+   "Kürbisfleisch",
+   "Kürbis roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 116
+   }
+  ],
+  "serving": 200,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11209",
+  "name": "Aubergine",
+  "group": "gemuese",
+  "synonyms": [
+   "Auberginen",
+   "Melanzani",
+   "Eierfrucht"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 Aubergine (mittel)",
+    "g": 458
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 82
+   }
+  ],
+  "serving": 200,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11821",
+  "name": "Paprika, rot",
+  "group": "gemuese",
+  "synonyms": [
+   "rote Paprika",
+   "Paprikaschote rot",
+   "Paprikaschote"
+  ],
+  "portions": [
+   {
+    "label": "1 Paprika (mittel)",
+    "g": 119
+   },
+   {
+    "label": "1 Paprika (groß)",
+    "g": 164
+   },
+   {
+    "label": "1 Tasse Streifen",
+    "g": 92
+   }
+  ],
+  "serving": 119,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11333",
+  "name": "Paprika, grün",
+  "group": "gemuese",
+  "synonyms": [
+   "grüne Paprika",
+   "Paprikaschote grün"
+  ],
+  "portions": [
+   {
+    "label": "1 Paprika (mittel)",
+    "g": 119
+   },
+   {
+    "label": "1 Paprika (groß)",
+    "g": 164
+   },
+   {
+    "label": "1 Tasse Streifen",
+    "g": 92
+   }
+  ],
+  "serving": 119,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11951",
+  "name": "Paprika, gelb",
+  "group": "gemuese",
+  "synonyms": [
+   "gelbe Paprika",
+   "Paprikaschote gelb"
+  ],
+  "portions": [
+   {
+    "label": "1 Paprika (groß)",
+    "g": 186
+   },
+   {
+    "label": "10 Streifen",
+    "g": 52
+   }
+  ],
+  "serving": 186,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11819",
+  "name": "Chili, rot (frisch)",
+  "group": "gemuese",
+  "synonyms": [
+   "Chilischote",
+   "Peperoni scharf",
+   "Chilis"
+  ],
+  "portions": [
+   {
+    "label": "1 Chilischote",
+    "g": 45
+   },
+   {
+    "label": "1 EL gehackt",
+    "g": 9
+   }
+  ],
+  "serving": 45,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11529",
+  "name": "Tomate",
+  "group": "gemuese",
+  "synonyms": [
+   "Tomaten",
+   "Paradeiser",
+   "Kirschtomaten",
+   "Cocktailtomaten",
+   "Strauchtomaten"
+  ],
+  "portions": [
+   {
+    "label": "1 Kirschtomate",
+    "g": 17
+   },
+   {
+    "label": "1 Tomate (klein)",
+    "g": 91
+   },
+   {
+    "label": "1 Tomate (mittel)",
+    "g": 123
+   },
+   {
+    "label": "1 Tomate (groß)",
+    "g": 182
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 180
+   }
+  ],
+  "serving": 123,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11885",
+  "name": "Tomaten (Dose, ohne Salzzusatz)",
+  "group": "gemuese",
+  "synonyms": [
+   "Dosentomaten",
+   "geschälte Tomaten",
+   "gehackte Tomaten",
+   "stückige Tomaten",
+   "Pizzatomaten"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1/2 Dose (200 g)",
+    "g": 200
+   },
+   {
+    "label": "1 Dose (400 g)",
+    "g": 400
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "11547",
+  "name": "Passierte Tomaten (Passata)",
+  "group": "gemuese",
+  "synonyms": [
+   "Passata",
+   "Tomatenpüree",
+   "Tomatenpassata"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Portion (100 g)",
+    "g": 100
+   },
+   {
+    "label": "1 Packung (500 g)",
+    "g": 500
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "11546",
+  "name": "Tomatenmark",
+  "group": "gemuese",
+  "synonyms": [
+   "Tomatenkonzentrat",
+   "Tomatenpaste"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 16
+   },
+   {
+    "label": "1 Tube (200 g)",
+    "g": 200
+   }
+  ],
+  "serving": 16,
+  "prep": null
+ },
+ {
+  "ndb": "11956",
+  "name": "Getrocknete Tomaten (in Öl, abgetropft)",
+  "group": "gemuese",
+  "synonyms": [
+   "sonnengetrocknete Tomaten",
+   "Tomaten getrocknet in Öl"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 3
+   },
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Portion",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "11205",
+  "name": "Gurke (mit Schale)",
+  "group": "gemuese",
+  "synonyms": [
+   "Salatgurke",
+   "Gurken",
+   "Schlangengurke",
+   "Minigurke"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 7
+   },
+   {
+    "label": "1/2 Gurke",
+    "g": 150
+   },
+   {
+    "label": "1 Gurke (mittel)",
+    "g": 301
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11937",
+  "name": "Gewürzgurke",
+  "group": "gemuese",
+  "synonyms": [
+   "saure Gurke",
+   "Essiggurke",
+   "Cornichons",
+   "Gewürzgurken"
+  ],
+  "portions": [
+   {
+    "label": "1 Cornichon",
+    "g": 7
+   },
+   {
+    "label": "1 Gewürzgurke (mittel)",
+    "g": 65
+   },
+   {
+    "label": "1 Scheibe",
+    "g": 7
+   }
+  ],
+  "serving": 65,
+  "prep": null
+ },
+ {
+  "ndb": "11282",
+  "name": "Zwiebel",
+  "group": "gemuese",
+  "synonyms": [
+   "Zwiebeln",
+   "Speisezwiebel",
+   "rote Zwiebel",
+   "Gemüsezwiebel"
+  ],
+  "portions": [
+   {
+    "label": "1 Zwiebel (klein)",
+    "g": 70
+   },
+   {
+    "label": "1 Zwiebel (mittel)",
+    "g": 110
+   },
+   {
+    "label": "1 Zwiebel (groß)",
+    "g": 150
+   },
+   {
+    "label": "1 EL gehackt",
+    "g": 10
+   }
+  ],
+  "serving": 110,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11291",
+  "name": "Frühlingszwiebel",
+  "group": "gemuese",
+  "synonyms": [
+   "Lauchzwiebel",
+   "Frühlingszwiebeln"
+  ],
+  "portions": [
+   {
+    "label": "1 Frühlingszwiebel",
+    "g": 15
+   },
+   {
+    "label": "1 EL Ringe",
+    "g": 6
+   },
+   {
+    "label": "1 Bund",
+    "g": 100
+   }
+  ],
+  "serving": 15,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11215",
+  "name": "Knoblauch",
+  "group": "gemuese",
+  "synonyms": [
+   "Knoblauchzehe",
+   "Knofi"
+  ],
+  "portions": [
+   {
+    "label": "1 Zehe",
+    "g": 3
+   },
+   {
+    "label": "1 TL gehackt",
+    "g": 3
+   }
+  ],
+  "serving": 3,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11246",
+  "name": "Lauch",
+  "group": "gemuese",
+  "synonyms": [
+   "Porree",
+   "Lauchstange"
+  ],
+  "portions": [
+   {
+    "label": "1 Stange",
+    "g": 89
+   },
+   {
+    "label": "1 Tasse Ringe",
+    "g": 89
+   }
+  ],
+  "serving": 89,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11143",
+  "name": "Staudensellerie",
+  "group": "gemuese",
+  "synonyms": [
+   "Stangensellerie",
+   "Bleichsellerie",
+   "Selleriestange"
+  ],
+  "portions": [
+   {
+    "label": "1 Stange",
+    "g": 40
+   },
+   {
+    "label": "1 Tasse gehackt",
+    "g": 101
+   }
+  ],
+  "serving": 40,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11141",
+  "name": "Knollensellerie",
+  "group": "gemuese",
+  "synonyms": [
+   "Sellerie",
+   "Sellerieknolle",
+   "Zeller"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 156
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11957",
+  "name": "Fenchel",
+  "group": "gemuese",
+  "synonyms": [
+   "Fenchelknolle",
+   "Gemüsefenchel"
+  ],
+  "portions": [
+   {
+    "label": "1 Knolle",
+    "g": 234
+   },
+   {
+    "label": "1 Tasse Scheiben",
+    "g": 87
+   }
+  ],
+  "serving": 234,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11012",
+  "name": "Spargel (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Spargel gekocht",
+   "Spargelstangen gekocht"
+  ],
+  "portions": [
+   {
+    "label": "4 Stangen",
+    "g": 60
+   },
+   {
+    "label": "1 Portion",
+    "g": 250
+   }
+  ],
+  "serving": 250,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11312",
+  "name": "Erbsen (TK)",
+  "group": "gemuese",
+  "synonyms": [
+   "grüne Erbsen",
+   "Erbsen tiefgekühlt",
+   "Markerbsen"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse",
+    "g": 134
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "11813",
+  "name": "Erbsen (Dose, abgetropft, ohne Salzzusatz)",
+  "group": "gemuese",
+  "synonyms": [
+   "Erbsen Dose",
+   "Erbsen aus der Dose"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 85
+   },
+   {
+    "label": "1 Dose abgetropft",
+    "g": 280
+   }
+  ],
+  "serving": 85,
+  "prep": null
+ },
+ {
+  "ndb": "11168",
+  "name": "Maiskolben (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Zuckermais",
+   "Maiskolben",
+   "Mais am Kolben"
+  ],
+  "portions": [
+   {
+    "label": "1 Maiskolben (klein)",
+    "g": 89
+   },
+   {
+    "label": "1 Maiskolben (mittel)",
+    "g": 103
+   }
+  ],
+  "serving": 103,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11172",
+  "name": "Mais (Dose, abgetropft)",
+  "group": "gemuese",
+  "synonyms": [
+   "Dosenmais",
+   "Zuckermais Dose",
+   "Maiskörner"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 82
+   },
+   {
+    "label": "1 Dose abgetropft (140 g)",
+    "g": 140
+   }
+  ],
+  "serving": 82,
+  "prep": null
+ },
+ {
+  "ndb": "11080",
+  "name": "Rote Bete",
+  "group": "gemuese",
+  "synonyms": [
+   "Rote Beete",
+   "Rote Rübe",
+   "Rande"
+  ],
+  "portions": [
+   {
+    "label": "1 Rote Bete (mittel)",
+    "g": 82
+   },
+   {
+    "label": "1 Tasse Würfel",
+    "g": 136
+   }
+  ],
+  "serving": 82,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11081",
+  "name": "Rote Bete (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Rote Beete gekocht",
+   "Rote Bete vakuumiert"
+  ],
+  "portions": [
+   {
+    "label": "1 Knolle",
+    "g": 50
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1/2 Tasse Scheiben",
+    "g": 85
+   }
+  ],
+  "serving": 100,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11298",
+  "name": "Pastinake",
+  "group": "gemuese",
+  "synonyms": [
+   "Pastinaken"
+  ],
+  "portions": [
+   {
+    "label": "1 Pastinake (mittel)",
+    "g": 160
+   },
+   {
+    "label": "1 Tasse Scheiben",
+    "g": 133
+   }
+  ],
+  "serving": 160,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11234",
+  "name": "Grünkohl (gekocht)",
+  "group": "gemuese",
+  "synonyms": [
+   "Braunkohl gekocht",
+   "Grünkohl"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse",
+    "g": 130
+   }
+  ],
+  "serving": 200,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "11429",
+  "name": "Radieschen",
+  "group": "gemuese",
+  "synonyms": [
+   "Radies"
+  ],
+  "portions": [
+   {
+    "label": "1 Radieschen",
+    "g": 5
+   },
+   {
+    "label": "1 Bund",
+    "g": 130
+   },
+   {
+    "label": "1 Tasse Scheiben",
+    "g": 116
+   }
+  ],
+  "serving": 5,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11439",
+  "name": "Sauerkraut",
+  "group": "gemuese",
+  "synonyms": [
+   "Sauerkohl"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Tasse",
+    "g": 142
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "11043",
+  "name": "Sojasprossen",
+  "group": "gemuese",
+  "synonyms": [
+   "Mungobohnensprossen",
+   "Mungosprossen",
+   "Bohnensprossen"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse",
+    "g": 104
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11583",
+  "name": "Gemüsemischung (TK)",
+  "group": "gemuese",
+  "synonyms": [
+   "Mischgemüse",
+   "Gemüsemix TK"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   },
+   {
+    "label": "1 Packung (300 g)",
+    "g": 300
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "11216",
+  "name": "Ingwer (frisch)",
+  "group": "gemuese",
+  "synonyms": [
+   "Ingwerwurzel",
+   "Ingwer"
+  ],
+  "portions": [
+   {
+    "label": "1 TL gerieben",
+    "g": 2
+   },
+   {
+    "label": "1 Scheibe",
+    "g": 3
+   },
+   {
+    "label": "1 Stück (daumengroß)",
+    "g": 15
+   }
+  ],
+  "serving": 2,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11260",
+  "name": "Champignons",
+  "group": "gemuese",
+  "synonyms": [
+   "Champignon",
+   "weiße Champignons",
+   "Pilze"
+  ],
+  "portions": [
+   {
+    "label": "1 Champignon (mittel)",
+    "g": 18
+   },
+   {
+    "label": "1 Handvoll",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse Scheiben",
+    "g": 70
+   },
+   {
+    "label": "1 Schale (250 g)",
+    "g": 250
+   }
+  ],
+  "serving": 70,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11264",
+  "name": "Champignons (Dose, abgetropft)",
+  "group": "gemuese",
+  "synonyms": [
+   "Dosenchampignons",
+   "Champignons aus dem Glas"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Dose abgetropft (170 g)",
+    "g": 170
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "11266",
+  "name": "Braune Champignons",
+  "group": "gemuese",
+  "synonyms": [
+   "Egerlinge",
+   "Steinchampignons",
+   "Cremini"
+  ],
+  "portions": [
+   {
+    "label": "1 Champignon",
+    "g": 20
+   },
+   {
+    "label": "1 Tasse Scheiben",
+    "g": 72
+   }
+  ],
+  "serving": 72,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11238",
+  "name": "Shiitake",
+  "group": "gemuese",
+  "synonyms": [
+   "Shiitake-Pilze",
+   "Shiitakepilze"
+  ],
+  "portions": [
+   {
+    "label": "1 Pilz",
+    "g": 19
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 19,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11987",
+  "name": "Austernpilze",
+  "group": "gemuese",
+  "synonyms": [
+   "Austernseitlinge",
+   "Seitlinge"
+  ],
+  "portions": [
+   {
+    "label": "1 Pilz (klein)",
+    "g": 15
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Pilz (groß)",
+    "g": 148
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11239",
+  "name": "Pfifferlinge",
+  "group": "gemuese",
+  "synonyms": [
+   "Eierschwammerl",
+   "Reherl"
+  ],
+  "portions": [
+   {
+    "label": "1 Pfifferling",
+    "g": 5
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   },
+   {
+    "label": "1 Tasse",
+    "g": 54
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11250",
+  "name": "Kopfsalat",
+  "group": "gemuese",
+  "synonyms": [
+   "Buttersalat",
+   "Grüner Salat",
+   "Häuptelsalat"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt",
+    "g": 8
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   },
+   {
+    "label": "1 Kopf",
+    "g": 163
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11251",
+  "name": "Römersalat",
+  "group": "gemuese",
+  "synonyms": [
+   "Romana",
+   "Romanasalat",
+   "Mini Romana"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt",
+    "g": 6
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse",
+    "g": 47
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11252",
+  "name": "Eisbergsalat",
+  "group": "gemuese",
+  "synonyms": [
+   "Eissalat",
+   "Krachsalat"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt",
+    "g": 8
+   },
+   {
+    "label": "1 Portion",
+    "g": 60
+   },
+   {
+    "label": "1 Kopf",
+    "g": 539
+   }
+  ],
+  "serving": 60,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11253",
+  "name": "Blattsalat, grün",
+  "group": "gemuese",
+  "synonyms": [
+   "Lollo Bionda",
+   "Pflücksalat",
+   "Eichblattsalat"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt",
+    "g": 10
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse",
+    "g": 36
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11959",
+  "name": "Rucola",
+  "group": "gemuese",
+  "synonyms": [
+   "Rauke",
+   "Ruccola",
+   "Rukola"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 20
+   },
+   {
+    "label": "1 Portion",
+    "g": 40
+   }
+  ],
+  "serving": 20,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11190",
+  "name": "Feldsalat",
+  "group": "gemuese",
+  "synonyms": [
+   "Rapunzel",
+   "Nüsslisalat",
+   "Vogerlsalat",
+   "Ackersalat"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 20
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse",
+    "g": 56
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11213",
+  "name": "Endiviensalat",
+  "group": "gemuese",
+  "synonyms": [
+   "Endivie",
+   "Frisée",
+   "Escariol"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 50
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 25
+   }
+  ],
+  "serving": 50,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11151",
+  "name": "Chicorée",
+  "group": "gemuese",
+  "synonyms": [
+   "Chicoree",
+   "Brüsseler Endivie"
+  ],
+  "portions": [
+   {
+    "label": "1 Kolben",
+    "g": 53
+   },
+   {
+    "label": "1 Blatt",
+    "g": 5
+   }
+  ],
+  "serving": 53,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11952",
+  "name": "Radicchio",
+  "group": "gemuese",
+  "synonyms": [
+   "Radicchio rosso"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt",
+    "g": 8
+   },
+   {
+    "label": "1 Portion",
+    "g": 40
+   },
+   {
+    "label": "1 Tasse",
+    "g": 40
+   }
+  ],
+  "serving": 40,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11297",
+  "name": "Petersilie (frisch)",
+  "group": "gemuese",
+  "synonyms": [
+   "Petersilie",
+   "glatte Petersilie",
+   "krause Petersilie"
+  ],
+  "portions": [
+   {
+    "label": "1 EL gehackt",
+    "g": 4
+   },
+   {
+    "label": "1 Bund",
+    "g": 30
+   }
+  ],
+  "serving": 4,
+  "prep": "roh"
+ },
+ {
+  "ndb": "02044",
+  "name": "Basilikum (frisch)",
+  "group": "gemuese",
+  "synonyms": [
+   "Basilikum",
+   "Basilikumblätter"
+  ],
+  "portions": [
+   {
+    "label": "5 Blätter",
+    "g": 2.5
+   },
+   {
+    "label": "2 EL gehackt",
+    "g": 5
+   }
+  ],
+  "serving": 2.5,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11156",
+  "name": "Schnittlauch (frisch)",
+  "group": "gemuese",
+  "synonyms": [
+   "Schnittlauch"
+  ],
+  "portions": [
+   {
+    "label": "1 EL gehackt",
+    "g": 3
+   },
+   {
+    "label": "1 Bund",
+    "g": 25
+   }
+  ],
+  "serving": 3,
+  "prep": "roh"
+ },
+ {
+  "ndb": "11165",
+  "name": "Koriander (frisch)",
+  "group": "gemuese",
+  "synonyms": [
+   "Koriandergrün",
+   "Koriander",
+   "Cilantro"
+  ],
+  "portions": [
+   {
+    "label": "1 EL gehackt",
+    "g": 1
+   },
+   {
+    "label": "1/4 Tasse",
+    "g": 4
+   },
+   {
+    "label": "1 Bund",
+    "g": 20
+   }
+  ],
+  "serving": 4,
+  "prep": "roh"
+ }
+]

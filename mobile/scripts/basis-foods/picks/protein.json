@@ -1,0 +1,2592 @@
+[
+ {
+  "ndb": "05062",
+  "name": "Hähnchenbrustfilet (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenbrust",
+   "Hühnchenbrust",
+   "Hühnerbrust",
+   "Hähnchenfilet"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 150
+   },
+   {
+    "label": "1 kleines Filet",
+    "g": 120
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05064",
+  "name": "Hähnchenbrustfilet (gegart)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenbrust gebraten",
+   "Hühnchenbrust gegart",
+   "Hähnchenbrust gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 110
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 110,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "05096",
+  "name": "Hähnchenschenkel ohne Haut (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenoberkeule ohne Haut",
+   "Hähnchenschenkelfilet",
+   "Hühnerschenkel ohne Haut"
+  ],
+  "portions": [
+   {
+    "label": "1 Oberkeulenfilet",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05075",
+  "name": "Hähnchenkeule mit Haut (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenschenkel mit Haut",
+   "Hühnerkeule",
+   "Chicken Leg"
+  ],
+  "portions": [
+   {
+    "label": "1 Keule (essbarer Anteil)",
+    "g": 180
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05066",
+  "name": "Hähnchenunterschenkel mit Haut (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Drumstick",
+   "Hähnchen-Unterkeule",
+   "Hähnchenunterkeule"
+  ],
+  "portions": [
+   {
+    "label": "1 Unterschenkel (essbarer Anteil)",
+    "g": 80
+   }
+  ],
+  "serving": 80,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05100",
+  "name": "Hähnchenflügel mit Haut (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Chicken Wings",
+   "Hähnchenflügel",
+   "Hühnerflügel"
+  ],
+  "portions": [
+   {
+    "label": "1 Flügel (essbarer Anteil)",
+    "g": 50
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05332",
+  "name": "Hähnchenhackfleisch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenhack",
+   "Geflügelhack Hähnchen",
+   "Hühnerhack"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 400
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05027",
+  "name": "Hähnchenleber (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hühnerleber",
+   "Geflügelleber"
+  ],
+  "portions": [
+   {
+    "label": "1 Leber",
+    "g": 45
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05710",
+  "name": "Putenbrustfilet (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Putenbrust",
+   "Truthahnbrust",
+   "Putenschnitzel",
+   "Putenfilet"
+  ],
+  "portions": [
+   {
+    "label": "1 Schnitzel",
+    "g": 150
+   },
+   {
+    "label": "1 Portion",
+    "g": 200
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05305",
+  "name": "Putenhackfleisch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Putenhack",
+   "Truthahnhack",
+   "Geflügelhack"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 400
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "05141",
+  "name": "Entenfleisch ohne Haut (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Ente",
+   "Entenbrust ohne Haut",
+   "Entenfleisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23557",
+  "name": "Rinderhackfleisch 5 % Fett (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Tatar",
+   "Beefsteakhack",
+   "mageres Rinderhack",
+   "Rinderhack mager"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 400
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23567",
+  "name": "Rinderhackfleisch 15 % Fett (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Rinderhack",
+   "Hackfleisch Rind",
+   "Rinderhackfleisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 400
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   },
+   {
+    "label": "1 Burger-Patty",
+    "g": 150
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23572",
+  "name": "Rinderhackfleisch 20 % Fett (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Rinderhack 20 %",
+   "Burgerfleisch",
+   "Hackfleisch vom Rind"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 400
+   },
+   {
+    "label": "1 Burger-Patty",
+    "g": 150
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23570",
+  "name": "Rinderhackfleisch 15 % Fett (gebraten)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Rinderhack angebraten",
+   "Hackfleisch gebraten",
+   "Rinderhack gegart"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "23372",
+  "name": "Rinderfilet (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Filetsteak",
+   "Rinderlende",
+   "Lendensteak",
+   "Tenderloin"
+  ],
+  "portions": [
+   {
+    "label": "1 Steak",
+    "g": 180
+   },
+   {
+    "label": "1 kleines Steak",
+    "g": 150
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23611",
+  "name": "Rinderhüftsteak (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hüftsteak",
+   "Rinderhüfte",
+   "Sirloin Steak",
+   "Huftsteak"
+  ],
+  "portions": [
+   {
+    "label": "1 Steak",
+    "g": 200
+   }
+  ],
+  "serving": 200,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23607",
+  "name": "Rumpsteak (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Roastbeef roh",
+   "Strip Loin",
+   "Rinderrücken",
+   "Striploin Steak"
+  ],
+  "portions": [
+   {
+    "label": "1 Steak",
+    "g": 220
+   }
+  ],
+  "serving": 220,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23201",
+  "name": "Entrecôte / Ribeye (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Ribeye Steak",
+   "Entrecote",
+   "Hochrippe Steak"
+  ],
+  "portions": [
+   {
+    "label": "1 Steak",
+    "g": 250
+   }
+  ],
+  "serving": 250,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23354",
+  "name": "Rinderoberschale (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Rouladenfleisch",
+   "Rinderschnitzel",
+   "Oberschale Rind",
+   "Minutensteak"
+  ],
+  "portions": [
+   {
+    "label": "1 Roulade",
+    "g": 150
+   },
+   {
+    "label": "1 Portion",
+    "g": 200
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "23603",
+  "name": "Rindergulasch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Gulaschfleisch Rind",
+   "Schmorfleisch",
+   "Rinderschulter",
+   "Rindergulaschfleisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 200
+   },
+   {
+    "label": "1 Packung",
+    "g": 500
+   }
+  ],
+  "serving": 200,
+  "prep": "roh"
+ },
+ {
+  "ndb": "13325",
+  "name": "Rinderleber (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Leber Rind"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 120
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 120,
+  "prep": "roh"
+ },
+ {
+  "ndb": "17099",
+  "name": "Kalbsschnitzel (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Kalbfleisch",
+   "Kalbsoberschale",
+   "Kalbfleisch mager",
+   "Wiener Schnitzel roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Schnitzel",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "17013",
+  "name": "Lammkeule (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Lammfleisch",
+   "Lammkeule ohne Knochen",
+   "Lammschlegel"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 180
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "17164",
+  "name": "Hirsch-/Rehfleisch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hirsch",
+   "Reh",
+   "Wild",
+   "Rehkeule",
+   "Hirschgulasch"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 180
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10060",
+  "name": "Schweinefilet (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Schweinelende",
+   "Filet vom Schwein",
+   "Schweinefilet"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 400
+   },
+   {
+    "label": "1 Medaillon",
+    "g": 60
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10094",
+  "name": "Schweinelachs (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Schweinerücken",
+   "Lachsbraten",
+   "Kotelett ohne Knochen",
+   "Schweinesteak mager"
+  ],
+  "portions": [
+   {
+    "label": "1 Steak",
+    "g": 170
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 170,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10036",
+  "name": "Schweinekotelett (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Kotelett",
+   "Schweinekotelett mit Fettrand",
+   "Stielkotelett"
+  ],
+  "portions": [
+   {
+    "label": "1 Kotelett (ohne Knochen)",
+    "g": 180
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10014",
+  "name": "Schweineschnitzel (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Schnitzel",
+   "Schweineoberschale",
+   "Schweinekeule",
+   "Schweinehüfte"
+  ],
+  "portions": [
+   {
+    "label": "1 Schnitzel",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10080",
+  "name": "Schweinenacken (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Nackensteak",
+   "Schweinekamm",
+   "Halssteak"
+  ],
+  "portions": [
+   {
+    "label": "1 Nackensteak",
+    "g": 180
+   }
+  ],
+  "serving": 180,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10219",
+  "name": "Schweinehackfleisch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Schweinehack",
+   "Schweinemett",
+   "Mett",
+   "Hackepeter"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung",
+    "g": 400
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   },
+   {
+    "label": "1 Mettbrötchen-Portion",
+    "g": 50
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10005",
+  "name": "Schweinebauch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Bauchfleisch",
+   "Schweinebauch frisch",
+   "Bauchspeck frisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 100
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "10123",
+  "name": "Bacon / Frühstücksspeck (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Bacon",
+   "Frühstücksspeck",
+   "Bauchspeck geräuchert",
+   "Speck"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 10
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 10,
+  "prep": "roh"
+ },
+ {
+  "ndb": "07028",
+  "name": "Kochschinken (mager)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Schinken",
+   "gekochter Schinken",
+   "Hinterschinken",
+   "Schinkenaufschnitt"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "10141",
+  "name": "Rohschinken ohne Fettrand",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Landschinken",
+   "Knochenschinken",
+   "luftgetrockneter Schinken mager",
+   "Serrano mager"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 15
+   },
+   {
+    "label": "1 Packung",
+    "g": 80
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "07081",
+  "name": "Putenbrust (Aufschnitt)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Putenbrustaufschnitt",
+   "Putenbrust geräuchert",
+   "Truthahnbrust Aufschnitt"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 15
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "07961",
+  "name": "Hähnchenbrust (Aufschnitt)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenbrustaufschnitt",
+   "Hühnerbrust Aufschnitt",
+   "Geflügelbrust Aufschnitt"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 12
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 12,
+  "prep": null
+ },
+ {
+  "ndb": "07043",
+  "name": "Roastbeef (Aufschnitt)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Roastbeef",
+   "Roastbeefaufschnitt"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 15
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "07072",
+  "name": "Salami",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Salami Schwein-Rind",
+   "Hartwurst",
+   "Dauerwurst",
+   "Pizzasalami"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 10
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "07078",
+  "name": "Cervelatwurst",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Cervelat",
+   "Sommerwurst",
+   "Schlackwurst"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 10
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "07050",
+  "name": "Mortadella",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Mortadella Aufschnitt"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 15
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "07008",
+  "name": "Fleischwurst / Lyoner",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Fleischwurst",
+   "Lyoner",
+   "Gelbwurst",
+   "Ringwurst"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   },
+   {
+    "label": "1 Ring",
+    "g": 400
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "07041",
+  "name": "Leberwurst",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Leberwurst grob",
+   "Leberwurst fein",
+   "Leberpastete"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (Brot)",
+    "g": 20
+   },
+   {
+    "label": "1 Scheibe",
+    "g": 18
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "07950",
+  "name": "Wiener Würstchen",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Wiener",
+   "Frankfurter Würstchen",
+   "Würstchen",
+   "Hot-Dog-Würstchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Würstchen",
+    "g": 50
+   },
+   {
+    "label": "1 Paar",
+    "g": 100
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "07006",
+  "name": "Bockwurst",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Bockwürstchen",
+   "Brühwurst"
+  ],
+  "portions": [
+   {
+    "label": "1 Bockwurst",
+    "g": 90
+   }
+  ],
+  "serving": 90,
+  "prep": null
+ },
+ {
+  "ndb": "07013",
+  "name": "Bratwurst (Schwein, gebraten)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Bratwurst",
+   "Rostbratwurst",
+   "Grillwurst",
+   "Schweinsbratwurst"
+  ],
+  "portions": [
+   {
+    "label": "1 Bratwurst",
+    "g": 100
+   },
+   {
+    "label": "1 Rostbratwurst (Thüringer)",
+    "g": 120
+   },
+   {
+    "label": "1 Nürnberger Rostbratwurst",
+    "g": 25
+   }
+  ],
+  "serving": 100,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "07923",
+  "name": "Geflügelbratwurst (gebraten)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Hähnchenbratwurst",
+   "Putenbratwurst",
+   "Geflügelwurst"
+  ],
+  "portions": [
+   {
+    "label": "1 Bratwurst",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "15236",
+  "name": "Lachsfilet (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Lachs",
+   "Zuchtlachs",
+   "Atlantiklachs",
+   "Lachs frisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 125
+   },
+   {
+    "label": "1 TK-Filet",
+    "g": 100
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15237",
+  "name": "Lachsfilet (gegart)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Lachs gebraten",
+   "Lachs gebacken",
+   "Lachs gegart"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 110
+   }
+  ],
+  "serving": 110,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "15085",
+  "name": "Wildlachs (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Rotlachs",
+   "Sockeye",
+   "Wildlachsfilet"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 125
+   },
+   {
+    "label": "1 TK-Filet",
+    "g": 100
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15179",
+  "name": "Räucherlachs (Wildlachs)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Räucherlachs",
+   "geräucherter Lachs",
+   "Lachs geräuchert"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   },
+   {
+    "label": "1 Packung",
+    "g": 100
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "15184",
+  "name": "Thunfisch naturell (Dose, abgetropft)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Thunfisch in Wasser",
+   "Thunfisch im eigenen Saft",
+   "Thunfisch Dose"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (abgetropft)",
+    "g": 140
+   },
+   {
+    "label": "1/2 Dose",
+    "g": 70
+   }
+  ],
+  "serving": 140,
+  "prep": null
+ },
+ {
+  "ndb": "15119",
+  "name": "Thunfisch in Öl (Dose, abgetropft)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Thunfisch in Öl",
+   "Thunfisch Dose Öl"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (abgetropft)",
+    "g": 140
+   }
+  ],
+  "serving": 140,
+  "prep": null
+ },
+ {
+  "ndb": "15127",
+  "name": "Thunfischsteak (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Thunfisch frisch",
+   "Gelbflossenthun",
+   "Thunfischfilet"
+  ],
+  "portions": [
+   {
+    "label": "1 Steak",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15015",
+  "name": "Kabeljau (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Kabeljaufilet",
+   "Dorsch",
+   "Dorschfilet",
+   "Skrei"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 150
+   },
+   {
+    "label": "1 TK-Filet",
+    "g": 100
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15266",
+  "name": "Alaska-Seelachs (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Alaska-Seelachsfilet",
+   "Pollack",
+   "Alaska Pollock"
+  ],
+  "portions": [
+   {
+    "label": "1 TK-Filet",
+    "g": 100
+   },
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15065",
+  "name": "Seelachs (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Köhler",
+   "Seelachsfilet",
+   "Atlantik-Seelachs"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15057",
+  "name": "Rotbarsch (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Rotbarschfilet",
+   "Goldbarsch"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15064",
+  "name": "Zander (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Zanderfilet"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15028",
+  "name": "Scholle (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Schollenfilet",
+   "Seezunge",
+   "Flunder",
+   "Plattfisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 120
+   }
+  ],
+  "serving": 120,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15240",
+  "name": "Forelle (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Regenbogenforelle",
+   "Forellenfilet",
+   "Lachsforelle"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 80
+   },
+   {
+    "label": "1 ganze Forelle (essbarer Anteil)",
+    "g": 180
+   }
+  ],
+  "serving": 80,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15039",
+  "name": "Hering (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Heringsfilet",
+   "grüner Hering",
+   "frischer Hering"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15041",
+  "name": "Hering eingelegt (Bismarckhering)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Bismarckhering",
+   "Rollmops",
+   "Brathering",
+   "eingelegter Hering"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 60
+   },
+   {
+    "label": "1 Rollmops",
+    "g": 70
+   }
+  ],
+  "serving": 60,
+  "prep": null
+ },
+ {
+  "ndb": "15046",
+  "name": "Makrele (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Makrelenfilet",
+   "Atlantische Makrele"
+  ],
+  "portions": [
+   {
+    "label": "1 Filet",
+    "g": 110
+   }
+  ],
+  "serving": 110,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15088",
+  "name": "Sardinen in Öl (Dose, abgetropft)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Ölsardinen",
+   "Sardinen Dose"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (abgetropft)",
+    "g": 90
+   },
+   {
+    "label": "1 Sardine",
+    "g": 12
+   }
+  ],
+  "serving": 90,
+  "prep": null
+ },
+ {
+  "ndb": "15027",
+  "name": "Fischstäbchen (zubereitet)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Fischstäbchen",
+   "panierter Fisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Fischstäbchen",
+    "g": 28
+   },
+   {
+    "label": "1 Portion (10 Stück)",
+    "g": 280
+   }
+  ],
+  "serving": 140,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "15149",
+  "name": "Garnelen (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Shrimps",
+   "Gambas",
+   "Riesengarnelen",
+   "Crevetten",
+   "Scampi"
+  ],
+  "portions": [
+   {
+    "label": "1 Garnele (mittel)",
+    "g": 6
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   },
+   {
+    "label": "1 TK-Packung",
+    "g": 250
+   }
+  ],
+  "serving": 125,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15151",
+  "name": "Garnelen (gegart)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Shrimps gegart",
+   "Garnelen gekocht",
+   "Cocktailgarnelen"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "15164",
+  "name": "Miesmuscheln (roh, ohne Schale)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Muscheln",
+   "Miesmuschelfleisch",
+   "Pfahlmuscheln"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (Muschelfleisch)",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "15175",
+  "name": "Tintenfisch / Kalmar (roh)",
+  "group": "fleisch_fisch",
+  "synonyms": [
+   "Calamari",
+   "Kalmar",
+   "Sepia",
+   "Tintenfischringe roh"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 150
+   }
+  ],
+  "serving": 150,
+  "prep": "roh"
+ },
+ {
+  "ndb": "01123",
+  "name": "Hühnerei (roh)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Ei",
+   "Eier",
+   "Frühstücksei",
+   "Vollei"
+  ],
+  "portions": [
+   {
+    "label": "1 Ei (S)",
+    "g": 45
+   },
+   {
+    "label": "1 Ei (M)",
+    "g": 53
+   },
+   {
+    "label": "1 Ei (L)",
+    "g": 60
+   },
+   {
+    "label": "1 Ei (XL)",
+    "g": 68
+   }
+  ],
+  "serving": 53,
+  "prep": "roh"
+ },
+ {
+  "ndb": "01129",
+  "name": "Ei, hartgekocht",
+  "group": "eier_milch",
+  "synonyms": [
+   "gekochtes Ei",
+   "hart gekochtes Ei",
+   "Frühstücksei gekocht"
+  ],
+  "portions": [
+   {
+    "label": "1 Ei (M)",
+    "g": 53
+   },
+   {
+    "label": "1 Ei (L)",
+    "g": 60
+   }
+  ],
+  "serving": 53,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "01128",
+  "name": "Spiegelei",
+  "group": "eier_milch",
+  "synonyms": [
+   "Ei gebraten",
+   "Spiegeleier"
+  ],
+  "portions": [
+   {
+    "label": "1 Spiegelei (M)",
+    "g": 48
+   }
+  ],
+  "serving": 48,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "01132",
+  "name": "Rührei",
+  "group": "eier_milch",
+  "synonyms": [
+   "Rühreier",
+   "Eierspeise"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (2 Eier)",
+    "g": 120
+   },
+   {
+    "label": "1 EL",
+    "g": 14
+   }
+  ],
+  "serving": 120,
+  "prep": "gekocht"
+ },
+ {
+  "ndb": "01124",
+  "name": "Eiklar (roh)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Eiweiß",
+   "Hühnereiweiß",
+   "Eiweiss"
+  ],
+  "portions": [
+   {
+    "label": "1 Eiklar (M)",
+    "g": 32
+   },
+   {
+    "label": "1 Eiklar (L)",
+    "g": 35
+   }
+  ],
+  "serving": 32,
+  "prep": "roh"
+ },
+ {
+  "ndb": "01172",
+  "name": "Eiklar flüssig (pasteurisiert)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Flüssigeiweiß",
+   "Eiklar aus der Flasche",
+   "Eiweiß flüssig"
+  ],
+  "portions": [
+   {
+    "label": "1 Flasche (500 g)",
+    "g": 500
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "01125",
+  "name": "Eigelb (roh)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Eidotter",
+   "Dotter"
+  ],
+  "portions": [
+   {
+    "label": "1 Eigelb (M)",
+    "g": 18
+   }
+  ],
+  "serving": 18,
+  "prep": "roh"
+ },
+ {
+  "ndb": "01211",
+  "name": "Milch 3,5 % (Vollmilch)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Vollmilch",
+   "Milch",
+   "Kuhmilch"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (150 ml)",
+    "g": 150
+   },
+   {
+    "label": "1 Schuss (30 ml)",
+    "g": 30
+   }
+  ],
+  "serving": 200,
+  "prep": null,
+  "basis": "ml"
+ },
+ {
+  "ndb": "01174",
+  "name": "Milch 1,5 % (fettarm)",
+  "group": "eier_milch",
+  "synonyms": [
+   "fettarme Milch",
+   "Halbfettmilch",
+   "Milch 1,5"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (150 ml)",
+    "g": 150
+   },
+   {
+    "label": "1 Schuss (30 ml)",
+    "g": 30
+   }
+  ],
+  "serving": 200,
+  "prep": null,
+  "basis": "ml"
+ },
+ {
+  "ndb": "01151",
+  "name": "Magermilch 0,1 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "entrahmte Milch",
+   "Milch 0,1 %",
+   "fettfreie Milch"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (150 ml)",
+    "g": 150
+   }
+  ],
+  "serving": 200,
+  "prep": null,
+  "basis": "ml"
+ },
+ {
+  "ndb": "01088",
+  "name": "Buttermilch",
+  "group": "eier_milch",
+  "synonyms": [
+   "Reine Buttermilch"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Becher (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 200,
+  "prep": null,
+  "basis": "ml"
+ },
+ {
+  "ndb": "01289",
+  "name": "Kefir (fettarm)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Kefir",
+   "Milchkefir"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Becher (500 g)",
+    "g": 500
+   }
+  ],
+  "serving": 200,
+  "prep": null,
+  "basis": "ml"
+ },
+ {
+  "ndb": "01214",
+  "name": "Kondensmilch 7,5 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "Kaffeemilch",
+   "Dosenmilch",
+   "Kondensmilch ungezuckert"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (Kaffee)",
+    "g": 10
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "01116",
+  "name": "Naturjoghurt 3,5 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "Joghurt",
+   "Vollmilchjoghurt",
+   "Joghurt natur"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (150 g)",
+    "g": 150
+   },
+   {
+    "label": "1 Becher (500 g)",
+    "g": 500
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "01117",
+  "name": "Naturjoghurt 1,5 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "fettarmer Joghurt",
+   "Joghurt mild 1,5 %",
+   "Joghurt light"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (150 g)",
+    "g": 150
+   },
+   {
+    "label": "1 Becher (500 g)",
+    "g": 500
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "01118",
+  "name": "Magerjoghurt 0,1 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "Joghurt 0,1 %",
+   "fettfreier Joghurt",
+   "Joghurt 0 %"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (150 g)",
+    "g": 150
+   },
+   {
+    "label": "1 Becher (500 g)",
+    "g": 500
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "01293",
+  "name": "Griechischer Joghurt 5 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "griechischer Joghurt",
+   "Joghurt griechische Art",
+   "Greek Yogurt"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (150 g)",
+    "g": 150
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "01256",
+  "name": "Skyr (natur)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Skyr",
+   "Griechischer Joghurt 0 %",
+   "Protein-Joghurt natur",
+   "Greek Yogurt fettfrei"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (150 g)",
+    "g": 150
+   },
+   {
+    "label": "1 Becher (450 g)",
+    "g": 450
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "01014",
+  "name": "Magerquark",
+  "group": "eier_milch",
+  "synonyms": [
+   "Quark mager",
+   "Speisequark mager",
+   "Quark 0,2 %",
+   "Protein-Quark natur"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (250 g)",
+    "g": 250
+   },
+   {
+    "label": "1 Portion",
+    "g": 125
+   },
+   {
+    "label": "1 EL",
+    "g": 30
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "01012",
+  "name": "Hüttenkäse",
+  "group": "eier_milch",
+  "synonyms": [
+   "Cottage Cheese",
+   "körniger Frischkäse"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (200 g)",
+    "g": 200
+   },
+   {
+    "label": "1 EL",
+    "g": 30
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "01036",
+  "name": "Ricotta",
+  "group": "eier_milch",
+  "synonyms": [
+   "Ricotta Frischkäse"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (250 g)",
+    "g": 250
+   },
+   {
+    "label": "1 EL",
+    "g": 30
+   }
+  ],
+  "serving": 60,
+  "prep": null
+ },
+ {
+  "ndb": "01017",
+  "name": "Frischkäse (Doppelrahmstufe)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Frischkäse",
+   "Rahmfrischkäse",
+   "Frischkäse natur",
+   "Cream Cheese"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 20
+   },
+   {
+    "label": "1 Portion (Brot)",
+    "g": 30
+   },
+   {
+    "label": "1 Packung (200 g)",
+    "g": 200
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "43274",
+  "name": "Frischkäse light",
+  "group": "eier_milch",
+  "synonyms": [
+   "Frischkäse leicht",
+   "Frischkäse fettreduziert"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 20
+   },
+   {
+    "label": "1 Portion (Brot)",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01052",
+  "name": "Schlagsahne 30 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "Sahne",
+   "Schlagrahm",
+   "süße Sahne",
+   "Kochsahne 30 %"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Becher (200 g)",
+    "g": 200
+   },
+   {
+    "label": "1 Portion geschlagen",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01049",
+  "name": "Kaffeesahne 10 %",
+  "group": "eier_milch",
+  "synonyms": [
+   "Kaffeerahm",
+   "Sahne 10 %",
+   "Kaffeesahne"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (Kaffee)",
+    "g": 10
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "01055",
+  "name": "Saure Sahne",
+  "group": "eier_milch",
+  "synonyms": [
+   "Sauerrahm",
+   "saure Sahne 10 %"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Becher (200 g)",
+    "g": 200
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01056",
+  "name": "Schmand",
+  "group": "eier_milch",
+  "synonyms": [
+   "Schmand 20 %",
+   "Sauerrahm 20 %",
+   "Schmant"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Becher (200 g)",
+    "g": 200
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01022",
+  "name": "Gouda",
+  "group": "eier_milch",
+  "synonyms": [
+   "Gouda jung",
+   "Gouda mittelalt",
+   "Schnittkäse"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 25
+   },
+   {
+    "label": "1 Würfel (2 cm)",
+    "g": 10
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "01018",
+  "name": "Edamer",
+  "group": "eier_milch",
+  "synonyms": [
+   "Edamer Käse"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 25
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "01040",
+  "name": "Emmentaler",
+  "group": "eier_milch",
+  "synonyms": [
+   "Emmentaler Käse",
+   "Schweizer Käse",
+   "Emmentaler gerieben"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 25
+   },
+   {
+    "label": "1 EL gerieben",
+    "g": 7
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "01023",
+  "name": "Greyerzer (Gruyère)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Gruyère",
+   "Bergkäse",
+   "Greyerzer"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 25
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "01041",
+  "name": "Tilsiter",
+  "group": "eier_milch",
+  "synonyms": [
+   "Tilsiter Käse"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 25
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "01009",
+  "name": "Cheddar",
+  "group": "eier_milch",
+  "synonyms": [
+   "Cheddar Käse",
+   "Cheddar Scheiben"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   },
+   {
+    "label": "1 EL gerieben",
+    "g": 7
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "01026",
+  "name": "Mozzarella",
+  "group": "eier_milch",
+  "synonyms": [
+   "Mozzarella Kugel",
+   "Kuhmilch-Mozzarella",
+   "Mozzarella frisch"
+  ],
+  "portions": [
+   {
+    "label": "1 Kugel (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "01019",
+  "name": "Feta",
+  "group": "eier_milch",
+  "synonyms": [
+   "Schafskäse",
+   "Hirtenkäse",
+   "Feta Käse"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung (200 g)",
+    "g": 200
+   },
+   {
+    "label": "1 Würfel",
+    "g": 10
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "01033",
+  "name": "Parmesan",
+  "group": "eier_milch",
+  "synonyms": [
+   "Parmigiano Reggiano",
+   "Grana Padano",
+   "Hartkäse"
+  ],
+  "portions": [
+   {
+    "label": "1 EL gerieben",
+    "g": 5
+   },
+   {
+    "label": "1 Stück",
+    "g": 20
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "01007",
+  "name": "Camembert",
+  "group": "eier_milch",
+  "synonyms": [
+   "Camembert Käse",
+   "Weichkäse"
+  ],
+  "portions": [
+   {
+    "label": "1 Ecke (1/8)",
+    "g": 15
+   },
+   {
+    "label": "1 Laib (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Portion",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01004",
+  "name": "Blauschimmelkäse",
+  "group": "eier_milch",
+  "synonyms": [
+   "Edelpilzkäse",
+   "Gorgonzola",
+   "Roquefort"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01159",
+  "name": "Ziegenkäse (weich)",
+  "group": "eier_milch",
+  "synonyms": [
+   "Ziegenfrischkäse",
+   "Ziegenweichkäse",
+   "Ziegenkäserolle"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   },
+   {
+    "label": "1 Portion",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "01253",
+  "name": "Schmelzkäse-Scheiben",
+  "group": "eier_milch",
+  "synonyms": [
+   "Scheiblettenkäse",
+   "Toastkäse",
+   "Burgerkäse",
+   "Schmelzkäse"
+  ],
+  "portions": [
+   {
+    "label": "1 Scheibe",
+    "g": 20
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "14066",
+  "name": "Whey-Proteinpulver",
+  "group": "eier_milch",
+  "synonyms": [
+   "Whey",
+   "Eiweißpulver",
+   "Molkenprotein",
+   "Proteinpulver"
+  ],
+  "portions": [
+   {
+    "label": "1 Messlöffel",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "16160",
+  "name": "Tofu natur (fest)",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Tofu",
+   "Naturtofu",
+   "Tofu fest"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung (200 g)",
+    "g": 200
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "16127",
+  "name": "Seidentofu",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Silken Tofu",
+   "Tofu weich"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung (400 g)",
+    "g": 400
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "16114",
+  "name": "Tempeh",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Tempe"
+  ],
+  "portions": [
+   {
+    "label": "1 Packung (200 g)",
+    "g": 200
+   },
+   {
+    "label": "1 Portion",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "11211",
+  "name": "Edamame (TK, roh)",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Edamame",
+   "grüne Sojabohnen",
+   "Sojabohnen grün"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (geschält)",
+    "g": 100
+   },
+   {
+    "label": "1 Packung",
+    "g": 400
+   }
+  ],
+  "serving": 100,
+  "prep": "roh"
+ },
+ {
+  "ndb": "16117",
+  "name": "Sojaschnetzel (trocken)",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Sojagranulat",
+   "Sojahack trocken",
+   "Sojamehl entfettet",
+   "TVP"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (trocken)",
+    "g": 50
+   },
+   {
+    "label": "1 EL",
+    "g": 7
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "16122",
+  "name": "Sojaproteinisolat",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Sojaprotein",
+   "Sojaproteinpulver",
+   "Soja-Eiweißpulver",
+   "veganes Proteinpulver"
+  ],
+  "portions": [
+   {
+    "label": "1 Messlöffel",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "48052",
+  "name": "Weizengluten (Seitan-Basis)",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Seitanpulver",
+   "Glutenmehl",
+   "Vital Wheat Gluten"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 8
+   },
+   {
+    "label": "1 Portion",
+    "g": 50
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "16139",
+  "name": "Sojadrink (Original)",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Sojamilch",
+   "Soja Drink",
+   "Sojadrink mit Calcium"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 206
+   },
+   {
+    "label": "1 Schuss (30 ml)",
+    "g": 31
+   }
+  ],
+  "serving": 206,
+  "prep": null
+ },
+ {
+  "ndb": "16252",
+  "name": "Sojajoghurt natur",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Sojajoghurt",
+   "Soja-Alternative zu Joghurt",
+   "veganer Joghurt natur"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (150 g)",
+    "g": 150
+   },
+   {
+    "label": "1 Becher (500 g)",
+    "g": 500
+   }
+  ],
+  "serving": 150,
+  "prep": null
+ },
+ {
+  "ndb": "16147",
+  "name": "Veggie-Burger (Patty)",
+  "group": "pflanzlich_eiweiss",
+  "synonyms": [
+   "Gemüseburger",
+   "Sojaburger",
+   "vegetarisches Patty"
+  ],
+  "portions": [
+   {
+    "label": "1 Patty",
+    "g": 70
+   },
+   {
+    "label": "1 großes Patty",
+    "g": 110
+   }
+  ],
+  "serving": 70,
+  "prep": null
+ }
+]

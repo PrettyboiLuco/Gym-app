@@ -2,8 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
+import { BASIS_FOODS } from '@/domain/basis-foods-data';
+
 import { writeState } from '../app-state';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '../backup';
+import { syncBasisFoods } from '../basis-foods';
 import { usageSummary } from '../feedback';
 import type { Db } from '../db';
 import { listActiveGoals, saveGoal, setCalorieGoal } from '../goals';
@@ -70,15 +73,26 @@ describe('Sicherung und Wiederherstellung (TECH-014)', () => {
     expect((m.appState.reminders as { timerAlerts: boolean }).timerAlerts).toBe(true);
   });
   test('Export → alles löschen → Wiederherstellen ergibt denselben Stand', async () => {
+    await syncBasisFoods(db, BASIS_FOODS.slice(0, 3), 1);
     await fill(db);
     const before = await exportBackup(db, null);
     await deleteAllData(db);
     expect(await listWeights(db)).toHaveLength(0);
+    // Grundnahrungsmittel gehören zur App und sind nach dem Löschen gleich wieder da (A4)
+    expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM food WHERE catalog_id IS NOT NULL'))!.n).toBe(BASIS_FOODS.length);
+    await db.runAsync('DELETE FROM food');
+    await db.runAsync("DELETE FROM app_state WHERE key = 'basis_foods_version'");
     await restoreBackup(db, JSON.parse(JSON.stringify(before)));
     const after = await exportBackup(db, null);
     expect(after.tables).toEqual(before.tables);
     expect(after.appState).toEqual(before.appState);
     expect(await db.getAllAsync('PRAGMA foreign_key_check')).toEqual([]);
+  });
+  test('alte Sicherung ohne Grundnahrungsmittel: Liste wird nach dem Wiederherstellen eingespielt', async () => {
+    await fill(db);
+    const m = JSON.parse(JSON.stringify(await exportBackup(db, null)));
+    await restoreBackup(db, m);
+    expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM food WHERE catalog_id IS NOT NULL'))!.n).toBe(BASIS_FOODS.length);
   });
   test('Wiederherstellen in eine andere Datenbank (z. B. neues Handy)', async () => {
     await fill(db);

@@ -2,8 +2,10 @@
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 
+import { BASIS_FOODS } from '@/domain/basis-foods-data';
 import { findBookRecipe } from '@/domain/recipe-book';
 
+import { syncBasisFoods } from '../basis-foods';
 import type { Db } from '../db';
 import { migrate } from '../migrations';
 import { listDay, listRecipes, loadRecipeDraft, updateEvent } from '../nutrition';
@@ -44,5 +46,21 @@ describe('Rezeptbuch im Tagebuch', () => {
     await copyBookRecipe(db, findBookRecipe('d_bolognese_light')!);
     // Bolognese teilt Hack, Passata, Zwiebel, Tomatenmark mit dem Chili: nur Nudeln und Karotten kommen neu dazu.
     expect((await foods()) - before).toBe(2);
+  });
+
+  test('übernehmen nutzt Grundnahrungsmittel (A4.7), Nährwerte bleiben nah am Rezeptbuch', async () => {
+    await syncBasisFoods(db, BASIS_FOODS, 1);
+    const before = (await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM food'))!.n;
+    const chili = findBookRecipe('d_chili_light')!;
+    const recipeId = await copyBookRecipe(db, chili);
+    const draft = (await loadRecipeDraft(db, recipeId))!;
+    const linked = await db.getAllAsync<{ catalogId: string | null }>(
+      `SELECT catalog_id AS catalogId FROM food WHERE id IN (${draft.ingredients.map(() => '?').join(', ')})`,
+      ...draft.ingredients.map((i) => i.foodId)
+    );
+    expect(linked.every((f) => f.catalogId !== null)).toBe(true);
+    expect((await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM food'))!.n).toBe(before);
+    const [summary] = await listRecipes(db);
+    expect(Math.abs(summary.total.kcal! / 4 - chili.perPortion.kcal!) / chili.perPortion.kcal!).toBeLessThan(0.15);
   });
 });

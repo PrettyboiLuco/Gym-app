@@ -18,6 +18,9 @@ import {
   type Prep,
 } from '@/domain/nutrition';
 
+import { BASIS_FOODS } from '@/domain/basis-foods-data';
+import { foldText, fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
+
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
 
@@ -43,6 +46,13 @@ export type Food = {
   /** Packungsinhalt in g/ml, Koffein in mg je 100 g/ml (A3). */
   packageAmount: number | null;
   caffeine: number | null;
+  /** Grundnahrungsmittel (A4): Verknüpfung zur mitgelieferten Liste, Portionen und Mikronährstoffe als JSON. */
+  catalogId: string | null;
+  catalogOrigin: string | null;
+  portionsJson: string | null;
+  /** Grundnahrungsmittel: Name und Synonyme, vereinfacht geschrieben, mit „|“ getrennt. */
+  searchTerms: string | null;
+  microsJson: string | null;
   favorite: number;
   /** JSON-Listen bzw. Angabe laut Produkt (COACH-009); null = unbekannt. Lesen mit `foodFacts`. */
   allergensJson: string | null;
@@ -51,7 +61,8 @@ export type Food = {
 };
 
 const FOOD_COLUMNS = `id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, fiber, sugar, sat_fat AS satFat, salt,
-  package_amount AS packageAmount, caffeine,
+  package_amount AS packageAmount, caffeine, catalog_id AS catalogId, catalog_origin AS catalogOrigin, portions AS portionsJson,
+  micros AS microsJson, search_terms AS searchTerms,
   serving_amount AS servingAmount, favorite, allergens AS allergensJson, traces AS tracesJson, diet`;
 
 function parseList(value: string | null): Allergen[] | null {
@@ -103,17 +114,39 @@ export function per100(food: Pick<Food, 'kcal' | 'protein' | 'carbs' | 'fat' | '
   };
 }
 
-/** Lokale Suche über Name und Marke; Favoriten zuerst. Gleichnamige Produkte bleiben getrennt (FOOD-018). */
-export function searchFoods(db: Db, query: string, limit = 50) {
-  const like = `%${query.trim()}%`;
-  return db.getAllAsync<Food>(
-    `SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND (name LIKE ? OR brand LIKE ? OR barcode = ?)
-     ORDER BY favorite DESC, name COLLATE NOCASE LIMIT ?`,
+/**
+ * Suche in eigenen Lebensmitteln, Grundnahrungsmitteln (A4) und gespeicherten Produkten. Reihenfolge: Favoriten,
+ * Grundnahrungsmittel, eigene, Produkte; Treffer am Wortanfang vor Treffern mitten im Wort. Findet auch Synonyme
+ * („Hühnchen“ → Hähnchen) und – wenn sonst wenig kommt – Einträge mit einem Tippfehler. Gleichnamige Produkte bleiben getrennt (FOOD-018).
+ */
+export async function searchFoods(db: Db, query: string, limit = 50) {
+  const q = query.trim();
+  const like = `%${q}%`;
+  const folded = foldText(q);
+  const rows = await db.getAllAsync<Food>(
+    `SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND (name LIKE ? OR brand LIKE ? OR barcode = ? OR search_terms LIKE ?)
+     ORDER BY favorite DESC,
+       CASE WHEN catalog_id IS NOT NULL OR catalog_origin IS NOT NULL THEN 0 WHEN source = 'eigen' THEN 1 ELSE 2 END,
+       CASE WHEN name LIKE ? OR search_terms LIKE ? THEN 0 ELSE 1 END,
+       length(name), name COLLATE NOCASE LIMIT ?`,
     like,
     like,
-    query.trim(),
+    q,
+    `%${folded}%`,
+    `${q}%`,
+    `% ${folded}%`,
     limit
   );
+  if (rows.length >= 5 || folded.length < 4) return rows;
+  // Tippfehler: unscharf in der Liste suchen und die passenden Einträge nachladen.
+  const ids = fuzzyBasis(q, BASIS_FOODS, 10).map((f) => f.id).filter((id) => !rows.some((r) => r.catalogId === id));
+  if (ids.length === 0) return rows;
+  const extra = await db.getAllAsync<Food>(
+    `SELECT ${FOOD_COLUMNS} FROM food WHERE archived = 0 AND catalog_id IN (${ids.map(() => '?').join(', ')})`,
+    ...ids
+  );
+  extra.sort((a, b) => ids.indexOf(a.catalogId!) - ids.indexOf(b.catalogId!));
+  return [...rows, ...extra].slice(0, limit);
 }
 
 export function listFavoriteFoods(db: Db) {
@@ -175,6 +208,8 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       id
     );
     await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?', ...extra, id);
+    // Grundnahrungsmittel selbst geändert (A4): Verknüpfung lösen, damit Listen-Aktualisierungen nichts überschreiben.
+    await db.runAsync('UPDATE food SET catalog_id = NULL WHERE id = ?', id);
   } else {
     await db.runAsync(
       `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
@@ -241,6 +276,8 @@ export type ConsumptionEvent = {
   salt: number | null;
   /** Koffein in mg (A3), null = unbekannt. */
   caffeineMg: number | null;
+  /** Mikronährstoffe als JSON (A4), null = unbekannt. */
+  microsJson: string | null;
   diaryDate: string;
   occurredAt: string;
   prep: Prep | null;
@@ -248,7 +285,7 @@ export type ConsumptionEvent = {
 
 // Die Zubereitung (roh/gekocht) kommt nur zur Anzeige vom Lebensmittel; Nährwerte bleiben Schnappschuss.
 const EVENT_COLUMNS = `id, kind, meal, drink_type AS drinkType, food_id AS foodId, recipe_version_id AS recipeVersionId,
-  name, brand, amount, unit, kcal, protein, carbs, fat, fiber, sugar, sat_fat AS satFat, salt, caffeine_mg AS caffeineMg,
+  name, brand, amount, unit, kcal, protein, carbs, fat, fiber, sugar, sat_fat AS satFat, salt, caffeine_mg AS caffeineMg, micros AS microsJson,
   diary_date AS diaryDate, occurred_at_utc AS occurredAt,
   (SELECT prep FROM food WHERE food.id = consumption_event.food_id) AS prep`;
 
@@ -271,14 +308,16 @@ export async function insertEvent(
     nutrients: Nutrients;
     /** Koffein in mg (A3); fehlt = unbekannt. */
     caffeineMg?: number | null;
+    /** Mikronährstoffe der Menge (A4). */
+    micros?: Micros | null;
   }
 ) {
   const id = newId();
   await db.runAsync(
     `INSERT INTO consumption_event (id, kind, meal, drink_type, food_id, recipe_version_id, name, brand, amount, unit,
-     kcal, protein, carbs, fat, fiber, sugar, sat_fat, salt, caffeine_mg, occurred_at_utc, recorded_at_utc, time_zone,
+     kcal, protein, carbs, fat, fiber, sugar, sat_fat, salt, caffeine_mg, micros, occurred_at_utc, recorded_at_utc, time_zone,
      utc_offset_min, diary_date)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     target.kind,
     target.kind === 'essen' ? target.meal : null,
@@ -298,6 +337,7 @@ export async function insertEvent(
     data.nutrients.satFat ?? null,
     data.nutrients.salt ?? null,
     data.caffeineMg ?? null,
+    data.micros ? JSON.stringify(data.micros) : null,
     when.at.toISOString(),
     nowUtc(),
     when.timeZone,
@@ -321,6 +361,7 @@ export async function logFood(db: Db, foodId: string, amount: number, target: Ta
     unit: food.basis,
     nutrients,
     caffeineMg: food.caffeine == null ? null : (food.caffeine * amount) / 100,
+    micros: scaleMicros(parseMicros(food.microsJson), amount / 100),
   });
 }
 
@@ -378,6 +419,7 @@ export async function copyDay(db: Db, fromDate: string, when: When) {
         unit: e.unit,
         nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
         caffeineMg: e.caffeineMg,
+        micros: parseMicros(e.microsJson),
       });
     }
   });
@@ -420,7 +462,7 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
   const scale = (v: number | null) => (v === null ? null : v * factor);
   await db.runAsync(
     `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, kcal = ?, protein = ?, carbs = ?, fat = ?, fiber = ?,
-     sugar = ?, sat_fat = ?, salt = ?, caffeine_mg = ? WHERE id = ?`,
+     sugar = ?, sat_fat = ?, salt = ?, caffeine_mg = ?, micros = ? WHERE id = ?`,
     change.amount,
     event.kind === 'essen' ? change.meal : null,
     change.diaryDate,
@@ -433,6 +475,7 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
     scale(event.satFat),
     scale(event.salt),
     scale(event.caffeineMg),
+    event.microsJson ? JSON.stringify(scaleMicros(parseMicros(event.microsJson), factor)) : null,
     id
   );
 }
@@ -459,6 +502,7 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
         unit: e.unit,
         nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
         caffeineMg: e.caffeineMg,
+        micros: parseMicros(e.microsJson),
       });
     }
   });

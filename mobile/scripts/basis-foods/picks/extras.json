@@ -1,0 +1,2267 @@
+[
+ {
+  "ndb": "14209",
+  "name": "Kaffee (schwarz)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Filterkaffee",
+   "Kaffee",
+   "Americano"
+  ],
+  "portions": [
+   {
+    "label": "1 Tasse (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Becher (300 ml)",
+    "g": 300
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14210",
+  "name": "Espresso",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Ristretto"
+  ],
+  "portions": [
+   {
+    "label": "1 Espresso (30 ml)",
+    "g": 30
+   },
+   {
+    "label": "1 doppelter Espresso (60 ml)",
+    "g": 60
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "14355",
+  "name": "Schwarzer Tee",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Schwarztee",
+   "Tee"
+  ],
+  "portions": [
+   {
+    "label": "1 Tasse (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Becher (300 ml)",
+    "g": 300
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14278",
+  "name": "Grüner Tee",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Grüntee"
+  ],
+  "portions": [
+   {
+    "label": "1 Tasse (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Becher (300 ml)",
+    "g": 300
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14381",
+  "name": "Kräutertee",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Früchtetee",
+   "Pfefferminztee",
+   "Kamillentee",
+   "Tee (ungesüßt)"
+  ],
+  "portions": [
+   {
+    "label": "1 Tasse (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Becher (300 ml)",
+    "g": 300
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14199",
+  "name": "Eistee (Zitrone, gesüßt)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Eistee",
+   "Ice Tea"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 250,
+  "prep": null
+ },
+ {
+  "ndb": "09209",
+  "name": "Orangensaft",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "O-Saft",
+   "Orangensaft aus Konzentrat"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 großes Glas (300 ml)",
+    "g": 300
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "09016",
+  "name": "Apfelsaft",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Apfelsaft naturtrüb",
+   "Apfelsaft klar"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 großes Glas (300 ml)",
+    "g": 300
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "09135",
+  "name": "Traubensaft",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Roter Traubensaft"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "11540",
+  "name": "Tomatensaft",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Tomatensaft (gesalzen)"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14148",
+  "name": "Cola",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Coca-Cola",
+   "Pepsi",
+   "Cola (normal)"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Dose (330 ml)",
+    "g": 330
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 330,
+  "prep": null
+ },
+ {
+  "ndb": "14416",
+  "name": "Cola light/zero",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Cola zero",
+   "Cola light",
+   "Diet Cola",
+   "Cola ohne Zucker"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Dose (330 ml)",
+    "g": 330
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 330,
+  "prep": null
+ },
+ {
+  "ndb": "14144",
+  "name": "Zitronenlimonade",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Limo",
+   "Zitronen-Limette-Limonade",
+   "Sprite-artig"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Dose (330 ml)",
+    "g": 330
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 330,
+  "prep": null
+ },
+ {
+  "ndb": "14150",
+  "name": "Orangenlimonade",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Orangenlimo",
+   "Fanta-artig",
+   "Limo Orange"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Dose (330 ml)",
+    "g": 330
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 330,
+  "prep": null
+ },
+ {
+  "ndb": "14555",
+  "name": "Wasser",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Mineralwasser",
+   "Tafelwasser",
+   "Leitungswasser"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   },
+   {
+    "label": "1 Flasche (1,5 l)",
+    "g": 1500
+   }
+  ],
+  "serving": 250,
+  "prep": null
+ },
+ {
+  "ndb": "14060",
+  "name": "Energy Drink",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Energydrink",
+   "Red Bull-artig"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Dose (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 250,
+  "prep": null
+ },
+ {
+  "ndb": "14061",
+  "name": "Energy Drink (zuckerfrei)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Energy Drink sugar free",
+   "Energydrink zero"
+  ],
+  "portions": [
+   {
+    "label": "1 Dose (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Dose (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 250,
+  "prep": null
+ },
+ {
+  "ndb": "14460",
+  "name": "Isotonisches Sportgetränk",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Iso-Drink",
+   "Sportgetränk",
+   "Gatorade"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   },
+   {
+    "label": "1 Flasche (750 ml)",
+    "g": 750
+   }
+  ],
+  "serving": 500,
+  "prep": null
+ },
+ {
+  "ndb": "14003",
+  "name": "Bier (Pils)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Bier",
+   "Pils",
+   "Helles",
+   "Lager",
+   "Export"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (0,3 l)",
+    "g": 300
+   },
+   {
+    "label": "1 Flasche (330 ml)",
+    "g": 330
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   },
+   {
+    "label": "1 Maß (1 l)",
+    "g": 1000
+   }
+  ],
+  "serving": 500,
+  "prep": null
+ },
+ {
+  "ndb": "14305",
+  "name": "Alkoholfreies Bier",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Bier alkoholfrei",
+   "Malzgetränk"
+  ],
+  "portions": [
+   {
+    "label": "1 Flasche (330 ml)",
+    "g": 330
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 500,
+  "prep": null
+ },
+ {
+  "ndb": "14096",
+  "name": "Rotwein",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Wein rot",
+   "Rotwein trocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (0,1 l)",
+    "g": 100
+   },
+   {
+    "label": "1 Glas (0,2 l)",
+    "g": 200
+   },
+   {
+    "label": "1 Flasche (0,75 l)",
+    "g": 750
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14106",
+  "name": "Weißwein",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Wein weiß",
+   "Weißwein trocken"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (0,1 l)",
+    "g": 100
+   },
+   {
+    "label": "1 Glas (0,2 l)",
+    "g": 200
+   },
+   {
+    "label": "1 Flasche (0,75 l)",
+    "g": 750
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14037",
+  "name": "Spirituosen (40 %)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Schnaps",
+   "Wodka",
+   "Rum",
+   "Gin",
+   "Whisky",
+   "Korn"
+  ],
+  "portions": [
+   {
+    "label": "1 Schnapsglas (2 cl)",
+    "g": 20
+   },
+   {
+    "label": "1 doppelter (4 cl)",
+    "g": 40
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "16139",
+  "name": "Sojadrink",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Sojamilch",
+   "Soja-Drink Natur",
+   "Sojadrink mit Calcium"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "Schuss für Kaffee (30 ml)",
+    "g": 30
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14091",
+  "name": "Mandeldrink (ungesüßt)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Mandelmilch",
+   "Mandel-Drink"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "Schuss für Kaffee (30 ml)",
+    "g": 30
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "14639",
+  "name": "Reisdrink (ungesüßt)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Reismilch",
+   "Reis-Drink"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (200 ml)",
+    "g": 200
+   },
+   {
+    "label": "1 Tasse (250 ml)",
+    "g": 250
+   }
+  ],
+  "serving": 200,
+  "prep": null
+ },
+ {
+  "ndb": "01102",
+  "name": "Kakao (trinkfertig)",
+  "group": "getraenke",
+  "basis": "ml",
+  "synonyms": [
+   "Schokomilch",
+   "Kakaogetränk",
+   "Schokoladenmilch"
+  ],
+  "portions": [
+   {
+    "label": "1 Glas (250 ml)",
+    "g": 250
+   },
+   {
+    "label": "1 Flasche (500 ml)",
+    "g": 500
+   }
+  ],
+  "serving": 250,
+  "prep": null
+ },
+ {
+  "ndb": "14557",
+  "name": "Kakaopulver (Instant, für Milch)",
+  "group": "getraenke",
+  "basis": "g",
+  "synonyms": [
+   "Trinkschokoladenpulver",
+   "Kaba",
+   "Nesquik-artig",
+   "Instant-Kakao"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Portion (3 TL)",
+    "g": 22
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "19904",
+  "name": "Zartbitterschokolade (70–85 %)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Bitterschokolade",
+   "dunkle Schokolade",
+   "Edelbitter"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück (Rippe)",
+    "g": 10
+   },
+   {
+    "label": "1/4 Tafel",
+    "g": 25
+   },
+   {
+    "label": "1 Tafel (100 g)",
+    "g": 100
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "19120",
+  "name": "Vollmilchschokolade",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Milchschokolade",
+   "Schokolade"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück (Rippe)",
+    "g": 5
+   },
+   {
+    "label": "1/4 Tafel",
+    "g": 25
+   },
+   {
+    "label": "1 Tafel (100 g)",
+    "g": 100
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "19087",
+  "name": "Weiße Schokolade",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "weiße Schoko"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück (Rippe)",
+    "g": 5
+   },
+   {
+    "label": "1/4 Tafel",
+    "g": 25
+   },
+   {
+    "label": "1 Tafel (100 g)",
+    "g": 100
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "19106",
+  "name": "Gummibärchen",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Fruchtgummi",
+   "Weingummi",
+   "Gummitiere",
+   "Gummibären"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 2
+   },
+   {
+    "label": "1 Handvoll (10 Stück)",
+    "g": 20
+   },
+   {
+    "label": "1 kleine Tüte (100 g)",
+    "g": 100
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "19116",
+  "name": "Marshmallows",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Mäusespeck"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 7
+   },
+   {
+    "label": "1 Handvoll (5 Stück)",
+    "g": 35
+   }
+  ],
+  "serving": 14,
+  "prep": null
+ },
+ {
+  "ndb": "19155",
+  "name": "Schokoriegel mit Erdnüssen & Karamell",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Snickers",
+   "Erdnussriegel"
+  ],
+  "portions": [
+   {
+    "label": "1 Riegel (50 g)",
+    "g": 50
+   },
+   {
+    "label": "1 Mini-Riegel",
+    "g": 15
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "19109",
+  "name": "Waffelriegel mit Schokolade",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "KitKat",
+   "Schokowaffel"
+  ],
+  "portions": [
+   {
+    "label": "1 Riegel (42 g)",
+    "g": 42
+   },
+   {
+    "label": "1 Mini-Riegel",
+    "g": 10
+   }
+  ],
+  "serving": 42,
+  "prep": null
+ },
+ {
+  "ndb": "19411",
+  "name": "Kartoffelchips",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Chips",
+   "Kartoffelchips gesalzen"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 25
+   },
+   {
+    "label": "1 Portion (30 g)",
+    "g": 30
+   },
+   {
+    "label": "1 Tüte (175 g)",
+    "g": 175
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "19056",
+  "name": "Tortillachips",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Nachos",
+   "Maischips"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 25
+   },
+   {
+    "label": "1 Portion (30 g)",
+    "g": 30
+   },
+   {
+    "label": "1 Tüte (200 g)",
+    "g": 200
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "19034",
+  "name": "Popcorn (Heißluft, ohne Fett)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Popcorn natur",
+   "Puffmais"
+  ],
+  "portions": [
+   {
+    "label": "1 Tasse",
+    "g": 8
+   },
+   {
+    "label": "1 Schüssel",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "19039",
+  "name": "Popcorn (süß, karamellisiert)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "süßes Popcorn",
+   "Karamell-Popcorn"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 20
+   },
+   {
+    "label": "1 Portion (50 g)",
+    "g": 50
+   },
+   {
+    "label": "1 Tüte (100 g)",
+    "g": 100
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "19047",
+  "name": "Salzbrezeln",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Salzstangen",
+   "Brezel-Snack",
+   "Laugengebäck-Snack"
+  ],
+  "portions": [
+   {
+    "label": "1 Handvoll",
+    "g": 30
+   },
+   {
+    "label": "10 Brezeln",
+    "g": 60
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "19816",
+  "name": "Reiswaffeln (Vollkorn, natur)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Reiswaffel",
+   "Reiscracker"
+  ],
+  "portions": [
+   {
+    "label": "1 Waffel",
+    "g": 9
+   },
+   {
+    "label": "2 Waffeln",
+    "g": 18
+   }
+  ],
+  "serving": 9,
+  "prep": null
+ },
+ {
+  "ndb": "19020",
+  "name": "Müsliriegel",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Getreideriegel",
+   "Haferriegel",
+   "Granola-Riegel"
+  ],
+  "portions": [
+   {
+    "label": "1 Riegel (25 g)",
+    "g": 25
+   },
+   {
+    "label": "1 großer Riegel (40 g)",
+    "g": 40
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "25031",
+  "name": "Proteinriegel",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Eiweißriegel",
+   "Protein Bar"
+  ],
+  "portions": [
+   {
+    "label": "1 Riegel (50 g)",
+    "g": 50
+   },
+   {
+    "label": "1 kleiner Riegel (35 g)",
+    "g": 35
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "08037",
+  "name": "Granola (Knuspermüsli)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Knuspermüsli",
+   "Crunchy Müsli",
+   "Granola"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 10
+   },
+   {
+    "label": "1 Portion (50 g)",
+    "g": 50
+   },
+   {
+    "label": "1 Tasse",
+    "g": 122
+   }
+  ],
+  "serving": 50,
+  "prep": null
+ },
+ {
+  "ndb": "08286",
+  "name": "Früchtemüsli (Fertigmischung)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Müsli",
+   "Müslimischung"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (55 g)",
+    "g": 55
+   },
+   {
+    "label": "1 EL",
+    "g": 10
+   }
+  ],
+  "serving": 55,
+  "prep": null
+ },
+ {
+  "ndb": "08020",
+  "name": "Cornflakes",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Maisflocken",
+   "Corn Flakes"
+  ],
+  "portions": [
+   {
+    "label": "1 Portion (30 g)",
+    "g": 30
+   },
+   {
+    "label": "1 Tasse",
+    "g": 28
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "18155",
+  "name": "Butterkekse",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Butterkeks",
+   "Kekse"
+  ],
+  "portions": [
+   {
+    "label": "1 Keks",
+    "g": 5
+   },
+   {
+    "label": "5 Kekse",
+    "g": 25
+   }
+  ],
+  "serving": 25,
+  "prep": null
+ },
+ {
+  "ndb": "18159",
+  "name": "Schoko-Cookies",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Cookies",
+   "Chocolate Chip Cookies",
+   "Schokokekse"
+  ],
+  "portions": [
+   {
+    "label": "1 Cookie (klein)",
+    "g": 13
+   },
+   {
+    "label": "1 Cookie (groß)",
+    "g": 30
+   }
+  ],
+  "serving": 26,
+  "prep": null
+ },
+ {
+  "ndb": "18166",
+  "name": "Doppelkekse mit Cremefüllung",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Oreo-artig",
+   "Schoko-Doppelkeks",
+   "Doppelkeks"
+  ],
+  "portions": [
+   {
+    "label": "1 Keks",
+    "g": 12
+   },
+   {
+    "label": "3 Kekse",
+    "g": 36
+   }
+  ],
+  "serving": 36,
+  "prep": null
+ },
+ {
+  "ndb": "18151",
+  "name": "Brownie",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Schokobrownie"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 56
+   }
+  ],
+  "serving": 56,
+  "prep": null
+ },
+ {
+  "ndb": "18120",
+  "name": "Rührkuchen",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Sandkuchen",
+   "Marmorkuchen (ähnlich)",
+   "Pound Cake",
+   "Kastenkuchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 60
+   },
+   {
+    "label": "1 dünne Scheibe",
+    "g": 30
+   }
+  ],
+  "serving": 60,
+  "prep": null
+ },
+ {
+  "ndb": "18101",
+  "name": "Schokoladenkuchen (ohne Glasur)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Schokokuchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 95
+   }
+  ],
+  "serving": 95,
+  "prep": null
+ },
+ {
+  "ndb": "18301",
+  "name": "Apfelkuchen (gedeckt)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Apple Pie",
+   "gedeckter Apfelkuchen"
+  ],
+  "portions": [
+   {
+    "label": "1 Stück",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "18354",
+  "name": "Apfelstrudel",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Strudel"
+  ],
+  "portions": [
+   {
+    "label": "1 kleines Stück",
+    "g": 71
+   },
+   {
+    "label": "1 Stück (Café)",
+    "g": 120
+   }
+  ],
+  "serving": 120,
+  "prep": null
+ },
+ {
+  "ndb": "18250",
+  "name": "Donut (glasiert)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Doughnut",
+   "Krapfen (ähnlich)"
+  ],
+  "portions": [
+   {
+    "label": "1 Donut",
+    "g": 45
+   },
+   {
+    "label": "1 großer Donut",
+    "g": 65
+   }
+  ],
+  "serving": 45,
+  "prep": null
+ },
+ {
+  "ndb": "18274",
+  "name": "Muffin (Blaubeere)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Blaubeermuffin",
+   "Muffin"
+  ],
+  "portions": [
+   {
+    "label": "1 Muffin",
+    "g": 90
+   },
+   {
+    "label": "1 Mini-Muffin",
+    "g": 17
+   }
+  ],
+  "serving": 90,
+  "prep": null
+ },
+ {
+  "ndb": "19095",
+  "name": "Vanilleeis",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Speiseeis Vanille",
+   "Eiscreme Vanille"
+  ],
+  "portions": [
+   {
+    "label": "1 Kugel",
+    "g": 50
+   },
+   {
+    "label": "2 Kugeln",
+    "g": 100
+   },
+   {
+    "label": "1 Becher (150 ml)",
+    "g": 75
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "19270",
+  "name": "Schokoladeneis",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Schokoeis",
+   "Eiscreme Schokolade"
+  ],
+  "portions": [
+   {
+    "label": "1 Kugel",
+    "g": 50
+   },
+   {
+    "label": "2 Kugeln",
+    "g": 100
+   }
+  ],
+  "serving": 100,
+  "prep": null
+ },
+ {
+  "ndb": "19183",
+  "name": "Schokoladenpudding",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Schokopudding",
+   "Pudding Schoko"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Schale (150 g)",
+    "g": 150
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "19201",
+  "name": "Vanillepudding",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Pudding Vanille"
+  ],
+  "portions": [
+   {
+    "label": "1 Becher (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1 Schale (150 g)",
+    "g": 150
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "19173",
+  "name": "Götterspeise (zubereitet)",
+  "group": "suesses_snacks",
+  "basis": "g",
+  "synonyms": [
+   "Wackelpudding",
+   "Wackelpeter",
+   "Gelee-Dessert"
+  ],
+  "portions": [
+   {
+    "label": "1 Schale (125 g)",
+    "g": 125
+   },
+   {
+    "label": "1/2 Tasse",
+    "g": 135
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "19296",
+  "name": "Honig",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Blütenhonig",
+   "Bienenhonig",
+   "Waldhonig"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 7
+   },
+   {
+    "label": "1 EL",
+    "g": 21
+   }
+  ],
+  "serving": 10,
+  "prep": null
+ },
+ {
+  "ndb": "19297",
+  "name": "Konfitüre",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Marmelade",
+   "Erdbeermarmelade",
+   "Fruchtaufstrich"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 7
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "19303",
+  "name": "Orangenmarmelade",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Orangenkonfitüre",
+   "Marmelade Orange"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 7
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "19125",
+  "name": "Nuss-Nougat-Creme",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Nutella",
+   "Schokoaufstrich",
+   "Haselnusscreme"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 7
+   },
+   {
+    "label": "1 EL",
+    "g": 18
+   },
+   {
+    "label": "2 EL",
+    "g": 37
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "19353",
+  "name": "Ahornsirup",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Maple Syrup"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 7
+   },
+   {
+    "label": "1 EL",
+    "g": 20
+   }
+  ],
+  "serving": 20,
+  "prep": null
+ },
+ {
+  "ndb": "19912",
+  "name": "Agavendicksaft",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Agavensirup"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 7
+   },
+   {
+    "label": "1 EL",
+    "g": 21
+   }
+  ],
+  "serving": 7,
+  "prep": null
+ },
+ {
+  "ndb": "11935",
+  "name": "Ketchup",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Tomatenketchup",
+   "Catsup"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 6
+   },
+   {
+    "label": "1 EL",
+    "g": 17
+   },
+   {
+    "label": "1 Portionstütchen",
+    "g": 9
+   }
+  ],
+  "serving": 17,
+  "prep": null
+ },
+ {
+  "ndb": "02046",
+  "name": "Senf",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Senf mittelscharf",
+   "Mostrich"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 5,
+  "prep": null
+ },
+ {
+  "ndb": "04025",
+  "name": "Mayonnaise",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Mayo"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 14
+   }
+  ],
+  "serving": 14,
+  "prep": null
+ },
+ {
+  "ndb": "04641",
+  "name": "Mayonnaise (light)",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Mayo light",
+   "Leichte Mayonnaise"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "04018",
+  "name": "Salatcreme",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Salatmayonnaise",
+   "Miracle Whip-artig"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "16123",
+  "name": "Sojasauce",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Sojasoße",
+   "Shoyu"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 16
+   }
+  ],
+  "serving": 16,
+  "prep": null
+ },
+ {
+  "ndb": "06626",
+  "name": "Pesto (Basilikum)",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Pesto Genovese",
+   "Pesto verde"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 16
+   },
+   {
+    "label": "1 Portion (2 EL)",
+    "g": 32
+   }
+  ],
+  "serving": 32,
+  "prep": null
+ },
+ {
+  "ndb": "06150",
+  "name": "Barbecuesauce",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "BBQ-Sauce",
+   "Grillsauce"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 6
+   },
+   {
+    "label": "1 EL",
+    "g": 17
+   }
+  ],
+  "serving": 17,
+  "prep": null
+ },
+ {
+  "ndb": "04135",
+  "name": "Essig-Öl-Dressing",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Vinaigrette",
+   "Salatdressing (Essig & Öl)"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 16
+   },
+   {
+    "label": "2 EL",
+    "g": 32
+   }
+  ],
+  "serving": 16,
+  "prep": null
+ },
+ {
+  "ndb": "04114",
+  "name": "Italienisches Dressing",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Italian Dressing",
+   "Salatdressing Italienisch"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "2 EL",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "04703",
+  "name": "Honig-Senf-Dressing",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Honey Mustard Dressing"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "2 EL",
+    "g": 30
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "02069",
+  "name": "Balsamico-Essig",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Aceto Balsamico",
+   "Balsamessig"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 16
+   }
+  ],
+  "serving": 16,
+  "prep": null
+ },
+ {
+  "ndb": "02055",
+  "name": "Meerrettich (Glas)",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Tafelmeerrettich",
+   "Kren"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 EL",
+    "g": 15
+   }
+  ],
+  "serving": 5,
+  "prep": null
+ },
+ {
+  "ndb": "06931",
+  "name": "Tomatensauce (Fertigsauce)",
+  "group": "aufstriche_saucen",
+  "basis": "g",
+  "synonyms": [
+   "Pastasauce",
+   "Marinara",
+   "Tomatensoße"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Portion (125 g)",
+    "g": 125
+   }
+  ],
+  "serving": 125,
+  "prep": null
+ },
+ {
+  "ndb": "19335",
+  "name": "Zucker",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Haushaltszucker",
+   "Kristallzucker",
+   "weißer Zucker"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 4
+   },
+   {
+    "label": "1 EL",
+    "g": 12
+   },
+   {
+    "label": "1 Würfel",
+    "g": 3
+   }
+  ],
+  "serving": 4,
+  "prep": null
+ },
+ {
+  "ndb": "19334",
+  "name": "Brauner Zucker",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Rohrzucker"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 4
+   },
+   {
+    "label": "1 EL",
+    "g": 13
+   }
+  ],
+  "serving": 4,
+  "prep": null
+ },
+ {
+  "ndb": "19336",
+  "name": "Puderzucker",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Staubzucker"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 3
+   },
+   {
+    "label": "1 EL",
+    "g": 8
+   }
+  ],
+  "serving": 8,
+  "prep": null
+ },
+ {
+  "ndb": "19165",
+  "name": "Kakaopulver (ungesüßt)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Backkakao",
+   "Kakao stark entölt (ähnlich)"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 2
+   },
+   {
+    "label": "1 EL",
+    "g": 5
+   }
+  ],
+  "serving": 5,
+  "prep": null
+ },
+ {
+  "ndb": "19080",
+  "name": "Zartbitter-Schokotropfen",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Schokodrops",
+   "Halbbitter-Kuvertüre",
+   "Backschokolade zartbitter"
+  ],
+  "portions": [
+   {
+    "label": "1 EL",
+    "g": 15
+   },
+   {
+    "label": "1 Päckchen (100 g)",
+    "g": 100
+   }
+  ],
+  "serving": 15,
+  "prep": null
+ },
+ {
+  "ndb": "18370",
+  "name": "Backpulver",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Backtriebmittel"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 5
+   },
+   {
+    "label": "1 Päckchen (15 g)",
+    "g": 15
+   }
+  ],
+  "serving": 5,
+  "prep": null
+ },
+ {
+  "ndb": "18374",
+  "name": "Frischhefe",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Hefe frisch",
+   "Backhefe"
+  ],
+  "portions": [
+   {
+    "label": "1 Würfel (42 g)",
+    "g": 42
+   },
+   {
+    "label": "1/2 Würfel",
+    "g": 21
+   }
+  ],
+  "serving": 42,
+  "prep": null
+ },
+ {
+  "ndb": "18375",
+  "name": "Trockenhefe",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Hefe getrocknet"
+  ],
+  "portions": [
+   {
+    "label": "1 Päckchen (7 g)",
+    "g": 7
+   },
+   {
+    "label": "1 TL",
+    "g": 4
+   }
+  ],
+  "serving": 7,
+  "prep": null
+ },
+ {
+  "ndb": "19177",
+  "name": "Gelatine (Pulver, ungesüßt)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Gelatinepulver",
+   "Blattgelatine (ähnlich)"
+  ],
+  "portions": [
+   {
+    "label": "1 Blatt (ca. 1,7 g)",
+    "g": 1.7
+   },
+   {
+    "label": "1 Päckchen (9 g)",
+    "g": 9
+   }
+  ],
+  "serving": 9,
+  "prep": null
+ },
+ {
+  "ndb": "02050",
+  "name": "Vanilleextrakt",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Vanillearoma (Extrakt)"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 4
+   },
+   {
+    "label": "1 EL",
+    "g": 13
+   }
+  ],
+  "serving": 4,
+  "prep": null
+ },
+ {
+  "ndb": "20027",
+  "name": "Speisestärke",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Maisstärke",
+   "Mondamin-artig"
+  ],
+  "portions": [
+   {
+    "label": "1 TL",
+    "g": 3
+   },
+   {
+    "label": "1 EL",
+    "g": 9
+   }
+  ],
+  "serving": 9,
+  "prep": null
+ },
+ {
+  "ndb": "19868",
+  "name": "Süßstoff (Sucralose)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Süßstoff",
+   "Streusüße",
+   "Splenda"
+  ],
+  "portions": [
+   {
+    "label": "1 Tütchen",
+    "g": 1
+   }
+  ],
+  "serving": 1,
+  "prep": null
+ },
+ {
+  "ndb": "19918",
+  "name": "Stevia (Pulver)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Steviasüße",
+   "Steviolglycoside"
+  ],
+  "portions": [
+   {
+    "label": "1 Tütchen",
+    "g": 1
+   }
+  ],
+  "serving": 1,
+  "prep": null
+ },
+ {
+  "ndb": "14066",
+  "name": "Proteinpulver (Whey)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Whey",
+   "Eiweißpulver",
+   "Molkenprotein",
+   "Proteinshake-Pulver"
+  ],
+  "portions": [
+   {
+    "label": "1 Messlöffel (30 g)",
+    "g": 30
+   },
+   {
+    "label": "1 EL",
+    "g": 10
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "14067",
+  "name": "Proteinpulver (Soja)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "Sojaprotein",
+   "veganes Proteinpulver",
+   "Sojaeiweiß"
+  ],
+  "portions": [
+   {
+    "label": "1 Messlöffel (30 g)",
+    "g": 30
+   },
+   {
+    "label": "1 EL",
+    "g": 10
+   }
+  ],
+  "serving": 30,
+  "prep": null
+ },
+ {
+  "ndb": "21224",
+  "name": "Tiefkühlpizza (Margherita/Käse)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "TK-Pizza Käse",
+   "Pizza Margherita",
+   "Fertigpizza"
+  ],
+  "portions": [
+   {
+    "label": "1/4 Pizza",
+    "g": 85
+   },
+   {
+    "label": "1/2 Pizza",
+    "g": 170
+   },
+   {
+    "label": "1 Pizza (ca. 340 g)",
+    "g": 340
+   }
+  ],
+  "serving": 340,
+  "prep": "cooked"
+ },
+ {
+  "ndb": "21226",
+  "name": "Tiefkühlpizza (Salami/Gemüse)",
+  "group": "backen_sonstiges",
+  "basis": "g",
+  "synonyms": [
+   "TK-Pizza Salami",
+   "Pizza Speciale",
+   "Fertigpizza mit Belag"
+  ],
+  "portions": [
+   {
+    "label": "1/4 Pizza",
+    "g": 90
+   },
+   {
+    "label": "1/2 Pizza",
+    "g": 180
+   },
+   {
+    "label": "1 Pizza (ca. 360 g)",
+    "g": 360
+   }
+  ],
+  "serving": 360,
+  "prep": "cooked"
+ }
+]

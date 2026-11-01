@@ -28,6 +28,7 @@ import {
 } from '@/data/nutrition';
 import { useDb } from '@/data/store-provider';
 import type { FoodFacts } from '@/domain/diet';
+import { parsePortions } from '@/domain/basis-foods';
 import { guessDrinkType, isPlainWater, matchScore, MAX_FOOD_TEXT, parseFoodText, resolveAmount, type FoodTextItem } from '@/domain/food-text';
 import { parseAmount } from '@/domain/nutrition';
 import { useLoad } from '@/hooks/use-load';
@@ -49,6 +50,9 @@ type Row = { item: FoodTextItem; candidates: Candidate[]; choice: string; amount
 const SKIP = 'skip';
 const WATER: Candidate = { key: 'wasser', label: '', food: null, recipe: null, template: null, water: true, facts: null };
 
+/** Synonyme eines Grundnahrungsmittels (A4), z. B. „Hühnchen“ für Hähnchenbrust. */
+const synonymsOf = (f: Food) => (f.searchTerms ? f.searchTerms.split('|').map((x) => x.trim()).filter(Boolean) : []);
+
 /** Bis zu 3 passende eigene Lebensmittel, Rezepte oder Vorlagen je Teil, bester Treffer zuerst. */
 async function findCandidates(db: Db, item: FoodTextItem, templates: MealTemplate[], recipes: RecipeSummary[]): Promise<Candidate[]> {
   if (isPlainWater(item.name)) return [{ ...WATER, label: t('foodText.water') }];
@@ -58,7 +62,7 @@ async function findCandidates(db: Db, item: FoodTextItem, templates: MealTemplat
   const none = { food: null, recipe: null, template: null, water: false };
   const scored: { score: number; c: Candidate }[] = [
     ...[...foods.values()].map((f) => ({
-      score: matchScore(item.name, f.name) + (f.favorite ? 0.5 : 0),
+      score: Math.max(matchScore(item.name, f.name), ...synonymsOf(f).map((n) => matchScore(item.name, n) - 0.1)) + (f.favorite ? 0.5 : 0),
       c: { ...none, key: `food:${f.id}`, label: foodTitle(f), food: f, facts: foodFacts(f) },
     })),
     ...recipes.map((r) => ({
@@ -92,7 +96,7 @@ function amountUnit(c: Candidate): string | null {
 function amountFor(item: FoodTextItem, c: Candidate | undefined): string {
   if (!c) return '';
   if (c.food) {
-    const resolved = resolveAmount(item, c.food);
+    const resolved = resolveAmount(item, c.food, parsePortions(c.food.portionsJson));
     return resolved === null ? '' : formatNumber(resolved);
   }
   if (c.recipe?.portions) {

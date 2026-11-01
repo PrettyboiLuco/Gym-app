@@ -11,6 +11,7 @@ import {
   formatKcal,
   extraLine,
   macroLine,
+  microLine,
   readTarget,
   targetParams,
   whenFor,
@@ -22,6 +23,7 @@ import { Spacing } from '@/constants/theme';
 import { DietNotice } from '@/components/diet-notice';
 import { archiveFood, DEFAULT_SETTINGS, foodFacts, getFood, loadNutritionSettings, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
 import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
+import { parseMicros, parsePortions, scaleMicros } from '@/domain/basis-foods';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
@@ -51,10 +53,14 @@ export default function FoodScreen() {
   const amount = parseAmount(shownAmount);
   const values = per100(food);
   const forAmount = amount === null ? null : nutrientsForAmount(values, amount, unit, unit);
-  // Portion und Packung (A3) zuerst, dann übliche Mengen.
+  // Portionen der Grundnahrungsmittel (A4), Portion und Packung (A3) zuerst, dann übliche Mengen.
   const packageAmount = food.packageAmount;
+  const portions = parsePortions(food.portionsJson);
+  const portionLabel = new Map(portions.map((p) => [p.g, p.label]));
+  const micros = parseMicros(food.microsJson);
   const amountPresets = [
     ...new Set([
+      ...portions.map((p) => p.g),
       ...(food.servingAmount ? [food.servingAmount] : []),
       ...(packageAmount ? [packageAmount / 2, packageAmount] : []),
       50,
@@ -91,7 +97,7 @@ export default function FoodScreen() {
       <Card>
         <ThemedText type="subtitle">{foodTitle(food)}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          {t(`nutrition.food.source.${food.source}`)}
+          {food.catalogId ? t('nutrition.food.source.basis') : food.catalogOrigin ? t('nutrition.food.source.basisEdited') : t(`nutrition.food.source.${food.source}`)}
         </ThemedText>
         <DietNotice facts={foodFacts(food)} prefs={settings} />
         {food.barcode ? (
@@ -140,7 +146,9 @@ export default function FoodScreen() {
           value={amount ?? undefined}
           onChange={(v) => setAmountText(formatNumber(v))}
           format={(v) =>
-            v === food.servingAmount
+            portionLabel.has(v)
+              ? `${portionLabel.get(v)} (${formatAmount(v, unit)})`
+              : v === food.servingAmount
               ? t('nutrition.food.serving', { value: formatAmount(v, unit) })
               : v === packageAmount
                 ? t('nutrition.food.package', { value: formatAmount(v, unit) })
@@ -161,6 +169,11 @@ export default function FoodScreen() {
             {extraLine(forAmount) ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {extraLine(forAmount)}
+              </ThemedText>
+            ) : null}
+            {micros && amount !== null && microLine(scaleMicros(micros, amount / 100)) ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {microLine(scaleMicros(micros, amount / 100))}
               </ThemedText>
             ) : null}
           </View>

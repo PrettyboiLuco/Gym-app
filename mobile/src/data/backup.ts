@@ -3,6 +3,7 @@
 
 import { BACKUP_APP, BACKUP_FORMAT, BACKUP_TABLES, TRANSIENT_STATE, type BackupManifest } from '@/domain/backup';
 
+import { syncBasisFoods } from './basis-foods';
 import { nowUtc, type Db, type SqlValue } from './db';
 
 async function schemaVersion(db: Db) {
@@ -75,6 +76,8 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
       await db.runAsync('INSERT INTO app_state (key, value) VALUES (?, ?)', key, JSON.stringify(value));
     }
   });
+  // Sicherung von vor den Grundnahrungsmitteln (A4): Liste gleich wieder einspielen, nicht erst beim nächsten Start.
+  await syncBasisFoods(db);
 }
 
 /** Löscht alle eigenen Daten auf diesem Gerät; danach startet die App wie neu (LAW-006). */
@@ -82,4 +85,6 @@ export async function deleteAllData(db: Db) {
   await db.withTransactionAsync(async () => {
     await clearAll(db);
   });
+  // Grundnahrungsmittel gehören zur App, nicht zu den eigenen Daten (A4).
+  await syncBasisFoods(db);
 }

@@ -1,0 +1,9 @@
+[
+ {"ndb": "01145", "name": "Butter", "group": "fette_oele", "basis": "g", "synonyms": ["Süßrahmbutter", "Sauerrahmbutter", "Markenbutter"], "portions": [{"label": "1 TL", "g": 5}, {"label": "1 EL", "g": 14}, {"label": "1 Portion (Brot)", "g": 10}], "serving": 10, "prep": null},
+ {"ndb": "01003", "name": "Butterschmalz", "group": "fette_oele", "basis": "g", "synonyms": ["Ghee", "Butterreinfett"], "portions": [{"label": "1 TL", "g": 4}, {"label": "1 EL", "g": 13}], "serving": 13, "prep": null},
+ {"ndb": "12118", "name": "Kokosmilch (Dose)", "group": "aufstriche_saucen", "basis": "ml", "synonyms": ["Kokosnussmilch"], "portions": [{"label": "1 EL", "g": 15}, {"label": "1 Dose (400 ml)", "g": 400}], "serving": 100, "prep": null},
+ {"ndb": "09152", "name": "Zitronensaft", "group": "getraenke", "basis": "ml", "synonyms": ["Zitrone gepresst", "Limettensaft"], "portions": [{"label": "1 TL", "g": 5}, {"label": "1 EL", "g": 15}], "serving": 15, "prep": null},
+ {"ndb": "06700", "name": "Gemüsebrühe (trinkfertig)", "group": "aufstriche_saucen", "basis": "ml", "synonyms": ["Gemüsebouillon", "Brühe"], "portions": [{"label": "1 Tasse (250 ml)", "g": 250}], "serving": 250, "prep": null},
+ {"ndb": "06194", "name": "Hühnerbrühe (trinkfertig)", "group": "aufstriche_saucen", "basis": "ml", "synonyms": ["Hühnersuppe klar", "Geflügelbrühe"], "portions": [{"label": "1 Tasse (250 ml)", "g": 250}], "serving": 250, "prep": null},
+ {"ndb": "02047", "name": "Speisesalz", "group": "backen_sonstiges", "basis": "g", "synonyms": ["Salz", "Kochsalz", "Meersalz"], "portions": [{"label": "1 Prise", "g": 0.5}, {"label": "1 TL", "g": 6}], "serving": 1, "prep": null}
+]

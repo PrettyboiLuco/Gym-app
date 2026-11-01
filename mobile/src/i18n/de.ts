@@ -823,6 +823,23 @@ export const de = {
     reference: 'Die EFSA hält bis 400 mg über den Tag verteilt für gesunde Erwachsene für unbedenklich (in der Schwangerschaft 200 mg). Werte sind Richtwerte.',
     saved: '{{name}} eingetragen',
   },
+  micros: {
+    title: 'Vitamine & Mineralstoffe',
+    calcium: 'Calcium',
+    iron: 'Eisen',
+    magnesium: 'Magnesium',
+    potassium: 'Kalium',
+    zinc: 'Zink',
+    vitC: 'Vitamin C',
+    vitD: 'Vitamin D',
+    vitB12: 'Vitamin B12',
+    folate: 'Folat',
+    vitA: 'Vitamin A',
+    vitE: 'Vitamin E',
+    coverage: 'Aus {{known}} von {{total}} Einträgen – Produkte vom Barcode und Schnelleinträge haben meist keine Angaben. Nur Summe, keine Bewertung.',
+    show: 'Vitamine & Mineralstoffe anzeigen',
+    hide: 'Ausblenden',
+  },
   planImport: {
     navTitle: 'Plan übernehmen',
     open: 'Plan übernehmen',
@@ -1281,6 +1298,8 @@ export const de = {
       source: {
         eigen: 'Selbst angelegt',
         off: 'Open Food Facts (ODbL) – bitte mit dem Etikett vergleichen.',
+        basis: 'Grundnahrungsmittel · Werte: USDA SR28 (gemeinfrei), Richtwerte',
+        basisEdited: 'Grundnahrungsmittel, von dir angepasst',
       },
       prep: {
         roh: 'roh',

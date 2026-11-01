@@ -603,6 +603,19 @@ export const MIGRATIONS: string[] = [
    ALTER TABLE recipe_ingredient ADD COLUMN sugar REAL CHECK (sugar IS NULL OR sugar >= 0);
    ALTER TABLE recipe_ingredient ADD COLUMN sat_fat REAL CHECK (sat_fat IS NULL OR sat_fat >= 0);
    ALTER TABLE recipe_ingredient ADD COLUMN salt REAL CHECK (salt IS NULL OR salt >= 0);`,
+
+  // Version 22: Grundnahrungsmittel offline (Ausbauplan A4). Mitgelieferte Liste aus USDA SR28 (gemeinfrei), beim Start
+  // eingespielt (data/basis-foods.ts). catalog_id = verknüpft mit der Liste; wird ein Eintrag geändert, löst er sich
+  // (catalog_id leer, catalog_origin bleibt), damit spätere Aktualisierungen eigene Änderungen nie überschreiben.
+  // Herkunft bleibt 'eigen' (CHECK der Spalte source), die Liste erkennt man an catalog_id/catalog_origin.
+  `ALTER TABLE food ADD COLUMN catalog_id TEXT;
+   ALTER TABLE food ADD COLUMN catalog_origin TEXT;
+   ALTER TABLE food ADD COLUMN search_terms TEXT;
+   ALTER TABLE food ADD COLUMN portions TEXT;
+   ALTER TABLE food ADD COLUMN micros TEXT;
+   ALTER TABLE consumption_event ADD COLUMN micros TEXT;
+   CREATE UNIQUE INDEX food_catalog ON food (catalog_id) WHERE catalog_id IS NOT NULL;
+   CREATE INDEX food_catalog_origin ON food (catalog_origin);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

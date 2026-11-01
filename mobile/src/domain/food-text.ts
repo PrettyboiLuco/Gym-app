@@ -2,6 +2,7 @@
 // Ohne KI und ohne Internet: Der Text wird in Teile mit Menge, Einheit und Name zerlegt. Daraus entstehen nur
 // Kandidaten; gebucht wird erst nach Bestätigung, Mengen ohne sichere Umrechnung muss man selbst eintragen.
 
+import { portionGrams, type Portion } from './basis-foods';
 import type { DrinkType } from './nutrition';
 import { normalize } from './wish';
 
@@ -98,10 +99,17 @@ export function parseFoodText(input: string): FoodTextItem[] {
  * Scheibe/Portion über die hinterlegte Portionsgröße. Löffel, Glas und Tasse werden nicht geschätzt – die
  * Menge trägt man selbst ein (keine erfundene Genauigkeit).
  */
-export function resolveAmount(item: Pick<FoodTextItem, 'amount' | 'unit'>, food: { basis: 'g' | 'ml'; servingAmount: number | null }): number | null {
+export function resolveAmount(
+  item: Pick<FoodTextItem, 'amount' | 'unit'>,
+  food: { basis: 'g' | 'ml'; servingAmount: number | null },
+  portions: readonly Portion[] = []
+): number | null {
   if (item.amount === null || item.amount <= 0) return null;
   if (item.unit === food.basis) return item.amount;
   if (item.unit === 'g' || item.unit === 'ml') return null;
+  // Grundnahrungsmittel (A4): Löffel, Scheiben, Tassen und Stück aus den hinterlegten Portionen
+  const perUnit = portionGrams(item.unit, portions, food.servingAmount);
+  if (perUnit) return Math.round(item.amount * perUnit * 10) / 10;
   if ((item.unit === null || item.unit === 'stueck' || item.unit === 'scheibe' || item.unit === 'portion') && food.servingAmount) {
     return Math.round(item.amount * food.servingAmount * 10) / 10;
   }
