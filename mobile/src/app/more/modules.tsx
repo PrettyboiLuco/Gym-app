@@ -14,9 +14,11 @@ import { applyReminders } from '@/services/alerts';
 export default function ModulesScreen() {
   const db = useDb();
   const { profile, updateProfile } = useProfile();
+  const effective = effectiveModules(profile.modules);
 
   async function toggle(id: ModuleId, on: boolean) {
-    const modules = effectiveModules({ ...profile.modules, [id]: on, ...(id === 'ernaehrung' && on ? { coach: profile.modules.coach } : {}) });
+    // Gespeichert wird die Wahl je Bereich; der Coach merkt sich seine Wahl, auch wenn Ernährung aus ist (F6).
+    const modules = { ...profile.modules, [id]: on };
     await updateProfile({ ...profile, modules });
     // Erinnerungen für ausgeschaltete Bereiche (Trinken, Morgen-Check) gleich mit anpassen
     if ((await notificationPermission(false)) === 'granted') await applyReminders(db, await loadReminders(db));
@@ -32,7 +34,7 @@ export default function ModulesScreen() {
           <Choice
             label={t(`modules.names.${id}`)}
             options={['an', 'aus'] as const}
-            value={profile.modules[id] ? 'an' : 'aus'}
+            value={effective[id] ? 'an' : 'aus'}
             onChange={(v) => toggle(id, v === 'an')}
             format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
           />

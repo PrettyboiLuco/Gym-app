@@ -5,6 +5,7 @@ import { BACKUP_APP, BACKUP_FORMAT, BACKUP_TABLES, TRANSIENT_STATE, type BackupM
 
 import { syncBasisFoods } from './basis-foods';
 import { nowUtc, type Db, type SqlValue } from './db';
+import { RESTORE_DATA_STEPS } from './migrations';
 import { adoptSleepEntries } from './readiness';
 
 async function schemaVersion(db: Db) {
@@ -74,6 +75,8 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
       await db.runAsync('INSERT INTO app_state (key, value) VALUES (?, ?)', key, JSON.stringify(value));
     }
   });
+  // Ältere Sicherung: Datenumwandlungen späterer Migrationen nachholen (Phase 1 Scan, F11).
+  for (const step of RESTORE_DATA_STEPS) if (manifest.schemaVersion < step.version) await db.execAsync(step.sql);
   // Sicherung von vor den Grundnahrungsmitteln (A4): Liste gleich wieder einspielen, nicht erst beim nächsten Start.
   await syncBasisFoods(db);
   // Sicherung von vor dem Morgen-Check (A6): Schlafeinträge übernehmen.

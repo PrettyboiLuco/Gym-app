@@ -13,7 +13,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatNumber, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
-import { extraLine, formatKcal, macroLine } from '@/services/nutrition-format';
+import { diaryToday, extraLine, formatKcal, macroLine } from '@/services/nutrition-format';
 
 type EntryForm = { amount: string; meal: Meal | null; day: string };
 
@@ -35,7 +35,8 @@ export default function EntryScreen() {
         setMissing(true);
         return;
       }
-      const loaded = { amount: formatNumber(e.amount), meal: e.meal, day: e.diaryDate };
+      // 3 Nachkommastellen: „0,25 Portion“ darf beim Ändern der Mahlzeit nicht zu 0,3 werden (Phase 1 Scan).
+      const loaded = { amount: formatNumber(e.amount, 3), meal: e.meal, day: e.diaryDate };
       setEvent(e);
       setForm(loaded);
       setBaseline(JSON.stringify(loaded));
@@ -125,7 +126,7 @@ export default function EntryScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.entry.day')}
         </ThemedText>
-        <DaySwitcher day={form.day} onChange={(day) => setForm((f) => ({ ...f, day }))} />
+        <DaySwitcher day={form.day} onChange={(day) => setForm((f) => ({ ...f, day }))} today={diaryToday()} />
         <Button label={t('nutrition.entry.save')} onPress={save} />
       </Card>
       <ConfirmButton label={t('common.delete')} onConfirm={remove} />

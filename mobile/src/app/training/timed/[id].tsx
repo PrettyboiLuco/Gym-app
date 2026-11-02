@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { deleteTimedSession, getTimedSession, type TimedSession } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
+import { localDay, timeZone } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, t } from '@/i18n';
@@ -36,7 +37,7 @@ export default function TimedSessionScreen() {
       <Stack.Screen options={{ title: s.name }} />
       <Card>
         <ThemedText>
-          {formatDay(s.startedAt.slice(0, 10))} · {t(`history.kind.${s.kind}`)}
+          {formatDay(localDay(new Date(s.startedAt), timeZone))} · {t(`history.kind.${s.kind}`)}
         </ThemedText>
         <ThemedText>
           {t('history.timed', { kind: t(`history.status.${s.status}`), minutes: Math.max(1, Math.round((s.doneSeconds ?? 0) / 60)) })}

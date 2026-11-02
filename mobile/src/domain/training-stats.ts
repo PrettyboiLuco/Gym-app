@@ -1,7 +1,7 @@
 // Auswertung im Training (Ausbauplan A8): eigene Satzzeit, Zeitraum-Statistik mit Bestleistungen, Sätze je
 // Muskelgruppe, geplanter Deload und Geräteprofile. Reine Logik ohne Datenbank.
 
-import { shiftDay, weekStart } from './dates';
+import { isoWeekday, shiftDay, weekStart } from './dates';
 import type { Equipment } from './exercises';
 import { setVolume, type LoadMode, type SetType } from './logger';
 import type { PlanDraft } from './training';
@@ -161,6 +161,14 @@ export function trainingWeeksInBlock(trainingDays: string[], today: string, last
     cursor = shiftDay(cursor, -7);
   }
   return count;
+}
+
+/**
+ * Ende der leichten Woche: der kommende Sonntag. Am Sonntag selbst gestartet läuft sie bis zum nächsten Sonntag –
+ * sonst wäre sie nur einen Tag lang, würde aber den 8-Wochen-Zähler trotzdem zurücksetzen (Phase 1 Scan).
+ */
+export function deloadEnd(today: string): string {
+  return isoWeekday(today) === 7 ? shiftDay(today, 7) : shiftDay(today, 7 - isoWeekday(today));
 }
 
 /** Angebot einer leichten Woche? Nur Angebot; „später“ verschiebt um eine Woche. */

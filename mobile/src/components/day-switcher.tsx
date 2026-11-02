@@ -14,9 +14,8 @@ import { dayLabel } from '@/services/nutrition-format';
  * ‹ Tag › als eine ruhige Leiste: runde Pfeil-Knöpfe, der Tag in der Mitte. In die Zukunft geht es nicht;
  * ist ein vergangener Tag gewählt, führt „Zu heute“ mit einem Tipp zurück.
  */
-export function DaySwitcher({ day, onChange }: { day: string; onChange: (day: string) => void }) {
+export function DaySwitcher({ day, onChange, today = todayDay() }: { day: string; onChange: (day: string) => void; today?: string }) {
   const theme = useTheme();
-  const today = todayDay();
   const canForward = day < today;
   const step = (delta: number) => {
     haptic.tap();
@@ -35,7 +34,7 @@ export function DaySwitcher({ day, onChange }: { day: string; onChange: (day: st
       </Pressable>
       <Pressable
         accessibilityRole={canForward ? 'button' : undefined}
-        accessibilityLabel={canForward ? `${dayLabel(day)}. ${t('nutrition.toToday')}` : dayLabel(day)}
+        accessibilityLabel={canForward ? `${dayLabel(day, today)}. ${t('nutrition.toToday')}` : dayLabel(day, today)}
         disabled={!canForward}
         onPress={() => {
           haptic.tap();
@@ -43,7 +42,7 @@ export function DaySwitcher({ day, onChange }: { day: string; onChange: (day: st
         }}
         style={styles.center}>
         <ThemedText type="smallBold" accessibilityRole="header">
-          {dayLabel(day)}
+          {dayLabel(day, today)}
         </ThemedText>
         {canForward ? (
           <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>

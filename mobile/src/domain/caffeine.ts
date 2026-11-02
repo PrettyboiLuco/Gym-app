@@ -4,6 +4,7 @@
 // aus üblichen Etiketten (Cola ≈ 42 kcal/100 ml, Energy ≈ 45 kcal/100 ml).
 
 import type { DrinkType } from './nutrition';
+import { localDay, timeZone } from './time';
 
 export type CaffeineDrink = {
   id: string;
@@ -27,7 +28,14 @@ export const CAFFEINE_DRINKS: CaffeineDrink[] = [
   { id: 'colaZero', ml: 330, caffeineMg: 33, kcal: 1, carbs: 0, sugar: 0, drinkType: 'softdrink' },
 ];
 
-/** Koffein nach einer Uhrzeit (Standard 14 Uhr) – für das Journal in A6 (Schlaf). */
-export function lateCaffeineMg(events: { caffeineMg: number | null; occurredAt: string }[], fromHourLocal = 14): number {
-  return events.filter((e) => e.caffeineMg != null && new Date(e.occurredAt).getHours() >= fromHourLocal).reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
+/**
+ * Koffein nach einer Uhrzeit (Standard 14 Uhr) – für das Journal in A6 (Schlaf). Endet der Ernährungstag erst nach
+ * Mitternacht, zählt Koffein nach Mitternacht (Kalendertag nach dem Tagebuchtag) ebenfalls als spät (Phase 1 Scan).
+ */
+export function lateCaffeineMg(events: { caffeineMg: number | null; occurredAt: string; diaryDate?: string }[], fromHourLocal = 14): number {
+  const late = (e: { occurredAt: string; diaryDate?: string }) => {
+    const at = new Date(e.occurredAt);
+    return at.getHours() >= fromHourLocal || (e.diaryDate !== undefined && localDay(at, timeZone) > e.diaryDate);
+  };
+  return events.filter((e) => e.caffeineMg != null && late(e)).reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
 }

@@ -30,12 +30,11 @@ import { loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/dat
 import { shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
 import { EQUIPMENT } from '@/domain/exercises';
-import { temporaryEnd } from '@/domain/planner';
 import { COMEBACK_DAYS, daysSince } from '@/domain/progression';
 import { todayDay } from '@/domain/time';
 import type { TimedRun } from '@/domain/timeline';
 import { nextDayIndex } from '@/domain/training';
-import { DELOAD_RULES_VERSION, type EquipmentProfile } from '@/domain/training-stats';
+import { DELOAD_RULES_VERSION, deloadEnd, type EquipmentProfile } from '@/domain/training-stats';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -169,7 +168,7 @@ export default function TrainingScreen() {
           <Button
             label={t('deload.start')}
             onPress={async () => {
-              const ok = await startDeload(db, todayDay(), temporaryEnd('woche', todayDay()), t('deload.note'));
+              const ok = await startDeload(db, todayDay(), deloadEnd(todayDay()), t('deload.note'));
               showToast(ok ? t('deload.started') : t('readiness.offerNoPlan'));
               await reload();
             }}

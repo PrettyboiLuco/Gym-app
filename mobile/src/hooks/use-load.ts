@@ -1,7 +1,9 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 
+import { showToast } from '@/components/toast';
 import type { Db } from '@/data/db';
+import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 
 /**
@@ -18,10 +20,18 @@ export function useLoad<T>(load: (db: Db) => Promise<T>, initial: T, key = '') {
   // `load` darf bei jedem Rendern neu sein; geladen wird nur bei Fokus, bei neuem key und auf reload().
   const reload = useCallback(async () => {
     const request = ++latest.current;
-    const result = await load(db);
-    if (request === latest.current) {
-      setData(result);
-      setLoaded(true);
+    try {
+      const result = await load(db);
+      if (request === latest.current) {
+        setData(result);
+        setLoaded(true);
+      }
+    } catch {
+      // Nicht ewig im Ladezustand hängen bleiben: Hinweis zeigen, der Bildschirm bleibt bedienbar (Phase 1 Scan).
+      if (request === latest.current) {
+        setLoaded(true);
+        showToast(t('common.loadFailed'));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, key]);

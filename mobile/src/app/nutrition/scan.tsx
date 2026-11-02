@@ -71,7 +71,8 @@ export default function ScanScreen() {
     busy.current = true;
     // Kurze Vibration bestätigt, dass der Code erkannt wurde.
     if (!typed) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    lookUp(code, typed);
+    // Fehler beim Nachschlagen (z. B. Datenbank) als Fehlerzustand zeigen, statt den Scanner hängen zu lassen (Phase 1 Scan).
+    lookUp(code, typed).catch(() => setPhase({ kind: 'error', code, error: 'unavailable' }));
   }
 
   function submitManual() {

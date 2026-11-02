@@ -87,7 +87,8 @@ export async function shoppingFor(db: Db, from: string, to: string): Promise<Sho
     const r = own.find((x) => x.recipeId === e.ref);
     const draft = r ? await loadRecipeDraft(db, r.recipeId) : null;
     if (!r || !draft) continue;
-    const factor = r.portions ? e.portions / r.portions : 1;
+    // Rezept ohne Portionsangabe: eine geplante Portion = das ganze Rezept (vorher immer genau 1 Rezept, Phase 1 Scan).
+    const factor = r.portions ? e.portions / r.portions : e.portions;
     for (const ing of draft.ingredients) {
       const food = await getFood(db, ing.foodId);
       if (!food) continue;

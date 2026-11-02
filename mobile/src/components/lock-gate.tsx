@@ -52,7 +52,11 @@ export function LockGate({ children }: { children: ReactNode }) {
   const locked = state !== 'offen';
   return (
     <View style={styles.fill}>
-      <View style={styles.fill} accessibilityElementsHidden={locked} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
+      <View
+        style={styles.fill}
+        accessibilityElementsHidden={locked}
+        importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'}
+        pointerEvents={locked ? 'none' : 'auto'}>
         {children}
       </View>
       {locked ? (

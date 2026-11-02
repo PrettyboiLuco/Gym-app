@@ -50,7 +50,8 @@ export default function NotificationsScreen() {
       setForm(r);
       setWake(w ?? '');
       setSleepGoal(g);
-      setBaseline(JSON.stringify(r));
+      // Aufwachzeit und Schlafziel zählen mit als Änderung (Phase 1 Scan).
+      setBaseline(JSON.stringify({ form: r, wake: w ?? '', sleepGoal: g }));
       setPermission(p);
     });
     return () => {
@@ -58,7 +59,7 @@ export default function NotificationsScreen() {
     };
   }, [db]);
 
-  const allowLeave = useUnsavedGuard(baseline !== '' && JSON.stringify(form) !== baseline);
+  const allowLeave = useUnsavedGuard(baseline !== '' && JSON.stringify({ form, wake, sleepGoal }) !== baseline);
   const anyOn = form.timerAlerts || form.training.enabled || form.drink.enabled || form.morning.enabled || form.bedtime.enabled;
 
   async function save() {
@@ -80,7 +81,7 @@ export default function NotificationsScreen() {
     await saveSleepGoal(db, sleepGoal);
     if (granted) await applyReminders(db, form);
     allowLeave();
-    setBaseline(JSON.stringify(form));
+    setBaseline(JSON.stringify({ form, wake, sleepGoal }));
     setMessage(anyOn && !granted && NOTIFICATIONS_SUPPORTED ? t('reminders.savedNoPermission') : t('reminders.saved'));
     showToast(t('common.saved'));
   }

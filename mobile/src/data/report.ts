@@ -2,7 +2,7 @@
 // Bewertung. Gleiche Grundlage für PDF und Text, damit beide dasselbe sagen.
 
 import { daysBetween } from '@/domain/dates';
-import { estimateOneRepMax } from '@/domain/logger';
+import { estimateOneRepMax, loadModeOf, setVolume } from '@/domain/logger';
 import { mean } from '@/domain/math';
 import { localDay, timeZone } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
@@ -66,7 +66,11 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
   });
   const sessions = new Set(inRange.map((r) => r.sessionId));
   const work = inRange.filter((r) => r.exerciseId && r.setType !== 'aufwaermen');
-  const names = new Map((await listExercises(db)).map((e) => [e.id, exerciseName(e)]));
+  const exercises = await listExercises(db);
+  const names = new Map(exercises.map((e) => [e.id, exerciseName(e)]));
+  // Gewichtsart je Übung: Gegengewicht zählt nicht als Last, einseitige Sätze doppelt (wie in der Statistik, Phase 1 Scan).
+  const modes = new Map(exercises.map((e) => [e.id, loadModeOf(e)]));
+  const modeOf = (id: string) => modes.get(id) ?? 'normal';
   const byExercise = new Map<string, { sessions: Set<string>; bestKg: number; bestReps: number; e1rm: number | null }>();
   for (const r of work) {
     const e = byExercise.get(r.exerciseId) ?? { sessions: new Set<string>(), bestKg: 0, bestReps: 0, e1rm: null };
@@ -75,7 +79,7 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
       e.bestKg = r.kg ?? 0;
       e.bestReps = r.reps ?? 0;
     }
-    const est = r.kg && r.reps ? estimateOneRepMax(r.kg, r.reps) : null;
+    const est = r.kg && r.reps && modeOf(r.exerciseId) !== 'unterstuetzt' ? estimateOneRepMax(r.kg, r.reps) : null;
     if (est !== null && (e.e1rm === null || est > e.e1rm)) e.e1rm = est;
     byExercise.set(r.exerciseId, e);
   }
@@ -93,7 +97,7 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     sessions: sessions.size,
     perWeek: Math.round((sessions.size / days) * 7 * 10) / 10,
     workSets: work.length,
-    volumeKg: Math.round(work.reduce((sum, r) => sum + (r.kg ?? 0) * (r.reps ?? 0), 0)),
+    volumeKg: Math.round(work.reduce((sum, r) => sum + setVolume(r.kg, r.reps, modeOf(r.exerciseId)), 0)),
     cardioMinutes: Math.round(cardio.reduce((s, c) => s + (c.minutes ?? 0), 0)),
     cardioCount: cardio.length,
     top,

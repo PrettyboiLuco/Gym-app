@@ -93,11 +93,11 @@ export default function PlanScreen() {
     <Screen withHeader>
       <Card>
         <View style={styles.row}>
-          <Button label="‹" variant="secondary" size="compact" onPress={() => setMonday((m) => shiftDay(m, -7))} />
+          <Button label="‹" accessibilityLabel={t('mealPlan.prevWeek')} variant="secondary" size="compact" onPress={() => setMonday((m) => shiftDay(m, -7))} />
           <ThemedText type="smallBold" style={styles.flex}>
             {t('mealPlan.week', { from: formatDay(data.days[0] ?? monday), to: formatDay(data.days[6] ?? monday) })}
           </ThemedText>
-          <Button label="›" variant="secondary" size="compact" onPress={() => setMonday((m) => shiftDay(m, 7))} />
+          <Button label="›" accessibilityLabel={t('mealPlan.nextWeek')} variant="secondary" size="compact" onPress={() => setMonday((m) => shiftDay(m, 7))} />
         </View>
         <Choice
           label={t('mealPlan.snacks')}
@@ -158,6 +158,7 @@ export default function PlanScreen() {
                               {e.day <= today ? <Button label={t('mealPlan.eat')} size="compact" onPress={() => eat(e)} /> : null}
                               <Button
                                 label="✕"
+                                accessibilityLabel={`${t('mealPlan.remove')}: ${e.name}`}
                                 variant="secondary"
                                 size="compact"
                                 onPress={async () => {

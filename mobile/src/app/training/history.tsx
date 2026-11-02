@@ -9,6 +9,7 @@ import { listCardio, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
 import { listTimedSessions, type TimedSession } from '@/data/routines';
 import { listSessions } from '@/data/training';
+import { localDay, timeZone } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatNumber, t } from '@/i18n';
 
@@ -51,7 +52,7 @@ export default function HistoryScreen() {
             <ListRow
               key={row.session.id}
               title={row.session.dayName ? `${row.session.planName} – ${row.session.dayName}` : t('session.free')}
-              subtitle={`${formatDay(row.at.slice(0, 10))} · ${t(`history.status.${row.session.status}`)} · ${t('history.sets', {
+              subtitle={`${formatDay(localDay(new Date(row.at), timeZone))} · ${t(`history.status.${row.session.status}`)} · ${t('history.sets', {
                 count: row.session.doneSets ?? 0,
               })}${row.cardioMinutes ? ` · ${t('cardio.inSession', { minutes: formatNumber(row.cardioMinutes, 0) })}` : ''}${
                 row.session.note ? `\n${row.session.note}` : ''
@@ -63,7 +64,7 @@ export default function HistoryScreen() {
             <ListRow
               key={row.session.id}
               title={row.session.name}
-              subtitle={`${formatDay(row.at.slice(0, 10))} · ${t('history.timed', {
+              subtitle={`${formatDay(localDay(new Date(row.at), timeZone))} · ${t('history.timed', {
                 kind: t(`history.kind.${row.session.kind}`),
                 minutes: Math.max(1, Math.round((row.session.doneSeconds ?? 0) / 60)),
               })} · ${row.session.abortReason === 'schmerz' ? t('history.abortPain') : t(`history.status.${row.session.status}`)}`}

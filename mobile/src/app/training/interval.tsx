@@ -35,7 +35,7 @@ export default function IntervalScreen() {
   const [rounds, setRounds] = useState('8');
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [running, setRunning] = useState<IntervalConfig | null>(null);
-  const now = useNow(startedAt !== null);
+  const now = useNow(startedAt !== null, 250, running && startedAt !== null ? startedAt + intervalTotalSeconds(running) * 1000 : null);
   const lastSignal = useRef('');
 
   // Ein laufender Intervall-Timer übersteht das Schließen der App (HEALTH-011).

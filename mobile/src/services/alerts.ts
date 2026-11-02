@@ -6,6 +6,7 @@ import { loadProfile } from '@/data/profile';
 import { loadSleepGoal, loadWakeTime, statusToday } from '@/data/readiness';
 import { loadReminders } from '@/data/reminders';
 import { supplementReminders } from '@/data/supplements';
+import { effectiveModules } from '@/domain/modules';
 import { bedtimeFor } from '@/domain/readiness';
 import { BEDTIME_LEAD_MINUTES, drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
 import { todayDay } from '@/domain/time';
@@ -56,7 +57,8 @@ export async function syncIntervalAlerts(db: Db, config: IntervalConfig | null, 
     at += config.workSeconds * 1000;
     const last = round === config.rounds;
     alerts.push({ id: `${round}-a`, atMs: at, title: t('interval.title'), body: last ? t('interval.phase.fertig') : t('interval.phase.pause') });
-    if (last) break;
+    // Zwei Hinweise je Runde: vor dem zweiten erneut das Limit prüfen (Phase 1 Scan).
+    if (last || alerts.length >= budget) break;
     at += config.restSeconds * 1000;
     alerts.push({ id: `${round}-p`, atMs: at, title: t('interval.title'), body: t('interval.phase.arbeit') });
   }
@@ -88,7 +90,7 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
       });
     }
   }
-  const modules = (await loadProfile(db)).modules;
+  const modules = effectiveModules((await loadProfile(db)).modules);
   if (settings.drink.enabled && modules.ernaehrung) {
     for (const at of drinkTimes(settings.drink.from, settings.drink.to, settings.drink.everyHours)) {
       list.push({

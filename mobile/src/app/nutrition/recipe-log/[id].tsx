@@ -12,7 +12,7 @@ import { fractionOf, MEALS, nutrientsForAmount, parseAmount, per100FromTotal, ty
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
-import { dayLabel, formatKcal, macroLine, readTarget, whenFor, type TargetParams } from '@/services/nutrition-format';
+import { dayLabel, diaryToday, formatKcal, macroLine, readTarget, whenFor, type TargetParams } from '@/services/nutrition-format';
 
 type Mode = 'gramm' | 'portion';
 
@@ -53,7 +53,7 @@ export default function RecipeLogScreen() {
       setError(true);
       return;
     }
-    await logRecipe(db, recipe.versionId, mode === 'gramm' ? { grams: amount } : { portions: amount }, meal, whenFor(day));
+    await logRecipe(db, recipe.versionId, mode === 'gramm' ? { grams: amount } : { portions: amount }, meal, whenFor(day, meal));
     router.dismissTo('/nutrition');
   }
 
@@ -102,7 +102,7 @@ export default function RecipeLogScreen() {
           </>
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
-          {dayLabel(day)}
+          {dayLabel(day, diaryToday())}
         </ThemedText>
         <Choice label={t('nutrition.meal')} options={MEALS} value={meal} onChange={setMeal} format={(m) => t(`nutrition.meals.${m}`)} />
         <Button label={t('nutrition.food.log')} onPress={log} />

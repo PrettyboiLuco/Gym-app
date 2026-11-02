@@ -72,7 +72,13 @@ export default function DataScreen() {
   async function chooseFile() {
     setMessage(null);
     setPending(null);
-    const raw = await pickBackup();
+    let raw: string | null;
+    try {
+      raw = await pickBackup();
+    } catch {
+      setMessage({ text: t('dataScreen.problems.notJson'), error: true });
+      return;
+    }
     if (raw === null) return;
     const { manifest, problem } = checkBackup(raw, await currentSchemaVersion(db));
     if (!manifest) {
@@ -89,7 +95,8 @@ export default function DataScreen() {
       await cancelEverything();
       await restoreBackup(db, pending);
       if (pending.photos && PHOTOS_SUPPORTED) {
-        for (const [name, b64] of Object.entries(pending.photos)) await writePhotoBase64(name, b64);
+        // Nur einfache Dateinamen wie „<id>.jpg“: eine manipulierte Sicherung darf nicht außerhalb des Foto-Ordners schreiben.
+        for (const [name, b64] of Object.entries(pending.photos)) if (/^[A-Za-z0-9_-]+\.jpe?g$/.test(name)) await writePhotoBase64(name, b64);
       }
       // Foto-Einträge ohne Datei (z. B. Sicherung ohne Fotos auf einem neuen Handy) nicht als leere Bilder behalten.
       for (const photo of await listPhotos(db)) {
@@ -102,6 +109,8 @@ export default function DataScreen() {
       setMessage({ text: t('dataScreen.restored') });
     } catch {
       setMessage({ text: t('dataScreen.restoreFailed'), error: true });
+      // Die Daten sind unverändert – also auch die Erinnerungen wieder einplanen (vorher blieben alle gelöscht, Phase 1 Scan).
+      if ((await notificationPermission(false)) === 'granted') await applyReminders(db, await loadReminders(db)).catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -115,6 +124,8 @@ export default function DataScreen() {
       removeAllPhotoFiles();
       // Danach startet die App mit dem Erststart wie nach der Installation.
       await reload();
+    } catch {
+      setMessage({ text: t('dataScreen.deleteFailed'), error: true });
     } finally {
       setBusy(false);
     }

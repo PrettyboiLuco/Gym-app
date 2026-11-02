@@ -99,7 +99,8 @@ export function parseAmount(input: string): number | null {
 export function parseNutrient(input: string): number | null | 'invalid' {
   const text = input.trim().replace(',', '.');
   if (text === '') return null;
-  if (!/^\d{1,4}(\.\d{1,2})?$/.test(text)) return 'invalid';
+  // Bis 3 Nachkommastellen: Open Food Facts liefert z. B. Salz 0,076 g (Phase 1 Scan, F4).
+  if (!/^\d{1,4}(\.\d{1,3})?$/.test(text)) return 'invalid';
   const value = Number(text);
   return value <= 1000 ? value : 'invalid';
 }
@@ -307,7 +308,8 @@ export type FoodForm = {
 export type FoodProblem = 'name' | 'nutrient' | 'serving' | 'barcode' | 'macros';
 
 export function foodToForm(food: FoodDraft): FoodForm {
-  const text = (v: number | null) => (v === null ? '' : String(v).replace('.', ','));
+  // Höchstens 3 Nachkommastellen, damit gescannte Werte (0,0762) wieder gespeichert werden können.
+  const text = (v: number | null) => (v === null ? '' : String(Math.round(v * 1000) / 1000).replace('.', ','));
   return {
     name: food.name,
     brand: food.brand ?? '',

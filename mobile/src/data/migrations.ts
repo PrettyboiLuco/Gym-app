@@ -58,6 +58,19 @@ const catalogStretchInserts = (filter: (id: string) => boolean) =>
 const patternList = MOVEMENT_PATTERNS.map((p) => `'${p}'`).join(', ');
 const supplementUnits = SUPPLEMENT_UNITS.map((u) => `'${u}'`).join(', ');
 
+/** Version 15, Profil: wer „Kabelzug“ hat, bekommt Kabel-Crossover und Doppelkabel dazu. */
+const PROFILE_CABLE_UPGRADE = `UPDATE app_state SET value = json_insert(json_insert(value, '$.equipment[#]', 'kabel_crossover'), '$.equipment[#]', 'kabel_doppel')
+     WHERE key = 'profile' AND json_valid(value) AND json_type(value, '$.equipment') = 'array'
+       AND EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel')
+       AND NOT EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel_crossover');`;
+
+/**
+ * Datenschritte, die eine Wiederherstellung aus einer ÄLTEREN Sicherung nachholen muss (Phase 1 Scan, F11):
+ * Die Tabellen kommen dann aus der Sicherung, die Umwandlungen der späteren Migrationen fehlen ihnen. Jede neue
+ * Migration, die eigene Daten (nicht den Katalog) umschreibt, gehört auch hierher. Sicherungen gibt es ab Version 7.
+ */
+export const RESTORE_DATA_STEPS: { version: number; sql: string }[] = [{ version: 15, sql: PROFILE_CABLE_UPGRADE }];
+
 export const MIGRATIONS: string[] = [
   // Version 1: Körpergewicht
   `CREATE TABLE weight_entry (
@@ -534,10 +547,7 @@ export const MIGRATIONS: string[] = [
   // Kabeltürmen wechseln zu „kabel_crossover“ (Verlauf bleibt, nur die Geräteangabe ändert sich). Wer im Profil
   // „Kabelzug“ angehakt hatte, bekommt die beiden neuen Kabel-Geräte dazu, damit keine Übungen wegfallen.
   `UPDATE exercise SET equipment = 'kabel_crossover' WHERE id IN (${MOVED_TO_CROSSOVER.map((id) => `'${id}'`).join(', ')});
-   UPDATE app_state SET value = json_insert(json_insert(value, '$.equipment[#]', 'kabel_crossover'), '$.equipment[#]', 'kabel_doppel')
-     WHERE key = 'profile' AND json_valid(value) AND json_type(value, '$.equipment') = 'array'
-       AND EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel')
-       AND NOT EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel_crossover');`,
+   ${PROFILE_CABLE_UPGRADE}`,
 
   // Version 16: dritte Erweiterung – Varianten je Muskel nach Gerät, Kabel-Aufbau, Aufsatz, Position, Winkel und Griff.
   `${catalogInserts((id) => CATALOG_ADDED[16].includes(id))}

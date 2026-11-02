@@ -13,7 +13,7 @@ import { MEALS, parseNutrient, type Meal } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
-import { dayLabel, readTarget, whenFor, type TargetParams } from '@/services/nutrition-format';
+import { dayLabel, diaryToday, readTarget, whenFor, type TargetParams } from '@/services/nutrition-format';
 
 /**
  * Schnelleintrag (A3): nur Kalorien, Makros freiwillig – für Kantine, Restaurant oder „ungefähr“. Ohne Lebensmittel,
@@ -40,14 +40,14 @@ export default function QuickEntryScreen() {
       return;
     }
     const [, p, c, f] = values as (number | null)[];
-    await logQuick(db, { name: name.trim() || t('quick.defaultName'), kcal: k, protein: p, carbs: c, fat: f }, meal, whenFor(day));
+    await logQuick(db, { name: name.trim() || t('quick.defaultName'), kcal: k, protein: p, carbs: c, fat: f }, meal, whenFor(day, meal));
     showToast(t('quick.saved', { meal: t(`nutrition.meals.${meal}`) }));
     router.dismissTo('/nutrition');
   }
 
   return (
     <Screen withHeader>
-      <ThemedText themeColor="textSecondary">{dayLabel(day)}</ThemedText>
+      <ThemedText themeColor="textSecondary">{dayLabel(day, diaryToday())}</ThemedText>
       <Card>
         <Field label={t('quick.kcal')} value={kcal} onChangeText={setKcal} keyboardType="decimal-pad" placeholder="650" autoFocus />
         <View style={styles.row}>

@@ -20,6 +20,7 @@ import { listExercises } from '@/data/training';
 import { addWeight, deleteWeight, listWeights } from '@/data/weights';
 import { latestBySite, MEASURE_SITES, type Measurement } from '@/domain/body';
 import { shiftDay } from '@/domain/dates';
+import { effectiveModules } from '@/domain/modules';
 import { stepsForDay } from '@/domain/steps';
 import { todayDay } from '@/domain/time';
 import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
@@ -57,7 +58,7 @@ const SHOWN = 10;
 export default function ProgressScreen() {
   const theme = useTheme();
   const { profile } = useProfile();
-  const modules = profile.modules;
+  const modules = effectiveModules(profile.modules);
   const units = profile.units;
   const { data, reload, db, loaded } = useLoad(
     (d) => loadProgress(d, units, profile.sensitive),

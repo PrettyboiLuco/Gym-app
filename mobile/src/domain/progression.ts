@@ -58,6 +58,16 @@ function roundToStep(kg: number, step: number, unit: WeightUnit): number {
   return Math.round(unitToKg(shown, unit) * 1000) / 1000;
 }
 
+/**
+ * Leichter um den Faktor, auf den Geräteschritt gerundet – aber mindestens ein Schritt leichter, sonst bliebe
+ * „ca. 10 % leichter“ bei großen Schritten (Kettlebell 16 kg, Kurzhantel 8 kg) beim selben Gewicht (Phase 1 Scan).
+ */
+function lighter(kg: number, factor: number, step: number, unit: WeightUnit): number {
+  const rounded = roundToStep(kg * factor, step, unit);
+  if (rounded < kg || kg <= 0) return rounded;
+  return roundToStep(Math.max(0, unitToKg(kgToUnit(roundToStep(kg, step, unit), unit) - step, unit)), step, unit);
+}
+
 function topWeight(sets: DoneSet[]): number {
   return Math.max(0, ...sets.map((s) => s.weightKg));
 }
@@ -117,7 +127,7 @@ function adviceV1(history: PastSession[], target: Target, equipment: Equipment, 
     const weight = topWeight(last.sets);
     return {
       kind: 'wiedereinstieg',
-      weightKg: roundToStep(weight * factor, step, unit),
+      weightKg: lighter(weight, factor, step, unit),
       reps: target.repsMin,
       seconds: null,
       daysAgo: last.daysAgo,
@@ -156,7 +166,7 @@ function adviceV1(history: PastSession[], target: Target, equipment: Equipment, 
   // Stagnation: die letzten drei Einheiten mit gleichem Höchstgewicht, Wiederholungen nicht gestiegen.
   const recent = history.filter((h) => h.sets.length > 0).slice(0, 3);
   if (recent.length === 3 && recent.every((h) => topWeight(h.sets) === weight) && totalReps(recent[0].sets, weight) <= totalReps(recent[2].sets, weight)) {
-    return { kind: 'stagnation', weightKg: roundToStep(weight * 0.9, step, unit), reps: target.repsMin };
+    return { kind: 'stagnation', weightKg: lighter(weight, 0.9, step, unit), reps: target.repsMin };
   }
 
   const fewest = Math.min(...atWeight.map((s) => s.reps ?? 0));

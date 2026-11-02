@@ -121,7 +121,8 @@ const UNITS: [RegExp, IngredientUnit, number][] = [
 const FRACTIONS: Record<string, number> = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3 };
 
 function parseAmount(token: string): number | null {
-  const t = token.replace(',', '.');
+  // Tausenderpunkt wie in deutschen Rezepten („1.000 g“) – nicht mit Dezimalpunkt („1.5 kg“) verwechseln.
+  const t = (/^\d{1,3}(\.\d{3})+$/.test(token) ? token.replace(/\./g, '') : token).replace(',', '.');
   if (FRACTIONS[t] !== undefined) return FRACTIONS[t];
   let m = t.match(/^(\d+)([½¼¾⅓⅔])$/);
   if (m) return Number(m[1]) + FRACTIONS[m[2]];
@@ -139,6 +140,8 @@ export function parseIngredientLine(raw: string): IngredientLine {
     .replace(/,\s*(?!\d).*$/, '')
     .replace(/\s+/g, ' ')
     .trim();
+  // „ca. 200 g“ → „200 g“; Spannen mit Gedankenstrich oder Leerzeichen („2–3“, „2 - 3“) → „2-3“ (Phase 1 Scan)
+  rest = rest.replace(/^(etwa|ca\.?|circa|ungef(ä|ae)hr|evtl\.?)\s+(?=[\d½¼¾⅓⅔])/i, '').replace(/(\d)\s*[–—-]\s*(\d)/, '$1-$2');
   // „200g“ → „200 g“
   rest = rest.replace(/^(\d+(?:[.,]\d+)?)([a-zA-ZäöüÄÖÜ]+)\b/, '$1 $2');
   const words = rest.split(' ');

@@ -9,6 +9,7 @@ import { Choice, ConfirmButton } from '@/components/fields';
 import { KeepAwake } from '@/components/keep-awake';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
+import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { finishTimedSession, loadTimedRun, loadVoice, saveTimedRun, saveVoice } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
@@ -88,6 +89,11 @@ export default function RunScreen() {
         doneSeconds: runDoneSeconds(run, at),
         roundsDone: run.kind === 'hiit' ? runRoundsDone(run, at) : null,
         reason,
+      }).catch((error: unknown) => {
+        // Speichern gescheitert: wieder freigeben, damit Abschließen/Abbrechen erneut geht (Phase 1 Scan).
+        finishing.current = false;
+        showToast(t('common.saveFailed'));
+        throw error;
       });
       Speech.stop();
       cancelRunAlerts().catch(() => undefined);

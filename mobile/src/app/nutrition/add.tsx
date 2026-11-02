@@ -101,7 +101,7 @@ export default function AddScreen() {
 
   async function applyTemplate(id: string) {
     if (target.kind !== 'essen') return;
-    await logTemplate(db, id, target.meal, whenFor(day));
+    await logTemplate(db, id, target.meal, whenFor(day, target.meal));
     router.dismissTo('/nutrition');
   }
 

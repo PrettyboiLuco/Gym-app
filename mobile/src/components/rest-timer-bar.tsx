@@ -46,7 +46,7 @@ export function RestTimerBar({
 }) {
   const theme = useTheme();
   const visible = isRestVisible(timer);
-  const now = useNow(visible);
+  const now = useNow(visible, 250, timer && !timer.stopped ? timer.endAtMs : null);
   const remaining = restRemainingMs(timer, now);
   const signalled = useRef<number | null>(null);
   const lastTick = useRef<string | null>(null);

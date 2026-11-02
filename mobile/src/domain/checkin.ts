@@ -83,7 +83,7 @@ export type CheckinSummary = {
 export type Missing = 'gewicht' | 'essen' | 'ziel' | 'richtung';
 
 export type CheckinSuggestion =
-  | { kind: 'kcal'; from: number; to: number; reason: 'keinFortschritt' | 'zuSchnell' | 'abweichung' | 'verbrauch' }
+  | { kind: 'kcal'; from: number; to: number; reason: 'keinFortschritt' | 'zuSchnell' | 'abweichung' | 'verbrauch' | 'untergrenze' }
   | { kind: 'zielEinhalten'; over: number }
   | { kind: 'mehrDaten'; missing: Missing[] }
   | { kind: 'passt' }
@@ -198,6 +198,8 @@ function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
   if (delta < 0 && input.heightCm !== null && bmi(weight, input.heightCm) < UNDERWEIGHT_BMI) return { kind: 'passt' };
   const to = Math.max(CALORIE_FLOOR, goal + delta);
   if (to === goal) return { kind: 'passt' };
+  // Liegt das eigene Ziel unter der Untergrenze, ist das der Grund – nicht der Gewichtsverlauf (Phase 1 Scan, F8).
+  if (goal < CALORIE_FLOOR && to > goal) return { kind: 'kcal', from: goal, to, reason: 'untergrenze' };
   return { kind: 'kcal', from: goal, to, reason };
 }
 
@@ -208,6 +210,9 @@ function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
 export function applyV2(result: CheckinResult, v2: V2Result): CheckinResult & { rulesVersion: 1 | 2 } {
   const blocked = ['sensibel', 'ohneZahlen', 'pausiert'].includes(result.suggestion.kind);
   if (blocked || v2.kind === 'ohne') return { ...result, rulesVersion: 1 };
-  const suggestion: CheckinSuggestion = v2.kind === 'kcal' ? { kind: 'kcal', from: v2.from, to: v2.to, reason: 'verbrauch' } : { kind: 'passt' };
+  const suggestion: CheckinSuggestion =
+    v2.kind === 'kcal'
+      ? { kind: 'kcal', from: v2.from, to: v2.to, reason: v2.from < CALORIE_FLOOR && v2.to > v2.from ? 'untergrenze' : 'verbrauch' }
+      : { kind: 'passt' };
   return { ...result, suggestion, rulesVersion: 2 };
 }

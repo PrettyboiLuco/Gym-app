@@ -17,6 +17,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 import {
   dayLabel,
+  diaryToday,
   formatAmount,
   formatKcal,
   extraLine,
@@ -72,7 +73,7 @@ export default function FoodScreen() {
       setError(true);
       return;
     }
-    await logFood(db, food.id, amount, target, whenFor(day));
+    await logFood(db, food.id, amount, target, whenFor(day, target.kind === 'essen' ? target.meal : null));
     router.dismissTo('/nutrition');
   }
 
@@ -180,7 +181,7 @@ export default function FoodScreen() {
         ) : null}
 
         <ThemedText type="small" themeColor="textSecondary">
-          {dayLabel(day)}
+          {dayLabel(day, diaryToday())}
         </ThemedText>
         {target.kind === 'essen' ? (
           <Choice

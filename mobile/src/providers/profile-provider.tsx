@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 import { loadAppearance } from '@/data/appearance';
 import { loadOnboardingDone, loadProfile, saveOnboardingDone, saveProfile } from '@/data/profile';
-import type { Modules } from '@/domain/modules';
+import { effectiveModules, type Modules } from '@/domain/modules';
 import { EMPTY_PROFILE, type Profile } from '@/domain/profile';
 import type { Units } from '@/domain/units';
 import { setAppearance } from '@/hooks/use-color-scheme';
@@ -68,7 +68,8 @@ export function useProfile(): ProfileState {
 
 /** Eingeschaltete Module (A11.1). */
 export function useModules(): Modules {
-  return useProfile().profile.modules;
+  // Gespeichert ist Lucs Wahl; wirksam ist z. B. der Coach nur mit Ernährung (Phase 1 Scan, F6).
+  return effectiveModules(useProfile().profile.modules);
 }
 
 export function useUnits(): Units {

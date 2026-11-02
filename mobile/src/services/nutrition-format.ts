@@ -20,8 +20,14 @@ export function diaryToday(nowMs = Date.now()) {
 }
 
 /** Jetzt erfasst, aber auf den gewählten Tag gebucht (Nachtrag, TIME-001). */
-export function whenFor(diaryDate: string): When {
-  return { diaryDate, at: new Date(), timeZone };
+export function whenFor(diaryDate: string, meal?: Meal | null): When {
+  if (diaryDate >= diaryToday()) return { diaryDate, at: new Date(), timeZone };
+  // Nachtrag für einen früheren Tag: nicht die Erfassungszeit, sondern die übliche Uhrzeit der Mahlzeit an jenem Tag,
+  // sonst zählt ein nachgetragenes Mittagessen im Journal als „spät gegessen“ (Phase 1 Scan).
+  const times = cachedMealTimes() as Partial<Record<Meal, number>>;
+  const at = new Date(`${diaryDate}T00:00:00`);
+  at.setHours((meal && times[meal]) ?? 12, 0, 0, 0);
+  return { diaryDate, at, timeZone };
 }
 
 export function formatKcal(value: number | null) {
@@ -97,8 +103,8 @@ export function macroSumLine(totals: NutrientTotals) {
   ].join(' · ');
 }
 
-export function dayLabel(day: string) {
-  const today = todayDay();
+/** „Heute“/„Gestern“/Datum. Für das Ernährungstagebuch `diaryToday()` übergeben (Tagesende-Einstellung, A3). */
+export function dayLabel(day: string, today = todayDay()) {
   if (day === today) return t('nutrition.today');
   if (day === shiftDay(today, -1)) return t('nutrition.yesterday');
   return formatDay(day);

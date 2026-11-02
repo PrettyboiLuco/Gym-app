@@ -21,6 +21,8 @@ export const de = {
   common: {
     save: 'Speichern',
     saved: 'Gespeichert',
+    loadFailed: 'Laden hat nicht geklappt. Bitte den Bildschirm neu öffnen.',
+    saveFailed: 'Speichern hat nicht geklappt. Bitte noch einmal versuchen.',
     deleted: 'Gelöscht',
     delete: 'Löschen',
     confirmDelete: 'Wirklich löschen?',
@@ -1787,6 +1789,7 @@ export const de = {
       zuSchnell: 'die Veränderung war schneller als empfohlen',
       abweichung: 'das Gewicht weicht vom Halten ab',
       verbrauch: 'geschätzter Verbrauch plus dein Ziel-Abstand aus der Einrichtung (höchstens ±200 kcal je Woche)',
+      untergrenze: 'dein Ziel liegt unter der Untergrenze von 1200 kcal, die die App nie unterschreitet',
     },
     missing: {
       gewicht: 'an mindestens 4 Tagen gewogen, in dieser und der letzten Woche',
@@ -2351,6 +2354,7 @@ export const de = {
     restoreConfirm: 'Aktuelle Daten ersetzen?',
     restored: 'Wiederhergestellt.',
     restoreFailed: 'Wiederherstellen fehlgeschlagen. Deine bisherigen Daten sind unverändert.',
+    deleteFailed: 'Löschen hat nicht geklappt. Bitte noch einmal versuchen.',
     problems: {
       notJson: 'Das ist keine lesbare Sicherungsdatei.',
       notOurs: 'Diese Datei stammt nicht aus dieser App.',
@@ -2557,6 +2561,9 @@ export const de = {
     },
   },
   mealPlan: {
+    prevWeek: 'Vorherige Woche',
+    nextWeek: 'Nächste Woche',
+    remove: 'Aus dem Plan entfernen',
     title: 'Wochenplan',
     linkSub: 'Mahlzeiten planen, Einkaufsliste, Rezept per Link',
     week: 'Woche {{from}} – {{to}}',

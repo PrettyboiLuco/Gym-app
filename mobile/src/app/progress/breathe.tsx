@@ -65,7 +65,7 @@ export default function BreatheScreen() {
       </Card>
       <View style={styles.stage}>
         <Animated.View style={[styles.circle, { backgroundColor: theme.accent, transform: [{ scale }] }]} />
-        <ThemedText type="subtitle" style={styles.label} accessibilityLiveRegion="polite">
+        <ThemedText type="subtitle" style={[styles.label, { backgroundColor: theme.accent, color: theme.onAccent }]} accessibilityLiveRegion="polite">
           {done ? t('breathe.done') : phase ? `${t(`breathe.phase.${phase.kind}`)} · ${Math.ceil(phase.remainingMs / 1000)}` : t('breathe.ready')}
         </ThemedText>
       </View>
@@ -92,5 +92,6 @@ export default function BreatheScreen() {
 const styles = StyleSheet.create({
   stage: { height: 280, alignItems: 'center', justifyContent: 'center' },
   circle: { position: 'absolute', width: 220, height: 220, borderRadius: 110, opacity: 0.85 },
-  label: { color: '#000', textAlign: 'center' },
+  // Eigene Lime-Fläche: bleibt lesbar, auch wenn der Kreis beim Ausatmen kleiner als der Text wird (Phase 1 Scan).
+  label: { textAlign: 'center', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, overflow: 'hidden' },
 });

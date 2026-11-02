@@ -98,7 +98,7 @@ export default function DiaryScreen() {
   }
 
   async function copyFromPreviousDay(meal: Meal) {
-    const count = await copyMeal(db, shiftDay(day, -1), meal, whenFor(day));
+    const count = await copyMeal(db, shiftDay(day, -1), meal, whenFor(day, meal));
     setNotice({ meal, text: count > 0 ? t('nutrition.copied', { count }) : t('nutrition.copyNone') });
     await reload();
   }
@@ -141,7 +141,7 @@ export default function DiaryScreen() {
 
   return (
     <Screen title={t('nutrition.title')}>
-      <DaySwitcher day={day} onChange={changeDay} />
+      <DaySwitcher day={day} onChange={changeDay} today={diaryToday()} />
 
       <Card title={t('nutrition.summary.title')}>
         {events.length === 0 ? (

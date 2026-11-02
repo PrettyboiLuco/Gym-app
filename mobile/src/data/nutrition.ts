@@ -187,7 +187,7 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   const now = nowUtc();
   const foodId = id ?? newId();
   const { kcal, protein, carbs, fat, fiber } = draft.per100;
-  const extra = [draft.per100.sugar ?? null, draft.per100.satFat ?? null, draft.per100.salt ?? null, draft.packageAmount ?? null, draft.caffeine ?? null];
+  const extra = [draft.per100.sugar ?? null, draft.per100.satFat ?? null, draft.per100.salt ?? null, draft.packageAmount ?? null];
   if (id) {
     // Allergene nur ändern, wenn der Entwurf sie mitbringt (z. B. aus dem Formular); sonst bleiben sie.
     if (draft.allergens !== undefined) await db.runAsync('UPDATE food SET allergens = ? WHERE id = ?', listText(draft.allergens), id);
@@ -210,7 +210,9 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       now,
       id
     );
-    await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?', ...extra, id);
+    await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ? WHERE id = ?', ...extra, id);
+    // Koffein hat kein Formularfeld: nur ändern, wenn der Entwurf es mitbringt (Phase 1 Scan, F5).
+    if (draft.caffeine !== undefined) await db.runAsync('UPDATE food SET caffeine = ? WHERE id = ?', draft.caffeine, id);
     // Grundnahrungsmittel selbst geändert (A4): Verknüpfung lösen, damit Listen-Aktualisierungen nichts überschreiben.
     await db.runAsync('UPDATE food SET catalog_id = NULL WHERE id = ?', id);
   } else {
@@ -238,7 +240,12 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
       draft.diet ?? null,
       fiber
     );
-    await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?', ...extra, foodId);
+    await db.runAsync(
+      'UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?',
+      ...extra,
+      draft.caffeine ?? null,
+      foodId
+    );
   }
   return foodId;
 }
