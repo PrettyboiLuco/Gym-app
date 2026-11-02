@@ -107,3 +107,11 @@ TeamBuildr und react-native-body-highlighter (linke/rechte Seite getrennt, Heran
 | Durchschnitt über 4 Wochen | Glättet Ausreißer (Urlaub, Deload) | Klein: Zeitraum-Schalter, gleiche Zählung |
 | Heranzoomen beim Antippen | Kleine Muskeln (Unterarm, Nacken) groß sehen | Mittel: Ausschnitt der Zeichnung animiert vergrößern |
 | Links/rechts getrennt | Ungleichgewicht bei einseitigen Übungen sichtbar | Groß: Sätze müssten je Seite erfasst werden |
+
+## Körperform und 3D-Wirkung (umgesetzt)
+
+| # | Was | Umsetzung |
+|---|---|---|
+| K1 | Körperform wählbar | „Männlich · Weiblich“ in der Statistik, gespeichert (Einstellung der Muskelkarte); gilt auch für die kleine Karte auf „Heute“ und den Abschluss. Das Profil kennt kein Geschlecht – die Wahl betrifft nur die Zeichnung. |
+| K2 | Weibliche Figur | Entsteht aus der männlichen durch eine weiche Verformung quer zur Mitte (Kopf 0,93, Schultern 0,86, Taille 0,84, Hüfte 1,07, Arme 0,9). Eigene Formen für Brust, geraden und seitlichen Bauch und Sägemuskel; langes Haar rahmt das Gesicht. Alle Flächen, das Antippen und die Tests gelten für beide Formen. |
+| K3 | 3D-Wirkung | Licht von links oben: jeder Muskel bekommt einen runden Verlauf (heller Glanz oben links, dunklerer Rand), der Körper wird nach rechts dunkler, unter den Füßen liegt ein weicher Schatten. Die Verläufe beziehen sich auf jede Fläche selbst und bleiben bei Fokus und Überblendung mit der Fläche verbunden. |

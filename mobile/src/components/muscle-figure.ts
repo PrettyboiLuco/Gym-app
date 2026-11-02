@@ -242,7 +242,7 @@ const BACK_MINI_HALF: GroupHalf = {
  * Feine Körperdetails ohne Daten (Feinschliff): zart im Körperton, unter den Muskeln, nicht antippbar. Flächen
  * (Kniescheibe, Schienbeinmuskel) und Linien (Schlüsselbein, Daumen, Kniekehle, Achillessehne). Nur auf der großen Karte.
  */
-type Details = { fills: string[]; lines: string[] };
+type Details = { fills: string[]; lines: string[]; hair: string[] };
 const both = (half: string[]) => half.flatMap((d) => [d, mirror(d)]);
 
 const DETAIL_FRONT_HALF = {
@@ -270,10 +270,134 @@ const DETAIL_BACK_HALF: { fills: string[]; lines: string[] } = {
   ],
 };
 
-export const DETAILS: { front: Details; back: Details } = {
-  front: { fills: both(DETAIL_FRONT_HALF.fills), lines: both(DETAIL_FRONT_HALF.lines) },
-  back: { fills: both(DETAIL_BACK_HALF.fills), lines: both(DETAIL_BACK_HALF.lines) },
+// ------------------------------------------------------------------------------------ Weibliche Figur
+
+/**
+ * Weibliche Figur (wählbar, Ausbau Körperform): entsteht aus der männlichen Zeichnung durch eine weiche Verformung
+ * quer zur Mitte – kleinerer Kopf, schmalere Schultern und Taille, breitere Hüfte, schlankere Arme. Brust, gerader
+ * Bauch, seitlicher Bauch und Sägemuskel haben eigene Formen (runde Brust, Bauch etwas tiefer); dazu eine Frisur.
+ * Weil alle Flächen mit derselben Verformung entstehen, passen Antippen, Reihen und Tests ohne eigene Pflege.
+ */
+
+/** Breite je Höhe (Faktor quer zur Mitte) für Rumpf und Beine; zwischen den Stützstellen weich (smoothstep). */
+const TORSO_SCALE: [number, number][] = [
+  [0, 0.93],
+  [27, 0.93],
+  [33, 0.9],
+  [42, 0.86],
+  [60, 0.88],
+  [70, 0.88],
+  [82, 0.84],
+  [93, 0.96],
+  [104, 1.07],
+  [118, 1.07],
+  [132, 1.02],
+  [150, 0.97],
+  [214, 0.95],
+];
+/** Arme: schlanker und etwas näher am Körper, ohne mit der breiteren Hüfte nach außen zu wandern. */
+const ARM_SCALE = 0.9;
+
+function profile(y: number): number {
+  for (let i = 1; i < TORSO_SCALE.length; i++) {
+    const [y1, s1] = TORSO_SCALE[i];
+    const [y0, s0] = TORSO_SCALE[i - 1];
+    if (y <= y1) {
+      const t = (y - y0) / (y1 - y0);
+      return s0 + (s1 - s0) * t * t * (3 - 2 * t);
+    }
+  }
+  return TORSO_SCALE[TORSO_SCALE.length - 1][1];
+}
+
+/** Verformung eines Punkts: Rumpf nach Höhenprofil, Arme (weit außen, unterhalb der Schulter) mit festem Faktor. */
+function warpFemale([x, y]: Pt): Pt {
+  const u = Math.abs(x - 50);
+  const below = Math.min(1, Math.max(0, (y - 44) / 6));
+  const arm = below * Math.min(1, Math.max(0, (u - 25) / 0.6));
+  const s = profile(y) * (1 - arm) + ARM_SCALE * arm;
+  return [50 + (x - 50) * s, y];
+}
+
+/** Wendet eine Punkt-Verformung auf einen Pfad an (alle Koordinaten, auch Kontrollpunkte). */
+function warpPath(d: string, f: (p: Pt) => Pt): string {
+  return d.replace(/([MLC])([^MLCZ]*)/g, (_, cmd: string, args: string) => {
+    const n = args.match(/-?\d*\.?\d+/g)?.map(Number) ?? [];
+    const out: string[] = [];
+    for (let k = 0; k < n.length; k += 2) {
+      const [x, y] = f([n[k], n[k + 1]]);
+      out.push(`${r(x)} ${r(y)}`);
+    }
+    return `${cmd}${out.join(' ')} `;
+  });
+}
+
+// Eigene Formen der weiblichen Figur (in den Koordinaten der männlichen Zeichnung, vor der Verformung)
+const FRONT_FEMALE_HALF: Half = {
+  // runde Brust: oben der Schlüsselbeinanteil, darunter die obere und die untere Hälfte
+  brust_mitte: ['M49.4 45 C43 45 36 46.2 29.7 48 C28.6 51 28.4 54 29.6 56.6 C36 55 43 54.6 49.4 55.4 Z'],
+  brust_unten: ['M49.4 55.4 C43 54.6 36 55 29.6 56.6 C31 61.4 35.6 64.6 40.8 64.6 C44.6 64.6 47.6 63 49.4 61.4 Z'],
+  saegemuskel: [
+    'M28.4 61.6 C29.6 62 30.6 62.8 31.2 63.6 C30.4 64.4 29.4 64.4 28.8 63.8 C28.6 63 28.4 62.2 28.4 61.6 Z',
+    'M28.8 65.4 C30 65.8 31 66.6 31.6 67.4 C30.8 68.2 29.8 68.2 29.2 67.6 C29 66.8 28.8 66 28.8 65.4 Z',
+  ],
+  bauch_gerade: [
+    rounded(42.4, 66.4, 49.4, 72.8, 2.6),
+    rounded(42.6, 73.8, 49.4, 80.2, 2.6),
+    rounded(43, 81.2, 49.4, 87.6, 2.6),
+    'M43.4 88.6 L49.4 88.6 L49.4 101.4 C47.6 101.2 46.2 100 45.2 98 C44 95 43.4 91.8 43.4 88.6 Z',
+  ],
+  bauch_schraeg: [
+    'M40.6 66.4 C37.6 66.8 34.8 67.8 32.6 69.4 C33 73 33.2 76.6 32.8 80.4 C32.6 84.6 32 88.6 31.6 91.6 C35 93.6 38.2 96.6 41 99.6 C41.2 93 41.4 82 41.2 74 C41.1 70.6 41 68.2 40.6 66.4 Z',
+  ],
 };
+const FRONT_MINI_FEMALE_HALF: GroupHalf = {
+  brust: [
+    'M49.4 38.2 C45 36.8 39.4 36.6 35 37.4 C32.6 37.8 31.4 39.8 30.8 42.6 C29.6 47 28.2 52 29.6 56.6 C31 61.4 35.6 64.6 40.8 64.6 C44.6 64.6 47.6 63 49.4 61.4 Z',
+  ],
+  bauch: ['M42.4 66.4 L49.4 66.4 L49.4 101.4 C47 100.8 45 98.4 44 94.8 C43 88 42.4 76 42.4 66.4 Z', FRONT_FEMALE_HALF.bauch_schraeg![0]],
+};
+
+// Frisur (nur weibliche Figur): vorne rahmt langes Haar das Gesicht und fällt seitlich am Hals hinter die Schultern
+// (die Muskeln liegen darüber); hinten deckt es den Hinterkopf bis zum Nacken, ohne den Trapez zu verdecken.
+const HAIR_FRONT_HALF =
+  'M50 1.4 C44.4 1.4 40.4 5.6 40.2 12.6 C40 19 40.4 26 40.8 31 C41 34.4 41.6 37 42.4 38.6 C43.6 38.8 44.6 38.2 45 37 C44.2 33 43.6 28 43.6 23 C43.4 18.6 43.6 14.6 44.4 11.8 C45.6 9.6 47.6 8.8 50 8.8 Z';
+const HAIR_BACK_HALF = 'M50 1.4 C44.4 1.4 40.6 5.4 40.4 12.2 C40.2 17.8 41 23.6 42.4 28 C44.8 29.6 47.4 30.2 50 30.2 Z';
+
+// ------------------------------------------------------------------------------------ Körperformen
+
+export const BODIES_LIST = ['m', 'w'] as const;
+export type Body = (typeof BODIES_LIST)[number];
+
+/** Alles, was eine Körperform zum Zeichnen und Antippen braucht. */
+export type BodySet = {
+  outline: string;
+  front: Region[];
+  back: Region[];
+  frontMini: Region[];
+  backMini: Region[];
+  details: { front: Details; back: Details };
+};
+
+function bodySet(f: ((p: Pt) => Pt) | null, over: { front?: Half; frontMini?: GroupHalf; hair?: boolean } = {}): BodySet {
+  const w = (d: string) => (f ? warpPath(d, f) : d);
+  const details = (half: { fills: string[]; lines: string[] }, hair: string | null): Details => ({
+    fills: both(half.fills).map(w),
+    lines: both(half.lines).map(w),
+    hair: hair ? both([hair]).map(w) : [],
+  });
+  return {
+    outline: w(OUTLINE),
+    front: byMuscle({ ...FRONT_HALF, ...over.front }, w),
+    back: byMuscle(BACK_HALF, w),
+    frontMini: byGroup({ ...FRONT_MINI_HALF, ...over.frontMini }, w),
+    backMini: byGroup(BACK_MINI_HALF, w),
+    details: {
+      front: details(DETAIL_FRONT_HALF, over.hair ? HAIR_FRONT_HALF : null),
+      back: details(DETAIL_BACK_HALF, over.hair ? HAIR_BACK_HALF : null),
+    },
+  };
+}
 
 // ------------------------------------------------------------------------------------ Regionen und Treffer
 
@@ -304,24 +428,30 @@ export function polygon(d: string): Pt[] {
  */
 export type Region = { key: string; group: MuscleGroup; muscle: MapMuscle | null; paths: string[]; polys: Pt[][]; row: number };
 
-function region(key: string, group: MuscleGroup, muscle: MapMuscle | null, half: string[]): Region {
-  const paths = half.flatMap((d) => [d, mirror(d)]);
+function region(key: string, group: MuscleGroup, muscle: MapMuscle | null, half: string[], w: (d: string) => string): Region {
+  const paths = half.flatMap((d) => [d, mirror(d)]).map(w);
   const polys = paths.map(polygon);
   const ys = polys.flat().map(([, y]) => y);
   const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
   return { key, group, muscle, paths, polys, row: Math.min(9, Math.round((cy / 214) * 9)) };
 }
 
-const byMuscle = (half: Half): Region[] => (Object.entries(half) as [MapMuscle, string[]][]).map(([m, paths]) => region(m, MAP_GROUP[m], m, paths));
-const byGroup = (half: GroupHalf): Region[] => (Object.entries(half) as [MuscleGroup, string[]][]).map(([g, paths]) => region(g, g, null, paths));
+function byMuscle(half: Half, w: (d: string) => string): Region[] {
+  return (Object.entries(half) as [MapMuscle, string[]][]).map(([m, paths]) => region(m, MAP_GROUP[m], m, paths, w));
+}
+function byGroup(half: GroupHalf, w: (d: string) => string): Region[] {
+  return (Object.entries(half) as [MuscleGroup, string[]][]).map(([g, paths]) => region(g, g, null, paths, w));
+}
 
-/** Die vier Zeichnungen; die Reihenfolge der Einträge ist die Zeichenreihenfolge. */
-export const FIGURE = {
-  front: byMuscle(FRONT_HALF),
-  back: byMuscle(BACK_HALF),
-  frontMini: byGroup(FRONT_MINI_HALF),
-  backMini: byGroup(BACK_MINI_HALF),
-} as const;
+/** Beide Körperformen; die Reihenfolge der Flächen ist die Zeichenreihenfolge. */
+export const BODIES: Record<Body, BodySet> = {
+  m: bodySet(null),
+  w: bodySet(warpFemale, { front: FRONT_FEMALE_HALF, frontMini: FRONT_MINI_FEMALE_HALF, hair: true }),
+};
+
+/** Männliche Figur (Standard) – Kurzformen für Tests und das Render-Skript. */
+export const FIGURE = BODIES.m;
+export const DETAILS = BODIES.m.details;
 
 /** Liegt ein Muskel vorne, hinten oder auf beiden Seiten? (Für die Einzelansicht, Punkt 5.5.) */
 export function sidesOf(muscle: MapMuscle): ('front' | 'back')[] {

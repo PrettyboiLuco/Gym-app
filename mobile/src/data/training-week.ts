@@ -125,9 +125,9 @@ export async function loadWeekTally(db: Db, today: string): Promise<MuscleTally>
   return tallyMuscles([...perExercise].map(([id, sets]) => ({ exercise: exercises.get(id)!, sets })));
 }
 
-/** Einstellungen der Muskelkarte: Ansicht und ob mitbeteiligte Muskeln halb zählen (Punkte 2.3 und 5.4). */
-export type MapPrefs = { view: 'beide' | 'vorne' | 'hinten'; halfSecondary: boolean };
-const MAP_PREFS_DEFAULT: MapPrefs = { view: 'beide', halfSecondary: true };
+/** Einstellungen der Muskelkarte: Ansicht, ob mitbeteiligte Muskeln halb zählen, Körperform (Punkte 2.3, 5.4). */
+export type MapPrefs = { view: 'beide' | 'vorne' | 'hinten'; halfSecondary: boolean; body: 'm' | 'w' };
+const MAP_PREFS_DEFAULT: MapPrefs = { view: 'beide', halfSecondary: true, body: 'm' };
 
 export async function loadMapPrefs(db: Db): Promise<MapPrefs> {
   return { ...MAP_PREFS_DEFAULT, ...(await readState<Partial<MapPrefs>>(db, 'muscle_map', {})) };

@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { FIGURE, hitTest, mirror, OUTLINE, polygon, sidesOf, type Pt } from '@/components/muscle-figure';
+import { BODIES, BODIES_LIST, FIGURE, hitTest, mirror, OUTLINE, polygon, sidesOf, type Pt } from '@/components/muscle-figure';
 import { MUSCLE_GROUPS } from '@/domain/exercises';
 import { MAP_MUSCLES } from '@/domain/muscle-map';
 
@@ -30,7 +30,42 @@ describe('Muskelkarte', () => {
     for (const g of MUSCLE_GROUPS) if (g !== 'ganzkoerper') expect(shown).toContain(g);
   });
 
-  test('alle Muskelflächen liegen innerhalb des Körperumrisses', () => {
+  test('alle Muskelflächen liegen innerhalb des Körperumrisses (beide Körperformen)', () => {
+    const outside: string[] = [];
+    for (const b of BODIES_LIST) {
+      const outline = polygon(BODIES[b].outline);
+      for (const v of VIEWS)
+        for (const r of BODIES[b][v])
+          for (const poly of r.polys)
+            for (const p of poly) if (!inside(p, outline)) outside.push(`${b}/${v}/${r.key}: ${p.map((n) => n.toFixed(1)).join(' ')}`);
+    }
+    expect(outside).toEqual([]);
+  });
+
+  test('beide Körperformen haben dieselben Muskeln', () => {
+    const keys = (b: 'm' | 'w') => [...BODIES[b].front, ...BODIES[b].back].map((r) => r.key).sort();
+    expect(keys('w')).toEqual(keys('m'));
+  });
+
+  test('weibliche Figur: schmalere Schultern, breitere Hüfte als die männliche', () => {
+    const width = (b: 'm' | 'w', y: number) => {
+      const xs = polygon(BODIES[b].outline)
+        .filter(([, py]) => Math.abs(py - y) < 1.5)
+        .map(([x]) => x);
+      return Math.max(...xs) - Math.min(...xs);
+    };
+    expect(width('w', 40)).toBeLessThan(width('m', 40));
+    // Hüfte ohne Arme: nur die Punkte des Rumpfs (Abstand zur Mitte unter 25)
+    const hip = (b: 'm' | 'w') =>
+      Math.max(
+        ...polygon(BODIES[b].outline)
+          .filter(([x, y]) => Math.abs(y - 108) < 2 && Math.abs(x - 50) < 25)
+          .map(([x]) => Math.abs(x - 50))
+      );
+    expect(hip('w')).toBeGreaterThan(hip('m'));
+  });
+
+  test('männliche Figur ohne Verformung', () => {
     const outside: string[] = [];
     for (const v of VIEWS)
       for (const r of FIGURE[v])
@@ -63,6 +98,11 @@ describe('Muskelkarte', () => {
 });
 
 describe('Antippen (Punkt 4)', () => {
+  test('weibliche Figur: Antippen trifft dieselben Muskeln', () => {
+    expect(hitTest(BODIES.w.front, 40, 50)?.group).toBe('brust');
+    expect(hitTest(BODIES.w.back, 40, 110)?.muscle).toBe('gesaess');
+  });
+
   test('ein Punkt in der Fläche trifft sie – links wie rechts', () => {
     expect(hitTest(FIGURE.front, 40, 48)?.muscle).toBe('brust_mitte');
     expect(hitTest(FIGURE.front, 60, 48)?.muscle).toBe('brust_mitte');

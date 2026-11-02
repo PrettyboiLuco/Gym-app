@@ -2724,6 +2724,8 @@ export const de = {
     tappedIgnored: ' – dazu {{secondary}} mitbeteiligte Sätze (nicht gezählt)',
     view: 'Ansicht',
     views: { beide: 'Beide', vorne: 'Vorne', hinten: 'Hinten' },
+    body: 'Körperform',
+    bodies: { m: 'Männlich', w: 'Weiblich' },
     secondary: 'Mitbeteiligte Muskeln',
     secondaryOption: { halb: 'halb zählen', aus: 'nicht zählen' },
     spared: 'Gestrichelt: geschont ({{list}})',

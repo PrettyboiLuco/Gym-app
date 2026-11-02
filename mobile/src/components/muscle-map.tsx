@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, {
   Easing,
@@ -11,14 +11,14 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
 
 import { Segmented } from '@/components/fields';
 import { haptic } from '@/components/haptics';
-import { DETAILS, FIGURE, hitTest, OUTLINE, sidesOf, VIEWBOX, type Region } from '@/components/muscle-figure';
+import { BODIES, BODIES_LIST, hitTest, sidesOf, VIEWBOX, type Body, type BodySet, type Region } from '@/components/muscle-figure';
 import { ThemedText } from '@/components/themed-text';
 import { MapFade } from '@/constants/motion';
-import { BodyDetail, MuscleRamp, Spacing } from '@/constants/theme';
+import { BodyDetail, BodyHair, MuscleRamp, Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
 import { MAP_GROUP, muscleValue, tallyByGroup, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { muscleLevel } from '@/domain/training-stats';
@@ -86,6 +86,7 @@ function MusclePath({
   dim,
   focus,
   chosen,
+  shade,
 }: {
   d: string;
   level: SharedValue<number>;
@@ -96,22 +97,28 @@ function MusclePath({
   dim: boolean;
   focus: SharedValue<number>;
   chosen: boolean;
+  /** Verlauf für die runde 3D-Wirkung (Licht von links oben, dunklerer Rand) – null = flach. */
+  shade: string | null;
 }) {
   const own = dim ? 0.5 : 1;
   const animated = useAnimatedProps((): { opacity: number; fill?: string } => {
     const opacity = own * (chosen ? 1 : 1 - 0.45 * focus.value);
     return STATIC_COLOR ? { opacity } : { opacity, fill: interpolateColor(level.value, STOPS, ramp) };
   });
+  const shading = useAnimatedProps(() => ({ opacity: own * (chosen ? 1 : 1 - 0.45 * focus.value) }));
   return (
-    <AnimatedPath
-      d={d}
-      {...(STATIC_COLOR ? { fill: ramp[Math.round(target)] } : {})}
-      animatedProps={animated}
-      // Die Fugen sind eine Kontur in Körperfarbe: überall gleich breit, egal wie groß die Figur ist.
-      stroke={base}
-      strokeWidth={gap}
-      strokeLinejoin="round"
-    />
+    <>
+      <AnimatedPath
+        d={d}
+        {...(STATIC_COLOR ? { fill: ramp[Math.round(target)] } : {})}
+        animatedProps={animated}
+        // Die Fugen sind eine Kontur in Körperfarbe: überall gleich breit, egal wie groß die Figur ist.
+        stroke={base}
+        strokeWidth={gap}
+        strokeLinejoin="round"
+      />
+      {shade ? <AnimatedPath d={d} fill={shade} animatedProps={shading} /> : null}
+    </>
   );
 }
 
@@ -125,6 +132,7 @@ function RegionPaths({
   dim,
   focus,
   chosen,
+  shade,
 }: {
   region: Region;
   target: number;
@@ -135,25 +143,26 @@ function RegionPaths({
   dim: boolean;
   focus: SharedValue<number>;
   chosen: boolean;
+  shade: string | null;
 }) {
   const level = useLevel(target, region.row, mode);
   return (
     <>
       {region.paths.map((d, i) => (
-        <MusclePath key={i} d={d} level={level} target={target} ramp={ramp} base={base} gap={gap} dim={dim} focus={focus} chosen={chosen} />
+        <MusclePath key={i} d={d} level={level} target={target} ramp={ramp} base={base} gap={gap} dim={dim} focus={focus} chosen={chosen} shade={shade} />
       ))}
     </>
   );
 }
 
 /** Umriss in der Datenfarbe = Ganzkörper-Übungen (sie gehören zu keinem einzelnen Muskel). */
-function WholeBodyRing({ target, mode, ramp, base, gap }: { target: number; mode: Mode; ramp: string[]; base: string; gap: number }) {
+function WholeBodyRing({ outline, target, mode, ramp, base, gap }: { outline: string; target: number; mode: Mode; ramp: string[]; base: string; gap: number }) {
   const level = useLevel(target, 9, mode);
   const colors = useMemo(() => [base, ...ramp.slice(1)], [base, ramp]);
   const animated = useAnimatedProps(() => ({ stroke: interpolateColor(level.value, STOPS, colors) }));
   return (
     <AnimatedPath
-      d={OUTLINE}
+      d={outline}
       fill="none"
       {...(STATIC_COLOR ? { stroke: colors[target] } : { animatedProps: animated })}
       strokeWidth={gap * 1.2}
@@ -205,6 +214,8 @@ function SparedOutline({ paths, color, gap }: { paths: string[]; color: string; 
  */
 function Figure({
   regions,
+  outline,
+  shadow = false,
   width,
   height,
   gap,
@@ -218,6 +229,10 @@ function Figure({
   details,
 }: {
   regions: readonly Region[];
+  /** Körperumriss der gewählten Körperform. */
+  outline: string;
+  /** Weicher Bodenschatten unter den Füßen (große Karten). */
+  shadow?: boolean;
   width: number;
   height: number;
   gap: number;
@@ -228,8 +243,8 @@ function Figure({
   spared?: readonly MuscleGroup[];
   selected?: MapMuscle | null;
   onSelect?: (m: MapMuscle | null) => void;
-  /** Feine Körperdetails (nur große Karte). */
-  details?: { fills: string[]; lines: string[] };
+  /** Feine Körperdetails und Frisur (nur große Karte). */
+  details?: { fills: string[]; lines: string[]; hair: string[] };
 }) {
   const theme = useTheme();
   const ramp = useRamp();
@@ -237,6 +252,9 @@ function Figure({
   const reduced = useReducedMotion();
   const base = theme.backgroundSelected;
   const detail = dark ? BodyDetail.dark : BodyDetail.light;
+  const hair = dark ? BodyHair.dark : BodyHair.light;
+  // Eigene Kennungen je Figur für die Verläufe (mehrere Figuren auf einem Bildschirm)
+  const id = `mm${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   // Fokus: ist ein Muskel angetippt, treten die anderen in 200 ms zurück
   const focus = useSharedValue(0);
   const hasSelection = !!selected && regions.some((r) => r.muscle === selected);
@@ -247,12 +265,36 @@ function Figure({
   const sparedPaths = regions.filter((r) => spared.includes(r.group)).flatMap((r) => r.paths);
   const svg = (
     <Svg width={width} height={height} viewBox={VIEWBOX}>
-      <Path d={OUTLINE} fill={base} />
+      {/* 3D-Wirkung: Licht von links oben. Muskeln wölben sich (hell oben links, dunkler Rand), der Körper wird nach
+          rechts dunkler, unter den Füßen liegt ein weicher Schatten. Die Verläufe beziehen sich auf jede Fläche selbst. */}
+      <Defs>
+        <RadialGradient id={`${id}v`} cx="0.42" cy="0.36" r="0.72" fx="0.32" fy="0.22">
+          <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.34} />
+          <Stop offset="0.45" stopColor="#FFFFFF" stopOpacity={0.06} />
+          <Stop offset="0.78" stopColor="#000000" stopOpacity={0} />
+          <Stop offset="1" stopColor="#000000" stopOpacity={0.3} />
+        </RadialGradient>
+        <LinearGradient id={`${id}b`} x1="0" y1="0" x2="1" y2="0.15">
+          <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.08} />
+          <Stop offset="0.42" stopColor="#FFFFFF" stopOpacity={0} />
+          <Stop offset="1" stopColor="#000000" stopOpacity={0.24} />
+        </LinearGradient>
+        <RadialGradient id={`${id}s`} cx="0.5" cy="0.5" r="0.5">
+          <Stop offset="0" stopColor="#000000" stopOpacity={dark ? 0.6 : 0.22} />
+          <Stop offset="1" stopColor="#000000" stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      {shadow ? <Ellipse cx={50} cy={210.4} rx={19} ry={2.6} fill={`url(#${id}s)`} /> : null}
+      <Path d={outline} fill={base} />
+      <Path d={outline} fill={`url(#${id}b)`} />
       {details?.fills.map((d, i) => (
         <Path key={`f${i}`} d={d} fill={detail} />
       ))}
       {details?.lines.map((d, i) => (
         <Path key={`l${i}`} d={d} fill="none" stroke={detail} strokeWidth={gap * 0.8} strokeLinecap="round" />
+      ))}
+      {details?.hair.map((d, i) => (
+        <Path key={`h${i}`} d={d} fill={hair} />
       ))}
       {ready
         ? regions.map((r) => (
@@ -267,10 +309,11 @@ function Figure({
               dim={spared.includes(r.group)}
               focus={focus}
               chosen={r.muscle === selected}
+              shade={`url(#${id}v)`}
             />
           ))
         : null}
-      {ready ? <WholeBodyRing target={whole} mode={mode} ramp={ramp} base={base} gap={gap} /> : null}
+      {ready ? <WholeBodyRing outline={outline} target={whole} mode={mode} ramp={ramp} base={base} gap={gap} /> : null}
       {ready && sparedPaths.length ? <SparedOutline key={spared.join()} paths={sparedPaths} color={theme.danger} gap={gap} /> : null}
       {marked.length ? <Highlight key={selected} paths={marked} color={theme.text} gap={gap} /> : null}
     </Svg>
@@ -313,6 +356,8 @@ export function MuscleMap({
   onView,
   spared = [],
   sparedSince = null,
+  body = 'm',
+  onBody,
 }: {
   tally: MuscleTally;
   ready?: boolean;
@@ -322,6 +367,9 @@ export function MuscleMap({
   onView: (view: MapView) => void;
   spared?: readonly MuscleGroup[];
   sparedSince?: string | null;
+  /** Körperform der Figur (männlich / weiblich), wählbar. */
+  body?: Body;
+  onBody?: (body: Body) => void;
 }) {
   const theme = useTheme();
   const ramp = useRamp();
@@ -383,10 +431,13 @@ export function MuscleMap({
     }
   }
 
+  const set = BODIES[body];
   const figure = (side: Side, w: number, h: number) => (
     <Figure
-      regions={side === 'front' ? FIGURE.front : FIGURE.back}
-      details={DETAILS[side]}
+      regions={side === 'front' ? set.front : set.back}
+      outline={set.outline}
+      details={set.details[side]}
+      shadow
       width={w}
       height={h}
       gap={w > 150 ? 0.8 : 1}
@@ -409,6 +460,7 @@ export function MuscleMap({
   return (
     <View style={styles.wrap}>
       <Segmented label={t('stats.view')} options={MAP_VIEWS} value={view} onChange={changeView} format={(v) => t(`stats.views.${v}`)} />
+      {onBody ? <Segmented label={t('stats.body')} options={BODIES_LIST} value={body} onChange={onBody} format={(b) => t(`stats.bodies.${b}`)} /> : null}
       {view === 'beide' ? (
         <View style={styles.row}>
           <View style={styles.figure}>
@@ -519,12 +571,33 @@ export function MuscleMap({
  * Muskelgruppe, die Gruppen des heutigen Plantags in der Datenfarbe, geschonte Bereiche gestrichelt. Die Muskeln
  * stehen im Text für VoiceOver.
  */
-export function MuscleMapMini({ sets, label, spared = [] }: { sets: Partial<Record<MuscleGroup, number>>; label: string; spared?: readonly MuscleGroup[] }) {
+export function MuscleMapMini({
+  sets,
+  label,
+  spared = [],
+  body = 'm',
+}: {
+  sets: Partial<Record<MuscleGroup, number>>;
+  label: string;
+  spared?: readonly MuscleGroup[];
+  body?: Body;
+}) {
   const level = (r: Region) => ((sets[r.group] ?? 0) > 0 ? 4 : 0);
+  const set: BodySet = BODIES[body];
   return (
     <View accessible accessibilityLabel={label} style={styles.mini}>
-      {[FIGURE.frontMini, FIGURE.backMini].map((regions, i) => (
-        <Figure key={i} regions={regions} width={54} height={116} gap={1.6} level={level} whole={(sets.ganzkoerper ?? 0) > 0 ? 4 : 0} spared={spared} />
+      {[set.frontMini, set.backMini].map((regions, i) => (
+        <Figure
+          key={i}
+          regions={regions}
+          outline={set.outline}
+          width={54}
+          height={116}
+          gap={1.6}
+          level={level}
+          whole={(sets.ganzkoerper ?? 0) > 0 ? 4 : 0}
+          spared={spared}
+        />
       ))}
     </View>
   );
@@ -535,15 +608,18 @@ export function MuscleMapMini({ sets, label, spared = [] }: { sets: Partial<Reco
  * Datenfarbe, nur mitbeteiligte heller. Erfolgsmoment als Rückmeldung, nicht als Auftritt; bei „Bewegung reduzieren“
  * stehen sie sofort.
  */
-export function MuscleMapDone({ tally, label }: { tally: MuscleTally; label: string }) {
+export function MuscleMapDone({ tally, label, body = 'm' }: { tally: MuscleTally; label: string; body?: Body }) {
+  const set = BODIES[body];
   const level = (r: Region) => (!r.muscle ? 0 : (tally.primary[r.muscle] ?? 0) > 0 ? 4 : (tally.secondary[r.muscle] ?? 0) > 0 ? 2 : 0);
   return (
     <View accessible accessibilityLabel={label} style={styles.row}>
-      {[FIGURE.front, FIGURE.back].map((regions, i) => (
+      {[set.front, set.back].map((regions, i) => (
         <Figure
           key={i}
           regions={regions}
-          details={i === 0 ? DETAILS.front : DETAILS.back}
+          outline={set.outline}
+          details={i === 0 ? set.details.front : set.details.back}
+          shadow
           width={100}
           height={214}
           gap={1.2}

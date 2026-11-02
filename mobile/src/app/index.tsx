@@ -16,7 +16,7 @@ import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { loadSpared, readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
 import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
-import { loadTrainingWeek, plannedMuscles } from '@/data/training-week';
+import { loadMapPrefs, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
 import type { MuscleGroup } from '@/domain/exercises';
@@ -56,6 +56,7 @@ async function loadToday(db: Db) {
   const motivation = await loadMotivation(db, today);
   // Geschonte Bereiche beim Status „verletzt“ (Muskelkarte Punkt 6.4)
   const spared = (await loadSpared(db, today))?.areas ?? [];
+  const { body } = await loadMapPrefs(db);
   // Wochen-Check-in fällig (COACH-008)? Frühestens eine Woche nach dem letzten Check-in, sonst nach der
   // Coach-Einrichtung bzw. der ersten Gewichtsmessung – vorher gäbe es keine Woche zum Zurückschauen.
   const since = (await lastCheckinWeekEnd(db)) ?? setup?.doneAt ?? weights.at(-1)?.day ?? null;
@@ -104,6 +105,7 @@ async function loadToday(db: Db) {
     week: trainingWeek,
     ready,
     spared,
+    body,
     today,
     // Nur der neueste noch nicht angesehene Meilenstein (A10.5); ältere stehen in der Liste.
     milestone: motivation.fresh.at(-1) ?? null,
@@ -134,11 +136,12 @@ export default function TodayScreen() {
     openSetup: false,
     ready: null as ReadinessToday | null,
     spared: [] as MuscleGroup[],
+    body: 'm' as 'm' | 'w',
     today: '',
     milestone: null as Milestone | null,
     muscles: null as Partial<Record<MuscleGroup, number>> | null,
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today, milestone, muscles, spared } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today, milestone, muscles, spared, body } = data;
   useEffect(() => {
     if (!openSetup) return;
     saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
@@ -261,6 +264,7 @@ export default function TodayScreen() {
         onPress={training.go}
         muscles={!timed && !active && next && !restDay ? muscles : null}
         spared={spared}
+        body={body}
       />
       {!modules.bereitschaft ? null : ready && ready.readiness.kind !== 'status' && !checkComplete ? (
         // T3: auf „Heute“ eine Zeile; der Check klappt beim Antippen hier auf (vier Antippen, kein Bildschirmwechsel).

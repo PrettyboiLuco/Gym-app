@@ -80,7 +80,7 @@ export default function StatsScreen() {
     r.kind === 'zeit' ? t('stats.recordTime', { seconds: r.seconds }) : `${formatWeight(r.weightKg ?? 0, units.weight, 2)} × ${r.reps}`;
   // Einstellungen der Karte: gespeichert laden, beim Ändern sofort übernehmen und speichern (Punkte 2.3, 5.4).
   const [ownPrefs, setOwnPrefs] = useState<MapPrefs | null>(null);
-  const prefs = ownPrefs ?? data.prefs ?? { view: 'beide' as MapView, halfSecondary: true };
+  const prefs: MapPrefs = ownPrefs ?? data.prefs ?? { view: 'beide' as MapView, halfSecondary: true, body: 'm' };
   const changePrefs = (change: Partial<MapPrefs>) => {
     const next = { ...prefs, ...change };
     setOwnPrefs(next);
@@ -100,6 +100,8 @@ export default function StatsScreen() {
           onHalfSecondary={(halfSecondary) => changePrefs({ halfSecondary })}
           view={prefs.view}
           onView={(view) => changePrefs({ view })}
+          body={prefs.body}
+          onBody={(body) => changePrefs({ body })}
           spared={data.spared?.areas ?? []}
           sparedSince={data.spared?.since ?? null}
         />

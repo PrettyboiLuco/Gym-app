@@ -30,7 +30,7 @@ import {
   type PlanHint,
   type SessionInfo,
 } from '@/data/training';
-import { loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
+import { loadMapPrefs, loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
 import { bestOneRepMax, countsAsWork, loadModeOf } from '@/domain/logger';
 import { EMPTY_TALLY, tallyMuscles, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { findRecords, summarize, type Record } from '@/domain/summary';
@@ -58,6 +58,7 @@ async function loadSummary(db: Db, id: string) {
     planHintsForSession(db, id),
   ]);
   const cardio = (await listCardioForSession(db, id)).filter((c) => c.completedAt);
+  const { body } = await loadMapPrefs(db);
   const done = sets.filter((s) => s.completedAt);
   const byId = new Map(exercises.map((e) => [e.id, e]));
   const modeOf = (exerciseId: string) => {
@@ -95,6 +96,7 @@ async function loadSummary(db: Db, id: string) {
     // Muskelgruppen dieses Trainings für die Rückmeldung (A6.3)
     muscleGroups: [...new Set(done.map((s) => byId.get(s.exerciseId)?.muscleGroup).filter((m): m is NonNullable<typeof m> => !!m))] as string[],
     muscleTally,
+    body,
     loaded: true,
   };
 }
@@ -125,11 +127,12 @@ export default function SummaryScreen() {
       cooldownOffered: false,
       muscleGroups: [] as string[],
       muscleTally: EMPTY_TALLY as MuscleTally,
+      body: 'm' as 'm' | 'w',
       loaded: false,
     },
     id
   );
-  const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, muscleTally, loaded } = data;
+  const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, muscleTally, body, loaded } = data;
   const [note, setNote] = useState<string | null>(null);
   const [showShare, setShowShare] = useState(false);
   const modules = useModules();
@@ -251,7 +254,7 @@ export default function SummaryScreen() {
 
       {trained.length > 0 || muscleTally.whole > 0 ? (
         <Card title={t('summary.musclesTitle')}>
-          <MuscleMapDone tally={muscleTally} label={t('summary.musclesLabel', { list: trainedList })} />
+          <MuscleMapDone tally={muscleTally} body={body} label={t('summary.musclesLabel', { list: trainedList })} />
           <ThemedText type="small" themeColor="textSecondary" style={styles.musclesList}>
             {trainedList}
           </ThemedText>

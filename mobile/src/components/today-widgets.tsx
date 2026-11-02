@@ -33,6 +33,7 @@ export function TrainingBlock({
   onPress,
   muscles,
   spared = [],
+  body = 'm',
 }: {
   label: string;
   title: string;
@@ -45,6 +46,8 @@ export function TrainingBlock({
   muscles?: Partial<Record<MuscleGroup, number>> | null;
   /** Geschonte Bereiche (Status „verletzt“): gestrichelt auf der kleinen Karte, Hinweis bei Überschneidung. */
   spared?: readonly MuscleGroup[];
+  /** Körperform der kleinen Karte (Einstellung der Muskelkarte). */
+  body?: 'm' | 'w';
 }) {
   const theme = useTheme();
   const groups = muscles ? (Object.keys(muscles) as MuscleGroup[]).filter((g) => (muscles[g] ?? 0) > 0) : [];
@@ -62,7 +65,12 @@ export function TrainingBlock({
           {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
         </View>
         {groups.length ? (
-          <MuscleMapMini sets={muscles!} spared={spared} label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })} />
+          <MuscleMapMini
+            sets={muscles!}
+            spared={spared}
+            body={body}
+            label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })}
+          />
         ) : null}
       </View>
       {overlap.length ? (
