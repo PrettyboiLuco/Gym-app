@@ -77,7 +77,7 @@ export default function StatsScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {weekOffset === 0 ? t('stats.thisWeek') : t('stats.weekOf', { date: formatDay(data.weekDay) })}
         </ThemedText>
-        <MuscleMap sets={data.muscles} />
+        <MuscleMap sets={data.muscles} ready={loaded} />
         <ThemedText type="small">{muscleList.length ? muscleList.map(([g, n]) => `${t(`muscle.${g}`)} ${n}`).join(' · ') : t('stats.noSets')}</ThemedText>
         <View style={styles.row}>
           <Button label={t('stats.prevWeek')} variant="secondary" size="compact" onPress={() => setWeekOffset((w) => w + 1)} />

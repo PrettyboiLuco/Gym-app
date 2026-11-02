@@ -914,6 +914,8 @@ export const de = {
       other: '{{count}} Übungen',
     },
     volume: 'Bewegt',
+    musclesTitle: 'Heute trainiert',
+    musclesLabel: 'Heute trainierte Muskeln: {{list}}',
     recordsTitle: {
       one: 'Bestleistung',
       other: '{{count}} Bestleistungen',
@@ -2689,6 +2691,9 @@ export const de = {
     front: 'vorne',
     back: 'hinten',
     level: { 0: 'keine', 1: '1–5', 2: '6–11', 3: '12–19', 4: '20+' },
+    tapHint: 'Tippe auf einen Muskel für die genaue Zahl.',
+    tapped: { one: '{{muscle}}: {{count}} Arbeitssatz', other: '{{muscle}}: {{count}} Arbeitssätze' },
+    wholeBody: { one: 'Umriss: Ganzkörper-Übungen, {{count}} Satz', other: 'Umriss: Ganzkörper-Übungen, {{count}} Sätze' },
     noSets: 'Diese Woche noch keine Sätze.',
     prevWeek: '‹ Woche davor',
     nextWeek: 'Woche danach ›',

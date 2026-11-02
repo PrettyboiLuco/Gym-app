@@ -25,3 +25,17 @@ export const PopScale = {
   staggerMs: 25,
   spring: { stiffness: 320, damping: 14, mass: 1 },
 } as const;
+
+/**
+ * Muskelkarte: Ändert sich ein Wert (andere Woche, anderer Plantag), gleiten die Farben in 240 ms zum neuen Wert,
+ * von oben nach unten je Muskelgruppe 28 ms versetzt. Beim Öffnen steht die Karte sofort (kein Auftritt). Einzige
+ * Ausnahme ist der Abschluss-Bildschirm: Dort füllen sich die trainierten Muskeln einmal, nach 250 ms in 520 ms.
+ * Kurve: ease-out cubic-bezier(0.22, 1, 0.36, 1) wie im taste-skill für kleine Bewegungen.
+ */
+export const MapFade = {
+  durationMs: 240,
+  staggerMs: 28,
+  growDelayMs: 250,
+  growMs: 520,
+  easing: [0.22, 1, 0.36, 1] as const,
+} as const;
