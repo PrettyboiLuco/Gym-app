@@ -104,9 +104,9 @@ describe('Schritte (HEALTH-005–007)', () => {
     e('2026-10-29', 4000, 'manuell', '2026-10-29T20:00:00Z'),
     e('2026-10-29', 7500, 'apple_health', '2026-10-29T21:00:00Z'),
   ];
-  test('neuester eigener Eintrag gilt', () => expect(stepsForDay(entries, '2026-10-30')).toEqual({ steps: 9000, source: 'manuell' }));
+  test('neuester eigener Eintrag gilt', () => expect(stepsForDay(entries, '2026-10-30')).toMatchObject({ steps: 9000, source: 'manuell' }));
   test('Apple Health hat Vorrang, Quellen werden nicht addiert', () =>
-    expect(stepsForDay(entries, '2026-10-29')).toEqual({ steps: 7500, source: 'apple_health' }));
+    expect(stepsForDay(entries, '2026-10-29')).toMatchObject({ steps: 7500, source: 'apple_health' }));
   test('Schrittziel-Tage', () => expect(stepGoalDays(entries, 8000)).toEqual(['2026-10-30']));
   test('Durchschnitt nur über Tage mit Wert', () => expect(stepsAverage(entries, ['2026-10-30', '2026-10-29', '2026-10-28'])).toBe(8250));
   test('Eingabe mit Tausenderpunkt', () => {

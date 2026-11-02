@@ -49,13 +49,25 @@ describe('Produkt per Barcode', () => {
     const off = await loadOff(jest.fn(async () => respond(404, { status: 'failure', product: null })) as FetchMock);
     expect(await off.fetchProduct('1')).toEqual({ ok: false, error: 'notFound' });
   });
-  test('429 wird als Limit gemeldet', async () => {
-    const off = await loadOff(jest.fn(async () => respond(429, {})) as FetchMock);
+  test('429 wird nach einem erneuten Versuch als Limit gemeldet', async () => {
+    const fetchMock = jest.fn(async () => respond(429, {})) as FetchMock;
+    const off = await loadOff(fetchMock);
+    Object.assign(off.OFF_RETRY, { delayMs: 0, maxDelayMs: 0 });
     expect(await off.fetchProduct('1')).toEqual({ ok: false, error: 'rateLimited' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
-  test('503 wird als nicht verfügbar gemeldet', async () => {
-    const off = await loadOff(jest.fn(async () => respond(503, {})) as FetchMock);
+  test('503 wird nach einem erneuten Versuch als nicht verfügbar gemeldet', async () => {
+    const fetchMock = jest.fn(async () => respond(503, {})) as FetchMock;
+    const off = await loadOff(fetchMock);
+    Object.assign(off.OFF_RETRY, { delayMs: 0, maxDelayMs: 0 });
     expect(await off.fetchProduct('1')).toEqual({ ok: false, error: 'unavailable' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+  test('FOOD-003: erst 503, beim zweiten Versuch gefunden', async () => {
+    let calls = 0;
+    const off = await loadOff(jest.fn(async () => (++calls === 1 ? respond(503, {}) : respond(200, product))) as FetchMock);
+    Object.assign(off.OFF_RETRY, { delayMs: 0, maxDelayMs: 0 });
+    expect(await off.fetchProduct('1')).toMatchObject({ ok: true });
   });
   test('kein Netz', async () => {
     const off = await loadOff(

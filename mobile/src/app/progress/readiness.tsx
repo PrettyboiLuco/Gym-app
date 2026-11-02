@@ -262,7 +262,8 @@ function SleepCard({ stats, goal }: { stats: SleepStats; goal: number }) {
 }
 
 function JournalCard({ findings, days }: { findings: JournalFinding[]; days: number }) {
-  const n = (v: number, metric: JournalFinding['metric']) => (metric === 'sleepHours' ? `${formatNumber(v, 1)} h` : formatNumber(v, 1));
+  const n = (v: number, metric: JournalFinding['metric']) =>
+    metric === 'sleepHours' ? `${formatNumber(v, 1)} h` : metric === 'performance' ? `${formatNumber(v, 0)} %` : formatNumber(v, 1);
   return (
     <Card title={t('readiness.journalTitle')}>
       {findings.length === 0 ? (

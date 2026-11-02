@@ -1,6 +1,6 @@
 // Fehler aus dem Phase 1 Scan (docs/Phase_1_Scan.md), Datenschicht – je Fehler ein Test, damit er nicht zurückkommt.
 
-import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import { effectiveModules } from '@/domain/modules';
 import { foodToForm, parseFoodForm } from '@/domain/nutrition';
@@ -9,8 +9,11 @@ import { readState } from '../app-state';
 import { restoreBackup } from '../backup';
 import { addBloodPressure } from '../blood-pressure';
 import type { Db } from '../db';
+import { fetchPage, OnlineDisabledError } from '../meal-plan';
 import { MIGRATIONS, migrate } from '../migrations';
 import { getFood, loadNutritionSettings, per100, saveFood, saveNutritionSettings } from '../nutrition';
+import { fetchProduct } from '../off';
+import { loadOnlineSetting, saveOnlineSetting } from '../online';
 import { loadProfile, saveProfile } from '../profile';
 import { buildReport } from '../report';
 import { createTestDb } from '../testing/node-db';
@@ -84,5 +87,16 @@ describe('Phase 1 Scan – Daten', () => {
     expect(r.nutritionHidden).toBe(true);
     expect(r.nutrition).toBeNull();
     expect(r.bloodPressure).toMatchObject({ count: 1, systolic: 120, diastolic: 80 });
+  });
+
+  test('LAW-018: Online-Funktionen aus – keine Anfrage an Open Food Facts oder eine Rezeptseite', async () => {
+    const fetchSpy = jest.fn();
+    (globalThis as { fetch: unknown }).fetch = fetchSpy;
+    await saveOnlineSetting(db, false);
+    expect(await loadOnlineSetting(db)).toBe(false);
+    expect(await fetchProduct('4000000000001')).toEqual({ ok: false, error: 'disabled' });
+    await expect(fetchPage('https://example.org/rezept')).rejects.toBeInstanceOf(OnlineDisabledError);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    await saveOnlineSetting(db, true);
   });
 });

@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Button } from '@/components/card';
 import { Choice, Field, MultiChoice } from '@/components/fields';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -89,19 +91,44 @@ export function SetDetails({
   );
 }
 
+const OWN = 'eigene';
+
+/** Scheibenrechner (A1.10): Stange 20/15/10 kg oder eigene, vorhandene Scheiben inkl. eigener, Scheiben je Seite. */
 function PlateLine({ weightText, unit, setup, onSetup }: { weightText: string; unit: WeightUnit; setup: PlateSetup; onSetup: (s: PlateSetup) => void }) {
   const shownWeight = parseDecimal(weightText);
   const result = shownWeight === null ? null : platesPerSide(shownWeight, setup);
   const bars = (unit === 'lb' ? BAR_OPTIONS_LB : BAR_OPTIONS_KG).map(String);
+  const [ownBar, setOwnBar] = useState(!bars.includes(String(setup.barKg)));
+  const [barText, setBarText] = useState(bars.includes(String(setup.barKg)) ? '' : formatNumber(setup.barKg, 2));
+  const [plateText, setPlateText] = useState('');
+  const defaults = unit === 'lb' ? DEFAULT_PLATES_LB : DEFAULT_PLATES_KG;
+  const plateOptions = [...new Set([...defaults, ...setup.platesKg])].sort((a, b) => b - a).map(String);
+  const newPlate = parseDecimal(plateText);
+  const plateValid = newPlate !== null && newPlate >= 0.25 && newPlate <= 50;
   return (
     <View style={styles.plates}>
       <Choice
         label={t('logger.bar', { unit })}
-        options={bars}
-        value={String(setup.barKg)}
-        onChange={(v) => onSetup({ ...setup, barKg: Number(v) })}
-        format={(v) => `${formatNumber(Number(v), 2)} ${unit}`}
+        options={[...bars, OWN]}
+        value={ownBar ? OWN : String(setup.barKg)}
+        onChange={(v) => {
+          setOwnBar(v === OWN);
+          if (v !== OWN) onSetup({ ...setup, barKg: Number(v) });
+        }}
+        format={(v) => (v === OWN ? t('logger.barOwn') : `${formatNumber(Number(v), 2)} ${unit}`)}
       />
+      {ownBar ? (
+        <Field
+          label={t('logger.barOwnLabel', { unit })}
+          value={barText}
+          keyboardType="decimal-pad"
+          onChangeText={(v) => {
+            setBarText(v);
+            const kg = parseDecimal(v);
+            if (kg !== null && kg >= 0 && kg <= 50) onSetup({ ...setup, barKg: kg });
+          }}
+        />
+      ) : null}
       <ThemedText>
         {result === null
           ? t('logger.platesNone', { bar: formatNumber(setup.barKg, 2), unit })
@@ -111,11 +138,25 @@ function PlateLine({ weightText, unit, setup, onSetup }: { weightText: string; u
       </ThemedText>
       <MultiChoice
         label={t('logger.platesAvailable', { unit })}
-        options={(unit === 'lb' ? DEFAULT_PLATES_LB : DEFAULT_PLATES_KG).map(String)}
+        options={plateOptions}
         value={setup.platesKg.map(String)}
         onChange={(v) => onSetup({ ...setup, platesKg: v.map(Number) })}
         format={(v) => formatNumber(Number(v), 2)}
       />
+      <View style={styles.plateAdd}>
+        <Field label={t('logger.plateOwn', { unit })} value={plateText} onChangeText={setPlateText} keyboardType="decimal-pad" style={styles.flex} />
+        <Button
+          label={t('logger.plateAdd')}
+          variant="secondary"
+          size="compact"
+          disabled={!plateValid}
+          onPress={() => {
+            if (!plateValid || newPlate === null) return;
+            onSetup({ ...setup, platesKg: [...new Set([...setup.platesKg, newPlate])].sort((a, b) => b - a) });
+            setPlateText('');
+          }}
+        />
+      </View>
       {result && result.rest > 0 ? (
         <ThemedText type="small" themeColor="textSecondary">
           {t('logger.platesRest', { rest: formatNumber(result.rest, 2), unit })}
@@ -128,4 +169,6 @@ function PlateLine({ weightText, unit, setup, onSetup }: { weightText: string; u
 const styles = StyleSheet.create({
   panel: { borderRadius: Spacing.three, borderWidth: 1, padding: Spacing.three, gap: Spacing.two },
   plates: { gap: Spacing.one },
+  plateAdd: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.two },
+  flex: { flex: 1 },
 });

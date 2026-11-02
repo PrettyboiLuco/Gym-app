@@ -7,9 +7,29 @@ Training.
 
 ## 0. Einheitlicher Stil (Entscheidung 30.10.2026)
 
-Alle Bilder sollen gleich aussehen und für jeden klar verständlich sein. Vor dem ersten Bild einmal festlegen und
-hier eintragen: Figur (gleiche Person/Figur in allen Bildern), Kleidung, Hintergrund, Blickwinkel (meist seitlich),
-Farben, Pfeile für die Bewegungsrichtung, Start- und Endposition nebeneinander oder nur Hauptposition.
+Alle Bilder sollen gleich aussehen und für jeden klar verständlich sein. **Stilvorgabe (Vorschlag 02.11.2026, von
+Luc zu bestätigen):**
+
+| Punkt | Vorgabe |
+|---|---|
+| Figur | immer dieselbe Figur: sportliche erwachsene Person, neutraler Ausdruck, kurze dunkle Haare, durchschnittlicher Körperbau (keine Extrem-Muskeln) |
+| Kleidung | schwarzes T-Shirt, schwarze kurze Hose, graue Schuhe; keine Logos, keine Schrift |
+| Hintergrund | einfarbig Hellgrau `#EEEEEE`, kein Raum, kein Boden-Muster; leichter Bodenschatten |
+| Geräte | neutral grau/schwarz, keine Marken; Gewichte ohne Aufschrift |
+| Blickwinkel | seitlich (90°) bei Kniebeuge, Kreuzheben, Drücken, Rudern, Curls; frontal bei Seitheben, Adduktoren, Butterfly; ¾ von vorn bei Kabelübungen |
+| Positionen | Start- und Endposition nebeneinander (zwei Figuren, links Start, rechts Ende); Halteübungen nur eine Figur |
+| Akzent | Lime `#C6F24E` (App-Farbe) nur für einen Bewegungspfeil und eine leichte Tönung der arbeitenden Muskeln |
+| Format | quadratisch 800 × 800 px, PNG oder WebP, Figur zentriert mit ca. 10 % Rand |
+| Stil | sauberes, flaches 3D-Rendering (wie eine Anleitung), keine Fotostimmung, kein Text im Bild |
+
+**Prompt-Vorlage für Higgsfield** (`<…>` je Übung ersetzen):
+> Clean flat 3D instructional render, square 800x800, plain light grey background #EEEEEE with soft floor shadow.
+> The same athletic adult figure in a black t-shirt, black shorts and grey shoes, no logos, no text. Two poses side by
+> side: left the start position, right the end position of <Übungsname auf Englisch>, <Blickwinkel> view, using a
+> <Gerät> without brand. A single lime green (#C6F24E) arrow shows the movement direction; the working muscles
+> (<Muskelgruppe>) are tinted lightly lime green. Correct joint angles and neutral spine.
+
+Reihenfolge der Bilder: `docs/Uebungsbilder_Top150.md` (die 150 wichtigsten Übungen, aus dem Code ermittelt).
 
 **Mit Higgsfield neu erstellen** ist möglich, mit drei Regeln:
 - Nur aus eigenen Vorgaben (Text, eigene Fotos) – nie fremde Übungsbilder als Vorlage hochladen (Rechte Dritter,

@@ -214,7 +214,7 @@ export function autoFactors(e: DiaryEvening): Factor[] {
   return out;
 }
 
-export type JournalMetric = 'energy' | 'sleepHours' | 'sleepQuality';
+export type JournalMetric = 'energy' | 'sleepHours' | 'sleepQuality' | 'performance';
 export type JournalFinding = {
   factor: Factor;
   metric: JournalMetric;
@@ -225,19 +225,33 @@ export type JournalFinding = {
   diff: number;
 };
 
-const METRIC_MIN_DIFF: Record<JournalMetric, number> = { energy: 0.5, sleepQuality: 0.5, sleepHours: 0.5 };
+const METRIC_MIN_DIFF: Record<JournalMetric, number> = { energy: 0.5, sleepQuality: 0.5, sleepHours: 0.5, performance: 3 };
+
+/** Wie viele Tage zurück die eigenen Bestwerte für „Leistung“ zählen. */
+export const PERFORMANCE_LOOKBACK_DAYS = 42;
+
+/**
+ * „Leistung“ eines Trainingstags (A6.10): Schnitt über die Übungen des Tages von
+ * geschätztem 1RM ÷ eigenem Bestwert derselben Übung aus den Wochen davor, in Prozent. Ohne Vergleich: null.
+ */
+export function performanceIndex(today: Map<string, number>, bests: Map<string, number>): number | null {
+  const ratios = [...today.entries()].filter(([id]) => (bests.get(id) ?? 0) > 0).map(([id, e1rm]) => e1rm / bests.get(id)!);
+  const avg = mean(ratios);
+  return avg === null ? null : Math.round(avg * 1000) / 10;
+}
 
 /**
  * „An Tagen mit … war deine Energie am nächsten Morgen im Schnitt …“. `days` = Morgen-Checks mit allen Faktoren des
  * Vortags (eigene und aus dem Tagebuch). Nur Unterschiede mit genug Tagen auf beiden Seiten, größte zuerst.
  */
-export function journalFindings(days: (DailyCheck & { allFactors: Factor[] })[]): JournalFinding[] {
+export function journalFindings(days: (DailyCheck & { allFactors: Factor[]; performance?: number | null })[]): JournalFinding[] {
   const factors = new Set(days.flatMap((d) => d.allFactors));
   const out: JournalFinding[] = [];
   for (const factor of factors) {
-    for (const metric of ['energy', 'sleepHours', 'sleepQuality'] as const) {
-      const withF = days.filter((d) => d.allFactors.includes(factor) && d[metric] !== null).map((d) => d[metric] as number);
-      const without = days.filter((d) => !d.allFactors.includes(factor) && d[metric] !== null).map((d) => d[metric] as number);
+    for (const metric of ['energy', 'sleepHours', 'sleepQuality', 'performance'] as const) {
+      const value = (d: (typeof days)[number]) => (metric === 'performance' ? (d.performance ?? null) : d[metric]);
+      const withF = days.filter((d) => d.allFactors.includes(factor) && value(d) !== null).map((d) => value(d) as number);
+      const without = days.filter((d) => !d.allFactors.includes(factor) && value(d) !== null).map((d) => value(d) as number);
       if (withF.length < JOURNAL_MIN_DAYS || without.length < JOURNAL_MIN_DAYS) continue;
       const withAvg = mean(withF)!;
       const withoutAvg = mean(without)!;

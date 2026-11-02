@@ -4,11 +4,13 @@ import type { ReactNode } from 'react';
 import { syncBasisFoods } from '@/data/basis-foods';
 import type { Db } from '@/data/db';
 import { migrate } from '@/data/migrations';
+import { loadOnlineSetting } from '@/data/online';
 
 /** Datenbank vorbereiten: Migrationen, dann die mitgelieferten Grundnahrungsmittel (A4, nur bei neuer Listen-Version). */
 async function prepare(db: Db) {
   await migrate(db);
   await syncBasisFoods(db);
+  await loadOnlineSetting(db);
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {

@@ -11,7 +11,7 @@ import type { Db } from './db';
 import { listActiveGoals } from './goals';
 import { listExercises } from './training';
 
-export const EXPORT_AREAS = ['training', 'cardio', 'ernaehrung', 'gewicht', 'masse', 'schlaf', 'blutdruck', 'ziele'] as const;
+export const EXPORT_AREAS = ['training', 'cardio', 'ablaeufe', 'ernaehrung', 'gewicht', 'masse', 'schlaf', 'blutdruck', 'ziele'] as const;
 export type ExportArea = (typeof EXPORT_AREAS)[number];
 
 /** wie components/cardio-row (ohne UI-Abhängigkeiten, damit testbar) */
@@ -191,6 +191,37 @@ async function bloodPressureCsv(db: Db) {
   );
 }
 
+/** Dehnen, HIIT, Aufwärmen, Cool-down (Fahrplan 5): ein Ablauf je Zeile, mit Ausgang und Dauer. */
+async function timedCsv(db: Db) {
+  const rows = await db.getAllAsync<{
+    at: string;
+    kind: string;
+    name: string;
+    status: string;
+    reason: string | null;
+    planned: number;
+    done: number | null;
+    rounds: number | null;
+  }>(
+    `SELECT started_at_utc AS at, kind, name, status, abort_reason AS reason, planned_seconds AS planned, done_seconds AS done,
+     rounds_done AS rounds FROM timed_session WHERE status <> 'aktiv' ORDER BY started_at_utc`
+  );
+  return toCsv(
+    ['Datum', 'Uhrzeit', 'Art', 'Name', 'Status', 'Abbruchgrund', 'Geplant (min)', 'Gemacht (min)', 'Runden'],
+    rows.map((r): Cell[] => [
+      localDay(new Date(r.at), timeZone),
+      time(r.at),
+      t(`history.kind.${r.kind}`),
+      r.name,
+      t(`history.status.${r.status}`),
+      r.reason,
+      Math.round(r.planned / 6) / 10,
+      r.done === null ? null : Math.round(r.done / 6) / 10,
+      r.rounds,
+    ])
+  );
+}
+
 async function goalsCsv(db: Db) {
   const names = new Map((await listExercises(db)).map((e) => [e.id, exerciseName(e)]));
   const goals = await listActiveGoals(db);
@@ -212,6 +243,7 @@ async function goalsCsv(db: Db) {
 const BUILDERS: Record<ExportArea, (db: Db) => Promise<string>> = {
   training: trainingCsv,
   cardio: cardioCsv,
+  ablaeufe: timedCsv,
   ernaehrung: nutritionCsv,
   gewicht: weightCsv,
   masse: measurementCsv,

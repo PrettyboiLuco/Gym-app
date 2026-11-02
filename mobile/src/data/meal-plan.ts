@@ -6,6 +6,7 @@ import { findBookRecipe } from '@/domain/recipe-book';
 
 import { newId, nowUtc, type Db } from './db';
 import { getFood, listRecipes, loadRecipeDraft, logRecipe, saveRecipe, type When } from './nutrition';
+import { onlineAllowed } from './online';
 import { logBookRecipe } from './recipe-book';
 
 const COLUMNS = 'id, day, meal, source, ref, name, portions, eaten_event_id AS eatenEventId';
@@ -119,8 +120,12 @@ export async function resetChecked(db: Db, week: string) {
 
 // ----------------------------------------------------------------------------- Rezept-Import
 
+/** Online-Funktionen sind ausgeschaltet (Nutzer oder Anbieter, siehe online.ts). */
+export class OnlineDisabledError extends Error {}
+
 /** Webseite laden (mit Zeitlimit). Im Browser verhindern viele Seiten das Laden (CORS) – dann Fehler. */
 export async function fetchPage(url: string, timeoutMs = 15_000): Promise<string> {
+  if (!onlineAllowed()) throw new OnlineDisabledError();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

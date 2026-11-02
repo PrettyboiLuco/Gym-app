@@ -8,7 +8,7 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
-import { fetchPage, saveImportedRecipe } from '@/data/meal-plan';
+import { fetchPage, OnlineDisabledError, saveImportedRecipe } from '@/data/meal-plan';
 import { searchFoods, type Food } from '@/data/nutrition';
 import { parsePortions } from '@/domain/basis-foods';
 import { parseAmount } from '@/domain/nutrition';
@@ -57,8 +57,8 @@ export default function ImportRecipeScreen() {
       setPortions(recipe.portions ? String(recipe.portions) : '');
       setSteps(recipe.steps);
       await prepare(recipe.ingredients);
-    } catch {
-      setProblem(t('recipeImport.loadFailed'));
+    } catch (e) {
+      setProblem(e instanceof OnlineDisabledError ? t('recipeImport.disabled') : t('recipeImport.loadFailed'));
     } finally {
       setBusy(false);
     }

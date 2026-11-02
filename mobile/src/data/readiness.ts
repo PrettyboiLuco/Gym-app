@@ -2,12 +2,15 @@
 
 import { lateCaffeineMg } from '@/domain/caffeine';
 import { shiftDay } from '@/domain/dates';
+import { bestOneRepMax, loadModeOf, type SetType } from '@/domain/logger';
 import {
   autoFactors,
   BASELINE_DAYS,
   lighterSets,
   loadRatio,
   MANUAL_FACTORS,
+  PERFORMANCE_LOOKBACK_DAYS,
+  performanceIndex,
   readiness,
   SLEEP_GOAL_DEFAULT,
   sessionLoad,
@@ -23,7 +26,7 @@ import { localDay, timeZone } from '@/domain/time';
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
 import { calorieGoalOn } from './goals';
-import { activeVersion, listActivePlans, loadPlanDraft, savePlan } from './training';
+import { activeVersion, listActivePlans, listExercises, loadPlanDraft, savePlan } from './training';
 
 const CHECK_COLUMNS = `day, bed_time AS bedTime, wake_time AS wakeTime, sleep_hours AS sleepHours, sleep_quality AS sleepQuality,
   energy, soreness, factors, note`;
@@ -240,10 +243,44 @@ export async function diaryFactors(db: Db, day: string): Promise<Factor[]> {
 /** Morgen-Checks mit allen Faktoren des Vortags (eigene + Tagebuch) für die Journal-Auswertung. */
 export async function journalDays(db: Db, fromDay: string, toDay: string) {
   const checks = await listChecks(db, fromDay, toDay);
-  const out: (DailyCheck & { allFactors: Factor[]; diary: Factor[] })[] = [];
+  const performance = await performanceByDay(db, fromDay, toDay);
+  const out: (DailyCheck & { allFactors: Factor[]; diary: Factor[]; performance: number | null })[] = [];
   for (const c of checks) {
     const diary = await diaryFactors(db, shiftDay(c.day, -1));
-    out.push({ ...c, diary, allFactors: [...new Set([...c.factors, ...diary])] });
+    out.push({ ...c, diary, allFactors: [...new Set([...c.factors, ...diary])], performance: performance.get(c.day) ?? null });
+  }
+  return out;
+}
+
+/** „Leistung“ je Trainingstag (A6.10): bestes geschätztes 1RM je Übung im Vergleich zu den eigenen Bestwerten davor. */
+async function performanceByDay(db: Db, fromDay: string, toDay: string): Promise<Map<string, number>> {
+  const rows = await db.getAllAsync<{ at: string; exerciseId: string; kg: number | null; reps: number | null; setType: SetType | null }>(
+    `SELECT s.started_at_utc AS at, l.exercise_id AS exerciseId, l.weight_kg AS kg, l.reps, l.set_type AS setType
+     FROM set_log l JOIN workout_session s ON s.id = l.session_id
+     WHERE l.completed_at_utc IS NOT NULL AND s.started_at_utc >= ?`,
+    `${shiftDay(fromDay, -PERFORMANCE_LOOKBACK_DAYS - 1)}T00:00:00.000Z`
+  );
+  const modes = new Map((await listExercises(db)).map((e) => [e.id, loadModeOf(e)]));
+  // Tag → Übung → bestes geschätztes 1RM
+  const byDay = new Map<string, Map<string, number>>();
+  for (const r of rows) {
+    const e1rm = bestOneRepMax([{ weightKg: r.kg, reps: r.reps, setType: r.setType }], modes.get(r.exerciseId) ?? 'normal');
+    if (e1rm === null) continue;
+    const day = localDay(new Date(r.at), timeZone);
+    const m = byDay.get(day) ?? new Map<string, number>();
+    m.set(r.exerciseId, Math.max(m.get(r.exerciseId) ?? 0, e1rm));
+    byDay.set(day, m);
+  }
+  const out = new Map<string, number>();
+  for (const [day, today] of byDay) {
+    if (day < fromDay || day > toDay) continue;
+    const bests = new Map<string, number>();
+    for (const [other, m] of byDay) {
+      if (other >= day || other < shiftDay(day, -PERFORMANCE_LOOKBACK_DAYS)) continue;
+      for (const [id, v] of m) bests.set(id, Math.max(bests.get(id) ?? 0, v));
+    }
+    const p = performanceIndex(today, bests);
+    if (p !== null) out.set(day, p);
   }
   return out;
 }

@@ -1,8 +1,11 @@
+import { useState } from 'react';
+
 import { Card } from '@/components/card';
 import { Choice } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { notificationPermission } from '@/data/notifications';
+import { onlineAllowed, saveOnlineSetting } from '@/data/online';
 import { loadReminders } from '@/data/reminders';
 import { MODULES, effectiveModules, type ModuleId } from '@/domain/modules';
 import { t } from '@/i18n';
@@ -14,6 +17,7 @@ import { applyReminders } from '@/services/alerts';
 export default function ModulesScreen() {
   const db = useDb();
   const { profile, updateProfile } = useProfile();
+  const [online, setOnline] = useState(onlineAllowed());
   const effective = effectiveModules(profile.modules);
 
   async function toggle(id: ModuleId, on: boolean) {
@@ -48,6 +52,21 @@ export default function ModulesScreen() {
           ) : null}
         </Card>
       ))}
+      <Card title={t('modules.onlineTitle')}>
+        <Choice
+          label={t('modules.onlineTitle')}
+          options={['an', 'aus'] as const}
+          value={online ? 'an' : 'aus'}
+          onChange={async (v) => {
+            await saveOnlineSetting(db, v === 'an');
+            setOnline(v === 'an');
+          }}
+          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+        />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('modules.onlineHint')}
+        </ThemedText>
+      </Card>
     </Screen>
   );
 }

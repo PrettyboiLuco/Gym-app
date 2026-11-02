@@ -8,11 +8,11 @@ export type StepEntry = { id: string; day: string; steps: number; source: StepSo
 export const STEP_RANGE = { min: 0, max: 100000 } as const;
 
 /** Schrittzahl eines Tages: neueste Apple-Health-Abfrage, sonst neuester eigener Eintrag. */
-export function stepsForDay(entries: StepEntry[], day: string): { steps: number; source: StepSource } | null {
+export function stepsForDay(entries: StepEntry[], day: string): { steps: number; source: StepSource; fetchedAt: string } | null {
   const sameDay = entries.filter((e) => e.day === day);
   const pick = (source: StepSource) => sameDay.filter((e) => e.source === source).sort((a, b) => (a.fetchedAt < b.fetchedAt ? 1 : -1))[0];
   const chosen = pick('apple_health') ?? pick('manuell');
-  return chosen ? { steps: chosen.steps, source: chosen.source } : null;
+  return chosen ? { steps: chosen.steps, source: chosen.source, fetchedAt: chosen.fetchedAt } : null;
 }
 
 /** Tage, an denen das Schrittziel erreicht wurde (für die Gewohnheit „Schritte“). */

@@ -678,6 +678,10 @@ export const de = {
     plates: 'Je Seite: {{list}} {{unit}}',
     platesBarOnly: 'Nur die Stange, keine Scheiben',
     platesAvailable: 'Vorhandene Scheiben ({{unit}})',
+    barOwn: 'Eigene',
+    barOwnLabel: 'Gewicht deiner Stange ({{unit}})',
+    plateOwn: 'Eigene Scheibe ({{unit}})',
+    plateAdd: 'Hinzufügen',
     loadMode: 'Gewicht eintragen als',
     loadModes: {
       auto: 'Automatisch',
@@ -1249,6 +1253,7 @@ export const de = {
       unavailable: 'Open Food Facts ist gerade nicht erreichbar. Versuch es später oder leg das Lebensmittel selbst an.',
       invalid: 'Unerwartete Antwort von Open Food Facts.',
       notFound: 'Dieses Produkt ist bei Open Food Facts nicht bekannt. Du kannst es selbst anlegen.',
+      disabled: 'Online-Funktionen sind ausgeschaltet (Mehr → Bereiche der App). Du kannst das Lebensmittel selbst anlegen.',
     },
     food: {
       title: 'Lebensmittel',
@@ -2242,6 +2247,7 @@ export const de = {
     title: 'Schritte',
     current: '{{steps}} Schritte ({{source}})',
     none: 'Für diesen Tag noch nichts eingetragen.',
+    fetchedAt: 'Stand: {{day}}, {{time}} Uhr – neuere Schritte erscheinen erst beim nächsten Abruf.',
     input: 'Schritte an diesem Tag',
     invalid: 'Bitte eine Zahl von 0 bis 100000 eingeben.',
     manualHint: 'Trag den Tagesstand ein, z. B. aus der Health-App. Ein neuer Wert ersetzt den alten.',
@@ -2389,6 +2395,10 @@ export const de = {
       bereitschaft: 'Aus: kein Morgen-Check, keine Ampel, keine Frage nach der Anstrengung nach dem Training.',
     },
     coachNeedsNutrition: 'Der Coach braucht die Ernährung und ist deshalb gerade mit aus.',
+    onlineTitle: 'Online-Funktionen',
+    onlineHint:
+      'Aus: Barcode-Scan und Online-Suche (Open Food Facts) sowie „Rezept per Link“ gehen nicht mehr ins Internet. ' +
+      'Grundnahrungsmittel, eigene Lebensmittel und alles andere funktionieren weiter ohne Netz.',
   },
   milestones: {
     screenTitle: 'Meilensteine & Bilanz',
@@ -2637,6 +2647,7 @@ export const de = {
     pasteRead: 'Zutaten lesen',
     pasteEmpty: 'Bitte mindestens eine Zutat einfügen.',
     noRecipe: 'Auf dieser Seite wurde kein lesbares Rezept gefunden. Du kannst die Zutaten unten einfügen.',
+    disabled: 'Online-Funktionen sind ausgeschaltet (Mehr → Bereiche der App). Du kannst die Zutaten unten einfügen.',
     loadFailed: 'Die Seite konnte nicht geladen werden (offline, falsche Adresse oder die Seite erlaubt das nicht). Du kannst die Zutaten unten einfügen.',
     recipeTitle: 'Rezept',
     name: 'Name',
@@ -2820,6 +2831,7 @@ export const de = {
       energy: 'deine Energie',
       sleepHours: 'dein Schlaf',
       sleepQuality: 'deine Schlafqualität',
+      performance: 'deine Leistung im Training (in % deiner Bestwerte der 6 Wochen davor)',
     },
     historyTitle: 'Verlauf (4 Wochen)',
     historyEmpty: 'Noch keine Morgen-Checks oder Trainings mit Anstrengung.',
@@ -2889,6 +2901,7 @@ export const de = {
     areas: {
       training: 'Training',
       cardio: 'Cardio',
+      ablaeufe: 'Dehnen & HIIT',
       ernaehrung: 'Tagebuch',
       gewicht: 'Gewicht',
       masse: 'Maße',

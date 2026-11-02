@@ -11,6 +11,8 @@ import { Platform } from 'react-native';
 
 import { normalizeOffProduct, type FoodDraft } from '@/domain/nutrition';
 
+import { onlineAllowed } from './online';
+
 const BASE = 'https://world.openfoodfacts.org';
 const SEARCH_BASE = 'https://search.openfoodfacts.org';
 // Eigene App-Kennung (FOOD-006) im Format der Open-Food-Facts-Anleitung: „App - System - Version - Kontakt“.
@@ -32,7 +34,7 @@ const FIELDS = [
   'ingredients_analysis_tags',
 ].join(',');
 
-export type OffError = 'offline' | 'notFound' | 'rateLimited' | 'unavailable' | 'invalid';
+export type OffError = 'offline' | 'notFound' | 'rateLimited' | 'unavailable' | 'invalid' | 'disabled';
 export type OffResult<T> = { ok: true; value: T } | { ok: false; error: OffError };
 
 /** Gleitendes Fenster: höchstens `max` Anfragen pro Minute. */
@@ -49,10 +51,13 @@ const productLimit = limiter(12);
 const searchLimit = limiter(8);
 
 async function getJson(url: string): Promise<OffResult<unknown>> {
+  if (!onlineAllowed()) return { ok: false, error: 'disabled' };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
   try {
     const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' }, signal: controller.signal });
+    const retryAfter = Number(res.headers?.get?.('Retry-After'));
+    lastRetryAfterMs = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : null;
     if (res.status === 429) return { ok: false, error: 'rateLimited' };
     if (res.status === 404) {
       // v3 meldet „nicht gefunden“ mit 404 und JSON-Inhalt.
@@ -68,10 +73,26 @@ async function getJson(url: string): Promise<OffResult<unknown>> {
   }
 }
 
+/** Wartezeit vor dem einen erneuten Versuch: „Retry-After“ des Servers, höchstens 5 s, sonst 2 s (im Test 0). */
+export const OFF_RETRY = { delayMs: 2_000, maxDelayMs: 5_000 };
+
+/**
+ * Bei Überlast (429/503) genau EIN erneuter Versuch nach kurzer Pause, statt sofort aufzugeben (FOOD-003:
+ * begrenzter Backoff, keine Endlosschleife). Danach bleibt der Fehler.
+ */
+async function getJsonWithRetry(url: string): Promise<OffResult<unknown>> {
+  const first = await getJson(url);
+  if (first.ok || (first.error !== 'rateLimited' && first.error !== 'unavailable')) return first;
+  const ms = Math.min(lastRetryAfterMs ?? OFF_RETRY.delayMs, OFF_RETRY.maxDelayMs);
+  await new Promise((r) => setTimeout(r, ms));
+  return getJson(url);
+}
+let lastRetryAfterMs: number | null = null;
+
 /** Produkt per Barcode (API v3). */
 export async function fetchProduct(barcode: string): Promise<OffResult<FoodDraft>> {
   if (!productLimit(Date.now())) return { ok: false, error: 'rateLimited' };
-  const res = await getJson(`${BASE}/api/v3/product/${encodeURIComponent(barcode)}?fields=${FIELDS}`);
+  const res = await getJsonWithRetry(`${BASE}/api/v3/product/${encodeURIComponent(barcode)}?fields=${FIELDS}`);
   if (!res.ok) return res;
   const draft = normalizeOffProduct(res.value, barcode);
   if (!draft) return { ok: false, error: 'notFound' };
@@ -85,6 +106,7 @@ export async function fetchProduct(barcode: string): Promise<OffResult<FoodDraft
 export async function searchProducts(query: string): Promise<OffResult<FoodDraft[]>> {
   if (!searchLimit(Date.now())) return { ok: false, error: 'rateLimited' };
   const q = encodeURIComponent(query.trim());
+  // Die Suche weicht bei Fehlern sofort auf die klassische Suche aus – kein zusätzliches Warten.
   const primary = await getJson(`${SEARCH_BASE}/search?q=${q}&page_size=20&langs=de,en&fields=${FIELDS}`);
   let hits = primary.ok ? extractHits(primary.value) : null;
   if (!hits) {

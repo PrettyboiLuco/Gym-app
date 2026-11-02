@@ -7,7 +7,7 @@ import { weeklyCheckin } from '../checkin';
 import { shiftDay } from '../dates';
 import { foodToForm, parseFoodForm } from '../nutrition';
 import { progressionAdvice } from '../progression';
-import { loadRatio } from '../readiness';
+import { journalFindings, loadRatio, performanceIndex } from '../readiness';
 import { parseIngredientLine } from '../recipe-import';
 import { deloadEnd } from '../training-stats';
 
@@ -104,5 +104,34 @@ describe('Phase 1 Scan – Logik', () => {
       { caffeineMg: 40, occurredAt: at('2026-11-01', 16), diaryDate: '2026-11-01' }, // nachmittags
     ];
     expect(lateCaffeineMg(events)).toBe(120);
+  });
+
+  test('A6.10: Leistung = Schnitt aus 1RM ÷ eigenem Bestwert; im Journal als eigene Größe', () => {
+    expect(
+      performanceIndex(
+        new Map([
+          ['bank', 95],
+          ['zug', 80],
+        ]),
+        new Map([
+          ['bank', 100],
+          ['zug', 80],
+        ])
+      )
+    ).toBe(97.5);
+    expect(performanceIndex(new Map([['neu', 50]]), new Map())).toBeNull();
+    const day = (i: number, factor: boolean, performance: number) => ({
+      day: `2026-10-${String(i + 1).padStart(2, '0')}`,
+      sleepHours: null,
+      sleepQuality: null,
+      energy: null,
+      soreness: null,
+      factors: [],
+      allFactors: factor ? ['alkohol'] : [],
+      performance,
+    });
+    const days = [...Array.from({ length: 5 }, (_, i) => day(i, true, 92)), ...Array.from({ length: 5 }, (_, i) => day(i + 5, false, 99))];
+    const f = journalFindings(days as never);
+    expect(f[0]).toMatchObject({ factor: 'alkohol', metric: 'performance', withAvg: 92, withoutAvg: 99 });
   });
 });

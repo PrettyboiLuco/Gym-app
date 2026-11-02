@@ -10,7 +10,7 @@ import { Spacing } from '@/constants/theme';
 import { addSteps, deleteSteps, listSteps } from '@/data/steps';
 import { shiftDay } from '@/domain/dates';
 import { parseSteps, stepsAverage, stepsForDay, type StepEntry } from '@/domain/steps';
-import { todayDay } from '@/domain/time';
+import { localDay, timeZone, todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
@@ -49,6 +49,15 @@ export default function StepsScreen() {
         <ThemedText>
           {current ? t('steps.current', { steps: formatNumber(current.steps, 0), source: t(`steps.source.${current.source}`) }) : t('steps.none')}
         </ThemedText>
+        {current && current.source !== 'manuell' ? (
+          // Abgerufene Werte nicht als „live“ ausgeben: Abrufzeit sichtbar machen (HEALTH-006).
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('steps.fetchedAt', {
+              time: new Date(current.fetchedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+              day: formatDay(localDay(new Date(current.fetchedAt), timeZone)),
+            })}
+          </ThemedText>
+        ) : null}
         <View style={styles.row}>
           <Field label={t('steps.input')} value={input} onChangeText={setInput} keyboardType="number-pad" style={styles.flex} />
           <Button label={t('common.save')} onPress={save} />
