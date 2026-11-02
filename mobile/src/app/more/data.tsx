@@ -158,6 +158,9 @@ export default function DataScreen() {
         <ThemedText type="small">{t('exportCsv.text')}</ThemedText>
         <Choice label={t('exportCsv.area')} options={EXPORT_AREAS} value={area} onChange={setArea} format={(a) => t(`exportCsv.areas.${a}`)} chips />
         <Button label={t('exportCsv.share')} variant="secondary" disabled={busy} onPress={exportCsv} />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('common.healthDataHint')}
+        </ThemedText>
       </Card>
 
       <Card title={t('importCsv.cardTitle')}>

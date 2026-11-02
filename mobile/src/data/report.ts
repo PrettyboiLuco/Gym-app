@@ -1,6 +1,7 @@
 // Bericht für Trainer oder Arzt (A5.5) und „Zusammenfassung für deine KI“ (A5.6): Zahlen eines Zeitraums, ohne
 // Bewertung. Gleiche Grundlage für PDF und Text, damit beide dasselbe sagen.
 
+import { bpAverage } from '@/domain/blood-pressure';
 import { daysBetween } from '@/domain/dates';
 import { estimateOneRepMax, loadModeOf, setVolume } from '@/domain/logger';
 import { mean } from '@/domain/math';
@@ -10,6 +11,8 @@ import { formatDay, formatNumber, t } from '@/i18n';
 
 import type { Db } from './db';
 import { calorieGoalOn, listActiveGoals } from './goals';
+import { loadNutritionSettings } from './nutrition';
+import { loadProfile } from './profile';
 import { listExercises } from './training';
 
 export const REPORT_WEEKS = ['4', '8', '12', '26'] as const;
@@ -31,6 +34,10 @@ export type Report = {
   };
   nutrition: { days: number; kcal: number | null; protein: number | null; carbs: number | null; fat: number | null; goalKcal: number | null } | null;
   sleep: { count: number; hours: number; quality: number | null } | null;
+  /** Blutdruck-Tagebuch: nur Anzahl und Durchschnitt, ohne Bewertung (wie in der App). */
+  bloodPressure: { count: number; systolic: number; diastolic: number; pulse: number | null } | null;
+  /** Ernährungszahlen ausgeblendet: Modus „ohne Zahlen“ oder sensible Situation (TRACK-006, Phase 1 Scan). */
+  nutritionHidden: boolean;
   goals: string[];
 };
 
@@ -113,16 +120,19 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     to
   );
   const goal = await calorieGoalOn(db, to);
-  const nutrition = food.length
-    ? {
-        days: food.length,
-        kcal: mean(food.map((f) => f.kcal ?? 0)),
-        protein: mean(food.map((f) => f.protein ?? 0)),
-        carbs: mean(food.map((f) => f.carbs ?? 0)),
-        fat: mean(food.map((f) => f.fat ?? 0)),
-        goalKcal: goal?.baseKcal ?? null,
-      }
-    : null;
+  const [settings, profile] = await Promise.all([loadNutritionSettings(db), loadProfile(db)]);
+  const nutritionHidden = settings.hideNumbers || profile.sensitive;
+  const nutrition =
+    !nutritionHidden && food.length
+      ? {
+          days: food.length,
+          kcal: mean(food.map((f) => f.kcal ?? 0)),
+          protein: mean(food.map((f) => f.protein ?? 0)),
+          carbs: mean(food.map((f) => f.carbs ?? 0)),
+          fat: mean(food.map((f) => f.fat ?? 0)),
+          goalKcal: goal?.baseKcal ?? null,
+        }
+      : null;
 
   const sleepRows = await db.getAllAsync<{ hours: number; quality: number | null }>(
     'SELECT sleep_hours AS hours, sleep_quality AS quality FROM daily_check WHERE sleep_hours IS NOT NULL AND day BETWEEN ? AND ?',
@@ -141,7 +151,15 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     return kind;
   });
 
-  return { from, to, weight, measurements, training, nutrition, sleep, goals };
+  const bloodPressure = bpAverage(
+    await db.getAllAsync<{ systolic: number; diastolic: number; pulse: number | null }>(
+      'SELECT systolic, diastolic, pulse FROM blood_pressure WHERE day BETWEEN ? AND ?',
+      from,
+      to
+    )
+  );
+
+  return { from, to, weight, measurements, training, nutrition, sleep, bloodPressure, nutritionHidden, goals };
 }
 
 const n = (v: number | null | undefined, digits = 0) => (v == null ? '–' : formatNumber(v, digits));
@@ -193,6 +211,15 @@ export function reportSections(r: Report): { title: string; lines: string[] }[] 
             fat: n(r.nutrition.fat),
           }),
           ...(r.nutrition.goalKcal ? [t('report.goal', { kcal: n(r.nutrition.goalKcal) })] : []),
+        ]
+      : [r.nutritionHidden ? t('report.nutritionHidden') : t('report.none')],
+  });
+  s.push({
+    title: t('report.bloodPressure'),
+    lines: r.bloodPressure
+      ? [
+          t('report.bloodPressureLine', { count: r.bloodPressure.count, sys: r.bloodPressure.systolic, dia: r.bloodPressure.diastolic }) +
+            (r.bloodPressure.pulse !== null ? ` · ${t('report.pulse', { pulse: r.bloodPressure.pulse })}` : ''),
         ]
       : [t('report.none')],
   });

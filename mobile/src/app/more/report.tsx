@@ -79,6 +79,9 @@ export default function ReportScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('report.copyHint')}
         </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('common.healthDataHint')}
+        </ThemedText>
       </Card>
       {error ? <ThemedText style={{ color: theme.danger }}>{t('report.failed')}</ThemedText> : null}
       {report ? (

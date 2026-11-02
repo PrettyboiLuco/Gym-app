@@ -25,6 +25,7 @@ import {
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { t } from '@/i18n';
+import { useModules } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
 import { applyReminders } from '@/services/alerts';
 
@@ -60,6 +61,8 @@ export default function NotificationsScreen() {
   }, [db]);
 
   const allowLeave = useUnsavedGuard(baseline !== '' && JSON.stringify({ form, wake, sleepGoal }) !== baseline);
+  // Erinnerungen ausgeschalteter Bereiche gar nicht erst anbieten (Phase 1 Scan).
+  const modules = useModules();
   const anyOn = form.timerAlerts || form.training.enabled || form.drink.enabled || form.morning.enabled || form.bedtime.enabled;
 
   async function save() {
@@ -163,79 +166,87 @@ export default function NotificationsScreen() {
         </ThemedText>
       </Card>
 
-      <Card title={t('reminders.drinkTitle')}>
-        {toggle(form.drink.enabled, (enabled) => setForm((f) => ({ ...f, drink: { ...f.drink, enabled } })), t('reminders.drinkToggle'))}
-        {form.drink.enabled ? (
-          <>
-            <View style={styles.row}>
-              <Field
-                label={t('reminders.from')}
-                value={form.drink.from}
-                onChangeText={(from) => setForm((f) => ({ ...f, drink: { ...f.drink, from } }))}
-                keyboardType="numbers-and-punctuation"
-                style={styles.flex}
+      {modules.ernaehrung ? (
+        <Card title={t('reminders.drinkTitle')}>
+          {toggle(form.drink.enabled, (enabled) => setForm((f) => ({ ...f, drink: { ...f.drink, enabled } })), t('reminders.drinkToggle'))}
+          {form.drink.enabled ? (
+            <>
+              <View style={styles.row}>
+                <Field
+                  label={t('reminders.from')}
+                  value={form.drink.from}
+                  onChangeText={(from) => setForm((f) => ({ ...f, drink: { ...f.drink, from } }))}
+                  keyboardType="numbers-and-punctuation"
+                  style={styles.flex}
+                />
+                <Field
+                  label={t('reminders.to')}
+                  value={form.drink.to}
+                  onChangeText={(to) => setForm((f) => ({ ...f, drink: { ...f.drink, to } }))}
+                  keyboardType="numbers-and-punctuation"
+                  style={styles.flex}
+                />
+              </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('reminders.every')}
+              </ThemedText>
+              <Presets
+                label={t('reminders.every')}
+                options={[1, 2, 3, 4]}
+                value={form.drink.everyHours}
+                onChange={(everyHours) => setForm((f) => ({ ...f, drink: { ...f.drink, everyHours } }))}
+                format={(h) => t('reminders.hours', { count: h })}
               />
-              <Field
-                label={t('reminders.to')}
-                value={form.drink.to}
-                onChangeText={(to) => setForm((f) => ({ ...f, drink: { ...f.drink, to } }))}
-                keyboardType="numbers-and-punctuation"
-                style={styles.flex}
-              />
-            </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('reminders.every')}
-            </ThemedText>
-            <Presets
-              label={t('reminders.every')}
-              options={[1, 2, 3, 4]}
-              value={form.drink.everyHours}
-              onChange={(everyHours) => setForm((f) => ({ ...f, drink: { ...f.drink, everyHours } }))}
-              format={(h) => t('reminders.hours', { count: h })}
+              {times.length > 0 ? <ThemedText type="small">{t('reminders.times', { times: times.map(formatTime).join(', ') })}</ThemedText> : null}
+            </>
+          ) : null}
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('reminders.drinkHint')}
+          </ThemedText>
+        </Card>
+      ) : null}
+
+      {modules.bereitschaft ? (
+        <Card title={t('reminders.morningTitle')}>
+          {toggle(form.morning.enabled, (enabled) => setForm((f) => ({ ...f, morning: { ...f.morning, enabled } })), t('reminders.morningToggle'))}
+          {form.morning.enabled ? (
+            <Field
+              label={t('reminders.time')}
+              value={form.morning.time}
+              onChangeText={(time) => setForm((f) => ({ ...f, morning: { ...f.morning, time } }))}
+              keyboardType="numbers-and-punctuation"
             />
-            {times.length > 0 ? <ThemedText type="small">{t('reminders.times', { times: times.map(formatTime).join(', ') })}</ThemedText> : null}
-          </>
-        ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('reminders.drinkHint')}
-        </ThemedText>
-      </Card>
+          ) : null}
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('reminders.morningHint')}
+          </ThemedText>
+        </Card>
+      ) : null}
 
-      <Card title={t('reminders.morningTitle')}>
-        {toggle(form.morning.enabled, (enabled) => setForm((f) => ({ ...f, morning: { ...f.morning, enabled } })), t('reminders.morningToggle'))}
-        {form.morning.enabled ? (
-          <Field
-            label={t('reminders.time')}
-            value={form.morning.time}
-            onChangeText={(time) => setForm((f) => ({ ...f, morning: { ...f.morning, time } }))}
-            keyboardType="numbers-and-punctuation"
+      {modules.bereitschaft ? (
+        <Card title={t('reminders.bedtimeTitle')}>
+          <Field label={t('reminders.wakeTime')} value={wake} onChangeText={setWake} keyboardType="numbers-and-punctuation" placeholder="06:30" />
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('reminders.sleepGoal')}
+          </ThemedText>
+          <Presets
+            label={t('reminders.sleepGoal')}
+            options={[7, 7.5, 8, 8.5, 9].filter((h) => h >= SLEEP_GOAL_RANGE.min && h <= SLEEP_GOAL_RANGE.max)}
+            value={sleepGoal}
+            onChange={setSleepGoal}
+            format={(h) => `${String(h).replace('.', ',')} h`}
           />
-        ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('reminders.morningHint')}
-        </ThemedText>
-      </Card>
-
-      <Card title={t('reminders.bedtimeTitle')}>
-        <Field label={t('reminders.wakeTime')} value={wake} onChangeText={setWake} keyboardType="numbers-and-punctuation" placeholder="06:30" />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('reminders.sleepGoal')}
-        </ThemedText>
-        <Presets
-          label={t('reminders.sleepGoal')}
-          options={[7, 7.5, 8, 8.5, 9].filter((h) => h >= SLEEP_GOAL_RANGE.min && h <= SLEEP_GOAL_RANGE.max)}
-          value={sleepGoal}
-          onChange={setSleepGoal}
-          format={(h) => `${String(h).replace('.', ',')} h`}
-        />
-        {toggle(form.bedtime.enabled, (enabled) => setForm((f) => ({ ...f, bedtime: { enabled } })), t('reminders.bedtimeToggle'))}
-        {bed !== null ? (
-          <ThemedText type="small">{t('reminders.bedtimeAt', { bed: formatTime(bed), at: formatTime((bed - BEDTIME_LEAD_MINUTES + 1440) % 1440) })}</ThemedText>
-        ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('reminders.bedtimeHint')}
-        </ThemedText>
-      </Card>
+          {toggle(form.bedtime.enabled, (enabled) => setForm((f) => ({ ...f, bedtime: { enabled } })), t('reminders.bedtimeToggle'))}
+          {bed !== null ? (
+            <ThemedText type="small">
+              {t('reminders.bedtimeAt', { bed: formatTime(bed), at: formatTime((bed - BEDTIME_LEAD_MINUTES + 1440) % 1440) })}
+            </ThemedText>
+          ) : null}
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('reminders.bedtimeHint')}
+          </ThemedText>
+        </Card>
+      ) : null}
 
       {problems.length > 0 ? (
         <Card>

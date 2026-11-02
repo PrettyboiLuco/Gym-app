@@ -115,12 +115,13 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
     });
   }
   const wake = await loadWakeTime(db);
-  const bed = settings.bedtime.enabled && wake ? bedtimeFor(wake, await loadSleepGoal(db)) : null;
+  // Bettzeit gehört zur Bereitschaft, Supplements zur Ernährung: ausgeschaltete Bereiche erinnern nicht (Phase 1 Scan).
+  const bed = settings.bedtime.enabled && wake && modules.bereitschaft ? bedtimeFor(wake, await loadSleepGoal(db)) : null;
   if (bed !== null) {
     const at = (bed - BEDTIME_LEAD_MINUTES + 1440) % 1440;
     list.push({ id: 'bettzeit', kind: 'daily', hour: Math.floor(at / 60), minute: at % 60, title: t('alerts.bedtimeTitle'), body: t('alerts.bedtimeBody') });
   }
-  for (const s of await supplementReminders(db)) {
+  for (const s of modules.ernaehrung ? await supplementReminders(db) : []) {
     const at = parseTime(s.reminderTime ?? '');
     if (at === null) continue;
     list.push({

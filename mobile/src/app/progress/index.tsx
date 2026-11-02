@@ -214,7 +214,15 @@ export default function ProgressScreen() {
             onPress={() => router.push('/progress/readiness')}
           />
         ) : null}
-        <ListRow icon="calendar" title={t('checkin.open')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
+        {modules.coach ? (
+          <ListRow
+            icon="calendar"
+            title={t('checkin.open')}
+            subtitle={t('checkin.dueSubtitle')}
+            accessory="›"
+            onPress={() => router.push('/progress/checkin')}
+          />
+        ) : null}
         <ListRow
           icon="flame"
           title={t('progress.calorieTitle')}

@@ -23,6 +23,7 @@ export const de = {
     saved: 'Gespeichert',
     loadFailed: 'Laden hat nicht geklappt. Bitte den Bildschirm neu öffnen.',
     saveFailed: 'Speichern hat nicht geklappt. Bitte noch einmal versuchen.',
+    healthDataHint: 'Enthält Gesundheitsdaten (z. B. Gewicht, Training, Essen). Gib sie nur an Menschen oder Dienste weiter, denen du vertraust.',
     deleted: 'Gelöscht',
     delete: 'Löschen',
     confirmDelete: 'Wirklich löschen?',
@@ -67,6 +68,7 @@ export const de = {
     weekSummaryPaused: 'Wochenziel pausiert – trainiert an Tagen: {{count}}',
     heroRestNext: 'Nächstes Training: {{day}}',
     heroStretch: 'Dehnen',
+    heroRestPlan: 'Plan ansehen',
     heroNoPlanEyebrow: 'Noch kein Trainingsplan',
     heroNoPlanTitle: 'Dein erster Plan',
     heroNoPlanText: 'Selbst zusammenstellen oder vom Planassistenten vorschlagen lassen.',
@@ -736,7 +738,7 @@ export const de = {
     level: { steigung: 'Steigung', stufe: 'Stufe / Widerstand' },
     avgHr: 'Ø Puls (Schläge/min)',
     effort: 'Anstrengung (1 = sehr leicht, 10 = maximal)',
-    effortHint: 'Wie anstrengend war es insgesamt? Fließt später in die Trainingslast ein.',
+    effortHint: 'Wie anstrengend war es insgesamt? Fließt in die Trainingslast der Bereitschaft ein.',
     note: 'Notiz',
     notePlaceholder: 'z. B. Intervalle 1 min schnell / 2 min locker',
     save: 'Speichern',
@@ -1717,7 +1719,7 @@ export const de = {
     },
     healthSoon: 'bald',
     healthHint:
-      'Apple Health verbindet die App mit der nächsten Version (Development Build, Fahrplan 6.1/6.2). Bis dahin trägst ' +
+      'Apple Health verbindet die App mit einer späteren Version. Bis dahin trägst ' +
       'du Schritte, Schlaf und Essen in der App ein – alles bleibt auf deinem Gerät.',
     finish: 'Fertig',
     problems: {
@@ -2115,7 +2117,7 @@ export const de = {
     lowBmi: 'Dein BMI liegt unter 18,5. Lass deinen Bedarf bitte fachlich prüfen.',
     apply: 'Als Kalorienziel übernehmen',
     applied: 'Übernommen. Das Ziel gilt ab heute und erscheint im Tagebuch.',
-    adjustHint: 'Nach einigen Wochen kannst du anhand deines Gewichtstrends nachjustieren. Automatische Anpassungen gibt es noch nicht.',
+    adjustHint: 'Nach einigen Wochen schlägt dir der wöchentliche Check-in unter „Fortschritt“ Anpassungen vor. Übernommen wird nur, was du bestätigst.',
     missing: 'Für eine Schätzung fehlt noch: {{list}}.',
     missingItem: {
       weight: 'Gewicht',
@@ -2158,8 +2160,8 @@ export const de = {
       '• Freiwillig und standardmäßig aus.\n' +
       '• Die Fotos bleiben nur in dieser App auf deinem Gerät. Kein Upload, keine Weitergabe, keine Werbung, keine KI.\n' +
       '• Aufnahmen landen nicht in deiner Fotos-Mediathek. Gewählte Bilder werden als Kopie gespeichert.\n' +
-      '• Wer dein entsperrtes Handy hat, kann die App öffnen. Eine eigene App-Sperre gibt es noch nicht.\n' +
-      '• Beim Löschen der App sind die Fotos weg. Eine Sicherung kommt später (Phase 6) und fragt dann extra nach.',
+      '• Schalte unter Mehr → App-Sperre Face ID bzw. den Gerätecode ein, damit niemand mit deinem entsperrten Handy die App öffnet.\n' +
+      '• Beim Löschen der App sind die Fotos weg. Unter Mehr → Deine Daten kannst du eine Sicherung mit Fotos erstellen – nur wenn du das extra einschaltest.',
     enable: 'Fotos einschalten',
     disable: 'Fotos ausschalten',
     disableHint: 'Ausschalten blendet den Bereich aus. Vorhandene Fotos bleiben gespeichert, bis du sie löschst.',
@@ -2947,6 +2949,10 @@ export const de = {
     copyHint: 'Für deine KI oder eine Nachricht: kopiert den Bericht als Text in die Zwischenablage. Du entscheidest, wo du ihn einfügst.',
     copied: 'Kopiert.',
     failed: 'Der Bericht konnte nicht erstellt werden.',
+    nutritionHidden: 'Ausgeblendet (Einstellung „ohne Zahlen“ oder sensible Situation).',
+    bloodPressure: 'Blutdruck (eigene Messungen, ohne Bewertung)',
+    bloodPressureLine: '{{count}} Messungen · Ø {{sys}}/{{dia}} mmHg',
+    pulse: 'Puls Ø {{pulse}}',
     title: 'Myhealth – Bericht',
     period: 'Zeitraum: {{from}} bis {{to}}',
     footer: 'Erstellt am {{date}} mit Myhealth aus selbst erfassten Werten. Keine medizinische Bewertung.',
@@ -3008,6 +3014,14 @@ export const de = {
       ernaehrung: 'Ernährung/Tagebuch',
       rechner: 'Kalorienrechner',
       fortschritt: 'Gewicht und Ziele',
+      statistik: 'Statistik, Muskelkarte, leichte Woche',
+      cardio: 'Cardio',
+      essenPlanen: 'Wochenplan, Einkaufsliste, Rezept per Link',
+      supplements: 'Supplements',
+      bereitschaft: 'Morgen-Check und Bereitschaft',
+      koerper: 'Maße, Fotos, Blutdruck',
+      meilensteine: 'Meilensteine und Plan-Wochen',
+      daten: 'Export, Import, Bericht, Sicherung',
     },
     missing: 'Was fehlt dir?',
     annoying: 'Was nervt oder ist unklar?',
@@ -3117,9 +3131,11 @@ export const de = {
       wasKann: {
         q: 'Was kann die App?',
         a:
-          'Trainingspläne anlegen oder vorschlagen lassen, Sätze mit Pausen-Timer erfassen, Dehnen, Mobilität und ' +
-          'HIIT-Abläufe, ein Ernährungstagebuch mit Barcode-Scan, Getränke, ein Kalorienrechner, ein Coach mit ' +
-          'Tagesziel und Makros sowie Gewicht, Maße, Schritte und Ziele unter „Fortschritt“.',
+          'Training: Pläne anlegen, aus Vorlagen übernehmen oder vorschlagen lassen, Sätze mit Pausen-Timer, Cardio, ' +
+          'Dehnen, Mobilität, HIIT, Statistik und eine leichte Woche zur Erholung. Ernährung: Tagebuch mit Barcode-Scan, ' +
+          'Grundnahrungsmitteln ohne Internet, Getränken, Rezepten, Wochenplan und Einkaufsliste. Fortschritt: Gewicht, ' +
+          'Maße, Fotos, Schritte, Bereitschaft (Morgen-Check), Blutdruck-Tagebuch, Ziele, Meilensteine, Coach und Check-in. ' +
+          'Bereiche, die du nicht brauchst, blendest du unter Mehr → Bereiche der App aus.',
       },
       coachStart: {
         q: 'Wie richte ich den Coach ein?',
@@ -3254,8 +3270,10 @@ export const de = {
       wasGesendet: {
         q: 'Welche Daten verlassen mein Handy?',
         a:
-          'Deine Einträge nur, wenn du es auslöst: beim Scannen oder bei der Online-Suche der Barcode bzw. Suchbegriff an ' +
-          'Open Food Facts, eine Sicherungsdatei, wenn du sie speicherst, und Feedback, wenn du es verschickst. Beim Start ' +
+          'Nur, was du selbst auslöst: beim Scannen oder bei der Online-Suche der Barcode bzw. Suchbegriff an Open Food ' +
+          'Facts; bei „Rezept per Link“ ruft dein Handy die Webseite ab (sie sieht deine IP-Adresse, nicht dein Tagebuch); ' +
+          'Sicherungen, Exporte (CSV, PDF-Bericht, Zusammenfassung zum Kopieren) und Teilen-Karten, wenn du sie erstellst ' +
+          'und weitergibst; Feedback, wenn du es verschickst. Exporte und Sicherungen können Gesundheitsdaten enthalten. Beim Start ' +
           'fragt die App außerdem beim Dienst Expo nach Korrekturen – dabei gehen nur technische Angaben wie Version und ' +
           'IP-Adresse mit, keine Gesundheitsdaten. Keine Werbung, keine Analyse-Dienste.',
       },
@@ -3299,6 +3317,62 @@ export const de = {
           'Noch nicht. Die Einrichtung ist vorbereitet; Schritte und Schlaf aus Apple Health kommen mit einer ' +
           'späteren Version. Bis dahin trägst du sie selbst ein.',
       },
+      cardio: {
+        q: 'Wie trage ich Cardio ein?',
+        a: 'Unter Training → „Cardio eintragen“ für sich allein oder im laufenden Training über „Cardio hinzufügen“. Dauer reicht; Strecke, Puls und Anstrengung sind freiwillig. Ein Tag nur mit Cardio zählt als Trainingstag.',
+      },
+      leichteWoche: {
+        q: 'Was ist die leichte Woche?',
+        a: 'Nach mehreren Trainingswochen am Stück bietet die App auf „Training“ eine leichtere Woche an: halbe Sätze, gleiche Gewichte, mehr Wiederholungen in Reserve. Sie gilt bis Sonntag und ist nur ein Angebot – du kannst sie verschieben.',
+      },
+      vorlagen: {
+        q: 'Gibt es fertige Pläne?',
+        a: 'Ja, unter Training → „Programm-Vorlagen“. Eine Vorlage wird als eigener Plan übernommen und passt sich deinem Geräteprofil an (z. B. Studio oder Zuhause). Danach kannst du alles ändern.',
+      },
+      statistik: {
+        q: 'Wo sehe ich meinen Fortschritt im Training?',
+        a: 'Unter Training → „Statistik & Muskelkarte“: Sätze je Muskel sowie Monats- und Jahreszahlen. Nach jedem Training zeigt die Zusammenfassung neue Bestleistungen.',
+      },
+      essenPlanen: {
+        q: 'Wie plane ich mein Essen für die Woche?',
+        a: 'Unter Ernährung → „Wochenplan“ legst du Rezepte oder Lebensmittel auf Tage und Mahlzeiten. Daraus entsteht die Einkaufsliste – zusammengefasst, nach Abteilung und zum Abhaken. „Gegessen“ trägt einen geplanten Eintrag ins Tagebuch ein.',
+      },
+      rezeptLink: {
+        q: 'Was passiert bei „Rezept per Link“?',
+        a: 'Dein Handy ruft die Webseite ab und liest das Rezept daraus. Die Seite sieht dabei deine IP-Adresse, aber nichts aus der App. Die Zutaten ordnest du selbst Lebensmitteln zu; Unklares markiert die App, statt zu raten.',
+      },
+      tagesende: {
+        q: 'Ich esse oft nach Mitternacht – auf welchen Tag zählt das?',
+        a: 'Unter Ernährung → Einstellungen kannst du festlegen, wann dein Tag endet (z. B. 4 Uhr). Was davor eingetragen wird, zählt dann noch zum Vortag.',
+      },
+      bereitschaft: {
+        q: 'Was zeigt die Bereitschafts-Ampel?',
+        a: 'Sie vergleicht deinen Morgen-Check (Schlaf, Energie, Muskelkater) und deine Trainingslast mit deinem eigenen Schnitt und macht daraus einen Trainingsvorschlag. Sie ist eine Hilfe zum Nachdenken, keine Diagnose, und lernt in den ersten zwei Wochen.',
+      },
+      verbrauch: {
+        q: 'Wie schätzt die App meinen Verbrauch?',
+        a: 'Aus deinen vollständigen Ernährungstagen und deinem Gewichtsverlauf der letzten Wochen. Die Schätzung zeigt einen Bereich, keine genaue Zahl, und braucht genug Einträge. Vorschläge übernimmst du nur, wenn du sie bestätigst.',
+      },
+      meilensteine: {
+        q: 'Gibt es Serien, die reißen können?',
+        a: 'Nein. Statt Serien zählt die App Plan-Wochen: Eine Woche ist geschafft, wenn du deine geplanten Trainingstage erreicht hast – Ruhetage zählen mit, eine verpasste Woche nimmt nichts weg. Meilensteine (z. B. 10. Training) erscheinen einmal auf „Heute“.',
+      },
+      blutdruck: {
+        q: 'Bewertet die App meinen Blutdruck?',
+        a: 'Nein. Das Blutdruck-Tagebuch speichert deine Werte mit Uhrzeit und zeigt den Durchschnitt der letzten 7 Tage – ohne Bewertung und ohne Grenzwerte. Fragen zu deinen Werten besprich bitte mit deiner Ärztin oder deinem Arzt.',
+      },
+      export: {
+        q: 'Wie gebe ich meine Daten weiter?',
+        a: 'Unter Mehr → Deine Daten: CSV-Export je Bereich, ein PDF-Bericht (z. B. für Trainer oder Arzt) und eine Zusammenfassung zum Kopieren. Diese Dateien enthalten Gesundheitsdaten – gib sie nur an Menschen oder Dienste weiter, denen du vertraust.',
+      },
+      importieren: {
+        q: 'Kann ich Daten aus anderen Apps übernehmen?',
+        a: 'Ja: Trainings aus Strong oder Hevy (CSV) und Gewichtswerte unter Mehr → Deine Daten → „Aus anderen Apps übernehmen“, einen Trainingsplan als Datei oder Text unter Training → Plan übernehmen. Vorher siehst du eine Vorschau; bestehende Daten werden nicht überschrieben.',
+      },
+      bereiche: {
+        q: 'Kann ich Bereiche ausblenden, die ich nicht nutze?',
+        a: 'Ja, unter Mehr → Bereiche der App: Ernährung, Coach, Dehnen & HIIT und Bereitschaft. Ausgeblendete Bereiche verschwinden aus Tabs, „Heute“ und Erinnerungen. Deine Daten bleiben erhalten und sind beim Einschalten wieder da.',
+      },
       fachlichGeprueft: {
         q: 'Sind die Empfehlungen fachlich geprüft?',
         a:
@@ -3321,10 +3395,13 @@ export const de = {
     feedbackSubtitle: 'Was nutzt du, was fehlt? Du schickst den Text selbst.',
     privacyTitle: 'Datenschutz',
     privacy:
-      'Alles bleibt auf deinem Gerät, es gibt kein Konto. Nur beim Scannen oder bei der Online-Suche wird der ' +
-      'Barcode bzw. Suchbegriff an Open Food Facts gesendet – nie dein Tagebuch. Fortschrittsfotos verlassen das Gerät nie. ' +
-      'Eine Sicherungsdatei entsteht nur, wenn du sie unter „Deine Daten“ selbst erstellst und speicherst. Beim Start ' +
-      'fragt die App beim Dienst Expo nach Korrekturen (nur technische Angaben wie Version und IP-Adresse).',
+      'Alles bleibt auf deinem Gerät, es gibt kein Konto. Ins Internet geht nur, was du selbst auslöst: beim Scannen oder ' +
+      'bei der Online-Suche der Barcode bzw. Suchbegriff an Open Food Facts; bei „Rezept per Link“ ruft dein Handy die ' +
+      'eingegebene Webseite ab (die Seite sieht dabei deine IP-Adresse). Exporte (CSV, PDF-Bericht, Zusammenfassung zum ' +
+      'Kopieren), Teilen-Karten und Sicherungen entstehen nur, wenn du sie erstellst – wohin sie gehen, bestimmst du. ' +
+      'Sie können Gesundheitsdaten enthalten. Fortschrittsfotos verlassen das Gerät nur in einer Sicherung, wenn du das ' +
+      'extra einschaltest. Beim Start fragt die App beim Dienst Expo nach Korrekturen (nur technische Angaben wie Version ' +
+      'und IP-Adresse).',
     health:
       'Die App unterstützt allgemeine Fitness für Erwachsene. Sie ersetzt keine ärztliche oder ' + 'fachliche Beratung. Alle Kalorienwerte sind Schätzungen.',
     languageTitle: 'Sprache',
@@ -3336,7 +3413,8 @@ export const de = {
     sources:
       'Produktdaten beim Scannen und in der Online-Suche stammen von Open Food Facts (openfoodfacts.org), ' +
       'Lizenz: Open Database License (ODbL). Die Daten können unvollständig oder fehlerhaft sein – bitte mit dem ' +
-      'Etikett vergleichen. Beim Abruf wird nur der Barcode bzw. Suchbegriff gesendet.',
+      'Etikett vergleichen. Beim Abruf wird nur der Barcode bzw. Suchbegriff gesendet. Die Grundnahrungsmittel ohne ' +
+      'Internet stammen aus der USDA-Nährwertdatenbank SR28 (gemeinfrei) und sind Richtwerte.',
   },
 };
 

@@ -6,10 +6,19 @@ import { normalize } from './text';
 
 export const HELP_SECTIONS = [
   { id: 'start', questions: ['wasKann', 'coachStart', 'coachAendern', 'keinKonto'] },
-  { id: 'training', questions: ['planAnlegen', 'planassistent', 'geraetBelegt', 'steigerung', 'pausenTimer', 'dehnenHiit'] },
-  { id: 'ernaehrung', questions: ['eintragen', 'eigeneWorte', 'scanFalsch', 'allergene', 'ohneZahlen', 'supplements'] },
-  { id: 'ziele', questions: ['kalorienSchaetzung', 'trainingsRuhetag', 'checkin', 'schritte', 'sensibel'] },
-  { id: 'daten', questions: ['wasGesendet', 'sicherung', 'neuesHandy', 'loeschen', 'appSperre'] },
+  {
+    id: 'training',
+    questions: ['planAnlegen', 'planassistent', 'vorlagen', 'geraetBelegt', 'steigerung', 'pausenTimer', 'cardio', 'leichteWoche', 'statistik', 'dehnenHiit'],
+  },
+  {
+    id: 'ernaehrung',
+    questions: ['eintragen', 'eigeneWorte', 'scanFalsch', 'allergene', 'essenPlanen', 'rezeptLink', 'tagesende', 'ohneZahlen', 'supplements'],
+  },
+  {
+    id: 'ziele',
+    questions: ['kalorienSchaetzung', 'trainingsRuhetag', 'checkin', 'verbrauch', 'bereitschaft', 'meilensteine', 'blutdruck', 'schritte', 'sensibel'],
+  },
+  { id: 'daten', questions: ['wasGesendet', 'export', 'importieren', 'bereiche', 'sicherung', 'neuesHandy', 'loeschen', 'appSperre'] },
   { id: 'probleme', questions: ['mitteilungen', 'fehler', 'appleHealth', 'fachlichGeprueft'] },
 ] as const;
 

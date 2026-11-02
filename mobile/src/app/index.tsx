@@ -154,8 +154,9 @@ export default function TodayScreen() {
             label: t('today.heroRest'),
             title: t('today.heroRestTitle'),
             meta: t('today.heroRestNext', { day: next.day }),
-            action: t('today.heroStretch'),
-            go: () => router.push('/training/stretch'),
+            // Dehnen nur anbieten, wenn der Bereich Routinen an ist (Phase 1 Scan).
+            action: modules.routinen ? t('today.heroStretch') : t('today.heroRestPlan'),
+            go: () => router.push(modules.routinen ? '/training/stretch' : '/training'),
           }
         : next
           ? { label: t('today.heroToday'), title: next.day, meta: next.plan, action: t('today.heroStart'), go: () => router.push('/training') }

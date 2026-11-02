@@ -1,6 +1,6 @@
 # Mappe für die rechtliche Prüfung (Phase 10.2)
 
-Stand 30.10.2026 · Register LAW-001–018, BUS-001/-007/-008/-011, O4 · Freigabematrix Kap. 18: **R5** (private Daten in
+Stand 02.11.2026 (nachgezogen nach Phase 1 Scan) · Register LAW-001–018, BUS-001/-007/-008/-011, O4 · Freigabematrix Kap. 18: **R5** (private Daten in
 Ads/KI/Crashlogs), **R7** (Veröffentlichung/Abrechnung), **R8** (Rechts-/Verbraucherinformationen).
 
 **Keine Rechtsberatung.** Diese Mappe sammelt den technischen Ist-Stand und die offenen Fragen, damit eine Anwältin
@@ -12,13 +12,23 @@ oder ein Anwalt (IT-/Datenschutzrecht) sie in einem Termin prüfen kann. Alle Te
 
 - Fitness- und Ernährungs-App für **gesunde Erwachsene ab 18**: Trainingspläne, Satzlogger, Timer, Dehnen/HIIT,
   Ernährungstagebuch mit Barcode-Scan, Kalorienrechner, Coach (Kalorien-/Makroziel), Gewicht, Maße, Fotos, Schritte.
+- **Neu seit 30.10. (Ausbau A1–A11), für die Abgrenzung besonders wichtig:**
+  - **Blutdruck-Tagebuch:** speichert eigene Messwerte und zeigt einen 7-Tage-Schnitt. **Keine** Bewertung, keine
+    Grenzwerte, kein Hinweis „zu hoch/zu niedrig“; Verweis an Ärztin/Arzt.
+  - **Bereitschafts-Ampel (Morgen-Check):** vergleicht eigene Angaben (Schlaf, Energie, Muskelkater) und Trainingslast
+    mit dem eigenen Schnitt und macht einen **Trainingsvorschlag**. Ausdrücklich keine Diagnose; Regeln mit Fassung.
+  - **Bericht „für Trainer oder Arzt“:** Zahlen eines Zeitraums als PDF/Text, **ohne Bewertung**; der Nutzer gibt ihn
+    selbst weiter.
+  - **Adaptive Verbrauchsschätzung und Check-in:** Kalorienvorschläge in kleinen Schritten, Untergrenze 1200 kcal,
+    bei sensibler Situation aus.
 - **Kein** Diagnose-, Therapie- oder Krankheitsbezug. Bei sensibler Situation (Schwangerschaft, Essstörung,
   Untergewicht, Erkrankung) zeigt die App keine Kalorienzahlen und unterstützt kein Abnehmen.
 - Vorschläge nach festen, sichtbaren Regeln, ohne KI; jede Änderung erst nach Bestätigung.
 - **Kostenlos, ohne Werbung, ohne Abo** (Stand heute; siehe 10.3 `docs/Monetarisierung_Entscheidung.md`).
 
 **Frage an die Prüfung:** Bleibt die App mit dieser Zweckbestimmung außerhalb der Medizinprodukte-Verordnung (MDR,
-LAW-010)? Welche Formulierungen in App und Store sind dafür wichtig?
+LAW-010) – auch mit Blutdruck-Tagebuch, Bereitschafts-Ampel und Arztbericht? Welche Formulierungen in App und Store
+sind dafür wichtig?
 
 ## 2. Datenflüsse (Ist-Stand im Code geprüft)
 
@@ -33,10 +43,13 @@ eigenen Server, keine Analyse-, Werbe-, Absturz- oder KI-Dienste** im Code.
 | D4 | **Sicherungsdatei** | nur wenn der Nutzer sie erstellt | alle Daten inkl. Gesundheitsdaten, optional Fotos; Speicherort wählt der Nutzer (z. B. iCloud Drive) | Nutzer selbst | Hinweis „enthält Gesundheitsdaten“ in der App vorhanden |
 | D5 | **Feedback** | nur wenn der Nutzer es verschickt (Teilen-Menü) | sichtbarer Text, optional Nutzungsanzahlen | Art. 6 Abs. 1 lit. a/b | Empfänger = Luc (Mail/Messenger des Nutzers) |
 | D6 | Mitteilungen, Kamera, Fotos, Face ID | lokal | nichts verlässt das Gerät | – | – |
+| D8 | **Webseite eines Rezepts** („Rezept per Link“) | nur wenn der Nutzer einen Link eingibt und „Laden“ tippt | Abruf der Seite durch das Handy: IP-Adresse, technische Angaben; **keine** App-Daten | Art. 6 Abs. 1 lit. b (vom Nutzer ausgelöst) | **Neu (A9):** in Datenschutz-Entwurf und App-Text nachgezogen (02.11.) |
+| D9 | **Exporte**: CSV je Bereich, PDF-Bericht, Zusammenfassung in die Zwischenablage, Teilen-Karten (Bild) | nur wenn der Nutzer sie erstellt und selbst weitergibt (Teilen-Menü) | je nach Export Gesundheitsdaten; Empfänger wählt der Nutzer (z. B. eine KI-App) | Nutzer selbst | **Neu (A5/A10):** Hinweis „enthält Gesundheitsdaten“ an CSV und Bericht ergänzt (02.11.); bei „ohne Zahlen“/sensibler Situation keine Ernährungszahlen im Bericht |
+| D10 | **Import** (Strong/Hevy/Waagen-CSV, Plan-Datei) | nur wenn der Nutzer eine Datei wählt | nichts verlässt das Gerät | – | – |
 | D7 | Apple Health (geplant, Development Build) | nur nach Freigabe | Lesen von Schritten/Schlaf, nichts wird gesendet | Art. 9 Abs. 2 lit. a (ausdrückliche Einwilligung) | LAW-004: iOS-Freigabe allein reicht evtl. nicht – eigene Einwilligung in der App? |
 
 **Gesundheitsdaten (Art. 9 DSGVO):** Gewicht, Maße, Fotos, Schlaf, Allergien, „sensible Situation“ (nur ja/nein),
-Ernährung, Training. Verarbeitet werden sie **nur auf dem Gerät des Nutzers**; der Anbieter erhält sie nie.
+Ernährung, Training, **Blutdruck und Puls, Morgen-Check (Energie, Muskelkater), Status (krank/verletzt)**. Verarbeitet werden sie **nur auf dem Gerät des Nutzers**; der Anbieter erhält sie nie.
 **Frage:** Ist Luc für rein lokal gespeicherte Daten überhaupt „Verantwortlicher“? Ist eine Datenschutz-Folgenabschätzung
 (DSFA, LAW-007) nötig, wenn keine Daten beim Anbieter ankommen?
 
@@ -48,7 +61,7 @@ Ernährung, Training. Verarbeitet werden sie **nur auf dem Gerät des Nutzers**;
 | Build/Updates | Expo (EAS) | Expo Terms, ggf. DPA (siehe D2) | kostenloser Tarif | offen | Luc |
 | Produktdaten | Open Food Facts | Datenbank ODbL, Namensnennung (in der App unter Mehr → Datenquellen); Produktbilder nicht genutzt | 0 € | erfüllt; User-Agent mit Kontakt nachtragen (OFF-Bitte) | Luc |
 | Software-Pakete | Open Source | 599 Laufzeit-Pakete, überwiegend MIT/ISC/BSD/Apache (Bericht `docs/Pakete_und_Sicherheit.md`) | 0 € | Lizenzhinweise in der App anzeigen? (Frage) | Luc |
-| App-Symbol | selbst gezeichnet | eigene Rechte | 0 € | erfüllt | Luc |
+| App-Symbol | Form selbst gezeichnet (`design/logo/logo.svg`); **3D-Look (Material, Licht) aus dem getlayers.ai-Werkzeug „SVG to 3D“, Preset „Heart“** | Nutzungsbedingungen von getlayers.ai für Ausgaben des Werkzeugs prüfen | 0 € | **offen** (Phase 1 Scan); Alternative: eigene Entwürfe `design/logo/vorschlaege/` ohne Vorlage | Luc |
 | Übungsbilder | eigene/Higgsfield | Nutzungsrechte je Bild im Verzeichnis (`exercise-media.ts`), Higgsfield-AGB prüfen | offen | noch keine Bilder | Luc |
 | Werbung | – | **nicht geplant** (Entscheidung offen, 10.3) | – | – | – |
 | KI | – | **nicht geplant** (Entscheidung 30.10.2026) | – | – | – |

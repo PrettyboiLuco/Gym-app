@@ -1,7 +1,25 @@
 // Feedback aus dem Pilot (Register BUS-002, BUS-015, BUS-016, O7). Nichts wird automatisch gesendet:
 // Die App erzeugt einen Text, den du selbst über das Teilen-Menü verschickst.
 
-export const AREAS = ['training', 'planassistent', 'dehnen', 'hiit', 'ernaehrung', 'rechner', 'fortschritt', 'checkin'] as const;
+// Alle Bereiche der App (Stand A1–A11). Kommt ein Bereich dazu, gehört er auch hierher (Phase 1 Scan: zweimal vergessen).
+export const AREAS = [
+  'training',
+  'planassistent',
+  'statistik',
+  'cardio',
+  'dehnen',
+  'hiit',
+  'ernaehrung',
+  'essenPlanen',
+  'supplements',
+  'rechner',
+  'checkin',
+  'bereitschaft',
+  'fortschritt',
+  'koerper',
+  'meilensteine',
+  'daten',
+] as const;
 export type Area = (typeof AREAS)[number];
 
 /** Zahlungsbereitschaft für eine werbefreie Pro-Version (Hypothesen aus BUS-002: 4 €/Monat, 30 €/Jahr). */

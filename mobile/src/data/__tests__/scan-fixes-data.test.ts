@@ -7,10 +7,12 @@ import { foodToForm, parseFoodForm } from '@/domain/nutrition';
 
 import { readState } from '../app-state';
 import { restoreBackup } from '../backup';
+import { addBloodPressure } from '../blood-pressure';
 import type { Db } from '../db';
 import { MIGRATIONS, migrate } from '../migrations';
-import { getFood, per100, saveFood } from '../nutrition';
+import { getFood, loadNutritionSettings, per100, saveFood, saveNutritionSettings } from '../nutrition';
 import { loadProfile, saveProfile } from '../profile';
+import { buildReport } from '../report';
 import { createTestDb } from '../testing/node-db';
 import { startSession } from '../training';
 
@@ -73,5 +75,14 @@ describe('Phase 1 Scan – Daten', () => {
     await restoreBackup(db, { app: 'gym-app', format: 1, schemaVersion: 14, exportedAt: '', tables: {}, appState, photos: null } as never);
     const profile = await readState<{ equipment: string[] }>(db, 'profile', { equipment: [] });
     expect(profile.equipment).toEqual(expect.arrayContaining(['kabel', 'kabel_crossover', 'kabel_doppel']));
+  });
+
+  test('TRACK-006: Bericht blendet Ernährungszahlen bei „ohne Zahlen“ aus; Blutdruck nur als Schnitt', async () => {
+    await saveNutritionSettings(db, { ...(await loadNutritionSettings(db)), hideNumbers: true });
+    await addBloodPressure(db, { day: '2026-10-20', measuredAt: '2026-10-20T07:00:00.000Z', systolic: 120, diastolic: 80, pulse: 60, note: null });
+    const r = await buildReport(db, '2026-10-01', '2026-10-31');
+    expect(r.nutritionHidden).toBe(true);
+    expect(r.nutrition).toBeNull();
+    expect(r.bloodPressure).toMatchObject({ count: 1, systolic: 120, diastolic: 80 });
   });
 });
