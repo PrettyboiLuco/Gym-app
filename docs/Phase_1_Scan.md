@@ -205,6 +205,27 @@ Alle drei sind vollständig selbst gezeichnet (keine Vorlage) und bleiben in der
 Die Vorschläge sind flache Entwürfe. Die gewählte Form kann danach wie das jetzige Herz als 3D-Version gerendert
 werden, mit eigenem Render statt Preset.
 
+### 6b. 3D-Fassungen über getlayers (02.11.2026)
+
+Alle drei Vorschläge sind mit dem getlayers-Werkzeug **„SVG to 3D“** gerendert, auf demselben Weg wie das jetzige Herz.
+Material, Licht, Glanz und Nachbearbeitung kommen 1:1 aus dem Bau-Prompt des Werkzeugs (three.js 0.158, Flüssig-Chrom
+in #C6F24E, Rand- und Fülllicht). Die Formen sind eigene: Die Linienentwürfe wurden für das Extrudieren in Flächen
+umgewandelt (`design/logo/vorschlaege/shapes3d.js`).
+
+- Vergleich mit dem jetzigen Symbol: `design/logo/vorschlaege/3d/vergleich-3d.png`
+- Einzelbilder: `…/3d/<name>-3d.png` (schräg wie das jetzige Symbol), `…/3d/<name>-3d-front.png` (gerade)
+- Neu erzeugen: `cd design/logo && node vorschlaege/shapes3d.js && node run.js vorschlaege/3d/jobs.json`
+
+### 6c. Effekt für die Erfolgsmomente (U5) über getlayers
+
+Das Werkzeug **Text Animations**, Voreinstellung **„Pop Scale“**: Buchstaben springen mit leichtem Überschwingen auf.
+- Werte aus dem Bau-Prompt: out = Deckkraft 0 / Größe 0 → in = 1 / 1, Feder Spannung 320, Reibung 14, 25 ms Versatz je
+  Buchstabe.
+- Die Web-Bibliothek dahinter (spring-text-engine) läuft nicht in React Native. Die Werte würden wie schon bei
+  „Word Rise“ 1:1 auf Reanimated übertragen (Spannung = stiffness, Reibung = damping, Masse 1).
+- Einsatz nur als Rückmeldung auf dem Abschluss-Bildschirm („Training geschafft“). Kein Auftritt beim Öffnen, wie es
+  der taste-skill für App-Bildschirme verlangt.
+
 ## 7. Was ich vergessen bzw. nicht nachgezogen hatte
 
 Ehrlich aufgelistet. Das sind Dinge, die bei A1–A11 hätten mitlaufen müssen:
