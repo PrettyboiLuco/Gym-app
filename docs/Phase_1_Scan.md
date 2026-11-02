@@ -234,3 +234,19 @@ Deshalb habe ich jeden mittleren Fehler selbst im Code nachgelesen und die Werte
 **Nicht selbst gegengeprüft** (Agenten-Befund, plausibel, vor dem Beheben einzeln prüfen):
 - die übrigen geringen Oberflächen-Punkte aus Anhang E
 - die Einstufung jeder einzelnen PDF-ID in Anhang A/B; Stichproben stimmten (HEALTH-006, Datenschutz, Module, Fotos-Text)
+
+## 11. Umsetzung (02.11.2026)
+
+| Paket | Stand | Commit |
+|---|---|---|
+| P1 Fehler im Gym | **behoben:** App-Sperre als Ebene (Training bleibt), Doppeltipp-Sperre zentral (`useOnce` in Button, Listenzeile, Satz-Haken) + Doppelstart-Schutz in der Datenbank, Planeditor lädt nach dem Assistenten neu, Halte-Countdown wird beim Verlassen eingetragen | `7f2eeb5` |
+| P2 Zahlen und Daten | **behoben:** F4–F8, F11 und alle geringen Logikfehler aus Anhang D/E; je Fehler ein Test in `scan-fixes(-data).test.ts` | `96196b6` |
+| P3 Texte und Datenschutz | **behoben:** Fotos-Text, Hilfe (44 Fragen), Feedback-Bereiche, Datenschutz in App/Docs/Webseite, Gesundheitsdaten-Hinweis an Exporten, Bericht ohne Ernährungszahlen bei „ohne Zahlen“ (TRACK-006), Module überall | `a35241d` |
+| P4 Stimmung und App-Symbol | **wartet auf Lucs Auswahl** (Abschnitte 5, 6, Fragen 1–3) | – |
+| P5 Doku | **erledigt:** Doku-Stand, Gerätetest X15–X20/S1–S8, Übungsbilder Top-150 + Stilvorgabe | `06c57a3` |
+| Weiter ohne MacBook | **erledigt:** Journal „Leistung“ (A6.10), eigene Stange/Scheiben (A1.10), CSV Dehnen/HIIT, Blutdruck im Bericht, Schritte-Abrufzeit (HEALTH-006), Backoff bei Open Food Facts (FOOD-003), Online-Funktionen abschaltbar + Not-Aus + Support-/Notfallplan (TECH-020, LAW-018) | `d6b2f5e` |
+| P6 Apple Health / Health Connect | wartet auf das MacBook | – |
+
+Bewusst offen gelassen (brauchen Lucs Entscheidung oder etwas außerhalb der App): Wochenwechsel Chest Press/Multipresse,
+Gewichts-Hochrechnung, Coach-Makros, Expo-Updates, Kontakt-E-Mail in der Open-Food-Facts-Kennung, Uhrsprünge
+(HEALTH-016, nur mit Development Build sinnvoll prüfbar), Einwilligung nach Art. 9 (Anwalt).
