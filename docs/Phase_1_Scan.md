@@ -18,7 +18,7 @@ mit Wegwerf-Skripten gegen den echten Code bestätigt oder sind ausdrücklich al
 |---|---|
 | Arbeitsgrundlage (147 IDs) | **69 umgesetzt**, 8 fertig gebaut, aber noch ohne Fachfreigabe, **19 teilweise**, **0 fehlen ganz**, 28 bewusst verschoben (mit Doku-Beleg), 14 extern offen (Anwalt, Store, Luc), 9 kein App-Thema |
 | Lucs Plan (Seite 1) | vollständig drin: 4 Tage So/Mo/Mi/Fr, Satzzahlen 16/18/17/13, RIR, Hinweise. Klein: der wöchentliche Wechsel „Chest Press ↔ Multipresse“ und „Trizeps im Wechsel mit Curls“ stehen nur als Notiz, die App wechselt nicht selbst |
-| Fehler im Code | **kein kritischer** (kein Absturz, kein großer Datenverlust), **11 mittlere, 21 geringe**, bestätigt |
+| Fehler im Code | **kein kritischer** (kein Absturz, kein großer Datenverlust), **8 mittlere**, gut 20 geringe (nach Gegenprüfung, siehe Abschnitt 10) |
 | Plan und Doku | Code fast vollständig. **Texte in der App und Docs sind nicht mitgezogen** (Datenschutz, Hilfe, Fotos-Hinweis, Feedback-Bogen) |
 | Oberfläche | sauber und ruhig, aber fast nur Schwarz/Weiß. Die Markenfarbe Lime kommt kaum vor (bewusste Regel vom 31.10.: „Lime nur auf Daten“) |
 | App-Symbol | 3D-Look stammt aus einem getlayers-Preset; die Doku sagt „selbst gezeichnet“. **3 eigene Vorschläge** liegen bereit |
@@ -35,15 +35,15 @@ mit Wegwerf-Skripten gegen den echten Code bestätigt oder sind ausdrücklich al
 | F5 | **Lebensmittel bearbeiten löscht den Koffeinwert** | Energy-Drink: Namen ändern, danach 0 mg Koffein | `domain/nutrition.ts:335`, `data/nutrition.ts:190` |
 | F6 | **Coach bleibt aus**, wenn Ernährung aus- und wieder eingeschaltet wird | Coach muss man von Hand wieder einschalten (und weiß das nicht) | `app/more/modules.tsx:19` |
 | F7 | **Bereitschaft: Trainingslast in den ersten 2–4 Wochen zu hoch** | Ampel zeigt ohne Grund „Last hoch“ (Faktor 1,45–2,0 statt ~1,0) | `domain/readiness.ts:77` |
-| F8 | **Check-in schlägt beim Abnehmen mehr Kalorien vor**, wenn das eigene Ziel unter 1200 liegt | widersprüchlicher Vorschlag „1100 → 1200“ | `domain/checkin.ts:181/199`, `adaptive.ts:297` |
-| F9 | **Notizen werden im Browser nie gespeichert**; auf dem iPhone vielleicht nicht, wenn man bei offener Tastatur „Abschließen“ tippt (unbestätigt) | Trainingsnotiz weg | `session/[id].tsx:917`, `summary/[id].tsx:292` |
+| F8 | **Check-in: falsche Begründung**, wenn das eigene Ziel unter der Untergrenze (1200) liegt | Die Zahl 1200 ist gewollt (Sicherheitsgrenze), aber die App sagt „das Gewicht bewegt sich nicht“, statt „dein Ziel liegt unter der Untergrenze“ – *gering* | `domain/checkin.ts:181/199`, `adaptive.ts:297` |
+| F9 | **Notizen werden in der Browser-Vorschau nie gespeichert** (betrifft nur die Web-Vorschau). iPhone: unbestätigt, nur möglich beim Tippen auf „Abschließen“ bei offener Tastatur – *gering* | Trainingsnotiz weg | `session/[id].tsx:917`, `summary/[id].tsx:292` |
 | F10 | **Planeditor lädt nach dem Planassistenten nicht neu** | Ändern und Speichern überschreibt still die Fassung des Assistenten | `plan/[id].tsx:157` |
-| F11 | **Ältere Sicherung wiederherstellen holt Datenumwandlungen nicht nach** | Kalorienziel (v ≤ 3) und neue Kabelgeräte (v ≤ 14) fehlen; Plank als Wdh. statt Sekunden | `data/backup.ts:155–179` |
+| F11 | **Ältere Sicherung wiederherstellen holt Datenumwandlungen nicht nach** | Real nur: Sicherungen vom 30./31.10. (Version 7–14) bekommen die neuen Kabelgeräte nicht. Ältere Sicherungen gibt es nicht, die Funktion kam erst mit Version 7 – *gering* | `data/backup.ts:155–179` |
 
 **Geringe Fehler (Auswahl, alle in Anhang D und E):**
 
 *Training*
-- „Leichte Woche“ am Sonntag gestartet dauert nur einen Tag.
+- „Leichte Woche“ läuft bewusst „bis Sonntag“; am Sonntag gestartet ist das nur ein Tag, setzt aber trotzdem den 8-Wochen-Zähler zurück.
 - „Ca. 10 % leichter“ bleibt beim selben Gewicht, wenn der Geräteschritt groß ist.
 - Halte-Countdown geht verloren, wenn man „Zurück“ tippt.
 - Verlauf zeigt nach Mitternacht den Vortag (UTC).
@@ -196,9 +196,41 @@ Ehrlich aufgelistet. Das sind Dinge, die bei A1–A11 hätten mitlaufen müssen:
 
 ## 9. Vorschlag für die Reihenfolge danach (Entwurf, wird nach deinen Antworten festgelegt)
 
-1. **P1 Fehler, die im Gym stören:** F1 App-Sperre, F2/F3 Doppeltipp (gemeinsames Muster), F9 Notizen, F10 Planeditor.
-2. **P2 Falsche Zahlen und Daten:** F4/F5 Lebensmittel, F7 Bereitschaft, F8 Check-in, F11 alte Sicherungen, F6 Coach-Schalter, geringe Rechenfehler.
+1. **P1 Fehler, die im Gym stören:** F1 App-Sperre, F2/F3 Doppeltipp (gemeinsames Muster), F10 Planeditor.
+2. **P2 Falsche Zahlen und Daten:** F4/F5 Lebensmittel, F7 Bereitschaft, F6 Coach-Schalter, dann geringe Fehler (F8, F11, Rezept-Import, Rundungen).
 3. **P3 Texte und Datenschutz nachziehen:** Fotos-Text, Hilfe, Feedback-Bogen, Datenschutz in App und Docs, Export-Hinweis, Module überall.
 4. **P4 Stimmung und App-Symbol** nach deiner Auswahl.
 5. **P5 Doku-Stand** und Gerätetest-Liste ergänzen; Zulieferung Übungsbilder.
 6. **Mit MacBook:** Development Build, Apple Health und Health Connect (D3/D4/D9).
+
+## 10. Gegenprüfung (02.11.2026, nach Lucs „Sicher?“)
+
+Die Fehlersuche lief über fünf Hilfs-Agenten. Deren Prüfskripte haben Werte meist nur ausgegeben, nicht hart geprüft.
+Deshalb habe ich jeden mittleren Fehler selbst im Code nachgelesen und die Werte gegen den echten Code laufen lassen.
+
+**Selbst bestätigt (Code gelesen, Werte nachgerechnet):**
+- F1 App-Sperre hängt die App aus
+- F2 kein Schutz gegen Doppelstart
+- F3 Buchen ohne Sperre
+- F4 Salz „0,0762“ ergibt den Fehler „nutrient“
+- F5 Koffein ist nach dem Bearbeiten NULL
+- F6 Coach-Schalter
+- F7 bei 21 Tagen Verlauf 1,45 statt richtig ≈ 1,09
+- F10 Editor lädt nur beim Öffnen; der Assistent wird aus ihm geöffnet und ersetzt sich danach durch einen zweiten Editor, der alte bleibt darunter
+- Rezept-Import („1.000 g“ → 1 g; „2–3 EL“ und „ca. 200 g“ ohne Menge)
+- Rundung „10 % leichter“
+- Sicherung v14 ohne neue Kabelgeräte
+- veralteter Fotos-Text
+- Datenschutz-Texte ohne Rezept-Link
+- Supplement- und Bettzeit-Erinnerung ohne Modul-Prüfung
+- Herkunft des App-Symbols
+
+**Korrigiert (vorher zu hoch eingestuft):**
+- **F8:** Die Zahl 1200 ist die gewollte Sicherheitsgrenze; nur die Begründung ist falsch → gering.
+- **F9:** Sicher betrifft das nur die Browser-Vorschau (react-native-web kennt `onEndEditing` nicht); auf dem iPhone ist es unbestätigt → gering.
+- **F11:** Sicherungen gibt es erst ab Schema-Version 7. Die Teile „Kalorienziel v ≤ 3“ und „Plank v ≤ 5“ können nie eintreten → gering.
+- **Leichte Woche:** „bis Sonntag“ ist gewollt; der Fehler ist nur das Zurücksetzen des 8-Wochen-Zählers.
+
+**Nicht selbst gegengeprüft** (Agenten-Befund, plausibel, vor dem Beheben einzeln prüfen):
+- die übrigen geringen Oberflächen-Punkte aus Anhang E
+- die Einstufung jeder einzelnen PDF-ID in Anhang A/B; Stichproben stimmten (HEALTH-006, Datenschutz, Module, Fotos-Text)
