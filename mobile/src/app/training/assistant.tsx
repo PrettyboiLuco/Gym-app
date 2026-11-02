@@ -444,7 +444,10 @@ export default function AssistantScreen() {
           <ThemedText>{message}</ThemedText>
           {applied ? (
             <>
-              <Button label={t('assistant.openPlan')} onPress={() => router.replace(`/training/plan/${applied.planId}`)} />
+              <Button label={t('assistant.openPlan')} onPress={() =>
+                  // Aus dem Planeditor geöffnet: zurück zu ihm (er lädt die neue Fassung), statt einen zweiten zu stapeln.
+                  params.plan === applied.planId && router.canGoBack() ? router.back() : router.replace(`/training/plan/${applied.planId}`)
+                } />
               <Button label={t('assistant.undo')} variant="secondary" onPress={undo} />
             </>
           ) : null}

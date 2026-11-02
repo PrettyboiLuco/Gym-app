@@ -1,5 +1,5 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Fragment, useEffect, useState } from 'react';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
@@ -168,13 +168,34 @@ export default function PlanEditorScreen() {
     };
   }, [db, id, isNew]);
 
+  // Zurück vom Planassistenten (oder einem anderen Bildschirm): ohne ungespeicherte Änderungen neu laden,
+  // sonst würde Speichern die neue Fassung still überschreiben (Phase 1 Scan, F10).
+  const dirty = JSON.stringify(form) !== baseline;
+  const dirtyRef = useRef(false);
+  const applyRef = useRef(apply);
+  useEffect(() => {
+    dirtyRef.current = dirty;
+    applyRef.current = apply;
+  });
+  const focusedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!focusedOnce.current) {
+        focusedOnce.current = true;
+        return;
+      }
+      if (isNew || dirtyRef.current) return;
+      fetchEditor(db, id, isNew).then((data) => applyRef.current(data));
+    }, [db, id, isNew])
+  );
+
   const byId = new Map(exercises.map((e) => [e.id, e]));
   const isTimed = (exerciseId: string) => byId.get(exerciseId)?.measure === 'zeit';
   const draft = toDraft(form, isTimed);
   const problems = validatePlan(draft);
   /** Dauer des vorgeschlagenen Aufwärmens/Cool-downs in Sekunden (STRETCH-001: in der Zeitschätzung). */
   const blockSeconds = (day: DayForm, kind: 'aufwaermen' | 'cooldown') => blockSecondsOf(day.items, exercises, kind);
-  const allowLeave = useUnsavedGuard(JSON.stringify(form) !== baseline);
+  const allowLeave = useUnsavedGuard(dirty);
 
   function updateDay(index: number, change: Partial<DayForm>) {
     setForm((f) => ({ ...f, days: f.days.map((d, i) => (i === index ? { ...d, ...change } : d)) }));

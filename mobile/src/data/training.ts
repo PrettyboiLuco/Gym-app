@@ -380,8 +380,18 @@ export async function lastCompletedDayPosition(db: Db, planId: string): Promise<
   return row?.position ?? null;
 }
 
+/** Zwei Starts innerhalb dieser Zeit gelten als Doppeltipp. */
+const DOUBLE_START_MS = 10_000;
+
 /** Startet ein Training. Mit Plantag werden die geplanten Sätze als offene Einträge angelegt. */
 export async function startSession(db: Db, planDayId: string | null): Promise<string> {
+  // Doppeltipp-Schutz: Wurde dasselbe Training gerade eben (≤ 10 s) gestartet, gilt dieses (Phase 1 Scan, F2).
+  const recent = await db.getFirstAsync<{ id: string }>(
+    `SELECT id FROM workout_session WHERE status = 'aktiv' AND plan_day_id IS ? AND started_at_utc >= ? ORDER BY started_at_utc DESC LIMIT 1`,
+    planDayId,
+    new Date(Date.now() - DOUBLE_START_MS).toISOString()
+  );
+  if (recent) return recent.id;
   const id = newId();
   await db.withTransactionAsync(async () => {
     await db.runAsync("INSERT INTO workout_session (id, plan_day_id, status, started_at_utc) VALUES (?, ?, 'aktiv', ?)", id, planDayId, nowUtc());

@@ -8,6 +8,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
+import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
@@ -384,11 +385,12 @@ export function ListRow({
   trailing?: ReactNode;
 }) {
   const theme = useTheme();
+  const press = useOnce(onPress);
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={[title, value, subtitle].filter(Boolean).join(', ')}
-      onPress={onPress}
+      onPress={press}
       disabled={!onPress}
       style={({ pressed }) => [styles.rowOuter, pressed && { backgroundColor: theme.backgroundSelected }]}>
       {icon ? (

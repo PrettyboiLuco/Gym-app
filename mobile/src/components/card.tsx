@@ -6,6 +6,7 @@ import { haptic } from '@/components/haptics';
 import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
+import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -60,6 +61,7 @@ export function Button({
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const disabled = props.disabled || loading;
+  const press = useOnce(props.onPress ?? undefined);
   const pressIn = (e: GestureResponderEvent) => {
     scale.set(withSpring(0.96, Spring));
     props.onPressIn?.(e);
@@ -84,7 +86,7 @@ export function Button({
         onPress={(e) => {
           if (variant === 'destructive') haptic.warning();
           else haptic.tap();
-          props.onPress?.(e);
+          press(e);
         }}
         onPressIn={pressIn}
         onPressOut={pressOut}>

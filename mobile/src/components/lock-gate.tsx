@@ -47,21 +47,31 @@ export function LockGate({ children }: { children: ReactNode }) {
     };
   }, [db, tryUnlock]);
 
-  if (state === 'offen') return <>{children}</>;
+  // Gesperrt wird mit einer deckenden Ebene ÜBER der App, nicht durch Aushängen: Ein laufendes Training,
+  // getippte Satzwerte und Timer bleiben erhalten (Phase 1 Scan, F1). Dahinter ist nichts sicht- oder bedienbar.
+  const locked = state !== 'offen';
   return (
-    <ThemedView style={styles.root}>
-      {state === 'gesperrt' ? (
-        <View style={styles.box}>
-          <ThemedText type="subtitle">{t('security.lockedTitle')}</ThemedText>
-          <ThemedText themeColor="textSecondary">{t('security.lockedText')}</ThemedText>
-          <Button label={t('security.unlock')} onPress={tryUnlock} />
-        </View>
+    <View style={styles.fill}>
+      <View style={styles.fill} accessibilityElementsHidden={locked} importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'} pointerEvents={locked ? 'none' : 'auto'}>
+        {children}
+      </View>
+      {locked ? (
+        <ThemedView style={[StyleSheet.absoluteFill, styles.root]}>
+          {state === 'gesperrt' ? (
+            <View style={styles.box}>
+              <ThemedText type="subtitle">{t('security.lockedTitle')}</ThemedText>
+              <ThemedText themeColor="textSecondary">{t('security.lockedText')}</ThemedText>
+              <Button label={t('security.unlock')} onPress={tryUnlock} />
+            </View>
+          ) : null}
+        </ThemedView>
       ) : null}
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.four },
+  fill: { flex: 1 },
+  root: { alignItems: 'center', justifyContent: 'center', padding: Spacing.four },
   box: { gap: Spacing.three, alignItems: 'center' },
 });

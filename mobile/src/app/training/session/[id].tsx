@@ -169,9 +169,15 @@ export default function SessionScreen() {
 
   // Zeitgeber des Countdowns; beim Verlassen des Bildschirms aufräumen.
   const holdTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Läuft beim Verlassen noch ein Countdown, wird der Satz mit den bis dahin gehaltenen Sekunden eingetragen
+  // (wie „Stopp“), statt still verloren zu gehen (Phase 1 Scan).
+  const stopHoldRef = useRef<() => void>(() => {});
   useEffect(
     () => () => {
-      if (holdTimeout.current) clearTimeout(holdTimeout.current);
+      if (holdTimeout.current) {
+        clearTimeout(holdTimeout.current);
+        stopHoldRef.current();
+      }
     },
     []
   );
@@ -286,6 +292,9 @@ export default function SessionScreen() {
     setInputs(({ [row.id]: _done, ...rest }) => rest);
     await load();
   }
+  useEffect(() => {
+    stopHoldRef.current = stopHold;
+  });
 
   async function finish(status: 'abgeschlossen' | 'abgebrochen') {
     await finishSession(db, id, status, status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined);

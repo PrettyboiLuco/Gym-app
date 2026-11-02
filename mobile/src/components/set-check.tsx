@@ -6,6 +6,7 @@ import Svg, { Path } from 'react-native-svg';
 import { haptic } from '@/components/haptics';
 import { Spring } from '@/constants/motion';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
@@ -27,6 +28,7 @@ export function SetCheck({
   const dark = useColorScheme() === 'dark';
   const reduced = useReducedMotion();
   const scale = useSharedValue(1);
+  const press = useOnce(onPress);
   const fill = dark ? theme.accent : theme.tint;
   const mark = dark ? theme.onAccent : theme.onTint;
 
@@ -52,7 +54,7 @@ export function SetCheck({
       onPress={() => {
         if (done) haptic.tap();
         else haptic.press();
-        onPress();
+        press();
       }}>
       <Animated.View
         style={[
