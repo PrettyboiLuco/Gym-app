@@ -1,33 +1,10 @@
-// Muskelkarte: jede Muskelgruppe ist zu sehen, alle Flächen liegen im Körper, die Spiegelung stimmt.
+// Muskelkarte: jeder Muskel ist zu sehen, alle Flächen liegen im Körper, die Spiegelung stimmt, Antippen trifft.
 
 import { describe, expect, test } from '@jest/globals';
 
-import { FIGURE, mirror, OUTLINE, TOP_DOWN } from '@/components/muscle-figure';
+import { FIGURE, hitTest, mirror, OUTLINE, polygon, sidesOf, type Pt } from '@/components/muscle-figure';
 import { MUSCLE_GROUPS } from '@/domain/exercises';
-
-type Pt = [number, number];
-
-/** Pfad (nur M, L, C, Z) als Punktfolge; Kurven werden in 12 Schritten abgetastet. */
-function polygon(d: string): Pt[] {
-  const tokens = d.match(/[MLCZ]|-?\d*\.?\d+/g) ?? [];
-  const pts: Pt[] = [];
-  let i = 0;
-  const num = () => Number(tokens[i++]);
-  while (i < tokens.length) {
-    const cmd = tokens[i++];
-    if (cmd === 'M' || cmd === 'L') pts.push([num(), num()]);
-    else if (cmd === 'C') {
-      const [x0, y0] = pts[pts.length - 1];
-      const [x1, y1, x2, y2, x3, y3] = [num(), num(), num(), num(), num(), num()];
-      for (let k = 1; k <= 12; k++) {
-        const s = k / 12;
-        const u = 1 - s;
-        pts.push([u ** 3 * x0 + 3 * u * u * s * x1 + 3 * u * s * s * x2 + s ** 3 * x3, u ** 3 * y0 + 3 * u * u * s * y1 + 3 * u * s * s * y2 + s ** 3 * y3]);
-      }
-    }
-  }
-  return pts;
-}
+import { MAP_MUSCLES } from '@/domain/muscle-map';
 
 function inside([x, y]: Pt, poly: Pt[]): boolean {
   let hit = false;
@@ -43,26 +20,21 @@ const body = polygon(OUTLINE);
 const VIEWS = ['front', 'back', 'frontMini', 'backMini'] as const;
 
 describe('Muskelkarte', () => {
-  test('jede Muskelgruppe außer Ganzkörper hat vorne oder hinten eine Fläche (groß und klein)', () => {
-    for (const [a, b] of [
-      ['front', 'back'],
-      ['frontMini', 'backMini'],
-    ] as const) {
-      const shown = new Set([...FIGURE[a], ...FIGURE[b]].map((r) => r.group));
-      for (const g of MUSCLE_GROUPS) if (g !== 'ganzkoerper') expect(shown).toContain(g);
-    }
+  test('jeder Kartenmuskel hat vorne oder hinten eine Fläche', () => {
+    const shown = new Set([...FIGURE.front, ...FIGURE.back].map((r) => r.muscle));
+    for (const m of MAP_MUSCLES) expect(shown).toContain(m);
   });
 
-  test('Ganzkörper wird als Umriss gezeigt, nicht als Fläche', () => {
-    for (const v of VIEWS) expect(FIGURE[v].map((r) => r.group)).not.toContain('ganzkoerper');
-    expect(TOP_DOWN.ganzkoerper).toBeGreaterThan(Math.max(...Object.values(TOP_DOWN).filter((n) => n < TOP_DOWN.ganzkoerper)));
+  test('die kleine Karte hat für jede Muskelgruppe außer Ganzkörper eine Fläche', () => {
+    const shown = new Set([...FIGURE.frontMini, ...FIGURE.backMini].map((r) => r.group));
+    for (const g of MUSCLE_GROUPS) if (g !== 'ganzkoerper') expect(shown).toContain(g);
   });
 
   test('alle Muskelflächen liegen innerhalb des Körperumrisses', () => {
     const outside: string[] = [];
     for (const v of VIEWS)
       for (const r of FIGURE[v])
-        for (const d of r.paths) for (const p of polygon(d)) if (!inside(p, body)) outside.push(`${v}/${r.group}: ${p.map((n) => n.toFixed(1)).join(' ')}`);
+        for (const poly of r.polys) for (const p of poly) if (!inside(p, body)) outside.push(`${v}/${r.key}: ${p.map((n) => n.toFixed(1)).join(' ')}`);
     expect(outside).toEqual([]);
   });
 
@@ -80,5 +52,36 @@ describe('Muskelkarte', () => {
       .match(/-?\d*\.?\d+/g)!
       .map(Number);
     expect(back).toEqual(d.match(/-?\d*\.?\d+/g)!.map(Number));
+  });
+
+  test('Reihen laufen von oben nach unten', () => {
+    const row = (m: string) => FIGURE.front.find((r) => r.muscle === m)!.row;
+    expect(row('nacken')).toBeLessThan(row('brust_mitte'));
+    expect(row('brust_mitte')).toBeLessThan(row('quadrizeps'));
+    expect(row('quadrizeps')).toBeLessThan(row('waden'));
+  });
+});
+
+describe('Antippen (Punkt 4)', () => {
+  test('ein Punkt in der Fläche trifft sie – links wie rechts', () => {
+    expect(hitTest(FIGURE.front, 40, 48)?.muscle).toBe('brust_mitte');
+    expect(hitTest(FIGURE.front, 60, 48)?.muscle).toBe('brust_mitte');
+    expect(hitTest(FIGURE.back, 40, 110)?.muscle).toBe('gesaess');
+  });
+
+  test('auf einer Fuge gilt die nächste Fläche im Fangradius', () => {
+    // Mitte zwischen den Brusthälften (Fuge bei x = 50)
+    expect(hitTest(FIGURE.front, 50, 48)?.group).toBe('brust');
+  });
+
+  test('weit daneben trifft nichts', () => {
+    expect(hitTest(FIGURE.front, 2, 10)).toBeNull();
+    expect(hitTest(FIGURE.front, 50, 12)).toBeNull(); // Kopf
+  });
+
+  test('Seiten eines Muskels', () => {
+    expect(sidesOf('bizeps')).toEqual(['front']);
+    expect(sidesOf('lat')).toEqual(['back']);
+    expect(sidesOf('waden')).toEqual(['front', 'back']);
   });
 });

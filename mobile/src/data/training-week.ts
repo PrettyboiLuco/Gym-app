@@ -2,11 +2,12 @@
 
 import { daysBetween, shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
+import { tallyMuscles, type MuscleTally } from '@/domain/muscle-map';
 import { plannedSetsByWeekday, trainedDays } from '@/domain/summary';
 import { localDay, timeZone } from '@/domain/time';
 import { nextDayIndex } from '@/domain/training';
 
-import { readState } from './app-state';
+import { readState, writeState } from './app-state';
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
@@ -100,3 +101,36 @@ export async function plannedMuscles(db: Db, planDayId: string): Promise<Partial
   );
   return Object.fromEntries(rows.map((r) => [r.group, r.sets]));
 }
+
+/**
+ * Arbeitssätze der Woche je Kartenmuskel (Muskelkarte, docs/Muskelkarte_Ausbau.md): Hauptmuskel ganz, mitbeteiligte
+ * getrennt, Ganzkörper extra. Gleiche Auswahl wie loadWeekSetsByMuscle (Kraftübungen, ohne Aufwärmsätze).
+ */
+export async function loadWeekTally(db: Db, today: string): Promise<MuscleTally> {
+  const monday = weekStart(today);
+  const rows = await db.getAllAsync<{ startedAt: string; exerciseId: string }>(
+    `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
+     JOIN workout_session s ON s.id = l.session_id
+     WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ?`,
+    `${shiftDay(monday, -1)}T00:00:00.000Z`
+  );
+  const exercises = new Map((await listExercises(db)).map((e) => [e.id, e]));
+  const perExercise = new Map<string, number>();
+  for (const r of rows) {
+    if (localDay(new Date(r.startedAt), timeZone) < monday) continue;
+    const e = exercises.get(r.exerciseId);
+    if (!e || e.kind !== 'kraft') continue;
+    perExercise.set(e.id, (perExercise.get(e.id) ?? 0) + 1);
+  }
+  return tallyMuscles([...perExercise].map(([id, sets]) => ({ exercise: exercises.get(id)!, sets })));
+}
+
+/** Einstellungen der Muskelkarte: Ansicht und ob mitbeteiligte Muskeln halb zählen (Punkte 2.3 und 5.4). */
+export type MapPrefs = { view: 'beide' | 'vorne' | 'hinten'; halfSecondary: boolean };
+const MAP_PREFS_DEFAULT: MapPrefs = { view: 'beide', halfSecondary: true };
+
+export async function loadMapPrefs(db: Db): Promise<MapPrefs> {
+  return { ...MAP_PREFS_DEFAULT, ...(await readState<Partial<MapPrefs>>(db, 'muscle_map', {})) };
+}
+
+export const saveMapPrefs = (db: Db, prefs: MapPrefs) => writeState(db, 'muscle_map', prefs);

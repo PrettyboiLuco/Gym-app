@@ -32,6 +32,7 @@ export function TrainingBlock({
   action,
   onPress,
   muscles,
+  spared = [],
 }: {
   label: string;
   title: string;
@@ -42,9 +43,12 @@ export function TrainingBlock({
   onPress: () => void;
   /** Geplante Sätze je Muskel des heutigen Plantags (U4); ohne = keine Karte. */
   muscles?: Partial<Record<MuscleGroup, number>> | null;
+  /** Geschonte Bereiche (Status „verletzt“): gestrichelt auf der kleinen Karte, Hinweis bei Überschneidung. */
+  spared?: readonly MuscleGroup[];
 }) {
   const theme = useTheme();
   const groups = muscles ? (Object.keys(muscles) as MuscleGroup[]).filter((g) => (muscles[g] ?? 0) > 0) : [];
+  const overlap = groups.filter((g) => spared.includes(g));
   return (
     <View style={[styles.block, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
       <View style={styles.headRow}>
@@ -57,8 +61,15 @@ export function TrainingBlock({
           </ThemedText>
           {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
         </View>
-        {groups.length ? <MuscleMapMini sets={muscles!} label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })} /> : null}
+        {groups.length ? (
+          <MuscleMapMini sets={muscles!} spared={spared} label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })} />
+        ) : null}
       </View>
+      {overlap.length ? (
+        <ThemedText type="small" style={{ color: theme.danger }}>
+          {t('today.sparedHint', { list: overlap.map((g) => t(`muscle.${g}`)).join(', ') })}
+        </ThemedText>
+      ) : null}
       <WeekStrip days={week} summary={weekSummary} />
       <View style={styles.action}>
         <Button label={action} onPress={onPress} />

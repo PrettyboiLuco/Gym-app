@@ -20,7 +20,8 @@ const load = (file) => {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText;
   const mod = { exports: {} };
-  new Function('module', 'exports', 'require', js)(mod, mod.exports, () => ({}));
+  // Die Zeichnung braucht aus der Logik nur die Muskelgruppe je Muskel; für das Bild reicht ein Platzhalter.
+  new Function('module', 'exports', 'require', js)(mod, mod.exports, () => ({ MAP_GROUP: new Proxy({}, { get: () => 'gruppe' }) }));
   return mod.exports;
 };
 const { FIGURE, OUTLINE, VIEWBOX } = load('src/components/muscle-figure.ts');
@@ -39,7 +40,10 @@ function view(regions, theme, w, h, gap) {
   const muscles = regions
     .map((r) =>
       r.paths
-        .map((d) => `<path d="${d}" fill="${theme.ramp[levels[r.group] ?? 0]}" stroke="${theme.body}" stroke-width="${gap}" stroke-linejoin="round"/>`)
+        .map(
+          (d) =>
+            `<path d="${d}" fill="${theme.ramp[levels[r.muscle] ?? levels[r.group] ?? 0]}" stroke="${theme.body}" stroke-width="${gap}" stroke-linejoin="round"/>`
+        )
         .join('')
     )
     .join('');

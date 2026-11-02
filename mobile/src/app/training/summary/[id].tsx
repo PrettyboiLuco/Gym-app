@@ -31,8 +31,8 @@ import {
   type SessionInfo,
 } from '@/data/training';
 import { loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
-import type { MuscleGroup } from '@/domain/exercises';
 import { bestOneRepMax, countsAsWork, loadModeOf } from '@/domain/logger';
+import { EMPTY_TALLY, tallyMuscles, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { findRecords, summarize, type Record } from '@/domain/summary';
 import { todayDay } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
@@ -74,13 +74,14 @@ async function loadSummary(db: Db, id: string) {
     );
   }
   const cooldownOffered = session?.cooldown !== 0 && !blocks.some((b) => b.kind === 'cooldown');
-  // Arbeitssätze je Muskelgruppe (nur Kraftübungen, ohne Aufwärmsätze) für die Muskelkarte „Heute trainiert“
-  const muscleSets: { [g in MuscleGroup]?: number } = {};
+  // Arbeitssätze je Muskel (nur Kraftübungen, ohne Aufwärmsätze) für die Muskelkarte „Heute trainiert“
+  const perExercise = new Map<string, number>();
   for (const s of done) {
     const e = byId.get(s.exerciseId);
     if (!e || e.kind !== 'kraft' || !countsAsWork(s.setType)) continue;
-    muscleSets[e.muscleGroup] = (muscleSets[e.muscleGroup] ?? 0) + 1;
+    perExercise.set(e.id, (perExercise.get(e.id) ?? 0) + 1);
   }
+  const muscleTally = tallyMuscles([...perExercise].map(([exerciseId, sets]) => ({ exercise: byId.get(exerciseId)!, sets })));
   return {
     session,
     summary: session ? summarize(done, session.startedAt, session.finishedAt, modeOf) : null,
@@ -93,7 +94,7 @@ async function loadSummary(db: Db, id: string) {
     cooldownOffered,
     // Muskelgruppen dieses Trainings für die Rückmeldung (A6.3)
     muscleGroups: [...new Set(done.map((s) => byId.get(s.exerciseId)?.muscleGroup).filter((m): m is NonNullable<typeof m> => !!m))] as string[],
-    muscleSets,
+    muscleTally,
     loaded: true,
   };
 }
@@ -123,12 +124,12 @@ export default function SummaryScreen() {
       } as TrainingWeek,
       cooldownOffered: false,
       muscleGroups: [] as string[],
-      muscleSets: {} as { [g in MuscleGroup]?: number },
+      muscleTally: EMPTY_TALLY as MuscleTally,
       loaded: false,
     },
     id
   );
-  const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, muscleSets, loaded } = data;
+  const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, muscleTally, loaded } = data;
   const [note, setNote] = useState<string | null>(null);
   const [showShare, setShowShare] = useState(false);
   const modules = useModules();
@@ -146,8 +147,12 @@ export default function SummaryScreen() {
   const doneDays = week.done.filter(Boolean).length;
   const weekSummary = week.goal ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal }) : t('today.weekSummary', { count: doneDays });
   const volume = formatWeight(summary.volumeKg, units.weight, 0);
-  const trained = (Object.entries(muscleSets) as [MuscleGroup, number][]).sort((a, b) => b[1] - a[1]);
-  const trainedList = trained.map(([g, n]) => `${t(`muscle.${g}`)} ${n}`).join(' · ');
+  // Hauptmuskeln mit Sätzen, größte zuerst; Ganzkörper-Sätze am Ende
+  const trained = (Object.entries(muscleTally.primary) as [MapMuscle, number][]).sort((a, b) => b[1] - a[1]);
+  const trainedList = [
+    ...trained.map(([m, n]) => `${t(`mapMuscle.${m}`)} ${n}`),
+    ...(muscleTally.whole > 0 ? [`${t('muscle.ganzkoerper')} ${muscleTally.whole}`] : []),
+  ].join(' · ');
   const recordText = (r: Record) =>
     r.kind === 'gewicht'
       ? t('summary.recordWeight', {
@@ -244,9 +249,9 @@ export default function SummaryScreen() {
         }
       />
 
-      {trained.length > 0 ? (
+      {trained.length > 0 || muscleTally.whole > 0 ? (
         <Card title={t('summary.musclesTitle')}>
-          <MuscleMapDone sets={muscleSets} label={t('summary.musclesLabel', { list: trainedList })} />
+          <MuscleMapDone tally={muscleTally} label={t('summary.musclesLabel', { list: trainedList })} />
           <ThemedText type="small" themeColor="textSecondary" style={styles.musclesList}>
             {trainedList}
           </ThemedText>
