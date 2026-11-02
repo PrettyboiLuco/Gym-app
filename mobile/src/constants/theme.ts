@@ -67,7 +67,7 @@ export const MuscleRamp = {
 /** Feine Körperdetails der Muskelkarte (Kniescheibe, Schlüsselbein …): knapp vom Körperton abgesetzt. */
 export const BodyDetail = { light: '#DCDDE0', dark: '#363636' } as const;
 /** Frisur der weiblichen Figur: dunkler als der Körper (wie Haar), damit die Form auf einen Blick erkennbar ist. */
-export const BodyHair = { light: '#BDBFC4', dark: '#1B1B1B' } as const;
+export const BodyHair = { light: '#A9ACB2', dark: '#1B1B1B' } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 

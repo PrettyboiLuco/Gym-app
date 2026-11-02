@@ -29,7 +29,7 @@ const { BODIES, VIEWBOX } = load('src/components/muscle-figure.ts');
 const themeSrc = fs.readFileSync(join(app, 'src/constants/theme.ts'), 'utf8');
 const ramp = (name) => [...themeSrc.match(new RegExp(`${name}: \\[([^\\]]+)\\]`))[1].matchAll(/'(#[0-9A-Fa-f]{6})'/g)].map((m) => m[1]);
 const THEMES = {
-  light: { bg: '#FFFFFF', body: '#EEEEEE', detail: '#DCDDE0', hair: '#BDBFC4', ramp: ramp('light') },
+  light: { bg: '#FFFFFF', body: '#EEEEEE', detail: '#DCDDE0', hair: '#A9ACB2', ramp: ramp('light') },
   dark: { bg: '#111111', body: '#2A2A2A', detail: '#363636', hair: '#1B1B1B', ramp: ramp('dark') },
 };
 
