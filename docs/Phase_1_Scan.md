@@ -147,6 +147,50 @@ und Erfolg passieren.
 Die Shader selbst wären für eine App zu schwer. Gemeint sind Look und Dosierung, umgesetzt als einfacher Verlauf
 bzw. mit Reanimated. Nichts davon ist gebaut.
 
+## 5b. Gegenprüfung mit dem taste-skill (02.11.2026)
+
+Ablauf „App-Bildschirme“ des taste-skills (`.claude/skills/taste-skill/references/app-screens.md`):
+- **Stil-Blatt:** `draw.mjs --app --kind workspace --theme dark --style true-black-flat`, Seed 1783295645, liegt in
+  `.taste-skill/direction.json`. Er passt zu dem, was die App schon ist.
+- **Messung:** `inspect.mjs --app` bei 390 px ergab 0 FAIL. Er sieht im frischen Browser nur den Willkommensbildschirm;
+  die Tabs wurden nach den Screenshots bewertet.
+
+**Befund nach den 7 App-Fragen:**
+1. **Die Frage von „Heute“** („Was trainiere ich heute, und wie steht meine Woche?“) beantwortet die größte Karte
+   richtig. Die **Woche** darin sind aber 7 leere graue Kreise und der Satz „an 0 Tagen trainiert“. Das wichtigste
+   Datenelement trägt keine Farbe und keine Menge.
+2. **Doppelte Angabe:** „heute ist Push (So) dran“ im Kopf und „Heute im Plan: Push (So)“ in der Karte.
+3. **Der Morgen-Check** (fünf Reihen Antipp-Knöpfe) füllt die Mitte von „Heute“ und schiebt alles andere unter den
+   ersten Bildschirm.
+4. **Kein Gesicht:** Lime erscheint nur als kleiner Punkt. Der Skill nennt „Lime auf Schwarz ohne Farbe auf den Daten“
+   ausdrücklich als Kit-Merkmal. Nötig ist ein Element, das nur diese App hat.
+5. **Leere Zustände** wie „Letzte 4 Wochen: 0 von 0 Plan-Wochen“ (dreimal ähnlich) sind ehrlich, aber ohne nächsten
+   Schritt.
+
+**Was der Skill an den Ideen aus Abschnitt 5 ändert:**
+
+| Idee | Urteil | Grund |
+|---|---|---|
+| U1 Lichtband/Schein | **gestrichen** | Glows und Verläufe sind verboten; „Off-style: glow“ |
+| U2 leuchtende Wochenpunkte | **ersetzt** durch die Satz-Woche (unten) | ohne Glow, dafür mit echter Menge |
+| U3 Tageszeit-Färbung | **gestrichen** | Der Grund bleibt echtes Schwarz; Stimmung über die Daten, nicht über den Hintergrund |
+| U4 Muskelkarte in der Hauptkarte | bleibt (Stufe 2) | Daten aus der App, Lime auf den Muskeln = Farbe auf Daten |
+| U5 Erfolgsmomente | bleibt als **Rückmeldung** (Satz-Haken, Abschluss) | Auftritte beim Öffnen sind auf App-Bildschirmen verboten, Rückmeldung nicht |
+| U6 leere Zustände | bleibt, präzisiert | Rahmen behalten, ein Satz mit dem nächsten Schritt |
+| L Lime-Knopf | **gestrichen** | „Der Akzent berührt nie Knöpfe, Tabs oder Navigation“; die weiße Pille (Inversion) ist richtig |
+
+**Neue Vorschläge aus dem Skill:**
+- **T1 Satz-Woche (Signatur-Element):** Wie in Lucs eigenem Trainingsplan („Balken: Sätze pro Training“) zeigt die
+  Woche 7 Spalten mit je einem Balken. Die Höhe entspricht den geplanten Sätzen (So 16, Mo 18, Mi 17, Fr 13).
+  Erledigte Sätze sind lime gefüllt, geplante als dunkle Fläche #2a2a2a, Ruhetage als kurze Linie, heute mit einer
+  1-px-Lime-Linie markiert. Dazu die Kopfzahl „0 von 64 Sätzen“. Das ersetzt U2 und gibt der App ihr Gesicht.
+- **T2 Zähler-Kacheln** (Muster „home“, auf dem Handy 2 × 2): Sätze diese Woche, Trainings von Plan, Kalorien heute,
+  Schlaf letzte Nacht. Jeweils Bezeichnung, Wert in normaler Stärke und eine schlichte Zeile darunter, ohne Symbole und
+  ohne Pfeile.
+- **T3 Morgen-Check kompakt:** auf „Heute“ eine Zeile („Morgen-Check · 4 Antippen“), die den Check als Blatt öffnet;
+  erledigt nur noch die Ampel mit Kurzbegründung.
+- **T4 Doppelte Angabe weg:** Der Kopf zeigt nur das Datum, der Plantag steht in der Karte.
+
 ## 6. App-Symbol: 3 eigene Vorschläge
 
 Dateien: `design/logo/vorschlaege/` (SVG, PNG 1024 und `logo-vergleich.png` mit echter Home-Bildschirm-Größe).

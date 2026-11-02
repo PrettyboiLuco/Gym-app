@@ -1,0 +1,481 @@
+{
+ "url": "http://localhost:8765/",
+ "at": "2026-11-02T09:58:26.547Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.78
+   ],
+   "motion": {
+    "elements": 7,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 7,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 844,
+     "screens": 1,
+     "words": 74,
+     "img": 1,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 0,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 2,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "heart-sprite-light.05832ac141ebc524212fcb51a3eca"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Willkommen bei Myhealth",
+     "words": 3,
+     "chars": 23,
+     "lines": 2,
+     "size": 32,
+     "vw": 8.2,
+     "font": "Manrope_700Bold",
+     "weight": 400,
+     "tracking": -0.02,
+     "leading": 1.19,
+     "top": 176,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Willkommen bei Myhealth",
+     "words": 3,
+     "lines": 2,
+     "size": 32,
+     "font": "Times New Roman"
+    },
+    "headings": [
+     {
+      "text": "Willkommen bei Myhealth",
+      "words": 3,
+      "chars": 23,
+      "lines": 2,
+      "size": 32,
+      "vw": 8.2,
+      "font": "Manrope_700Bold",
+      "weight": 400,
+      "tracking": -0.019,
+      "leading": 1.19,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 176,
+      "tag": "h1",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.96,
+       "mono": false
+      },
+      {
+       "family": "Manrope_700Bold",
+       "share": 0.04,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      14,
+      16,
+      32
+     ],
+     "sizeCount": 3,
+     "notLoaded": [],
+     "body": {
+      "font": "-apple-system",
+      "size": 14,
+      "leading": 1.43,
+      "weight": 500,
+      "tracking": 0,
+      "contrast": 6
+     },
+     "measureChars": 40,
+     "max": {
+      "size": 32,
+      "vw": 8.2,
+      "font": "Manrope_700Bold",
+      "text": "Willkommen"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#ffffff",
+     "bodyBgHsl": {
+      "h": 0,
+      "s": 0,
+      "l": 1
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f6f6f7",
+       "top": 0,
+       "hsl": {
+        "h": 240,
+        "s": 0.06,
+        "l": 0.97
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#5f6368",
+       "share": 0.52
+      },
+      {
+       "color": "#0a0a0a",
+       "share": 0.48
+      },
+      {
+       "color": "#ffffff",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#0a0a0a",
+      "hsl": {
+       "h": 0,
+       "s": 0,
+       "l": 0.04
+      },
+      "fg": "#000000"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": "pill",
+     "height": 48,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Ja",
+      "Nein"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 2,
+     "boxRadius": 20,
+     "squareMedia": 2,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "bg-image",
+      "ratio": 0.45
+     },
+     {
+      "type": "img",
+      "ratio": 0.45
+     }
+    ],
+    "nav": null,
+    "fontsLoaded": [
+     "manrope_700bold"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 844,
+    "margins": {
+     "left": 16,
+     "right": 34
+    },
+    "sections": [
+     {
+      "sel": "div.css-g5y9jx.r-f4gmv6",
+      "tag": "div",
+      "top": 16,
+      "height": 264,
+      "words": 3,
+      "media": 0,
+      "middle": 9,
+      "heading": {
+       "text": "Willkommen",
+       "size": 32,
+       "tag": "h1"
+      },
+      "left": 16,
+      "right": 135,
+      "textLeft": 16,
+      "textRight": 135,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.css-g5y9jx",
+      "tag": "div",
+      "top": 296,
+      "height": 162,
+      "words": 28,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 37,
+      "right": 39,
+      "textLeft": 37,
+      "textRight": 39,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.css-g5y9jx",
+      "tag": "div",
+      "top": 474,
+      "height": 188,
+      "words": 27,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Bist du mindestens 18 Jahre alt?",
+       "size": 16,
+       "tag": "h1"
+      },
+      "left": 37,
+      "right": 34,
+      "textLeft": 37,
+      "textRight": 34,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Willkommen bei Myhealth",
+      "size": 32,
+      "top": 176,
+      "firstScreen": true
+     },
+     {
+      "text": "Bist du mindestens 18 Jahre alt?",
+      "size": 16,
+      "top": 495,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 16,
+      "n": 2
+     },
+     {
+      "x": 37,
+      "n": 1
+     },
+     {
+      "x": 209,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 4,
+    "bodySize": 14,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#ffffff",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 16,
+     "right": 34
+    },
+    "hero": {
+     "text": "Willkommen bei Myhealth",
+     "words": 3,
+     "chars": 23,
+     "lines": 2,
+     "size": 32,
+     "vw": 8.2,
+     "font": "Manrope_700Bold",
+     "weight": 400,
+     "tracking": -0.02,
+     "leading": 1.19,
+     "top": 176,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 2,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       20,
+       2
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0,
+     "tiny": 0,
+     "tinySamples": [],
+     "sizes": [
+      14,
+      16,
+      32
+     ]
+    },
+    "title": {
+     "text": "Willkommen\nbei\nMyhealth",
+     "size": 32,
+     "top": 176
+    },
+    "colourShare": 0.001
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "many-h1",
+   "width": 390,
+   "message": "2 h1 elements.",
+   "fix": "One h1 per page; section titles are h2."
+  },
+  {
+   "level": "WARN",
+   "id": "app-title-size",
+   "width": 390,
+   "message": "The h1 is 32px (\"Willkommen\nbei\nMyhealth\").",
+   "fix": "An app screen is not a landing page: the title is 18-32px (20-24px on a phone)."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/home/user/Gym-app/.taste-skill/before/mobile-fold.jpg",
+   "pages": [
+    "/home/user/Gym-app/.taste-skill/before/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}
