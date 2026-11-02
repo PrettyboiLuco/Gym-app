@@ -1,6 +1,6 @@
 # Gerätetest-Liste (Fahrplan 6.6, offener Punkt O1)
 
-Stand 30.10.2026. Zum Abhaken auf dem iPhone. „Expo Go“ = geht jetzt schon; „Build“ = erst mit eigener
+Stand 02.11.2026. Zum Abhaken auf dem iPhone. „Expo Go“ = geht jetzt schon; „Build“ = erst mit eigener
 App-Version (`docs/Anleitung_Development_Build.md`). Bei jedem Fehler: was du gemacht hast, was passiert ist,
 was du erwartet hast – dann behebe ich es.
 
@@ -164,6 +164,25 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | X12 | Foto-Vergleich überblenden, Schieber ziehen | Flüssig, Hilfslinien passen | Expo Go |
 | X13 | Teilen-Karte nach dem Training als Bild teilen | Bild in Nachrichten/Instagram, gut lesbar | Expo Go |
 | X14 | Mehr → Bereiche der App: Ernährung aus | Tab „Ernährung“ weg, „Heute“ ohne Kalorien/Trinken, Trink-Erinnerung aus | Expo Go |
+| X15 | Supersatz im Plan (zwei Übungen „mit nächster verbunden“), im Training abwechselnd abhaken | Pause erst nach der zweiten Übung, Reihenfolge stimmt | Expo Go |
+| X16 | Scheibenrechner bei Langhantel 82,5 kg | Scheiben je Seite richtig, eigene Stange berücksichtigt | Expo Go |
+| X17 | Blutdruck eintragen (3 Messungen), dann Bericht für den Arzt erstellen | Ø der letzten 7 Tage ohne Bewertung; im Bericht Anzahl und Ø | Expo Go |
+| X18 | Erstes Training abschließen | Meilenstein „Erstes Training“ einmal auf „Heute“, danach unter Fortschritt → Meilensteine | Expo Go |
+| X19 | Leichte Woche annehmen (am Sonntag und an einem anderen Tag) | Gilt bis Sonntag; am Sonntag gestartet bis zum nächsten Sonntag | Expo Go |
+| X20 | Atemübung 4-7-8, 1 Minute, hell und dunkel | Kreis wächst/schrumpft, Text immer lesbar | Expo Go |
+
+## Nach dem Phase 1 Scan (02.11.2026) – behobene Fehler gegenprüfen
+
+| # | Test | Erwartet | Wo |
+|---|---|---|---|
+| S1 | App-Sperre an, Training starten, Gewicht tippen (nicht abhaken), Handy > 1 min sperren, entsperren | Training, getippte Werte und Pausen-Vollbild sind noch da | Expo Go |
+| S2 | „Training starten“ schnell doppelt tippen; Lebensmittel doppelt „Hinzufügen“ | Nur ein Training bzw. ein Eintrag | Expo Go |
+| S3 | Planeditor → Planassistent → übernehmen → „Plan öffnen“, dann im Editor speichern | Editor zeigt die neue Fassung, nichts wird zurückgedreht | Expo Go |
+| S4 | Halte-Übung (Plank) starten, mitten im Countdown „Zurück“ | Satz mit den gehaltenen Sekunden eingetragen | Expo Go |
+| S5 | Gescanntes Produkt bearbeiten (Name ändern) und speichern | Speichern klappt, Koffein bleibt | Expo Go |
+| S6 | Ernährung aus und wieder an | Coach wieder sichtbar | Expo Go |
+| S7 | Tagesende 4 Uhr einstellen, um 1 Uhr Ernährung öffnen | Oben steht „Heute“ für den Vortag, „Zu heute“ springt nicht auf den Kalendertag | Expo Go |
+| S8 | Ernährung bzw. Bereitschaft aus: Mehr → Mitteilungen | Trink-, Morgen- und Bettzeit-Karten ausgeblendet, keine Supplement-Erinnerung | Expo Go |
 
 ## VoiceOver – alle Hauptabläufe (A11.2)
 

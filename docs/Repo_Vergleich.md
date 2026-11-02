@@ -44,17 +44,19 @@ Gibt es dort besseren Code, der unseren ersetzen kann?
   Drosselung, Fehlerarten) ist sauberer als die von Waistline. Das JS-Paket `@openfoodfacts/openfoodfacts-nodejs` ist
   noch „2.0.0-alpha“ – kein Gewinn.
 
-## Für später notiert (Ideen, nicht gebaut – Entscheidung Luc)
+## Für später notiert (Ideen, damals nicht gebaut – Entscheidung Luc)
+
+Stand 02.11.2026: Was inzwischen mit dem Ausbau A1–A11 gebaut ist, steht mit Fundstelle in der Spalte „Nutzen“.
 
 | Idee | Gesehen bei | Nutzen |
 |---|---|---|
-| **Apple Health über `@kingstinct/react-native-healthkit`** (MIT, 16.2.0, Expo-Plugin) – Schritte als Tagessumme per `queryStatisticsCollectionForQuantity` (`cumulativeSum`), so zählt Apple iPhone und Watch nicht doppelt (HEALTH-005) | react-native-healthkit | Phase 6.2 mit dem MacBook |
-| Bestleistungen mit geschätztem 1RM (Brzycki: Gewicht × 36 / (37 − Wdh.)) | wger, Liftosaur | Motivation, Verlauf je Übung |
-| Scheibenrechner (welche Scheiben auf die Stange) | Liftosaur | Komfort im Training |
-| „Schnell eintragen“: nur kcal/Makros ohne Lebensmittel (z. B. Restaurant) | FoodYou | schnelleres Tagebuch |
-| „1 Packung“ als Menge aus der Packungsgröße | FoodYou | weniger Rechnen |
-| Tagesgrenze verschieben (Essen um 1 Uhr zählt zum Vortag) | OpenNutriTracker | Schichtarbeit, Nachteulen |
-| Englische Namen aus free-exercise-db als zusätzliche Suchbegriffe | free-exercise-db | bessere Suche |
+| **Apple Health über `@kingstinct/react-native-healthkit`** (MIT, 16.2.0, Expo-Plugin) – Schritte als Tagessumme per `queryStatisticsCollectionForQuantity` (`cumulativeSum`), so zählt Apple iPhone und Watch nicht doppelt (HEALTH-005) | react-native-healthkit | Phase 6.2 mit dem MacBook – **nicht gebaut** (Paket nicht installiert; Ausbauplan D3) |
+| Bestleistungen mit geschätztem 1RM (Brzycki: Gewicht × 36 / (37 − Wdh.)) | wger, Liftosaur | Motivation, Verlauf je Übung – **gebaut** (A1), aber mit Epley statt Brzycki: `mobile/src/domain/logger.ts` (`estimateOneRepMax`, `bestOneRepMax`) |
+| Scheibenrechner (welche Scheiben auf die Stange) | Liftosaur | Komfort im Training – **gebaut** (A1): `mobile/src/domain/logger.ts` (`platesPerSide`) |
+| „Schnell eintragen“: nur kcal/Makros ohne Lebensmittel (z. B. Restaurant) | FoodYou | schnelleres Tagebuch – **gebaut** (A3): `mobile/src/app/nutrition/quick.tsx` |
+| „1 Packung“ als Menge aus der Packungsgröße | FoodYou | weniger Rechnen – **gebaut** (A3): `packageAmount` in `mobile/src/domain/nutrition.ts` |
+| Tagesgrenze verschieben (Essen um 1 Uhr zählt zum Vortag) | OpenNutriTracker | Schichtarbeit, Nachteulen – **gebaut** (A3): `dayEndsAt` in `mobile/src/data/nutrition.ts` |
+| Englische Namen aus free-exercise-db als zusätzliche Suchbegriffe | free-exercise-db | bessere Suche – **nicht gebaut** |
 
 Nicht übernommen: Streak-Trophäen (wger) – widerspricht „keine Streak-Bestrafung“ (TRACK-006); Kalorien-Gutschrift für
 Training (OpenNutriTracker) – HEALTH-007.
@@ -96,13 +98,13 @@ zählen. Code übernehmen kann keins (Flutter, Kotlin, Python, Swift). Ergebniss
 
 | Idee | Quelle |
 |---|---|
-| Import aus Strong, Hevy, FitNotes (CSV) – Umsteiger nehmen ihren Verlauf mit; Spaltennamen-Zuordnung dort gut dokumentiert (AGPL, nur Idee) | openGym (24) |
-| Körperkarte: welche Muskeln eine Einheit trifft | openGym (24) |
-| Geschätztes 1RM, Volumen je Übung | verifit (25), wger (21) |
-| Lizenzen der Pakete in der App anzeigen | gym_rest_timer (35) – passt zur offenen Frage in 10.2 |
-| Pausen-Countdown auf dem Sperrbildschirm (Live Activity) | gym_rest_timer (35) – ist schon geplant (6.3, Build) |
+| Import aus Strong, Hevy, FitNotes (CSV) – Umsteiger nehmen ihren Verlauf mit; Spaltennamen-Zuordnung dort gut dokumentiert (AGPL, nur Idee) | openGym (24) – **gebaut** für Strong und Hevy (A5, eigener Code): `mobile/src/domain/import-csv.ts`; FitNotes nicht |
+| Körperkarte: welche Muskeln eine Einheit trifft | openGym (24) – **gebaut** (A8): `mobile/src/components/muscle-map.tsx` |
+| Geschätztes 1RM, Volumen je Übung | verifit (25), wger (21) – **gebaut** (A1/A8): `mobile/src/domain/logger.ts`, `mobile/src/domain/training-stats.ts` (`perExercise`) |
+| Lizenzen der Pakete in der App anzeigen | gym_rest_timer (35) – passt zur offenen Frage in 10.2; **nicht gebaut** |
+| Pausen-Countdown auf dem Sperrbildschirm (Live Activity) | gym_rest_timer (35) – ist schon geplant (6.3, Build; Ausbauplan D2), **nicht gebaut** |
 | Pflichtknopf „Käufe wiederherstellen“, falls je ein Pro-Abo kommt | RevenueCat (45), Apple-Regel |
-| Nährwerte vom Etikett per Texterkennung auf dem Gerät | ML Kit (47) – berührt „keine KI“, nur auf Wunsch |
+| Nährwerte vom Etikett per Texterkennung auf dem Gerät | ML Kit (47) – berührt „keine KI“, nur auf Wunsch; geplant als Ausbauplan D6, **nicht gebaut** |
 
 ### Ohne verwertbare Infos für uns
 

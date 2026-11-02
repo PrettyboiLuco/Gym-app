@@ -1,6 +1,6 @@
 # Fahrplan: von null bis App Store
 
-Für Luc (Stand 01.11.2026, Übersicht der Ausbauphasen am Ende unter „Ausbau A1–A11“): iPhone vorhanden, MacBook ab Ende November, Windows-PC mit Claude Code, keine klassische
+Für Luc (Stand 02.11.2026, Übersicht der Ausbauphasen am Ende unter „Ausbau A1–A11“): iPhone vorhanden, MacBook ab Ende November, Windows-PC mit Claude Code, keine klassische
 Programmiererfahrung. Technik: Expo / React Native mit TypeScript, lokale Datenbank, Deutsch zuerst mit
 Übersetzungsstruktur.
 
@@ -169,13 +169,16 @@ erreichbar. Testumgebung: `expo-env.d.ts` fehlte für die Typprüfung (wird von 
 - Alle Rechner-Parameter (PAL-Stufen, Sport +0,3, Abstände, Untergrenze 1200/Ruheenergie, BMI 18,5, Eiweiß-Bereiche,
   7-Tage-Fenster mit 4 Messungen) sind vorläufig an einer Stelle (`src/domain/energy.ts`) und warten auf die
   Fachprüfung (10.1, CALC-003–005, GOAL-003, GOAL-007, COACH-005). DGE-Primärquelle in diesem Durchlauf nicht abgerufen.
-- GOAL-008 Fotos: Kamera/Mediathek nur auf dem iPhone testbar (im Browser nicht verfügbar); App-Sperre (Face ID)
-  und Sicherung der Fotos folgen mit Phase 6.5; Datenschutzprüfung (DSGVO) vor der Veröffentlichung (10.2).
+- GOAL-008 Fotos: Kamera/Mediathek nur auf dem iPhone testbar (im Browser nicht verfügbar); App-Sperre und
+  Sicherung der Fotos (optional) **erledigt** mit Phase 6.5; Datenschutzprüfung (DSGVO) vor der Veröffentlichung (10.2).
 - GOAL-009 Körperfett: nicht gebaut (Fachfreigabe).
-- GOAL-006 Prognose: bewusst keine. COACH-008 Anpassung nach Gewichtstrend: Phase 9.2 als Vorschlag mit Bestätigung gebaut.
-- Zieltypen Maße/Beweglichkeit/Schritte/Dehnroutinen: Phase 5 (Dehnen) bzw. 6 (Schritte); Pilotauswahl offen (GOAL-001).
-- Einheiten ml/oz und ft für Größe: nicht gebaut (Start nur Deutsch); Trinkziel bleibt ml.
-- Health-Freigabe im Erststart: kommt mit Apple Health (6.2). Beruf/Geräte/Zeit im Profil: mit dem Planassistenten (Phase 8).
+- GOAL-006 Prognose: bewusst keine – **aber** das Gewichtsdiagramm zeigt inzwischen eine Hochrechnung mit Datum
+  (`components/weight-chart.tsx`); Entscheidung Luc offen (`docs/Entscheidungen.md`). COACH-008 Anpassung nach Gewichtstrend: Phase 9.2 als Vorschlag mit Bestätigung gebaut.
+- Zieltypen Maße/Beweglichkeit/Schritte/Dehnroutinen: **erledigt** – Beweglichkeitsziel und Gewohnheit „Dehnen“
+  (Phase 5), Gewohnheit „Schritte“ (Phase 6), Zielwert je Messstelle (A10, `data/goals.ts`); Pilotauswahl offen (GOAL-001).
+- Einheiten ml/oz und ft für Größe: **erledigt** mit A10 (`domain/units.ts`, Profil); gespeichert wird weiter ml/cm.
+- Health-Freigabe im Erststart: kommt mit Apple Health (6.2). Beruf/Geräte/Zeit im Profil: **erledigt** mit dem
+  Planassistenten (Phase 8: Geräte und Zeit je Training im Profil; Beruf bewusst ohne eigenes Feld, siehe `Entscheidungen.md`).
 - Bebilderte Messanleitung (GOAL-004). Trinkziel ist nicht versioniert (Gewohnheit zählt mit dem aktuellen Trinkziel).
 - Von dir: Erststart und Rechner auf dem iPhone durchgehen, ein Ziel setzen, eine Woche Gewicht eintragen,
   Fortschrittsfotos einschalten und ein Foto aufnehmen.
@@ -221,8 +224,9 @@ vollständig; offen sind nur die unten genannten bewusst verschobenen Punkte und
 - Haltezeiten, Programme, Stufen, Aufwärm-/Cool-down-Zuordnung und Kurzanleitungen sind Vorschläge ohne Fachprüfung
   (STRETCH-001/002/008, HIIT-001/002, 10.1); ACSM-Primärquellen nicht neu abgerufen.
 - Bilder/Animationen der Übungen (STRETCH-009, MEDIA): Grundlage in Phase 9.1 gebaut, eigene Bilder folgen (Entscheidung 30.10.).
-- Ansage und Vibration nur bei offener App; bei gesperrtem Handy läuft die Zeit korrekt weiter, meldet sich aber
-  nicht (Phase 6.3). Export des Protokolls: Phase 6.5.
+- Ansage und Vibration nur bei offener App; bei gesperrtem Handy meldet sich die App seit 6.3 per lokaler
+  Mitteilung bei jedem Wechsel (**erledigt**, Sprachansage weiter nur bei offener App). Export des Protokolls:
+  **erledigt** (Sicherung 6.5, CSV „Abläufe“ in `data/export-csv.ts`).
 - Von dir: eine Dehnroutine und ein HIIT-Programm auf dem iPhone durchgehen (Sprachansage testen), ein Training mit
   Aufwärmen und Cool-down.
 
@@ -507,8 +511,8 @@ Sicherheits- und Abhängigkeitsprüfung (LAW-017, TECH-017, O6).
 | 10.1 | Prüfmappe `docs/Fachpruefung_Mappe.md`: alle Regeln mit Wert, Fundstelle, Quelle und Frage (Energie, Makros, Check-in, Vorlagen, Steigerung, Dehnen/HIIT, Schutz sensibler Gruppen), Spalte zum Freigeben/Ändern, vier Beispielpersonen mit dem echten Code nachgerechnet, vier Auffälligkeiten zur Bewertung, Unterschriftsfeld | Fachperson beauftragen und Mappe ausfüllen lassen (Luc); danach Werte umsetzen (Claude) |
 | 10.2 | Rechtsmappe `docs/Rechtspruefung_Mappe.md` (Zweckbestimmung, Datenflüsse aus dem Code, Vertrags-/Lizenzmatrix O4, 11 Fragen, Vorbereitung für Luc); Entwürfe `website/datenschutz.html` und `website/impressum.html`. **Neu gefunden:** Expo-Update-Abfrage beim App-Start fehlte in den Datenschutztexten – in App (Mehr → Datenschutz, Hilfe) und Entwurf ergänzt | Anbieterangaben, Anwalt, Entscheidung Expo-Updates behalten/abschalten, Veröffentlichungsort der Seiten (Luc) |
 | 10.3 | Entscheidungsvorlage `docs/Monetarisierung_Entscheidung.md` (kostenlos / Pro-Abo / Werbung / Unterstützen, Free/Pro-Grenze, Folgen). **Nichts eingebaut**, weil seit 30.10. „kostenfreie Version“ gilt. Empfehlung: kostenlos starten, nach dem Pilot entscheiden | Entscheidung (Luc) |
-| 10.4 | Store-Texte `docs/Store_Texte.md` (Name, Untertitel, Werbetext, Beschreibung, Stichwörter, Kategorie, Screenshot-Liste, App-Review-Hinweise, Prüfliste). Automatische Prüfung `domain/claims.ts`: kein „Bauchfett wegtrainieren“, „Cardio bringt nichts“, Garantien, Heilversprechen, „fachlich geprüft“, „allergenfrei“, Superlative – über alle 1683 App-Texte und die Store-Texte, dazu Apples Längengrenzen | App-Name (Markenrecherche), Screenshots am MacBook (Luc) |
-| 10.5 | Hilfe in der App: Mehr → „Hilfe und häufige Fragen“, 29 Fragen in 6 Bereichen, Suche ohne Umlaut-Probleme, ohne Internet; Antworten am echten Stand geprüft | Gerätetest V1–V2 (Luc) |
+| 10.4 | Store-Texte `docs/Store_Texte.md` (Name, Untertitel, Werbetext, Beschreibung, Stichwörter, Kategorie, Screenshot-Liste, App-Review-Hinweise, Prüfliste). Automatische Prüfung `domain/claims.ts`: kein „Bauchfett wegtrainieren“, „Cardio bringt nichts“, Garantien, Heilversprechen, „fachlich geprüft“, „allergenfrei“, Superlative – über alle App-Texte (30.10.: 1683; 02.11.: 5138 inkl. Übungstexte) und die Store-Texte, dazu Apples Längengrenzen | App-Name (Markenrecherche), Screenshots am MacBook (Luc) |
+| 10.5 | Hilfe in der App: Mehr → „Hilfe und häufige Fragen“, 44 Fragen in 6 Bereichen (Stand 02.11.2026, inkl. A1–A11), Suche ohne Umlaut-Probleme, ohne Internet; Antworten am echten Stand geprüft | Gerätetest V1–V2 (Luc) |
 | 10.6 | Typprüfung jetzt auch nach frischem Klonen grün, `.env` von Git ausgeschlossen, toter Code entfernt; Lizenzen aller 599 Laufzeit-Pakete (kein GPL-Zwang), Geheimnis-Suche in Code und Git-Historie (nichts), `npm audit` (nur Build-Werkzeuge), `expo-doctor` 18/20 (Rest braucht Internet); Golden-Dataset-Update-Test (Version 4 → 10, jede Spalte gleich, jede Zwischenversion) für R1. Bericht in `docs/Pakete_und_Sicherheit.md` | `npm audit`/`expo-doctor` mit Internet wiederholen, Open-Food-Facts-Kennung mit Kontakt (nach Anbieterangaben) |
 
 Freigabematrix mit Stand je Risiko: `docs/Freigabematrix.md` – heute **nicht einreichbar**; offen sind nur Punkte für
@@ -672,6 +676,14 @@ stehen in `docs/Ausbauplan.md`. Kurz:
 | A9 Essen planen | Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep | Supermarkt-Test |
 | A10 Körper & Motivation | Foto-Überblendung, 8 Messstellen mit Zielen, ml/oz, Blutdruck, Meilensteine, Plan-Wochen, Teilen-Karten, Wissen | Gerätetest |
 | A11 Qualität | Module ein/aus, Barrierefreiheits-Test im Code, VoiceOver-Liste, vollständige Fachprüfungs-Mappe (A–L), Code aufgeräumt (`docs/Code_Struktur.md`) | VoiceOver am iPhone |
+
+**Nachtrag 02.11.2026 – Phase 1 Scan und Fehlerbehebung:** Vollständiger Abgleich von Arbeitsgrundlage, Plan, Code,
+Oberfläche, App-Symbol und Paketen in `docs/Phase_1_Scan.md` (Anhänge in `docs/phase1_scan/`): kein kritischer Fehler,
+8 mittlere. Behoben in drei Schritten: **P1** Gym-Fehler (App-Sperre, Doppeltipp-Sperre, Planeditor, Halte-Countdown),
+**P2** Zahlen und Daten (Lebensmittel, Bereitschaft, Coach-Schalter, Check-in, Sicherung), **P3** Texte und Datenschutz
+(Hilfe mit 44 Fragen, Feedback-Bogen, Datenschutz in App und Docs, Module überall). 691 Tests, Typprüfung, Lint und
+Formatierung grün. Offen: Fragen an Luc (Abschnitt 8, in `docs/Entscheidungen.md` übernommen), P4 Stimmung/App-Symbol,
+Gegenprüfung auf dem iPhone (`docs/Geraetetest.md`, „Nach dem Phase 1 Scan“).
 
 Nächste Schritte: Gerätetests (`docs/Geraetetest.md`, Abschnitte „Ausbaupaket“ und „VoiceOver“), gebündelte
 Fachprüfung (`docs/Fachpruefung_Mappe.md`), dann Development Build mit Apple Health (D1–D4, ab MacBook).

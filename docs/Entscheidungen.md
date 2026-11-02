@@ -25,9 +25,9 @@ Getroffene Entscheidungen von Luc, mit Datum. Offene Punkte bleiben offen, bis L
 
 | Thema | Vorläufige Lösung |
 |---|---|
-| Einheiten | Standard kg/cm; lb und Zoll in Profil wählbar; gespeichert immer kg/cm. ml/oz nicht. |
-| Pilot-Zieltypen | Gewicht + Kraftziel + Gewohnheit (Vorschlag aus Kap. 21.7). Maße als Verlauf, nicht als Ziel. |
-| Zielprognose | keine (kein Zieldatum, keine Schätzung). |
+| Einheiten | Standard kg/cm/ml; lb, Zoll (Körpergröße als ft/in) und oz in Profil wählbar; gespeichert immer kg/cm/ml (`mobile/src/domain/units.ts`, seit A10 am 01.11.2026 auch ml/oz und ft/in). |
+| Pilot-Zieltypen | Gewicht + Kraftziel + Gewohnheit (Vorschlag aus Kap. 21.7). Maße als Verlauf; seit A10 (01.11.2026) je Messstelle mit optionalem Zielwert (`mobile/src/data/goals.ts`, `loadMeasureGoals`; Anzeige unter Fortschritt → Maße), aber kein eigener Zieltyp. |
+| Zielprognose | keine (kein Zieldatum, keine Schätzung). **Widerspruch:** Das Gewichtsdiagramm zeigt eine Hochrechnung bei gleichem Tempo mit Datum (`mobile/src/components/weight-chart.tsx`) – Entscheidung offen, siehe „Noch offen“. |
 | Zielalter | Start nur ab 18 (Ja/Nein beim Erststart); Rechner nur 19–78 Jahre. |
 | Rechner-Werte | DGE-PAL-Stufen, Abstände ±250/±500, Untergrenze max(1200, Ruheenergie), BMI 18,5 – alles bis zur Fachprüfung vorläufig. |
 
@@ -82,3 +82,22 @@ Neu aus Phase 10 (30.10.2026, Vorlagen liegen bereit):
   `docs/Rechtspruefung_Mappe.md`, D2.
 - **Anbieterangaben** für Impressum und Datenschutzerklärung (Name, Anschrift, E-Mail oder Impressums-Service).
 - **Veröffentlichungsort** der Datenschutz-Seite (z. B. GitHub Pages) – `website/README.md`.
+
+Aus dem Ausbauplan (`docs/Ausbauplan.md`, „Offene Entscheidungen von Luc“; E1 ist vorläufig umgesetzt, s. o.):
+- **E2 Fasten-Timer** (16:8 usw.)? Empfehlung: nur „Kann“, bei „sensibler Situation“ ausblenden.
+- **E3 GLP-1-Begleitmodus** (Eiweiß + Krafttraining zum Muskelerhalt)? Braucht Rechts- und Fachprüfung.
+- **E4 Gemessenes Körperfett** von der Waage nur anzeigen (keine eigene Schätzung)? Wirkt auf D3 (Apple Health).
+- **E5 Englisch** als zweite Sprache wann? Empfehlung: erst nach dem Deutschland-Start.
+
+Aus dem Phase 1 Scan (`docs/Phase_1_Scan.md`, Abschnitte 3, 5, 6 und 8, 02.11.2026):
+- **Gewichts-Hochrechnung mit Datum** behalten (dann mit Unsicherheitsbereich und Eintrag in die Fachprüfungs-Mappe)
+  oder entfernen (wie oben „Zielprognose: keine“, GOAL-006).
+- **Expo-Updates** für Pilot und Store behalten oder abschalten (Server in den USA) – siehe auch oben und D2.
+- **Wöchentlicher Wechsel** in Lucs Plan (Chest Press ↔ Multipresse, Trizeps ↔ Curls): App wechselt automatisch
+  oder es bleibt bei der Notiz (heute: nur Notiz).
+- **UI-Stimmung U1–U6** (Lichtband, Wochenpunkte, Tageszeit-Stimmung, Muskelkarte in der Hero-Karte, Erfolgsmomente,
+  leere Zustände): welche davon? Dazu: Darf Lime auch auf den Hauptknopf „Training starten“? Nichts davon ist gebaut.
+- **App-Symbol:** einer der drei Vorschläge (Puls-Hantel, M-Puls, Ring + Herzschlag in `design/logo/vorschlaege/`)
+  oder beim 3D-Herz bleiben; falls neu: flach oder als 3D gerendert.
+- **Coach-Makros:** feste Verteilung behalten oder bis zur Fachprüfung nur Eiweiß als Bereich (COACH-005)?
+- **Support/Notfallplan:** vor dem Pilot (wie die Arbeitsgrundlage verlangt) oder erst Phase 11?

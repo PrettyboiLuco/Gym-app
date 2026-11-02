@@ -19,17 +19,17 @@ mit der Fachperson statt vieler einzelner.
 
 | Phase | Status |
 |---|---|
-| A1 | **fertig** (01.11.2026) – Datenbank-Version 19, 552 Tests; Gerätetest durch Luc offen |
-| A2 | **fertig** (01.11.2026) – Datenbank-Version 20; Gerätetest durch Luc offen |
-| A3 | **fertig** (01.11.2026) – Datenbank-Version 21, 566 Tests; OFF-Test (50 Produkte) durch Luc offen |
-| A4 | **fertig** (01.11.2026) – Datenbank-Version 22, 441 Grundnahrungsmittel (USDA SR28); Gerätetest durch Luc offen |
-| A5 | **fertig** (01.11.2026) – CSV-Export, Import Strong/Hevy/Gewicht, PDF-Bericht, KI-Zusammenfassung; Test mit echten Strong-/Hevy-Dateien durch Luc offen |
-| A6 | **fertig** (01.11.2026) – Datenbank-Version 23, Regeln Bereitschaft v1 (Fachprüfung offen, Mappe Abschnitt I); 2 Wochen Morgen-Check durch Luc offen |
-| A7 | **fertig** (01.11.2026) – Datenbank-Version 24, Schätzung Fassung 1, Check-in Fassung 2 wählbar (Fachprüfung offen, Mappe Abschnitt J); Test nach 3–4 Wochen Daten durch Luc offen |
-| A8 | **fertig** (01.11.2026) – 5 Vorlagen, Deload v1 (Fachprüfung offen, Mappe Abschnitt K), Geräteprofile, Muskelkarte, Statistik; Gerätetest durch Luc offen |
-| A9 | **fertig** (01.11.2026) – Datenbank-Version 25, Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep; Supermarkt-Test durch Luc offen |
-| A10 | **fertig** (01.11.2026) – Datenbank-Version 26; Gerätetest (Foto-Überblendung, Teilen-Karte) durch Luc offen |
-| A11 | **fertig** (01.11.2026) – Module ein/aus, Barrierefreiheit im Code geprüft, Mappe A–L, Code aufgeräumt (`docs/Code_Struktur.md`), 676 Tests; VoiceOver am iPhone durch Luc offen (VO1–VO10) |
+| A1 | **gebaut** (01.11.2026) – Datenbank-Version 19, 552 Tests; Test durch Luc offen (Gerätetest) |
+| A2 | **gebaut** (01.11.2026) – Datenbank-Version 20; Test durch Luc offen (Gerätetest) |
+| A3 | **gebaut** (01.11.2026) – Datenbank-Version 21, 566 Tests; Test durch Luc offen (OFF-Test, 50 Produkte) |
+| A4 | **gebaut** (01.11.2026) – Datenbank-Version 22, 441 Grundnahrungsmittel (USDA SR28); Test durch Luc offen (Gerätetest) |
+| A5 | **gebaut** (01.11.2026) – CSV-Export, Import Strong/Hevy/Gewicht, PDF-Bericht, KI-Zusammenfassung; Test durch Luc offen (mit echten Strong-/Hevy-Dateien) |
+| A6 | **gebaut** (01.11.2026) – Datenbank-Version 23, Regeln Bereitschaft v1 (Fachprüfung offen, Mappe Abschnitt I); Test durch Luc offen (2 Wochen Morgen-Check) |
+| A7 | **gebaut** (01.11.2026) – Datenbank-Version 24, Schätzung Fassung 1, Check-in Fassung 2 wählbar (Fachprüfung offen, Mappe Abschnitt J); Test durch Luc offen (nach 3–4 Wochen Daten) |
+| A8 | **gebaut** (01.11.2026) – 5 Vorlagen, Deload v1 (Fachprüfung offen, Mappe Abschnitt K), Geräteprofile, Muskelkarte, Statistik; Test durch Luc offen (Gerätetest) |
+| A9 | **gebaut** (01.11.2026) – Datenbank-Version 25, Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep; Test durch Luc offen (Supermarkt-Test) |
+| A10 | **gebaut** (01.11.2026) – Datenbank-Version 26; Test durch Luc offen (Gerätetest Foto-Überblendung, Teilen-Karte) |
+| A11 | **gebaut** (01.11.2026) – Module ein/aus, Barrierefreiheit im Code geprüft, Mappe A–L, Code aufgeräumt (`docs/Code_Struktur.md`), 676 Tests; Test durch Luc offen (VoiceOver am iPhone, VO1–VO10) |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|

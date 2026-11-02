@@ -1,6 +1,6 @@
 # Prüfmappe für die Fachperson (Phase 10.1)
 
-Stand 30.10.2026 · Regelfassungen: Coach 1, Check-in 1, Steigerung 1 · Register O3, TRAIN-018, TRAIN-022,
+Stand 02.11.2026 · Regelfassungen: Coach 1, Check-in 1, Steigerung 1 · Register O3, TRAIN-018, TRAIN-022,
 STRETCH-008, COACH-010, TRACK-006, CALC-003–005, COACH-005, GOAL-007 · Freigabematrix Kap. 18, Risiko **R3**.
 
 **Wofür:** Die App macht Vorschläge zu Kalorien, Makros, Training, Steigerung und Dehnen nach festen Regeln, ohne KI.
