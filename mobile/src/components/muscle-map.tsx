@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
 import { muscleLevel } from '@/domain/training-stats';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
@@ -95,7 +96,33 @@ export function MuscleMap({ sets }: { sets: Partial<Record<MuscleGroup, number>>
   );
 }
 
+/**
+ * Kleine Muskelkarte für die Karte auf „Heute“ (U4): vorne und hinten ohne Legende, die Muskeln des heutigen Plantags in
+ * der Datenfarbe (dunkel Lime, hell das dunklere Grün). Die Muskeln stehen im Text für VoiceOver.
+ */
+export function MuscleMapMini({ sets, label }: { sets: Partial<Record<MuscleGroup, number>>; label: string }) {
+  const theme = useTheme();
+  const scheme = useColorScheme();
+  const on = scheme === 'dark' ? theme.accent : theme.tint;
+  const fill = (group: MuscleGroup | null) => (group && (sets[group] ?? 0) > 0 ? on : theme.backgroundSelected);
+  const figure = (regions: Region[], key: string) => (
+    <Svg key={key} width={44} height={92} viewBox="0 0 100 210">
+      <G opacity={0.5}>{OUTLINE.map((s, i) => draw(s, theme.backgroundSelected, `o${i}`))}</G>
+      {regions.map((reg, i) => (
+        <G key={i}>{reg.shapes.map((s, j) => draw(s, fill(reg.group), `${i}-${j}`))}</G>
+      ))}
+    </Svg>
+  );
+  return (
+    <View accessible accessibilityLabel={label} style={styles.mini}>
+      {figure(FRONT, 'v')}
+      {figure(BACK, 'h')}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  mini: { flexDirection: 'row', gap: 2 },
   row: { flexDirection: 'row', justifyContent: 'space-around' },
   figure: { alignItems: 'center', gap: Spacing.one },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, justifyContent: 'center', marginTop: Spacing.two },

@@ -9,6 +9,7 @@ import { foodToForm, parseFoodForm } from '../nutrition';
 import { progressionAdvice } from '../progression';
 import { journalFindings, loadRatio, performanceIndex } from '../readiness';
 import { parseIngredientLine } from '../recipe-import';
+import { plannedSetsByWeekday } from '../summary';
 import { deloadEnd } from '../training-stats';
 
 describe('Phase 1 Scan – Logik', () => {
@@ -133,5 +134,14 @@ describe('Phase 1 Scan – Logik', () => {
     const days = [...Array.from({ length: 5 }, (_, i) => day(i, true, 92)), ...Array.from({ length: 5 }, (_, i) => day(i + 5, false, 99))];
     const f = journalFindings(days as never);
     expect(f[0]).toMatchObject({ factor: 'alkohol', metric: 'performance', withAvg: 92, withoutAvg: 99 });
+  });
+
+  test('T1: geplante Sätze je Wochentag – Lucs Plan an einem Sonntag (Push als nächstes)', () => {
+    // Mo Di Mi Do Fr Sa So; Plantage in Plan-Reihenfolge: Push 16, Pull 18, Oberkörper 17, Beine 13
+    const planned = [true, false, true, false, true, false, true];
+    expect(plannedSetsByWeekday(planned, 6, [16, 18, 17, 13], 0)).toEqual([18, 0, 17, 0, 13, 0, 16]);
+    // Montag, nächster fälliger Tag ist Pull
+    expect(plannedSetsByWeekday(planned, 0, [16, 18, 17, 13], 1)).toEqual([18, 0, 17, 0, 13, 0, 16]);
+    expect(plannedSetsByWeekday(planned, 3, [], 0)).toEqual([0, 0, 0, 0, 0, 0, 0]);
   });
 });

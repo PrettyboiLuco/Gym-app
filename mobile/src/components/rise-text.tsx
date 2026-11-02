@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
 import { ThemedText, type ThemedTextProps } from '@/components/themed-text';
-import { WordRise } from '@/constants/motion';
+import { PopScale, WordRise } from '@/constants/motion';
 
 /**
  * getlayers.ai Text Animations „Word Rise“: Wörter steigen gestaffelt aus 28 px auf (Feder 180/22, 70 ms Versatz).
@@ -47,6 +47,42 @@ export function Rise({ delay = 0, children }: { delay?: number; children: React.
   return <Animated.View style={style}>{children}</Animated.View>;
 }
 
+/**
+ * getlayers.ai „Pop Scale“: jeder Buchstabe springt mit Überschwingen auf (U5, Abschluss-Bildschirm). Für Bildschirmleser
+ * eine Überschrift; bei „Bewegung reduzieren“ steht der Text sofort. Leerzeichen bleiben als Wortabstand erhalten.
+ */
+export function PopText({ text, type = 'title' }: { text: string; type?: ThemedTextProps['type'] }) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const size = type === 'title' ? 32 : 28;
+  let index = 0;
+  return (
+    <View accessible accessibilityRole="header" accessibilityLabel={text} style={[styles.row, { columnGap: size * 0.28 }]}>
+      {words.map((word, w) => (
+        <View key={`${w}-${word}`} style={styles.word}>
+          {[...word].map((letter, i) => (
+            <Letter key={i} letter={letter} delay={index++ * PopScale.staggerMs} type={type} />
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function Letter({ letter, delay, type }: { letter: string; delay: number; type: ThemedTextProps['type'] }) {
+  const reduced = useReducedMotion();
+  const p = useSharedValue(reduced ? 1 : 0);
+  useEffect(() => {
+    if (!reduced) p.set(withDelay(delay, withSpring(1, PopScale.spring)));
+  }, [delay, p, reduced]);
+  const style = useAnimatedStyle(() => ({ opacity: Math.min(Math.max(p.value, 0), 1), transform: [{ scale: p.value }] }));
+  return (
+    <Animated.View style={style} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+      <ThemedText type={type}>{letter}</ThemedText>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
+  word: { flexDirection: 'row' },
   row: { flexDirection: 'row', flexWrap: 'wrap' },
 });

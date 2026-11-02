@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
 import { haptic } from '@/components/haptics';
@@ -32,11 +32,21 @@ export function SetCheck({
   const fill = dark ? theme.accent : theme.tint;
   const mark = dark ? theme.onAccent : theme.onTint;
 
+  // U5: Beim Abhaken ein Lime-Ring, der sich einmal ausdehnt und verblasst – Rückmeldung, kein Glühen.
+  const ring = useSharedValue(0);
   useEffect(() => {
-    if (done && !reduced) scale.set(withSequence(withSpring(1.18, { ...Spring, stiffness: 420 }), withSpring(1, Spring)));
-  }, [done, reduced, scale]);
+    if (done && !reduced) {
+      scale.set(withSequence(withSpring(1.18, { ...Spring, stiffness: 420 }), withSpring(1, Spring)));
+      ring.set(0);
+      ring.set(withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) }));
+    }
+  }, [done, reduced, scale, ring]);
 
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const ringStyle = useAnimatedStyle(() => ({
+    opacity: ring.value > 0 && ring.value < 1 ? 0.6 * (1 - ring.value) : 0,
+    transform: [{ scale: 1 + ring.value * 0.6 }],
+  }));
 
   return (
     <Pressable
@@ -56,6 +66,7 @@ export function SetCheck({
         else haptic.press();
         press();
       }}>
+      <Animated.View pointerEvents="none" style={[styles.ring, { borderColor: fill }, ringStyle]} />
       <Animated.View
         style={[
           styles.circle,
@@ -82,4 +93,5 @@ export function SetCheck({
 const styles = StyleSheet.create({
   circle: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.4 },
+  ring: { position: 'absolute', width: 44, height: 44, borderRadius: 22, borderWidth: 2, opacity: 0 },
 });

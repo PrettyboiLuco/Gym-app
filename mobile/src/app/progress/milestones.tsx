@@ -56,11 +56,18 @@ export default function MilestonesScreen() {
       {m.showBalance && m.goal ? (
         <Card title={t('balance.title')}>
           {current ? <ThemedText>{t(`balance.current.${current.status}`, { trained: current.trained, goal: current.goal })}</ThemedText> : null}
-          <ThemedText>{t('balance.last4', { done: m.last4.done, counted: m.last4.counted })}</ThemedText>
-          <ThemedText>{t('balance.month', { done: m.month.done, counted: m.month.counted })}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('balance.total', { done: m.total.done, counted: m.total.counted })}
-          </ThemedText>
+          {m.total.counted === 0 ? (
+            // U6: statt dreimal „0 von 0“ ein Satz mit dem, was als Nächstes zählt.
+            <ThemedText>{t('balance.empty', { goal: m.goal })}</ThemedText>
+          ) : (
+            <>
+              <ThemedText>{t('balance.last4', { done: m.last4.done, counted: m.last4.counted })}</ThemedText>
+              <ThemedText>{t('balance.month', { done: m.month.done, counted: m.month.counted })}</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('balance.total', { done: m.total.done, counted: m.total.counted })}
+              </ThemedText>
+            </>
+          )}
           <View style={styles.weeks} accessible accessibilityLabel={t('balance.weeksLabel')}>
             {m.weeks.slice(-12).map((w) => (
               <View
@@ -79,19 +86,21 @@ export default function MilestonesScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {t('balance.hint', { goal: m.goal })}
           </ThemedText>
-          <ListRow
-            title={t('balance.shareMonth')}
-            accessory="›"
-            last
-            onPress={() =>
-              setShare({
-                eyebrow: t('balance.eyebrow'),
-                value: `${m.month.done}/${m.month.counted}`,
-                title: t('balance.shareTitle'),
-                lines: [t('balance.shareLine', { done: m.last4.done, counted: m.last4.counted })],
-              })
-            }
-          />
+          {m.total.counted === 0 ? null : (
+            <ListRow
+              title={t('balance.shareMonth')}
+              accessory="›"
+              last
+              onPress={() =>
+                setShare({
+                  eyebrow: t('balance.eyebrow'),
+                  value: `${m.month.done}/${m.month.counted}`,
+                  title: t('balance.shareTitle'),
+                  lines: [t('balance.shareLine', { done: m.last4.done, counted: m.last4.counted })],
+                })
+              }
+            />
+          )}
         </Card>
       ) : null}
 

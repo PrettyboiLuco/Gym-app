@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Card } from '@/components/card';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
@@ -7,7 +7,7 @@ import { ListRow } from '@/components/fields';
 import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
-import { FigureStrip, TrainingBlock, type WeekDay } from '@/components/today-widgets';
+import { FigureStrip, TrainingBlock, weekDays } from '@/components/today-widgets';
 import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
@@ -16,9 +16,10 @@ import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
 import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
-import { loadTrainingWeek } from '@/data/training-week';
+import { loadTrainingWeek, plannedMuscles } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
+import type { MuscleGroup } from '@/domain/exercises';
 import type { Milestone } from '@/domain/motivation';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
@@ -67,10 +68,13 @@ async function loadToday(db: Db) {
     hide: settings.hideNumbers,
   };
   let next: { plan: string; day: string } | null = null;
+  let muscles: Partial<Record<MuscleGroup, number>> | null = null;
   const plan = plans.find((p) => p.days.length > 0);
   if (plan) {
     const index = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
     next = { plan: plan.name, day: plan.days[index].name };
+    // Muskeln des heutigen Plantags für die kleine Karte (U4).
+    muscles = await plannedMuscles(db, plan.days[index].id);
   }
   const coach: CoachTodayData = {
     setUp: setup !== null,
@@ -100,6 +104,7 @@ async function loadToday(db: Db) {
     today,
     // Nur der neueste noch nicht angesehene Meilenstein (A10.5); ältere stehen in der Liste.
     milestone: motivation.fresh.at(-1) ?? null,
+    muscles,
   };
 }
 
@@ -116,7 +121,7 @@ export default function TodayScreen() {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
     restDay: false,
-    week: { done: EMPTY_WEEK, planned: EMPTY_WEEK, goal: null as number | null, todayIndex: 0 },
+    week: { done: EMPTY_WEEK, planned: EMPTY_WEEK, goal: null as number | null, todayIndex: 0, doneSets: [] as number[], plannedSets: [] as number[] },
     timed: null as string | null,
     checkin: false,
     active: null as SessionInfo | null,
@@ -127,14 +132,16 @@ export default function TodayScreen() {
     ready: null as ReadinessToday | null,
     today: '',
     milestone: null as Milestone | null,
+    muscles: null as Partial<Record<MuscleGroup, number>> | null,
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today, milestone } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today, milestone, muscles } = data;
   useEffect(() => {
     if (!openSetup) return;
     saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
   }, [openSetup, db]);
   const units = useUnits();
   const modules = useModules();
+  const [checkOpen, setCheckOpen] = useState(false);
   const hour = new Date().getHours();
   const greeting = hour < 11 ? t('today.greetingMorning') : hour < 18 ? t('today.greetingDay') : t('today.greetingEvening');
 
@@ -169,12 +176,12 @@ export default function TodayScreen() {
             };
 
   // Die Zeile unter der Begrüßung: Datum und das Wichtigste von heute.
-  const finding = timed || active ? t('today.findingRunning') : next && restDay ? t('today.heroRest') : next ? t('today.findingNext', { day: next.day }) : null;
+  // T4: Der Plantag steht schon groß in der Karte – oben nur, was dort nicht steht (läuft gerade / Ruhetag).
+  const finding = timed || active ? t('today.findingRunning') : next && restDay ? t('today.heroRest') : null;
   const subtitle = [formatLongDate(new Date()), finding].filter(Boolean).join(' · ');
 
   // Trainingswoche: eine Variable für Punkte und Zusammenfassung (gezählt werden Tage mit Training).
-  const dayLabels = [1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`));
-  const days: WeekDay[] = dayLabels.map((label, i) => ({ label, done: week.done[i], planned: week.planned[i], today: i === week.todayIndex }));
+  const days = weekDays(week);
   const doneDays = week.done.filter(Boolean).length;
   // Status krank/verletzt/Pause (A6.7): kein Wochenziel, keine Lücke – nur was war.
   const paused = ready?.readiness.kind === 'status';
@@ -187,6 +194,7 @@ export default function TodayScreen() {
       : t('today.weekSummary', { count: doneDays });
 
   // Kennzahlen
+  const sleepHours = ready?.check?.sleepHours ?? coach?.sleepHours ?? null;
   const kcal = food.sums.values.kcal;
   const volume = (ml: number) => formatVolume(ml, units.volume);
   const kcalFigure = food.hide
@@ -247,9 +255,17 @@ export default function TodayScreen() {
         weekSummary={weekSummary}
         action={training.action}
         onPress={training.go}
+        muscles={!timed && !active && next && !restDay ? muscles : null}
       />
       {!modules.bereitschaft ? null : ready && ready.readiness.kind !== 'status' && !checkComplete ? (
-        <MorningCheck key={today} db={db} day={today} check={ready.check} onSaved={reload} />
+        // T3: auf „Heute“ eine Zeile; der Check klappt beim Antippen hier auf (vier Antippen, kein Bildschirmwechsel).
+        checkOpen ? (
+          <MorningCheck key={today} db={db} day={today} check={ready.check} onSaved={reload} />
+        ) : (
+          <Card>
+            <ListRow title={t('readiness.checkTitle')} subtitle={t('today.checkShort')} accessory="›" last onPress={() => setCheckOpen(true)} />
+          </Card>
+        )
       ) : ready ? (
         <ReadinessCard db={db} readiness={ready.readiness} check={ready.check} today={today} onChanged={reload} />
       ) : null}
@@ -280,6 +296,19 @@ export default function TodayScreen() {
             accessibilityLabel: `${t('today.tileWeight')} ${lastWeight ? formatWeight(lastWeight.kg, units.weight) : t('today.tileWeightNone')}, ${weightSub}`,
             onPress: () => router.push('/progress'),
           },
+          ...(modules.bereitschaft
+            ? [
+                {
+                  label: t('today.tileSleep'),
+                  value: sleepHours === null ? null : formatNumber(sleepHours, 1),
+                  unit: sleepHours === null ? undefined : 'h',
+                  sub: sleepHours === null ? t('today.tileSleepNone') : t('today.tileSleepLast'),
+                  accessibilityLabel:
+                    sleepHours === null ? `${t('today.tileSleep')}: ${t('today.tileSleepNone')}` : `${t('today.tileSleep')} ${formatNumber(sleepHours, 1)} h`,
+                  onPress: () => router.push('/progress/readiness'),
+                },
+              ]
+            : []),
         ]}
       />
       {coach && modules.coach ? <CoachToday data={coach} /> : null}

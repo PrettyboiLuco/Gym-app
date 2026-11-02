@@ -9,6 +9,7 @@ import { adjustCalorieGoal } from './goals';
 import { loadNutritionSettings, saveNutritionSettings } from './nutrition';
 import { archiveRoutine, listRoutines, saveRoutine } from './routines';
 import { addCustomExercise, archivePlan, listActivePlans, savePlan } from './training';
+import { savePreferredWeekdays } from './training-stats';
 
 export type ImportOptions = { replace: boolean; goals: boolean };
 export type ImportResult = { planId: string; archivedPlans: number; routines: number; customExercises: number; weekdaysSet: boolean; goalsSet: boolean };
@@ -58,10 +59,10 @@ export async function applyPlanImport(db: Db, imp: PlanImport, options: ImportOp
   let weekdaysSet = false;
   if (imp.weekdays) {
     const setup = await loadCoachSetup(db);
-    if (setup) {
-      await saveCoachSetup(db, { ...setup, trainingWeekdays: imp.weekdays, gymDays: imp.weekdays.length });
-      weekdaysSet = true;
-    }
+    if (setup) await saveCoachSetup(db, { ...setup, trainingWeekdays: imp.weekdays, gymDays: imp.weekdays.length });
+    // Ohne Coach als bevorzugte Trainingstage – sonst gingen sie verloren und die Satz-Woche hätte keine Plantage (T1).
+    else await savePreferredWeekdays(db, imp.weekdays);
+    weekdaysSet = true;
   }
 
   // 6. Tagesziele nur nach Bestätigung.

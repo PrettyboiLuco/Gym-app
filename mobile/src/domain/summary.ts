@@ -97,3 +97,21 @@ export function trainedDays(days: string[], monday: string): boolean[] {
   }
   return week;
 }
+
+/**
+ * Geplante Sätze je Wochentag (Mo–So) für die Satz-Woche (Phase 1 Scan, T1): Die geplanten Wochentage bekommen die
+ * Plantage in Plan-Reihenfolge – ab heute vorwärts, beginnend mit dem nächsten fälligen Tag, für die schon vergangenen
+ * Tage dieser Woche rückwärts. `daySets` = Sätze je Plantag in Plan-Reihenfolge, `nextIndex` = nächster fälliger Plantag.
+ * Ohne geplante Tage oder Plan: lauter Nullen.
+ */
+export function plannedSetsByWeekday(planned: boolean[], todayIndex: number, daySets: number[], nextIndex: number): number[] {
+  const out = Array.from({ length: 7 }, () => 0);
+  const n = daySets.length;
+  if (n === 0) return out;
+  const wrap = (i: number) => ((i % n) + n) % n;
+  let k = 0;
+  for (let d = Math.max(0, todayIndex); d < 7; d++) if (planned[d]) out[d] = daySets[wrap(nextIndex + k++)];
+  k = 1;
+  for (let d = todayIndex - 1; d >= 0; d--) if (planned[d]) out[d] = daySets[wrap(nextIndex - k++)];
+  return out;
+}

@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
+import { MuscleMapMini } from '@/components/muscle-map';
 import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
+import type { MuscleGroup } from '@/domain/exercises';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -18,8 +20,8 @@ import { t } from '@/i18n';
  * - Lime nur auf Daten (erledigte Tage, Balken); der Knopf ist die invertierte Pille.
  */
 
-/** Ein Tag der Trainingswoche. */
-export type WeekDay = { label: string; done: boolean; planned: boolean; today: boolean };
+/** Ein Tag der Trainingswoche; mit Sätzen zeigt die Woche Balken statt Punkten (Satz-Woche, T1). */
+export type WeekDay = { label: string; done: boolean; planned: boolean; today: boolean; doneSets?: number; plannedSets?: number };
 
 export function TrainingBlock({
   label,
@@ -29,6 +31,7 @@ export function TrainingBlock({
   weekSummary,
   action,
   onPress,
+  muscles,
 }: {
   label: string;
   title: string;
@@ -37,18 +40,24 @@ export function TrainingBlock({
   weekSummary: string;
   action: string;
   onPress: () => void;
+  /** Geplante Sätze je Muskel des heutigen Plantags (U4); ohne = keine Karte. */
+  muscles?: Partial<Record<MuscleGroup, number>> | null;
 }) {
   const theme = useTheme();
+  const groups = muscles ? (Object.keys(muscles) as MuscleGroup[]).filter((g) => (muscles[g] ?? 0) > 0) : [];
   return (
     <View style={[styles.block, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
-      <View style={styles.head}>
-        <ThemedText themeColor="textSecondary" style={styles.label}>
-          {label}
-        </ThemedText>
-        <ThemedText type="title" style={styles.answer} numberOfLines={2} accessibilityRole="header">
-          {title}
-        </ThemedText>
-        {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
+      <View style={styles.headRow}>
+        <View style={[styles.head, styles.flex]}>
+          <ThemedText themeColor="textSecondary" style={styles.label}>
+            {label}
+          </ThemedText>
+          <ThemedText type="title" style={styles.answer} numberOfLines={2} accessibilityRole="header">
+            {title}
+          </ThemedText>
+          {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
+        </View>
+        {groups.length ? <MuscleMapMini sets={muscles!} label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })} /> : null}
       </View>
       <WeekStrip days={week} summary={weekSummary} />
       <View style={styles.action}>
@@ -58,38 +67,76 @@ export function TrainingBlock({
   );
 }
 
+/** Die sieben Tage der Satz-Woche aus den Wochendaten – eine Stelle für „Heute“, Training und Abschluss. */
+export function weekDays(week: { done: boolean[]; planned: boolean[]; todayIndex: number; doneSets?: number[]; plannedSets?: number[] }): WeekDay[] {
+  return [1, 2, 3, 4, 5, 6, 7].map((d, i) => ({
+    label: t(`reminders.dayShort.${d}`),
+    done: !!week.done[i],
+    planned: !!week.planned[i],
+    today: i === week.todayIndex,
+    doneSets: week.doneSets?.[i] ?? 0,
+    plannedSets: week.plannedSets?.[i] ?? 0,
+  }));
+}
+
+/** Höhe der Balkenfläche in der Satz-Woche. */
+const BAR_AREA = 56;
+
 /**
- * Mo–So: gefüllt (Lime) = Training abgeschlossen, Ring = geplanter Trainingstag laut Coach,
- * heute in voller Schrift und mit kräftigerem Ring. Die Zusammenfassung trägt die Zahl in Worten.
+ * Satz-Woche (Phase 1 Scan, T1 – nach Lucs eigenem Plan „Balken: Sätze pro Training“): je Tag ein Balken, so hoch wie
+ * die geplanten Sätze (dunkle Fläche), erledigte Sätze in der Datenfarbe darüber. Ruhetag = kurze Linie, heute = feine
+ * Linie in der Datenfarbe. Oben die Sätze der Woche, darunter die Tage in Worten. Lime nur auf Daten (taste-skill).
  */
 export function WeekStrip({ days, summary, celebrateToday = false }: { days: WeekDay[]; summary: string; celebrateToday?: boolean }) {
   const theme = useTheme();
   // Datenfarbe: dunkel Lime, hell das dunklere Grün (Lime auf Weiß hätte unter 3:1 Kontrast).
   const doneColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
-  const description = days.map((d) => `${d.label}: ${d.done ? t('today.weekDone') : d.planned ? t('today.weekPlanned') : t('today.weekFree')}`).join(', ');
+  const planned = days.reduce((n, d) => n + (d.plannedSets ?? 0), 0);
+  const done = days.reduce((n, d) => n + (d.doneSets ?? 0), 0);
+  const max = Math.max(1, ...days.map((d) => Math.max(d.plannedSets ?? 0, d.doneSets ?? 0)));
+  const headline = planned > 0 ? t('today.weekSets', { done, planned }) : t('today.weekSetsDone', { count: done });
+  const description = days
+    .map((d) =>
+      (d.plannedSets ?? 0) > 0 || (d.doneSets ?? 0) > 0
+        ? t('today.weekDaySets', { day: d.label, done: d.doneSets ?? 0, planned: d.plannedSets ?? 0 })
+        : d.done
+          ? t('today.weekDayDone', { day: d.label })
+          : t('today.weekDayRest', { day: d.label })
+    )
+    .join(', ');
   return (
-    <View accessible accessibilityLabel={`${summary}. ${description}`} style={styles.weekWrap}>
+    <View accessible accessibilityLabel={`${headline}. ${summary}. ${description}`} style={styles.weekWrap}>
+      <ThemedText type="smallBold" style={styles.weekHeadline}>
+        {headline}
+      </ThemedText>
       <View style={styles.week}>
-        {days.map((d, i) => (
-          <View key={i} style={styles.day}>
-            <ThemedText type="small" themeColor={d.today ? 'text' : 'textSecondary'} style={[styles.dayLabel, d.today && styles.dayLabelToday]}>
-              {d.label}
-            </ThemedText>
-            <DayDot
-              pop={celebrateToday && d.today && d.done}
-              style={[
-                styles.dot,
-                d.done
-                  ? { backgroundColor: doneColor, borderColor: doneColor }
-                  : {
-                      backgroundColor: theme.backgroundSelected,
-                      borderColor: d.today ? theme.text : d.planned ? theme.textSecondary : 'transparent',
-                      borderWidth: d.today ? 2 : 1.5,
-                    },
-              ]}
-            />
-          </View>
-        ))}
+        {days.map((d, i) => {
+          const plan = d.plannedSets ?? 0;
+          const did = d.doneSets ?? 0;
+          // Cardio ohne Sätze zählt als Trainingstag: kleiner Balken in der Datenfarbe.
+          const doneHeight = did > 0 ? Math.max(6, (BAR_AREA * did) / max) : d.done ? 6 : 0;
+          const planHeight = plan > 0 ? Math.max(8, (BAR_AREA * plan) / max) : d.planned ? BAR_AREA / 2 : 0;
+          const figure = did > 0 ? String(did) : plan > 0 ? String(plan) : '';
+          return (
+            <View key={i} style={styles.day}>
+              <ThemedText type="small" themeColor={d.today ? 'text' : 'textSecondary'} style={[styles.dayLabel, d.today && styles.dayLabelToday]}>
+                {d.label}
+              </ThemedText>
+              <View style={styles.barArea}>
+                {planHeight > 0 ? (
+                  <View style={[styles.bar, { height: planHeight, backgroundColor: theme.backgroundSelected }]} />
+                ) : doneHeight === 0 ? (
+                  <View style={[styles.rest, { backgroundColor: theme.backgroundSelected }]} />
+                ) : null}
+                {doneHeight > 0 ? <DoneBar height={doneHeight} color={doneColor} grow={celebrateToday && d.today} /> : null}
+              </View>
+              <ThemedText type="small" themeColor={did > 0 ? 'text' : 'textSecondary'} style={styles.dayFigure}>
+                {figure}
+              </ThemedText>
+              <View style={[styles.todayMark, { backgroundColor: d.today ? doneColor : 'transparent' }]} />
+            </View>
+          );
+        })}
       </View>
       <ThemedText type="small" themeColor="textSecondary">
         {summary}
@@ -98,15 +145,15 @@ export function WeekStrip({ days, summary, celebrateToday = false }: { days: Wee
   );
 }
 
-/** Ein Tagespunkt; `pop` lässt ihn einmal auffedern (Abschluss-Bildschirm: der heute verdiente Punkt). */
-function DayDot({ pop, style }: { pop: boolean; style: StyleProp<ViewStyle> }) {
+/** Erledigte Sätze eines Tages; `grow` lässt den heutigen Balken einmal auffedern (Abschluss-Bildschirm, U5). */
+function DoneBar({ height, color, grow }: { height: number; color: string; grow: boolean }) {
   const reduced = useReducedMotion();
-  const scale = useSharedValue(pop && !reduced ? 0.3 : 1);
+  const h = useSharedValue(grow && !reduced ? 0 : height);
   useEffect(() => {
-    if (pop && !reduced) scale.set(withDelay(250, withSpring(1, { ...Spring, stiffness: 260, damping: 12 })));
-  }, [pop, reduced, scale]);
-  const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return <Animated.View style={[style, animated]} />;
+    h.set(grow && !reduced ? withDelay(250, withSpring(height, { ...Spring, stiffness: 260, damping: 12 })) : height);
+  }, [grow, reduced, height, h]);
+  const animated = useAnimatedStyle(() => ({ height: h.value }));
+  return <Animated.View style={[styles.bar, styles.doneBar, { backgroundColor: color }, animated]} />;
 }
 
 export type Figure = {
@@ -122,10 +169,16 @@ export type Figure = {
 /** Kennzahlen als Schrift: ein Feld, gleich breite Spalten, 1-px-Trenner, Wert in Manrope mit Tabellenziffern. */
 export function FigureStrip({ figures }: { figures: Figure[] }) {
   const theme = useTheme();
+  // Vier Werte als 2 × 2 statt vier enger Spalten (taste-skill, Handy); sonst eine Reihe.
+  const rows = figures.length === 4 ? [figures.slice(0, 2), figures.slice(2)] : [figures];
   return (
-    <View style={[styles.strip, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
-      {figures.map((f, i) => (
-        <FigureCell key={f.label} figure={f} divider={i > 0 ? theme.backgroundSelected : null} />
+    <View style={[styles.stripBox, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+      {rows.map((row, r) => (
+        <View key={r} style={[styles.strip, r > 0 && { borderTopWidth: 1, borderTopColor: theme.backgroundSelected }]}>
+          {row.map((f, i) => (
+            <FigureCell key={f.label} figure={f} divider={i > 0 ? theme.backgroundSelected : null} />
+          ))}
+        </View>
       ))}
     </View>
   );
@@ -175,16 +228,25 @@ function FigureCell({ figure, divider }: { figure: Figure; divider: string | nul
 const styles = StyleSheet.create({
   block: { borderRadius: Radius.card, borderWidth: 1, padding: Spacing.four - 2, gap: Spacing.four },
   head: { gap: Spacing.one },
+  headRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
+  flex: { flex: 1 },
   label: { fontSize: 14, lineHeight: 20 },
   answer: { marginTop: Spacing.half },
   weekWrap: { gap: Spacing.two },
+  weekHeadline: { fontVariant: ['tabular-nums'] },
   week: { flexDirection: 'row', justifyContent: 'space-between' },
-  day: { alignItems: 'center', gap: Spacing.two, minWidth: 36 },
+  day: { alignItems: 'center', gap: Spacing.one, minWidth: 36 },
   dayLabel: { fontSize: 12, lineHeight: 16 },
   dayLabelToday: { fontWeight: 600 },
-  dot: { width: 30, height: 30, borderRadius: 15 },
+  barArea: { height: BAR_AREA, width: 22, justifyContent: 'flex-end', alignItems: 'center' },
+  bar: { width: 22, borderRadius: 5 },
+  doneBar: { position: 'absolute', bottom: 0 },
+  rest: { width: 14, height: 3, borderRadius: 2 },
+  dayFigure: { fontSize: 11, lineHeight: 14, fontVariant: ['tabular-nums'], minHeight: 14 },
+  todayMark: { width: 22, height: 2, borderRadius: 1 },
   action: { alignItems: 'flex-start' },
-  strip: { flexDirection: 'row', borderRadius: Radius.card, borderWidth: 1, paddingVertical: Spacing.three },
+  stripBox: { borderRadius: Radius.card, borderWidth: 1 },
+  strip: { flexDirection: 'row', paddingVertical: Spacing.three },
   cellWrap: { flex: 1 },
   cell: { paddingHorizontal: Spacing.three - 2, gap: Spacing.one, minHeight: 44 },
   valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3, flexWrap: 'wrap' },

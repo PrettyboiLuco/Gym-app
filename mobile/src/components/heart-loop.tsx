@@ -15,7 +15,7 @@ const sprites = {
  * Das 3D-Herz (getlayers.ai „SVG to 3D“, vorgerendert in design/logo/sprite.js) pendelt sanft – Bild für Bild
  * aus einem Raster. Nur im Erststart (einmaliger Auftritt). Bei „Bewegung reduzieren“ steht das erste Bild.
  */
-export function HeartLoop({ size = 140 }: { size?: number }) {
+export function HeartLoop({ size = 140, loops }: { size?: number; /** Nach so vielen Schwüngen still stehen (Abschluss-Bildschirm). */ loops?: number }) {
   const scheme = useColorScheme();
   const reduced = useReducedMotion();
   const frame = useSharedValue(0);
@@ -23,6 +23,10 @@ export function HeartLoop({ size = 140 }: { size?: number }) {
 
   useFrameCallback((info) => {
     if (reduced) return;
+    if (loops !== undefined && elapsed.value >= (loops * FRAMES * 1000) / FPS) {
+      frame.value = 0;
+      return;
+    }
     elapsed.value += info.timeSincePreviousFrame ?? 0;
     const next = Math.floor((elapsed.value / 1000) * FPS) % FRAMES;
     if (next !== frame.value) frame.value = next;

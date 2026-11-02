@@ -6,12 +6,14 @@ import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
 import { Field } from '@/components/fields';
 import { haptic } from '@/components/haptics';
+import { HeartLoop } from '@/components/heart-loop';
 import { Icon } from '@/components/icon';
+import { PopText } from '@/components/rise-text';
 import { Screen } from '@/components/screen';
 import { SessionFeedback } from '@/components/session-feedback';
 import { ShareCard } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';
-import { FigureStrip, WeekStrip, type WeekDay } from '@/components/today-widgets';
+import { FigureStrip, WeekStrip, weekDays } from '@/components/today-widgets';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
@@ -106,6 +108,8 @@ export default function SummaryScreen() {
         planned: [],
         goal: null,
         todayIndex: 0,
+        doneSets: [],
+        plannedSets: [],
       } as TrainingWeek,
       cooldownOffered: false,
       muscleGroups: [] as string[],
@@ -127,13 +131,7 @@ export default function SummaryScreen() {
 
   const byId = new Map(exercises.map((e) => [e.id, e]));
   const nameOf = (exerciseId: string) => hints[exerciseId]?.label || exerciseName(byId.get(exerciseId));
-  const dayLabels = [1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`));
-  const days: WeekDay[] = dayLabels.map((label, i) => ({
-    label,
-    done: !!week.done[i],
-    planned: !!week.planned[i],
-    today: i === week.todayIndex,
-  }));
+  const days = weekDays(week);
   const doneDays = week.done.filter(Boolean).length;
   const weekSummary = week.goal ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal }) : t('today.weekSummary', { count: doneDays });
   const volume = formatWeight(summary.volumeKg, units.weight, 0);
@@ -164,9 +162,13 @@ export default function SummaryScreen() {
 
   return (
     <Screen withHeader>
-      <View style={styles.head} accessibilityRole="header">
-        <ThemedText themeColor="textSecondary">{session.dayName ? `${session.planName} – ${session.dayName}` : t('session.free')}</ThemedText>
-        <ThemedText type="title">{records.length > 0 ? t('summary.titleRecord') : t('summary.title')}</ThemedText>
+      {/* U5: Erfolgsmoment als Rückmeldung – Überschrift mit getlayers „Pop Scale“, das Herz vom Start schwingt zweimal. */}
+      <View style={styles.headRow}>
+        <View style={[styles.head, styles.headText]}>
+          <ThemedText themeColor="textSecondary">{session.dayName ? `${session.planName} – ${session.dayName}` : t('session.free')}</ThemedText>
+          <PopText text={records.length > 0 ? t('summary.titleRecord') : t('summary.title')} />
+        </View>
+        <HeartLoop size={72} loops={2} />
       </View>
 
       <FigureStrip
@@ -309,6 +311,8 @@ export default function SummaryScreen() {
 
 const styles = StyleSheet.create({
   head: { gap: Spacing.one, paddingTop: Spacing.two },
+  headRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  headText: { flex: 1 },
   record: {
     flexDirection: 'row',
     alignItems: 'center',

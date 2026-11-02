@@ -1,9 +1,12 @@
 // Fehler aus dem Phase 1 Scan (docs/Phase_1_Scan.md), Datenschicht – je Fehler ein Test, damit er nicht zurückkommt.
 
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 import { effectiveModules } from '@/domain/modules';
 import { foodToForm, parseFoodForm } from '@/domain/nutrition';
+import { parsePlanFile } from '@/domain/plan-file';
 
 import { readState } from '../app-state';
 import { restoreBackup } from '../backup';
@@ -14,10 +17,12 @@ import { MIGRATIONS, migrate } from '../migrations';
 import { getFood, loadNutritionSettings, per100, saveFood, saveNutritionSettings } from '../nutrition';
 import { fetchProduct } from '../off';
 import { loadOnlineSetting, saveOnlineSetting } from '../online';
+import { applyPlanImport } from '../plan-import';
 import { loadProfile, saveProfile } from '../profile';
 import { buildReport } from '../report';
 import { createTestDb } from '../testing/node-db';
-import { startSession } from '../training';
+import { listActivePlans, listExercises, startSession } from '../training';
+import { loadTrainingWeek, plannedMuscles } from '../training-week';
 
 let db: Db & { close(): void };
 beforeEach(async () => {
@@ -98,5 +103,19 @@ describe('Phase 1 Scan – Daten', () => {
     await expect(fetchPage('https://example.org/rezept')).rejects.toBeInstanceOf(OnlineDisabledError);
     expect(fetchSpy).not.toHaveBeenCalled();
     await saveOnlineSetting(db, true);
+  });
+
+  test('T1/U4: Satz-Woche und Muskelkarte aus Lucs Plan (Sonntag, Push ist dran)', async () => {
+    const text = readFileSync(join(__dirname, '../presets/lucs-training.myhealth.json'), 'utf8');
+    const imp = parsePlanFile(text, new Set((await listExercises(db)).map((e) => e.id)));
+    if (!imp.ok) throw new Error('Plan-Datei ungültig');
+    await applyPlanImport(db, imp, { replace: true, goals: false }, '2026-11-01');
+    const week = await loadTrainingWeek(db, '2026-11-01');
+    // Mo Pull 18, Mi Oberkörper 17, Fr Beine 13, So Push 16 – wie in Lucs Plan
+    expect(week.plannedSets).toEqual([18, 0, 17, 0, 13, 0, 16]);
+    expect(week.doneSets).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    const plans = await listActivePlans(db);
+    const push = await plannedMuscles(db, plans[0].days[0].id);
+    expect(Object.keys(push).sort()).toEqual(expect.arrayContaining(['arme', 'brust', 'schultern']));
   });
 });

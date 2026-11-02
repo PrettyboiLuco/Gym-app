@@ -10,7 +10,7 @@ import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
-import { TrainingBlock, type WeekDay } from '@/components/today-widgets';
+import { TrainingBlock, weekDays } from '@/components/today-widgets';
 import { Spacing } from '@/constants/theme';
 import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
@@ -95,7 +95,7 @@ export default function TrainingScreen() {
     timed: null as TimedRun | null,
     expired: [] as string[],
     pauseDays: 0,
-    week: { done: [], planned: [], goal: null, todayIndex: 0 } as TrainingWeek,
+    week: { done: [], planned: [], goal: null, todayIndex: 0, doneSets: [], plannedSets: [] } as TrainingWeek,
     hasFinished: false,
     muscles: [] as { group: MuscleGroup; sets: number }[],
     cardioMinutes: 0,
@@ -116,8 +116,7 @@ export default function TrainingScreen() {
   // Leitfrage: „Was trainiere ich jetzt?“ – der Vorschlag ist der größte Block, ein Tipp startet ihn.
   const plan = plans.find((p) => p.days.length > 0);
   const suggestedDay = plan ? plan.days[suggestions[plan.planId] ?? 0] : null;
-  const dayLabels = [1, 2, 3, 4, 5, 6, 7].map((d) => t(`reminders.dayShort.${d}`));
-  const days: WeekDay[] = dayLabels.map((label, i) => ({ label, done: !!week.done[i], planned: !!week.planned[i], today: i === week.todayIndex }));
+  const days = weekDays(week);
   const doneDays = week.done.filter(Boolean).length;
   const weekSummary = week.goal ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal }) : t('today.weekSummary', { count: doneDays });
   const hero = timed

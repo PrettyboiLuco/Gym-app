@@ -183,6 +183,10 @@ Vorher: Mehr → Mitteilungen und Erinnerungen → „Timer bei gesperrtem Handy
 | S6 | Ernährung aus und wieder an | Coach wieder sichtbar | Expo Go |
 | S7 | Tagesende 4 Uhr einstellen, um 1 Uhr Ernährung öffnen | Oben steht „Heute“ für den Vortag, „Zu heute“ springt nicht auf den Kalendertag | Expo Go |
 | S8 | Ernährung bzw. Bereitschaft aus: Mehr → Mitteilungen | Trink-, Morgen- und Bettzeit-Karten ausgeblendet, keine Supplement-Erinnerung | Expo Go |
+| S9 | „Heute“ mit Lucs Plan | Satz-Woche: Balken Mo/Mi/Fr/So mit den geplanten Sätzen, heute fein markiert, „0 von 64 Sätzen“; kleine Muskelkarte zeigt die Muskeln des Plantags | Expo Go |
+| S10 | Satz abhaken | Haken federt, ein Lime-Ring dehnt sich einmal aus | Expo Go |
+| S11 | Training abschließen | „Training geschafft“ springt Buchstabe für Buchstabe auf, das Herz schwingt zweimal; der heutige Balken wächst | Expo Go |
+| S12 | Morgen-Check auf „Heute“ antippen | klappt direkt dort auf; danach Ampel statt Zeile | Expo Go |
 
 ## VoiceOver – alle Hauptabläufe (A11.2)
 
