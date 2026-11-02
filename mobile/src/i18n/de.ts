@@ -2730,7 +2730,10 @@ export const de = {
     secondaryOption: { halb: 'halb zählen', aus: 'nicht zählen' },
     spared: 'Gestrichelt: geschont ({{list}})',
     sparedSince: 'Gestrichelt: geschont seit {{date}} ({{list}})',
-    wholeBody: { one: 'Umriss: Ganzkörper-Übungen, {{count}} Satz', other: 'Umriss: Ganzkörper-Übungen, {{count}} Sätze' },
+    wholeBody: {
+      one: 'Dazu Ganzkörper-Übungen: {{count}} Satz (zählt für keinen einzelnen Muskel)',
+      other: 'Dazu Ganzkörper-Übungen: {{count}} Sätze (zählen für keinen einzelnen Muskel)',
+    },
     noSets: 'Diese Woche noch keine Sätze.',
     prevWeek: '‹ Woche davor',
     nextWeek: 'Woche danach ›',
@@ -3474,6 +3477,20 @@ export const de = {
     versionTitle: 'Version',
     aboutTitle: 'Über die App',
     languageValue: 'Deutsch',
+    licensesTitle: 'Zeichnungen und Lizenzen',
+    licenses:
+      'Die Körperzeichnungen der Muskelkarte stammen aus „react-native-body-highlighter“ von Hicham ELABBASSI ' +
+      '(github.com/HichamELBSI/react-native-body-highlighter), MIT-Lizenz: Copyright (c) 2022 ELABBASSI Hicham. ' +
+      'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated ' +
+      'documentation files (the "Software"), to deal in the Software without restriction, including without limitation ' +
+      'the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to ' +
+      'permit persons to whom the Software is furnished to do so, subject to the following conditions: The above ' +
+      'copyright notice and this permission notice shall be included in all copies or substantial portions of the ' +
+      'Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT ' +
+      'LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT ' +
+      'SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION ' +
+      'OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER ' +
+      'DEALINGS IN THE SOFTWARE.',
     sourcesTitle: 'Datenquellen',
     sources:
       'Produktdaten beim Scannen und in der Online-Suche stammen von Open Food Facts (openfoodfacts.org), ' +

@@ -115,3 +115,20 @@ TeamBuildr und react-native-body-highlighter (linke/rechte Seite getrennt, Heran
 | K1 | Körperform wählbar | „Männlich · Weiblich“ in der Statistik, gespeichert (Einstellung der Muskelkarte); gilt auch für die kleine Karte auf „Heute“ und den Abschluss. Das Profil kennt kein Geschlecht – die Wahl betrifft nur die Zeichnung. |
 | K2 | Weibliche Figur | Entsteht aus der männlichen durch eine weiche Verformung quer zur Mitte (Kopf 0,93, Schultern 0,86, Taille 0,84, Hüfte 1,07, Arme 0,9). Eigene Formen für Brust, geraden und seitlichen Bauch und Sägemuskel; langes Haar rahmt das Gesicht. Alle Flächen, das Antippen und die Tests gelten für beide Formen. |
 | K3 | 3D-Wirkung | Licht von links oben: jeder Muskel bekommt einen runden Verlauf (heller Glanz oben links, dunklerer Rand), der Körper wird nach rechts dunkler, unter den Füßen liegt ein weicher Schatten. Die Verläufe beziehen sich auf jede Fläche selbst und bleiben bei Fokus und Überblendung mit der Fläche verbunden. |
+
+## Neue Zeichnungen (umgesetzt)
+
+Die selbst gebauten Kurven sahen zu sehr nach Code aus (Muskeln als Inseln mit gleich breiten Fugen, Bauch als Raster,
+Puppenkopf, Glanz-Effekt, weibliche Figur nur verformt). Ersetzt durch die Körperzeichnungen aus
+**react-native-body-highlighter** (MIT, kostenlos): von Hand gezeichnet, mit Händen, Gesicht, Frisur, ineinander
+laufenden Muskeln und einer eigenen weiblichen Figur.
+
+| Was | Umsetzung |
+|---|---|
+| Daten | `mobile/src/components/body-art.ts` – nur die Pfade je Körperteil, Lizenztext im Kopf; das Paket ist keine Abhängigkeit |
+| Zuordnung | `muscle-figure.ts`: Körperteil → Kartenmuskeln und Gruppe (z. B. Brust → Brust oben/Mitte/unten, oberer Rücken → Latissimus, oberer Rücken, Rotatoren). Die Zeichnung ist gröber als unsere 24 Muskeln; die Liste unter der Karte zeigt weiter jeden Muskel einzeln |
+| Farbe | Eine Fläche nimmt die höchste Stufe ihrer Muskeln; Kopf, Hände, Füße, Knie im Körperton, Haar dunkler |
+| Antippen | Treffer über die Umrisse der Zeichnung (eigener Pfad-Leser für alle SVG-Befehle inkl. Bögen); gemeint ist der Muskel der Fläche mit den meisten Sätzen, die Liste wählt jeden Muskel einzeln |
+| Entfallen | Glanz-Verläufe, Bodenschatten, Verformung zur weiblichen Figur, eigene Frisur, Ganzkörper-Umriss (Ganzkörper steht jetzt als Text unter der Karte) |
+| Geblieben | Farbstufen, Überblenden mit Versatz, Fokus, Markierung, Drehung, Ansicht, Körperform, geschonte Bereiche, Erfolgsmoment |
+| Lizenz in der App | Mehr → Über die App → „Zeichnungen und Lizenzen“ mit vollständigem MIT-Text |

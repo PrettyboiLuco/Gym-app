@@ -1,465 +1,234 @@
+import { FEMALE_BACK, FEMALE_FRONT, MALE_BACK, MALE_FRONT, type ArtView } from '@/components/body-art';
 import type { MuscleGroup } from '@/domain/exercises';
-import { MAP_GROUP, type MapMuscle } from '@/domain/muscle-map';
+import type { MapMuscle } from '@/domain/muscle-map';
 
 /**
- * Zeichnung der Muskelkarte (viewBox 0 0 100 214, Mitte bei x = 50). Gezeichnet wird nur die linke Körperhälfte;
- * die rechte entsteht hier im Code gespiegelt, der Umriss als ein einziger geschlossener Pfad (keine Naht in der Mitte).
- * Athletischer Körperbau nach dem 8-Kopf-Schema (Kinn 26, Brust 58, Nabel 80, Schritt 106, Knie 148, Sohle 211):
- * breite Schultern, V-Form, schmale Taille, kräftige Arme, Oberschenkel und Waden.
- * Pfade nur mit absoluten Befehlen M, L, C, Z – so lassen sie sich spiegeln und umkehren.
+ * Zeichnung der Muskelkarte: männliche und weibliche Figur, vorne und hinten, aus den Körperzeichnungen in
+ * `body-art.ts` (react-native-body-highlighter, MIT). Hier steht, welches Körperteil der Zeichnung welche unserer
+ * Kartenmuskeln zeigt, dazu das Antippen (Treffer über die abgetasteten Umrisse) und die Reihen für den Versatz.
  */
-
-export const VIEWBOX = '0 0 100 214';
 
 export type Pt = [number, number];
-type Seg = { cmd: 'L'; to: Pt } | { cmd: 'C'; c1: Pt; c2: Pt; to: Pt };
 
-function parse(d: string): { start: Pt; segs: Seg[] } {
-  const tokens = d.match(/[MLCZ]|-?\d*\.?\d+/g) ?? [];
-  let i = 0;
-  const num = () => Number(tokens[i++]);
-  const pt = (): Pt => [num(), num()];
-  let start: Pt = [0, 0];
-  const segs: Seg[] = [];
-  while (i < tokens.length) {
-    const cmd = tokens[i++];
-    if (cmd === 'M') start = pt();
-    else if (cmd === 'L') segs.push({ cmd: 'L', to: pt() });
-    else if (cmd === 'C') segs.push({ cmd: 'C', c1: pt(), c2: pt(), to: pt() });
+// ------------------------------------------------------------------------------------ Pfade lesen
+
+/** Liest einen SVG-Pfad Zeichen für Zeichen: Befehle, Zahlen und Bogen-Merker (eine Ziffer, oft ohne Trennzeichen). */
+class Scanner {
+  private i = 0;
+  constructor(private readonly d: string) {}
+  private skip() {
+    while (this.i < this.d.length && /[\s,]/.test(this.d[this.i])) this.i++;
   }
-  return { start, segs };
-}
-
-const r = (n: number) => Math.round(n * 100) / 100;
-const mx = ([x, y]: Pt): string => `${r(100 - x)} ${r(y)}`;
-
-/** Spiegelt einen Pfad an der Mitte (x → 100 − x). */
-export function mirror(d: string): string {
-  return d.replace(/([MLC])([^MLCZ]*)/g, (_, cmd: string, args: string) => {
-    const n = args.match(/-?\d*\.?\d+/g)?.map(Number) ?? [];
-    const out: string[] = [];
-    for (let k = 0; k < n.length; k += 2) out.push(`${r(100 - n[k])} ${r(n[k + 1])}`);
-    return `${cmd}${out.join(' ')} `;
-  });
-}
-
-/** Linke Hälfte (von oben Mitte bis Schritt Mitte) + gespiegelte rechte Hälfte rückwärts = ein geschlossener Umriss. */
-function wholeOutline(half: string): string {
-  const { start, segs } = parse(half);
-  const points = [start, ...segs.map((s) => s.to)];
-  let back = '';
-  for (let k = segs.length - 1; k >= 0; k--) {
-    const s = segs[k];
-    const from = points[k];
-    back += s.cmd === 'C' ? ` C${mx(s.c2)} ${mx(s.c1)} ${mx(from)}` : ` L${mx(from)}`;
+  /** Nächster Befehlsbuchstabe oder null, wenn eine Zahl folgt (Wiederholung des letzten Befehls). */
+  command(): string | null {
+    this.skip();
+    const ch = this.d[this.i];
+    if (ch && /[A-Za-z]/.test(ch)) {
+      this.i++;
+      return ch;
+    }
+    return null;
   }
-  return `${half}${back} Z`;
+  done(): boolean {
+    this.skip();
+    return this.i >= this.d.length;
+  }
+  number(): number {
+    this.skip();
+    const m = /^-?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/.exec(this.d.slice(this.i));
+    if (!m) throw new Error(`Zahl erwartet bei ${this.i}`);
+    this.i += m[0].length;
+    return Number(m[0]);
+  }
+  flag(): number {
+    this.skip();
+    const ch = this.d[this.i++];
+    if (ch !== '0' && ch !== '1') throw new Error(`Merker erwartet bei ${this.i - 1}`);
+    return Number(ch);
+  }
 }
-
-/** Abgerundetes Rechteck als Pfad (für die Bauchsegmente). */
-function rounded(x0: number, y0: number, x1: number, y1: number, rad: number): string {
-  const k = rad * 0.45;
-  return (
-    `M${x0 + rad} ${y0} L${x1 - rad} ${y0} C${x1 - k} ${y0} ${x1} ${y0 + k} ${x1} ${y0 + rad} L${x1} ${y1 - rad} ` +
-    `C${x1} ${y1 - k} ${x1 - k} ${y1} ${x1 - rad} ${y1} L${x0 + rad} ${y1} C${x0 + k} ${y1} ${x0} ${y1 - k} ${x0} ${y1 - rad} ` +
-    `L${x0} ${y0 + rad} C${x0} ${y0 + k} ${x0 + k} ${y0} ${x0 + rad} ${y0} Z`
-  );
-}
-
-// ------------------------------------------------------------------------------------ Umriss (linke Hälfte)
-
-const OUTLINE_HALF =
-  'M50 2.4 C45.3 2.4 41.9 6.2 41.9 12.6 C41.9 15.4 42.2 17.8 42.7 19.8 C43.3 22.2 44 24 45 25.4 ' + // Kopf, Kiefer
-  'C44.6 27.2 44.2 29 43.6 30.4 C40.6 32.2 35.4 33.6 29.4 34.6 ' + // kräftiger Hals, Trapez
-  'C22.4 35.4 17.8 38.6 16.6 44.8 C15.8 49 15.8 53.6 15.8 58 ' + // breite Schulter
-  'C15.4 63 14.6 68 14 73 C13.7 75.6 13.4 77.6 13.2 79.6 ' + // Oberarm, Ellbogen
-  'C12 85 11.2 92 11 98 C10.8 100.4 10.4 102.4 10 104.6 ' + // Unterarm, Handgelenk
-  'C9.4 108.4 9.4 112.6 10 116.2 C10.6 119.4 11.8 121.6 13.4 122.2 C14.8 122.6 15.8 121.8 16 120 ' + // Hand, Finger
-  'C16.2 116.8 16.4 113.2 16.8 110 C17 107.8 17.2 105.8 17.6 104 ' + // Handinnenseite
-  'C19.4 97 20.6 90 21.2 84.4 C21.4 82.4 21.6 80.4 22 78.8 C23.4 72 24.1 64 24.5 57.6 C24.6 55.4 25.2 53.2 26.2 51.8 ' + // Arm innen
-  'C25.6 55.4 25.6 59 26.2 62.6 C27 68.6 29.4 75 30.6 80.4 C31 84.6 30.8 88.4 30.2 92 C29.4 97 28.8 103 28.8 109 ' + // V-Form, Taille, Hüfte
-  'C28.4 118 28.8 130 30.6 141 C31.4 145.4 31.8 148.6 31.8 152 ' + // Oberschenkel, Knie
-  'C30.6 158 30.4 166 31.8 173.6 C33 181 34.8 189 35.4 196 ' + // Wade, Unterschenkel
-  'C35.4 198.6 34.8 200.6 33.6 202.8 C32.4 205 32.2 207.6 33.4 209 C35.2 210.6 41.4 211 44 210.1 ' + // Fuß
-  'C45.2 209.4 45.6 207.6 45.4 205.6 C45.2 203 45 200 45 197 ' + // Fuß innen, Knöchel
-  'C45.8 190 47.2 181 47.4 172.6 C47.6 164 47 157 46 152 C45.8 149 45.9 146 46.4 143 ' + // Wade innen, Knie innen
-  'C48 134 48.8 122 49 112 C49.2 108.4 49.5 106.8 50 106.4'; // Oberschenkel innen, Schritt
-
-export const OUTLINE = wholeOutline(OUTLINE_HALF);
-
-// ------------------------------------------------------------------------------------ Muskeln (linke Hälfte)
-
-// Volle Karte: eine Fläche je Kartenmuskel (Zielmuskel, docs/Muskelkarte_Ausbau.md Punkt 1). Kleine Karte: je
-// Muskelgruppe wenige, große Flächen.
-type Half = Partial<Record<MapMuscle, string[]>>;
-type GroupHalf = Partial<Record<MuscleGroup, string[]>>;
-
-// Schulter: außen der seitliche Anteil, innen vorne der vordere bzw. hinten der hintere Anteil
-const DELT_SIDE = 'M24.8 36.4 C20.6 37.6 18.2 40.6 17.6 45 C16.9 49.2 16.9 54 17.2 58.6 C18.6 56.2 20.2 54.4 21.8 53 C21.8 47.6 22.8 41.6 24.8 36.4 Z';
-const DELT_INNER =
-  'M31.8 35.8 C29.4 35.8 27.4 36 26 36.2 C24 41.4 23.2 47 23.2 52.2 C24 51.4 24.8 50.8 25.6 50.4 C28.2 49.2 29.6 46.8 30.2 43.8 C30.6 41 31 38.2 31.8 35.8 Z';
-const DELTOID =
-  'M31.8 35.8 C24.6 36 19 38.8 17.6 45 C16.9 49.2 16.9 54 17.2 58.6 C19.4 55 22.4 52 25.6 50.4 C28.2 49.2 29.6 46.8 30.2 43.8 C30.6 41 31 38.2 31.8 35.8 Z';
-// Unterarm in zwei Strängen: außen Oberarmspeichenmuskel/Strecker, innen Beuger
-const FOREARM_OUT = 'M13.8 80.2 C12.4 84.6 11.8 90.6 12 96.8 C12.4 99 14.2 99.8 15.6 98.6 C16 92.6 16.6 86.4 17.4 81 C16.4 79.6 14.8 79.4 13.8 80.2 Z';
-const FOREARM_IN = 'M18.4 80.2 C17.6 85.8 17 92 16.8 98.4 C17.6 99.6 18.6 99.4 19 97.6 C19.6 92 20.6 87 21.2 82.6 C20.8 80.8 19.6 80 18.4 80.2 Z';
-const FOREARM_MINI = 'M13.8 80.2 C12.4 85 11.8 91 12 97.4 C13.2 99.8 17.4 100 18.8 97.8 C19.6 92 20.6 87 21.2 82.6 C19.4 79.4 15.8 79.2 13.8 80.2 Z';
-
-const NECK_FRONT = [
-  // Kopfwender (schräg am Hals) und der vordere Rand des Trapezes über dem Schlüsselbein
-  'M45.4 27.4 C46.1 30.2 47.3 32.8 48.9 35.4 C48.3 36 47.5 35.8 46.9 35.2 C45.9 33 45.2 30.6 45 28.2 Z',
-  'M43.4 31.8 C40.6 33.4 36.2 34.6 31.2 35.6 C35.6 36.4 40.4 36.4 44 35.4 C43.9 34.2 43.7 33 43.4 31.8 Z',
-];
-const PEC =
-  'M49.4 38.2 C45 36.8 39.4 36.6 35 37.4 C32.6 37.8 31.4 39.8 30.8 42.6 C30.2 45.8 29.2 49.4 27.8 52.4 C31.4 57.4 37 60.4 42.4 60.4 C45.2 60.4 47.6 59.8 49.4 58.8 Z';
-const BICEPS = 'M24 55.6 C20.4 55.8 17.4 59.4 16.8 64.6 C16.3 69.4 17 73.8 18.6 77 C21 77 22.4 73.6 22.8 68.6 C23.3 64 23.8 59.6 24 55.6 Z';
-const OBLIQUE =
-  'M40.6 63.2 C37.4 63.6 34.6 65 32.4 67.2 C33 71.4 33.2 76 32.8 80.4 C32.6 84.6 32 88.6 31.6 91.6 C35 93.6 38.2 96.6 41 99.6 C41.2 93 41.4 82 41.2 73 C41.1 68.6 41 65.6 40.6 63.2 Z';
-const TFL = 'M30 94.6 C32 96.6 33.6 99.4 34.6 102.6 C34.2 106.6 33.4 110.2 32.2 113.2 C30.6 110 29.6 105.6 29.6 101 C29.6 98.6 29.7 96.4 30 94.6 Z';
-const CALF_FRONT_IN =
-  'M44 152.6 C45.8 156 46.6 162.4 46.4 168.6 C46.2 173 45.6 176.6 44.4 179.4 C42.8 173.4 42.2 166 42.6 159.6 C42.8 156.8 43.3 154.4 44 152.6 Z';
-const TRAPEZIUS =
-  'M49.4 24.6 C48 25.8 46 27.6 44.8 29.6 C43 32 38.6 33.6 32.4 35 C29.8 35.6 28.4 36.6 28.2 37.8 C32.8 39 36.8 41.2 39.8 44.4 C43.6 48.8 46.4 56.4 48 64 C48.6 67 49 69.6 49.4 71.6 Z';
-const GLUTE_MED = 'M31 89.6 C34.6 89.2 38.6 90 42 92 C41.6 94.6 40 96.4 37.6 97.8 C35 98.8 32.4 100.4 30.2 102.2 C29.8 97.6 30 93.2 31 89.6 Z';
-const GLUTE =
-  'M49.4 101.4 C47.4 99.2 44.2 98 40.6 98.4 C35.6 98.8 31.6 102.6 30.4 107.8 C29.6 113 31 118.4 34.8 121.2 C38.4 123.8 44 124 46.6 122.2 C47.8 121 48.6 116.4 48.7 111.8 L49.4 106.8 Z';
-
-const FRONT_HALF: Half = {
-  nacken: NECK_FRONT,
-  schulter_seitlich: [DELT_SIDE],
-  schulter_vorn: [DELT_INNER],
-  // Brust als Fächer: drei Bänder, deren Grenzen gebogen zur Achsel zusammenlaufen (wie die Fasern zum Oberarm)
-  brust_oben: ['M49.4 38.2 C45 36.8 39.4 36.6 35 37.4 C32.6 37.8 31.4 39.8 30.8 42.6 C30.4 44.6 30.1 46.4 29.7 48 C36 46.2 43 45 49.4 45 Z'],
-  brust_mitte: ['M49.4 45 C43 45 36 46.2 29.7 48 C29.3 49.4 28.8 50.8 28.1 51.9 C35 52.6 42 53.2 49.4 52.4 Z'],
-  brust_unten: ['M49.4 52.4 C42 53.2 35 52.6 28.1 51.9 L27.8 52.4 C31.4 57.4 37 60.4 42.4 60.4 C45.2 60.4 47.6 59.8 49.4 58.8 Z'],
-  // Sägemuskel: drei Zacken unter der Achsel
-  saegemuskel: [
-    'M27.8 55.4 C29.6 55.8 31.2 56.8 32.4 58 C31.4 59 29.8 59 28.4 58.2 C28 57.2 27.8 56.2 27.8 55.4 Z',
-    'M28.4 59.8 C30.2 60.2 31.8 61.2 33 62.4 C32 63.4 30.4 63.4 29 62.6 C28.6 61.6 28.4 60.6 28.4 59.8 Z',
-    'M29.2 64 C30.6 64.4 31.6 65 32.2 65.6 C31.4 66.6 30.4 66.8 29.8 66.4 C29.4 65.6 29.2 64.8 29.2 64 Z',
-  ],
-  bizeps: [BICEPS],
-  unterarme: [FOREARM_OUT, FOREARM_IN],
-  bauch_gerade: [
-    rounded(42.2, 61.4, 49.4, 68.8, 2.6),
-    rounded(42.4, 69.8, 49.4, 77.2, 2.6),
-    rounded(42.8, 78.2, 49.4, 85.6, 2.6),
-    'M43.4 86.6 L49.4 86.6 L49.4 101.4 C47.6 101.2 46.2 100 45.2 98 C44 95 43.4 91 43.4 86.6 Z',
-  ],
-  bauch_schraeg: [OBLIQUE],
-  // Spanner der Oberschenkelbinde außen (Abduktoren), Lenden-Darmbein-Muskel in der Leiste (Hüftbeuger)
-  abduktoren: [TFL],
-  hueftbeuger: ['M41.8 101.6 C43.6 102.6 45.4 104.2 46.8 106.4 C45.4 107.6 43.6 107.8 42 107.2 C41.4 105.4 41.4 103.4 41.8 101.6 Z'],
-  // äußerer, gerader und innerer Schenkelmuskel (Tropfen über dem Knie)
-  quadrizeps: [
-    'M33 106.4 C30.4 113 29.6 122 29.8 131 C30 137.6 31.2 142.6 33 146.8 C35 147.8 37 147.4 38.4 146.4 C36 141.6 34.6 136 34.2 130 C33.8 122 33.8 114 33 106.4 Z',
-    'M36.4 103.8 C34.8 111 34.8 121 35.4 130 C36 136.8 37.6 142 39.4 145.4 C41 141.4 41.8 136 42 130 C42.2 121 40.6 111.6 36.4 103.8 Z',
-    'M43.8 129.6 C45.8 132.2 46.4 136.6 46.2 140.6 C46 144.6 44.4 147.2 41.6 147.4 C40.8 144.8 41.6 140.2 42.4 136.6 C42.8 134.2 43.2 131.8 43.8 129.6 Z',
-  ],
-  adduktoren: [
-    'M43.4 108.4 C42.2 112.6 42.4 118 43.2 122.6 C43.8 126 44.8 128.6 46 130.4 C47.4 126.4 48.2 121 48.4 115.8 C48.5 112.8 48.3 110.4 47.8 108.8 C46.2 107.8 44.6 107.8 43.4 108.4 Z',
-  ],
-  // von vorne nur die Ränder der Wade: innen der Zwillingswadenmuskel, außen der Schollenmuskel
-  waden: [
-    CALF_FRONT_IN,
-    'M32.4 155.6 C31.6 161.4 31.6 168.4 32.8 175.4 C33.4 179 34.4 182.2 35.4 184.4 C36 177.4 36 169.4 35.4 163 C35 160 34 157.6 32.4 155.6 Z',
-  ],
-};
-
-const BACK_HALF: Half = {
-  // Rücken zuerst, damit der Trapez darüber liegt
-  lat: [
-    'M27 54.4 C31.6 59 37 61.4 42 61.8 C44 64.8 45 69.4 45 74.4 C45 79.8 44.4 84.6 43.4 88.6 C40 87 36.4 84 33.8 80.6 C31.6 76.6 29.8 71.6 28.6 66.6 C27.6 62.6 27 58.4 27 54.4 Z',
-  ],
-  unterer_ruecken: ['M48.2 58.6 C46.8 64.6 46.2 72 45.8 80 C45.4 87 45.6 93 46.4 97.6 L49.4 98 L49.4 58.6 Z'],
-  // Untergrätenmuskel auf dem Schulterblatt
-  rotatoren: ['M30.6 45 C34.6 44 38.8 44.8 42 47.2 C42 51.4 40.6 55.4 37.8 58.2 C34.8 57.8 32 56 30.2 53.4 C29.8 50.4 29.8 47.6 30.6 45 Z'],
-  // Trapez: oberer Teil (Nacken) bis zur Schulterhöhe, mittlerer und unterer Teil (oberer Rücken) bis zur Brustwirbelsäule
-  nacken: [
-    'M49.4 24.6 C48 25.8 46 27.6 44.8 29.6 C43 32 38.6 33.6 32.4 35 C29.8 35.6 28.4 36.6 28.2 37.8 C33.4 38.6 38.6 39.2 43.4 39.6 C45.4 39.8 47.4 40 49.4 40.2 Z',
-  ],
-  oberer_ruecken: ['M49.4 41.4 C45.2 41.2 39.2 40.8 33.6 40.2 C36 41.4 38.2 42.8 39.8 44.4 C43.6 48.8 46.4 56.4 48 64 C48.6 67 49 69.6 49.4 71.6 Z'],
-  schulter_seitlich: [DELT_SIDE],
-  schulter_hinten: [DELT_INNER],
-  // Trizeps (unten hufeisenförmig eingezogen, wo die Sehnenplatte liegt), Unterarm-Strecker
-  trizeps: [
-    'M17 56.4 C16 61.4 15.8 67.4 16.6 72.4 C17 74.4 17.8 75.4 18.6 75.2 C19.4 72.6 20.4 71.2 21.2 71.2 C22 71.2 22.4 72.6 22.6 74 C23 72.6 23 70.6 23.1 68.4 C23.5 64 23.9 59.6 24 56 C21.8 54.6 19 55 17 56.4 Z',
-  ],
-  unterarme: [FOREARM_OUT, FOREARM_IN],
-  // mittlerer Gesäßmuskel (Abduktoren) seitlich über dem großen
-  abduktoren: [GLUTE_MED],
-  gesaess: [GLUTE],
-  // Beinbeuger: außen zweiköpfiger, innen halbsehniger/-häutiger Muskel
-  beinbeuger: [
-    'M32 124.4 C30.4 129 30.4 135 31 140 C31.6 144 33 147.6 35 150 C37 147.8 38.2 143.6 38.4 139 C38.6 133.4 38.2 128.4 37.4 124.4 C35.6 123.6 33.6 123.6 32 124.4 Z',
-    'M39.6 125 C39.4 131 39.6 138 40.4 143.4 C41 146.4 41.8 148.8 43.2 150.4 C45 148.2 46.2 144.4 46.6 139.8 C47 134.8 47.2 129.8 47.2 125.6 C44.6 124.2 41.8 124 39.6 125 Z',
-  ],
-  // Zwillingswadenmuskel mit zwei Köpfen (innen tiefer), darunter seitlich der Schollenmuskel
-  waden: [
-    'M32.6 153.8 C31.2 158.6 31.1 165 32.2 170.8 C33 174 34.6 176 36.8 176.8 C38.2 171 38.6 163.6 38.2 158 C37 155.2 34.6 153.8 32.6 153.8 Z',
-    'M40 153.8 C39.2 160.4 39.4 168.6 40.8 175.4 C41.8 178.6 43.8 179.6 45.4 178 C46.8 172.8 47.2 164.6 46.4 159 C45 155.6 42.4 154 40 153.8 Z',
-    'M33.4 179 C34 183 35 187 36.2 190.4 C37.2 187 37.4 183 37 179.8 C35.8 178.8 34.6 178.6 33.4 179 Z',
-  ],
-};
-
-// Kleine Karte (54 × 116): je Muskelgruppe wenige, große Flächen, kein Bauchgitter, kein Sägemuskel.
-const FRONT_MINI_HALF: GroupHalf = {
-  nacken: [NECK_FRONT[1]],
-  schultern: [DELTOID],
-  brust: [PEC],
-  arme: [BICEPS, FOREARM_MINI],
-  bauch: ['M42.4 61.4 L49.4 61.4 L49.4 101.4 C47 100.8 45 98.4 44 94.8 C43 88 42.4 74 42.4 61.4 Z', OBLIQUE],
-  huefte: [TFL],
-  beine: [
-    'M34.2 104.4 C30.8 112 29.8 122 30 131 C30.4 138 31.8 143.4 33.8 146.8 C37.2 148.2 42 148.2 45.4 146.4 C46.4 141 47.2 133 47.6 125 C48.2 118 47.8 111.4 47 107.8 C42.8 105 38.6 104 34.2 104.4 Z',
-  ],
-  waden: [CALF_FRONT_IN],
-};
-
-const BACK_MINI_HALF: GroupHalf = {
-  ruecken: [
-    'M27 50.4 C32 47.4 38 46.8 42.6 48.4 C45.4 56 46.8 66 47.2 76 C47.4 84 47.2 91 46.8 96.8 C42 92.4 36.8 87 33.4 81.6 C31 76.6 29.4 70 28.4 63.6 C27.6 59.4 27.2 55 27 50.4 Z',
-  ],
-  nacken: [TRAPEZIUS],
-  schultern: [DELTOID],
-  arme: [
-    'M17 56.4 C16 61.4 15.8 67.4 16.6 72.4 C17.2 75.4 19.4 76.6 21 76.4 C22.4 76.2 22.9 73.4 23.1 68.4 C23.5 64 23.9 59.6 24 56 C21.8 54.6 19 55 17 56.4 Z',
-    FOREARM_MINI,
-  ],
-  huefte: [GLUTE_MED],
-  gesaess: [GLUTE],
-  beine: [
-    'M32 124.4 C30.4 129 30.4 135 31 140 C31.8 145 33.8 149 36.6 150.6 C38.8 149.2 40.6 149.2 42.6 150.6 C45.4 148.4 46.6 144 46.8 139 C47.2 134 47.2 129 47.2 125.4 C42.4 123.6 37 123.4 32 124.4 Z',
-  ],
-  waden: [
-    'M32.6 153.8 C31.2 159 31.2 166 32.6 172 C34.2 177.4 37.4 179.4 40 179.2 C42.8 179.4 45.4 177.6 46.4 172.4 C47.2 166.4 47 160 46.2 157 C42 152.4 37 152.4 32.6 153.8 Z',
-  ],
-};
-
-// ------------------------------------------------------------------------------------ Körperdetails
 
 /**
- * Feine Körperdetails ohne Daten (Feinschliff): zart im Körperton, unter den Muskeln, nicht antippbar. Flächen
- * (Kniescheibe, Schienbeinmuskel) und Linien (Schlüsselbein, Daumen, Kniekehle, Achillessehne). Nur auf der großen Karte.
+ * Pfad als Umrisse in absoluten Koordinaten: Kurven in 8 Schritten abgetastet, Bögen als Strecke zum Endpunkt (in
+ * diesen Zeichnungen nur kleine Rundungen). Ein Pfad kann mehrere Teilflächen haben (mehrere M).
  */
-type Details = { fills: string[]; lines: string[]; hair: string[] };
-const both = (half: string[]) => half.flatMap((d) => [d, mirror(d)]);
+export function polygons(d: string): Pt[][] {
+  const sc = new Scanner(d);
+  const polys: Pt[][] = [];
+  let cur: Pt[] = [];
+  let x = 0;
+  let y = 0;
+  let sx = 0;
+  let sy = 0;
+  let lastCtrl: Pt | null = null;
+  let lastQ: Pt | null = null;
+  let cmd = '';
+  const sample = (f: (t: number) => Pt) => {
+    for (let k = 1; k <= 8; k++) cur.push(f(k / 8));
+  };
+  while (!sc.done()) {
+    const next = sc.command();
+    if (next) cmd = next;
+    else if (cmd === 'M') cmd = 'L';
+    else if (cmd === 'm') cmd = 'l';
+    const rel = cmd === cmd.toLowerCase();
+    const c = cmd.toLowerCase();
+    const ox = rel ? x : 0;
+    const oy = rel ? y : 0;
+    let ctrl: Pt | null = null;
+    let q: Pt | null = null;
+    if (c === 'z') {
+      if (cur.length) polys.push(cur);
+      cur = [];
+      [x, y] = [sx, sy];
+    } else if (c === 'm') {
+      if (cur.length) polys.push(cur);
+      x = ox + sc.number();
+      y = oy + sc.number();
+      [sx, sy] = [x, y];
+      cur = [[x, y]];
+    } else if (c === 'l') {
+      x = ox + sc.number();
+      y = oy + sc.number();
+      cur.push([x, y]);
+    } else if (c === 'h') {
+      x = ox + sc.number();
+      cur.push([x, y]);
+    } else if (c === 'v') {
+      y = oy + sc.number();
+      cur.push([x, y]);
+    } else if (c === 'c' || c === 's') {
+      const p1: Pt = c === 'c' ? [ox + sc.number(), oy + sc.number()] : lastCtrl ? [2 * x - lastCtrl[0], 2 * y - lastCtrl[1]] : [x, y];
+      const p2: Pt = [ox + sc.number(), oy + sc.number()];
+      const p3: Pt = [ox + sc.number(), oy + sc.number()];
+      const [x0, y0] = [x, y];
+      sample((t) => {
+        const u = 1 - t;
+        return [
+          u * u * u * x0 + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0],
+          u * u * u * y0 + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1],
+        ];
+      });
+      [x, y] = p3;
+      ctrl = p2;
+    } else if (c === 'q' || c === 't') {
+      const p1: Pt = c === 'q' ? [ox + sc.number(), oy + sc.number()] : lastQ ? [2 * x - lastQ[0], 2 * y - lastQ[1]] : [x, y];
+      const p2: Pt = [ox + sc.number(), oy + sc.number()];
+      const [x0, y0] = [x, y];
+      sample((t) => {
+        const u = 1 - t;
+        return [u * u * x0 + 2 * u * t * p1[0] + t * t * p2[0], u * u * y0 + 2 * u * t * p1[1] + t * t * p2[1]];
+      });
+      [x, y] = p2;
+      q = p1;
+    } else if (c === 'a') {
+      sc.number(); // Radius x
+      sc.number(); // Radius y
+      sc.number(); // Drehung
+      sc.flag(); // großer Bogen
+      sc.flag(); // Richtung
+      x = ox + sc.number();
+      y = oy + sc.number();
+      cur.push([x, y]);
+    } else {
+      throw new Error(`Unbekannter Pfadbefehl ${cmd}`);
+    }
+    lastCtrl = ctrl;
+    lastQ = q;
+  }
+  if (cur.length) polys.push(cur);
+  return polys;
+}
 
-const DETAIL_FRONT_HALF = {
-  fills: [
-    // Kniescheibe
-    'M39.4 146.8 C41.4 146.8 42.8 148.4 42.8 150.4 C42.8 152.4 41.4 154 39.4 154 C37.4 154 36 152.4 36 150.4 C36 148.4 37.4 146.8 39.4 146.8 Z',
-    // vorderer Schienbeinmuskel (zwischen den Wadenrändern)
-    'M37.6 157 C36.6 163 36.6 170 37.4 177 C37.9 182 38.6 187 39.4 191 C40 185.4 40.6 179 40.6 171.6 C40.6 165 40 160 38.8 156.4 Z',
-  ],
-  lines: [
-    // Schlüsselbein
-    'M47.6 36.4 C43.4 35.9 37.8 36.1 32.2 35.8',
-    // Daumen
-    'M17 105.6 C15.8 108.6 15.4 112 15.8 114.8',
-  ],
-};
-
-const DETAIL_BACK_HALF: { fills: string[]; lines: string[] } = {
-  fills: [],
-  lines: [
-    // Kniekehle
-    'M35.8 152 C38 152.8 40.8 152.8 43.4 152',
-    // Achillessehne
-    'M40.4 181.6 C40.6 187.4 40.8 192.6 40.8 197.4',
-  ],
-};
-
-// ------------------------------------------------------------------------------------ Weibliche Figur
+// ------------------------------------------------------------------------------------ Körperteile → Kartenmuskeln
 
 /**
- * Weibliche Figur (wählbar, Ausbau Körperform): entsteht aus der männlichen Zeichnung durch eine weiche Verformung
- * quer zur Mitte – kleinerer Kopf, schmalere Schultern und Taille, breitere Hüfte, schlankere Arme. Brust, gerader
- * Bauch, seitlicher Bauch und Sägemuskel haben eigene Formen (runde Brust, Bauch etwas tiefer); dazu eine Frisur.
- * Weil alle Flächen mit derselben Verformung entstehen, passen Antippen, Reihen und Tests ohne eigene Pflege.
+ * Welche Kartenmuskeln ein Körperteil der Zeichnung zeigt, und zu welcher Muskelgruppe es gehört (kleine Karte,
+ * geschonte Bereiche). Die Zeichnung ist gröber als unsere 24 Muskeln: die Brust ist eine Fläche, der Sägemuskel liegt
+ * in den seitlichen Bauchstreifen, die Rotatoren im oberen Rücken. Die Liste unter der Karte zeigt die Feinheiten.
  */
+type PartMap = { group: MuscleGroup; muscles: MapMuscle[] };
 
-/** Breite je Höhe (Faktor quer zur Mitte) für Rumpf und Beine; zwischen den Stützstellen weich (smoothstep). */
-const TORSO_SCALE: [number, number][] = [
-  [0, 0.93],
-  [27, 0.93],
-  [33, 0.9],
-  [42, 0.86],
-  [60, 0.88],
-  [70, 0.88],
-  [82, 0.84],
-  [93, 0.96],
-  [104, 1.07],
-  [118, 1.07],
-  [132, 1.02],
-  [150, 0.97],
-  [214, 0.95],
-];
-/** Arme: schlanker und etwas näher am Körper, ohne mit der breiteren Hüfte nach außen zu wandern. */
-const ARM_SCALE = 0.9;
+const FRONT_PARTS: Record<string, PartMap> = {
+  chest: { group: 'brust', muscles: ['brust_mitte', 'brust_oben', 'brust_unten'] },
+  obliques: { group: 'bauch', muscles: ['bauch_schraeg', 'saegemuskel'] },
+  abs: { group: 'bauch', muscles: ['bauch_gerade'] },
+  biceps: { group: 'arme', muscles: ['bizeps'] },
+  triceps: { group: 'arme', muscles: ['trizeps'] },
+  forearm: { group: 'arme', muscles: ['unterarme'] },
+  neck: { group: 'nacken', muscles: ['nacken'] },
+  trapezius: { group: 'nacken', muscles: ['nacken'] },
+  deltoids: { group: 'schultern', muscles: ['schulter_vorn', 'schulter_seitlich'] },
+  adductors: { group: 'huefte', muscles: ['adduktoren', 'hueftbeuger'] },
+  quadriceps: { group: 'beine', muscles: ['quadrizeps'] },
+  calves: { group: 'waden', muscles: ['waden'] },
+};
 
-function profile(y: number): number {
-  for (let i = 1; i < TORSO_SCALE.length; i++) {
-    const [y1, s1] = TORSO_SCALE[i];
-    const [y0, s0] = TORSO_SCALE[i - 1];
-    if (y <= y1) {
-      const t = (y - y0) / (y1 - y0);
-      return s0 + (s1 - s0) * t * t * (3 - 2 * t);
+const BACK_PARTS: Record<string, PartMap> = {
+  neck: { group: 'nacken', muscles: ['nacken'] },
+  trapezius: { group: 'nacken', muscles: ['nacken', 'oberer_ruecken'] },
+  deltoids: { group: 'schultern', muscles: ['schulter_hinten', 'schulter_seitlich'] },
+  'upper-back': { group: 'ruecken', muscles: ['lat', 'oberer_ruecken', 'rotatoren'] },
+  'lower-back': { group: 'ruecken', muscles: ['unterer_ruecken'] },
+  triceps: { group: 'arme', muscles: ['trizeps'] },
+  forearm: { group: 'arme', muscles: ['unterarme'] },
+  gluteal: { group: 'gesaess', muscles: ['gesaess', 'abduktoren'] },
+  adductors: { group: 'huefte', muscles: ['adduktoren'] },
+  hamstring: { group: 'beine', muscles: ['beinbeuger'] },
+  calves: { group: 'waden', muscles: ['waden'] },
+};
+
+/** Teile ohne Daten (Kopf, Haar, Hände, Füße, Knie …): Körperton bzw. Haarfarbe. */
+export type BasePart = { hair: boolean; paths: string[] };
+
+/**
+ * Eine Fläche der Karte: Körperteil der Zeichnung mit Gruppe und den Kartenmuskeln, die es zeigt; abgetastete Umrisse
+ * für das Antippen und die Reihe von oben (0–9) für den Versatz beim Überblenden.
+ */
+export type Region = { key: string; group: MuscleGroup; muscles: MapMuscle[]; paths: string[]; polys: Pt[][]; row: number };
+
+/** Eine Ansicht: viewBox der Zeichnung, Flächen mit Daten und Teile ohne Daten (in Zeichenreihenfolge). */
+export type FigureView = { viewBox: string; box: { x: number; y: number; w: number; h: number }; regions: Region[]; base: BasePart[] };
+
+function view(art: ArtView, map: Record<string, PartMap>): FigureView {
+  const [x, y, w, h] = art.viewBox.split(' ').map(Number);
+  const regions: Region[] = [];
+  const base: BasePart[] = [];
+  for (const part of art.parts) {
+    const m = map[part.slug];
+    if (!m) {
+      base.push({ hair: part.slug === 'hair', paths: part.paths });
+      continue;
     }
+    const polys = part.paths.flatMap(polygons);
+    const ys = polys.flat().map(([, py]) => py);
+    const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+    const row = Math.min(9, Math.max(0, Math.round(((cy - y) / h) * 9)));
+    regions.push({ key: part.slug, group: m.group, muscles: m.muscles, paths: part.paths, polys, row });
   }
-  return TORSO_SCALE[TORSO_SCALE.length - 1][1];
+  return { viewBox: art.viewBox, box: { x, y, w, h }, regions, base };
 }
-
-/** Verformung eines Punkts: Rumpf nach Höhenprofil, Arme (weit außen, unterhalb der Schulter) mit festem Faktor. */
-function warpFemale([x, y]: Pt): Pt {
-  const u = Math.abs(x - 50);
-  const below = Math.min(1, Math.max(0, (y - 44) / 6));
-  const arm = below * Math.min(1, Math.max(0, (u - 25) / 0.6));
-  const s = profile(y) * (1 - arm) + ARM_SCALE * arm;
-  return [50 + (x - 50) * s, y];
-}
-
-/** Wendet eine Punkt-Verformung auf einen Pfad an (alle Koordinaten, auch Kontrollpunkte). */
-function warpPath(d: string, f: (p: Pt) => Pt): string {
-  return d.replace(/([MLC])([^MLCZ]*)/g, (_, cmd: string, args: string) => {
-    const n = args.match(/-?\d*\.?\d+/g)?.map(Number) ?? [];
-    const out: string[] = [];
-    for (let k = 0; k < n.length; k += 2) {
-      const [x, y] = f([n[k], n[k + 1]]);
-      out.push(`${r(x)} ${r(y)}`);
-    }
-    return `${cmd}${out.join(' ')} `;
-  });
-}
-
-// Eigene Formen der weiblichen Figur (in den Koordinaten der männlichen Zeichnung, vor der Verformung)
-const FRONT_FEMALE_HALF: Half = {
-  // runde Brust: oben der Schlüsselbeinanteil, darunter die obere und die untere Hälfte
-  brust_mitte: ['M49.4 45 C43 45 36 46.2 29.7 48 C28.6 51 28.4 54 29.6 56.6 C36 55 43 54.6 49.4 55.4 Z'],
-  brust_unten: ['M49.4 55.4 C43 54.6 36 55 29.6 56.6 C31 61.4 35.6 64.6 40.8 64.6 C44.6 64.6 47.6 63 49.4 61.4 Z'],
-  saegemuskel: [
-    'M28.4 61.6 C29.6 62 30.6 62.8 31.2 63.6 C30.4 64.4 29.4 64.4 28.8 63.8 C28.6 63 28.4 62.2 28.4 61.6 Z',
-    'M28.8 65.4 C30 65.8 31 66.6 31.6 67.4 C30.8 68.2 29.8 68.2 29.2 67.6 C29 66.8 28.8 66 28.8 65.4 Z',
-  ],
-  bauch_gerade: [
-    rounded(42.4, 66.4, 49.4, 72.8, 2.6),
-    rounded(42.6, 73.8, 49.4, 80.2, 2.6),
-    rounded(43, 81.2, 49.4, 87.6, 2.6),
-    'M43.4 88.6 L49.4 88.6 L49.4 101.4 C47.6 101.2 46.2 100 45.2 98 C44 95 43.4 91.8 43.4 88.6 Z',
-  ],
-  bauch_schraeg: [
-    'M40.6 66.4 C37.6 66.8 34.8 67.8 32.6 69.4 C33 73 33.2 76.6 32.8 80.4 C32.6 84.6 32 88.6 31.6 91.6 C35 93.6 38.2 96.6 41 99.6 C41.2 93 41.4 82 41.2 74 C41.1 70.6 41 68.2 40.6 66.4 Z',
-  ],
-};
-const FRONT_MINI_FEMALE_HALF: GroupHalf = {
-  brust: [
-    'M49.4 38.2 C45 36.8 39.4 36.6 35 37.4 C32.6 37.8 31.4 39.8 30.8 42.6 C29.6 47 28.2 52 29.6 56.6 C31 61.4 35.6 64.6 40.8 64.6 C44.6 64.6 47.6 63 49.4 61.4 Z',
-  ],
-  bauch: ['M42.4 66.4 L49.4 66.4 L49.4 101.4 C47 100.8 45 98.4 44 94.8 C43 88 42.4 76 42.4 66.4 Z', FRONT_FEMALE_HALF.bauch_schraeg![0]],
-};
-
-// Frisur (nur weibliche Figur): vorne rahmt langes Haar das Gesicht und fällt seitlich am Hals hinter die Schultern
-// (die Muskeln liegen darüber); hinten deckt es den Hinterkopf bis zum Nacken, ohne den Trapez zu verdecken.
-const HAIR_FRONT_HALF =
-  'M50 1.4 C44.4 1.4 40.4 5.6 40.2 12.6 C40 19 40.4 26 40.8 31 C41 34.4 41.6 37 42.4 38.6 C43.6 38.8 44.6 38.2 45 37 C44.2 33 43.6 28 43.6 23 C43.4 18.6 43.6 14.6 44.4 11.8 C45.6 9.6 47.6 8.8 50 8.8 Z';
-const HAIR_BACK_HALF = 'M50 1.4 C44.4 1.4 40.6 5.4 40.4 12.2 C40.2 17.8 41 23.6 42.4 28 C44.8 29.6 47.4 30.2 50 30.2 Z';
 
 // ------------------------------------------------------------------------------------ Körperformen
 
 export const BODIES_LIST = ['m', 'w'] as const;
 export type Body = (typeof BODIES_LIST)[number];
+export type BodySet = { front: FigureView; back: FigureView };
 
-/** Alles, was eine Körperform zum Zeichnen und Antippen braucht. */
-export type BodySet = {
-  outline: string;
-  front: Region[];
-  back: Region[];
-  frontMini: Region[];
-  backMini: Region[];
-  details: { front: Details; back: Details };
-};
-
-function bodySet(f: ((p: Pt) => Pt) | null, over: { front?: Half; frontMini?: GroupHalf; hair?: boolean } = {}): BodySet {
-  const w = (d: string) => (f ? warpPath(d, f) : d);
-  const details = (half: { fills: string[]; lines: string[] }, hair: string | null): Details => ({
-    fills: both(half.fills).map(w),
-    lines: both(half.lines).map(w),
-    hair: hair ? both([hair]).map(w) : [],
-  });
-  return {
-    outline: w(OUTLINE),
-    front: byMuscle({ ...FRONT_HALF, ...over.front }, w),
-    back: byMuscle(BACK_HALF, w),
-    frontMini: byGroup({ ...FRONT_MINI_HALF, ...over.frontMini }, w),
-    backMini: byGroup(BACK_MINI_HALF, w),
-    details: {
-      front: details(DETAIL_FRONT_HALF, over.hair ? HAIR_FRONT_HALF : null),
-      back: details(DETAIL_BACK_HALF, over.hair ? HAIR_BACK_HALF : null),
-    },
-  };
-}
-
-// ------------------------------------------------------------------------------------ Regionen und Treffer
-
-/** Pfad (nur M, L, C, Z) als Punktfolge; Kurven in 12 Schritten abgetastet. */
-export function polygon(d: string): Pt[] {
-  const { start, segs } = parse(d);
-  const pts: Pt[] = [start];
-  for (const s of segs) {
-    const [x0, y0] = pts[pts.length - 1];
-    if (s.cmd === 'L') pts.push(s.to);
-    else
-      for (let k = 1; k <= 12; k++) {
-        const t = k / 12;
-        const u = 1 - t;
-        const a = u * u * u;
-        const b = 3 * u * u * t;
-        const c = 3 * u * t * t;
-        const e = t * t * t;
-        pts.push([a * x0 + b * s.c1[0] + c * s.c2[0] + e * s.to[0], a * y0 + b * s.c1[1] + c * s.c2[1] + e * s.to[1]]);
-      }
-  }
-  return pts;
-}
-
-/**
- * Eine Fläche der Karte: Gruppe (für die kleine Karte und geschonte Bereiche), Kartenmuskel (volle Karte, sonst null),
- * Pfade beider Seiten, abgetastete Umrisse für das Antippen und die Reihe von oben (0–9) für den Versatz.
- */
-export type Region = { key: string; group: MuscleGroup; muscle: MapMuscle | null; paths: string[]; polys: Pt[][]; row: number };
-
-function region(key: string, group: MuscleGroup, muscle: MapMuscle | null, half: string[], w: (d: string) => string): Region {
-  const paths = half.flatMap((d) => [d, mirror(d)]).map(w);
-  const polys = paths.map(polygon);
-  const ys = polys.flat().map(([, y]) => y);
-  const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
-  return { key, group, muscle, paths, polys, row: Math.min(9, Math.round((cy / 214) * 9)) };
-}
-
-function byMuscle(half: Half, w: (d: string) => string): Region[] {
-  return (Object.entries(half) as [MapMuscle, string[]][]).map(([m, paths]) => region(m, MAP_GROUP[m], m, paths, w));
-}
-function byGroup(half: GroupHalf, w: (d: string) => string): Region[] {
-  return (Object.entries(half) as [MuscleGroup, string[]][]).map(([g, paths]) => region(g, g, null, paths, w));
-}
-
-/** Beide Körperformen; die Reihenfolge der Flächen ist die Zeichenreihenfolge. */
 export const BODIES: Record<Body, BodySet> = {
-  m: bodySet(null),
-  w: bodySet(warpFemale, { front: FRONT_FEMALE_HALF, frontMini: FRONT_MINI_FEMALE_HALF, hair: true }),
+  m: { front: view(MALE_FRONT, FRONT_PARTS), back: view(MALE_BACK, BACK_PARTS) },
+  w: { front: view(FEMALE_FRONT, FRONT_PARTS), back: view(FEMALE_BACK, BACK_PARTS) },
 };
 
-/** Männliche Figur (Standard) – Kurzformen für Tests und das Render-Skript. */
-export const FIGURE = BODIES.m;
-export const DETAILS = BODIES.m.details;
-
-/** Liegt ein Muskel vorne, hinten oder auf beiden Seiten? (Für die Einzelansicht, Punkt 5.5.) */
+/** Liegt ein Muskel vorne, hinten oder auf beiden Seiten? (Für die Einzelansicht.) */
 export function sidesOf(muscle: MapMuscle): ('front' | 'back')[] {
   const out: ('front' | 'back')[] = [];
-  if (FIGURE.front.some((r) => r.muscle === muscle)) out.push('front');
-  if (FIGURE.back.some((r) => r.muscle === muscle)) out.push('back');
+  if (BODIES.m.front.regions.some((r) => r.muscles.includes(muscle))) out.push('front');
+  if (BODIES.m.back.regions.some((r) => r.muscles.includes(muscle))) out.push('back');
   return out;
 }
+
+// ------------------------------------------------------------------------------------ Antippen
 
 function inside([x, y]: Pt, poly: Pt[]): boolean {
   let hit = false;
@@ -485,19 +254,19 @@ function distance([x, y]: Pt, poly: Pt[]): number {
   return best;
 }
 
-/** Fangradius in Zeichnungs-Einheiten (≈ 7 px in der Statistik). */
-export const HIT_RADIUS = 6;
+/** Fangradius als Anteil der Bildhöhe (≈ 7 px in der Statistik). */
+export const HIT_RADIUS = 0.027;
 
 /**
- * Welche Fläche liegt unter dem Finger? Zuerst die Fläche, die den Punkt enthält (die zuletzt gezeichnete gewinnt),
- * sonst die nächste im Fangradius, sonst keine.
+ * Welche Fläche liegt unter dem Finger? Punkt in Zeichnungs-Koordinaten. Zuerst die Fläche, die ihn enthält (die
+ * zuletzt gezeichnete gewinnt), sonst die nächste im Fangradius, sonst keine.
  */
-export function hitTest(regions: readonly Region[], x: number, y: number, radius = HIT_RADIUS): Region | null {
+export function hitTest(v: FigureView, x: number, y: number, radius = HIT_RADIUS): Region | null {
   const p: Pt = [x, y];
-  for (let i = regions.length - 1; i >= 0; i--) if (regions[i].polys.some((poly) => inside(p, poly))) return regions[i];
+  for (let i = v.regions.length - 1; i >= 0; i--) if (v.regions[i].polys.some((poly) => inside(p, poly))) return v.regions[i];
   let best: Region | null = null;
-  let bestDist = radius;
-  for (const r of regions)
+  let bestDist = radius * v.box.h;
+  for (const r of v.regions)
     for (const poly of r.polys) {
       const d = distance(p, poly);
       if (d <= bestDist) {
@@ -506,4 +275,15 @@ export function hitTest(regions: readonly Region[], x: number, y: number, radius
       }
     }
   return best;
+}
+
+/**
+ * Tipp-Position im Bild (Pixel) → Zeichnungs-Koordinaten. Die Zeichnung ist mittig eingepasst (preserveAspectRatio
+ * „xMidYMid meet“), daher Maßstab und Rand wie beim Zeichnen.
+ */
+export function toArt(v: FigureView, width: number, height: number, px: number, py: number): Pt {
+  const s = Math.min(width / v.box.w, height / v.box.h);
+  const dx = (width - v.box.w * s) / 2;
+  const dy = (height - v.box.h * s) / 2;
+  return [v.box.x + (px - dx) / s, v.box.y + (py - dy) / s];
 }

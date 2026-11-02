@@ -1,122 +1,122 @@
-// Muskelkarte: jeder Muskel ist zu sehen, alle Flächen liegen im Körper, die Spiegelung stimmt, Antippen trifft.
+// Muskelkarte (Zeichnungen aus body-art.ts): jeder Muskel hat eine Fläche, die Pfade lassen sich lesen, Antippen trifft.
 
 import { describe, expect, test } from '@jest/globals';
 
-import { BODIES, BODIES_LIST, FIGURE, hitTest, mirror, OUTLINE, polygon, sidesOf, type Pt } from '@/components/muscle-figure';
+import { FEMALE_BACK, FEMALE_FRONT, MALE_BACK, MALE_FRONT } from '@/components/body-art';
+import { BODIES, BODIES_LIST, hitTest, polygons, sidesOf, toArt, type FigureView, type Pt } from '@/components/muscle-figure';
 import { MUSCLE_GROUPS } from '@/domain/exercises';
-import { MAP_MUSCLES } from '@/domain/muscle-map';
+import { MAP_GROUP, MAP_MUSCLES } from '@/domain/muscle-map';
 
-function inside([x, y]: Pt, poly: Pt[]): boolean {
-  let hit = false;
-  for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) {
-    const [xa, ya] = poly[a];
-    const [xb, yb] = poly[b];
-    if (ya > y !== yb > y && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) hit = !hit;
-  }
-  return hit;
+/** Ein Punkt sicher im Inneren einer Fläche: Mitte der Begrenzung ihres größten Umrisses, geprüft per Treffer. */
+function centerOf(v: FigureView, key: string): Pt {
+  const r = v.regions.find((x) => x.key === key)!;
+  const poly = [...r.polys].sort((a, b) => b.length - a.length)[0];
+  const xs = poly.map(([x]) => x);
+  const ys = poly.map(([, y]) => y);
+  return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
 }
 
-const body = polygon(OUTLINE);
-const VIEWS = ['front', 'back', 'frontMini', 'backMini'] as const;
-
-describe('Muskelkarte', () => {
-  test('jeder Kartenmuskel hat vorne oder hinten eine Fläche', () => {
-    const shown = new Set([...FIGURE.front, ...FIGURE.back].map((r) => r.muscle));
-    for (const m of MAP_MUSCLES) expect(shown).toContain(m);
-  });
-
-  test('die kleine Karte hat für jede Muskelgruppe außer Ganzkörper eine Fläche', () => {
-    const shown = new Set([...FIGURE.frontMini, ...FIGURE.backMini].map((r) => r.group));
-    for (const g of MUSCLE_GROUPS) if (g !== 'ganzkoerper') expect(shown).toContain(g);
-  });
-
-  test('alle Muskelflächen liegen innerhalb des Körperumrisses (beide Körperformen)', () => {
-    const outside: string[] = [];
-    for (const b of BODIES_LIST) {
-      const outline = polygon(BODIES[b].outline);
-      for (const v of VIEWS)
-        for (const r of BODIES[b][v])
-          for (const poly of r.polys)
-            for (const p of poly) if (!inside(p, outline)) outside.push(`${b}/${v}/${r.key}: ${p.map((n) => n.toFixed(1)).join(' ')}`);
+describe('Zeichnungen', () => {
+  test('alle Pfade lassen sich lesen und ergeben Flächen innerhalb der Bildfläche', () => {
+    for (const art of [MALE_FRONT, MALE_BACK, FEMALE_FRONT, FEMALE_BACK]) {
+      const [x, y, w, h] = art.viewBox.split(' ').map(Number);
+      for (const part of art.parts)
+        for (const d of part.paths) {
+          const polys = polygons(d);
+          expect(polys.length).toBeGreaterThan(0);
+          for (const [px, py] of polys.flat()) {
+            expect(px).toBeGreaterThanOrEqual(x - 1);
+            expect(px).toBeLessThanOrEqual(x + w + 1);
+            expect(py).toBeGreaterThanOrEqual(y - 1);
+            expect(py).toBeLessThanOrEqual(y + h + 1);
+          }
+        }
     }
-    expect(outside).toEqual([]);
   });
 
-  test('beide Körperformen haben dieselben Muskeln', () => {
-    const keys = (b: 'm' | 'w') => [...BODIES[b].front, ...BODIES[b].back].map((r) => r.key).sort();
-    expect(keys('w')).toEqual(keys('m'));
+  test('jeder Kartenmuskel hat in beiden Körperformen vorne oder hinten eine Fläche', () => {
+    for (const b of BODIES_LIST) {
+      const shown = new Set([...BODIES[b].front.regions, ...BODIES[b].back.regions].flatMap((r) => r.muscles));
+      for (const m of MAP_MUSCLES) expect(shown).toContain(m);
+    }
   });
 
-  test('weibliche Figur: schmalere Schultern, breitere Hüfte als die männliche', () => {
-    const width = (b: 'm' | 'w', y: number) => {
-      const xs = polygon(BODIES[b].outline)
-        .filter(([, py]) => Math.abs(py - y) < 1.5)
-        .map(([x]) => x);
-      return Math.max(...xs) - Math.min(...xs);
-    };
-    expect(width('w', 40)).toBeLessThan(width('m', 40));
-    // Hüfte ohne Arme: nur die Punkte des Rumpfs (Abstand zur Mitte unter 25)
-    const hip = (b: 'm' | 'w') =>
-      Math.max(
-        ...polygon(BODIES[b].outline)
-          .filter(([x, y]) => Math.abs(y - 108) < 2 && Math.abs(x - 50) < 25)
-          .map(([x]) => Math.abs(x - 50))
-      );
-    expect(hip('w')).toBeGreaterThan(hip('m'));
+  test('jede Muskelgruppe außer Ganzkörper hat eine Fläche (kleine Karte, geschonte Bereiche)', () => {
+    for (const b of BODIES_LIST) {
+      const groups = new Set([...BODIES[b].front.regions, ...BODIES[b].back.regions].map((r) => r.group));
+      for (const g of MUSCLE_GROUPS) if (g !== 'ganzkoerper') expect(groups).toContain(g);
+    }
   });
 
-  test('männliche Figur ohne Verformung', () => {
-    const outside: string[] = [];
-    for (const v of VIEWS)
-      for (const r of FIGURE[v])
-        for (const poly of r.polys) for (const p of poly) if (!inside(p, body)) outside.push(`${v}/${r.key}: ${p.map((n) => n.toFixed(1)).join(' ')}`);
-    expect(outside).toEqual([]);
+  test('die Muskeln einer Fläche gehören zu ihrer Gruppe (bis auf bewusste Ausnahmen)', () => {
+    // Trapez hinten zeigt auch den oberen Rücken, Gesäß die Abduktoren, die seitlichen Bauchstreifen den Sägemuskel,
+    // die Adduktoren den Hüftbeuger, der obere Rücken die Rotatoren (Schulterblatt).
+    const allowed = new Set(['trapezius', 'gluteal', 'obliques', 'adductors', 'upper-back']);
+    for (const b of BODIES_LIST)
+      for (const v of [BODIES[b].front, BODIES[b].back])
+        for (const r of v.regions) if (!allowed.has(r.key)) for (const m of r.muscles) expect(`${r.key}:${MAP_GROUP[m]}`).toBe(`${r.key}:${r.group}`);
   });
 
-  test('der Umriss ist ein geschlossener, symmetrischer Pfad', () => {
-    expect(OUTLINE.startsWith('M50 ')).toBe(true);
-    expect(OUTLINE.trim().endsWith('Z')).toBe(true);
-    // Jeder Punkt hat sein Spiegelbild im Umriss (linke und rechte Hälfte gleich).
-    const gap = ([x, y]: Pt) => Math.min(...body.map(([u, v]) => Math.hypot(u - (100 - x), v - y)));
-    expect(Math.max(...body.map(gap))).toBeLessThan(0.02);
-  });
-
-  test('Spiegeln zweimal ergibt wieder den Pfad', () => {
-    const d = 'M10 20 C11.5 22 13 24 15 26 L20 30 Z';
-    const back = mirror(mirror(d))
-      .match(/-?\d*\.?\d+/g)!
-      .map(Number);
-    expect(back).toEqual(d.match(/-?\d*\.?\d+/g)!.map(Number));
+  test('beide Körperformen haben dieselben Flächen mit Daten', () => {
+    const keys = (b: 'm' | 'w', s: 'front' | 'back') => BODIES[b][s].regions.map((r) => r.key).sort();
+    expect(keys('w', 'front')).toEqual(keys('m', 'front'));
+    expect(keys('w', 'back')).toEqual(keys('m', 'back'));
   });
 
   test('Reihen laufen von oben nach unten', () => {
-    const row = (m: string) => FIGURE.front.find((r) => r.muscle === m)!.row;
-    expect(row('nacken')).toBeLessThan(row('brust_mitte'));
-    expect(row('brust_mitte')).toBeLessThan(row('quadrizeps'));
-    expect(row('quadrizeps')).toBeLessThan(row('waden'));
+    const row = (k: string) => BODIES.m.front.regions.find((r) => r.key === k)!.row;
+    expect(row('neck')).toBeLessThan(row('abs'));
+    expect(row('abs')).toBeLessThan(row('quadriceps'));
+    expect(row('quadriceps')).toBeLessThan(row('calves'));
   });
 });
 
-describe('Antippen (Punkt 4)', () => {
-  test('weibliche Figur: Antippen trifft dieselben Muskeln', () => {
-    expect(hitTest(BODIES.w.front, 40, 50)?.group).toBe('brust');
-    expect(hitTest(BODIES.w.back, 40, 110)?.muscle).toBe('gesaess');
+describe('Pfade lesen', () => {
+  test('relative Befehle, Kurzformen und Bögen mit zusammengeschriebenen Merkern', () => {
+    const [poly] = polygons('M10 10h5v5l-5 0z');
+    expect(poly[0]).toEqual([10, 10]);
+    expect(poly).toContainEqual([15, 10]);
+    expect(poly).toContainEqual([15, 15]);
+    // „a1.71 1.71 0 012.89 1.12“: Merker 0 und 1, Endpunkt relativ (2.89, 1.12)
+    const [arc] = polygons('M0 0a1.71 1.71 0 012.89 1.12z');
+    const end = arc[arc.length - 1];
+    expect(end[0]).toBeCloseTo(2.89);
+    expect(end[1]).toBeCloseTo(1.12);
   });
 
-  test('ein Punkt in der Fläche trifft sie – links wie rechts', () => {
-    expect(hitTest(FIGURE.front, 40, 48)?.muscle).toBe('brust_mitte');
-    expect(hitTest(FIGURE.front, 60, 48)?.muscle).toBe('brust_mitte');
-    expect(hitTest(FIGURE.back, 40, 110)?.muscle).toBe('gesaess');
+  test('Kurven werden abgetastet und enden am Zielpunkt', () => {
+    const [poly] = polygons('M0 0c10 0 10 10 20 10q5 5 10 0');
+    expect(poly.length).toBe(1 + 8 + 8);
+    expect(poly[8][0]).toBeCloseTo(20);
+    expect(poly[16][0]).toBeCloseTo(30);
   });
+});
 
-  test('auf einer Fuge gilt die nächste Fläche im Fangradius', () => {
-    // Mitte zwischen den Brusthälften (Fuge bei x = 50)
-    expect(hitTest(FIGURE.front, 50, 48)?.group).toBe('brust');
+describe('Antippen', () => {
+  test('die Mitte einer Fläche trifft sie – in beiden Körperformen', () => {
+    for (const b of BODIES_LIST) {
+      for (const key of ['chest', 'abs', 'quadriceps', 'biceps'] as const) {
+        const [x, y] = centerOf(BODIES[b].front, key);
+        expect(hitTest(BODIES[b].front, x, y)?.key).toBe(key);
+      }
+      for (const key of ['gluteal', 'upper-back', 'hamstring'] as const) {
+        const [x, y] = centerOf(BODIES[b].back, key);
+        expect(hitTest(BODIES[b].back, x, y)?.key).toBe(key);
+      }
+    }
   });
 
   test('weit daneben trifft nichts', () => {
-    expect(hitTest(FIGURE.front, 2, 10)).toBeNull();
-    expect(hitTest(FIGURE.front, 50, 12)).toBeNull(); // Kopf
+    const v = BODIES.m.front;
+    expect(hitTest(v, v.box.x + 5, v.box.y + 5)).toBeNull();
+  });
+
+  test('Bildpunkte werden wie beim Zeichnen eingepasst', () => {
+    const v = BODIES.m.front; // 724 × 1448
+    // Bild 124 × 265: Maßstab 124/724, oben und unten je ein schmaler Rand
+    const [x, y] = toArt(v, 124, 265, 62, 132.5);
+    expect(x).toBeCloseTo(362);
+    expect(y).toBeCloseTo(724);
   });
 
   test('Seiten eines Muskels', () => {
