@@ -15,10 +15,10 @@ import Svg, { Path } from 'react-native-svg';
 
 import { Segmented } from '@/components/fields';
 import { haptic } from '@/components/haptics';
-import { FIGURE, hitTest, OUTLINE, sidesOf, VIEWBOX, type Region } from '@/components/muscle-figure';
+import { DETAILS, FIGURE, hitTest, OUTLINE, sidesOf, VIEWBOX, type Region } from '@/components/muscle-figure';
 import { ThemedText } from '@/components/themed-text';
 import { MapFade } from '@/constants/motion';
-import { MuscleRamp, Spacing } from '@/constants/theme';
+import { BodyDetail, MuscleRamp, Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
 import { MAP_GROUP, muscleValue, tallyByGroup, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { muscleLevel } from '@/domain/training-stats';
@@ -72,7 +72,10 @@ function useRamp(): string[] {
   return useMemo(() => [...(dark ? MuscleRamp.dark : MuscleRamp.light)], [dark]);
 }
 
-/** Eine Fläche; die Farbe folgt dem Wert ihrer Region. */
+/**
+ * Eine Fläche; die Farbe folgt dem Wert ihrer Region. Ist ein anderer Muskel angetippt, tritt sie weich zurück
+ * (`focus` 0 → 1 in 200 ms), der gewählte bleibt voll sichtbar.
+ */
 function MusclePath({
   d,
   level,
@@ -81,6 +84,8 @@ function MusclePath({
   base,
   gap,
   dim,
+  focus,
+  chosen,
 }: {
   d: string;
   level: SharedValue<number>;
@@ -89,17 +94,23 @@ function MusclePath({
   base: string;
   gap: number;
   dim: boolean;
+  focus: SharedValue<number>;
+  chosen: boolean;
 }) {
-  const animated = useAnimatedProps(() => ({ fill: interpolateColor(level.value, STOPS, ramp) }));
+  const own = dim ? 0.5 : 1;
+  const animated = useAnimatedProps((): { opacity: number; fill?: string } => {
+    const opacity = own * (chosen ? 1 : 1 - 0.45 * focus.value);
+    return STATIC_COLOR ? { opacity } : { opacity, fill: interpolateColor(level.value, STOPS, ramp) };
+  });
   return (
     <AnimatedPath
       d={d}
-      {...(STATIC_COLOR ? { fill: ramp[Math.round(target)] } : { animatedProps: animated })}
+      {...(STATIC_COLOR ? { fill: ramp[Math.round(target)] } : {})}
+      animatedProps={animated}
       // Die Fugen sind eine Kontur in Körperfarbe: überall gleich breit, egal wie groß die Figur ist.
       stroke={base}
       strokeWidth={gap}
       strokeLinejoin="round"
-      opacity={dim ? 0.5 : 1}
     />
   );
 }
@@ -112,6 +123,8 @@ function RegionPaths({
   base,
   gap,
   dim,
+  focus,
+  chosen,
 }: {
   region: Region;
   target: number;
@@ -120,12 +133,14 @@ function RegionPaths({
   base: string;
   gap: number;
   dim: boolean;
+  focus: SharedValue<number>;
+  chosen: boolean;
 }) {
   const level = useLevel(target, region.row, mode);
   return (
     <>
       {region.paths.map((d, i) => (
-        <MusclePath key={i} d={d} level={level} target={target} ramp={ramp} base={base} gap={gap} dim={dim} />
+        <MusclePath key={i} d={d} level={level} target={target} ramp={ramp} base={base} gap={gap} dim={dim} focus={focus} chosen={chosen} />
       ))}
     </>
   );
@@ -200,6 +215,7 @@ function Figure({
   spared = [],
   selected = null,
   onSelect,
+  details,
 }: {
   regions: readonly Region[];
   width: number;
@@ -212,18 +228,46 @@ function Figure({
   spared?: readonly MuscleGroup[];
   selected?: MapMuscle | null;
   onSelect?: (m: MapMuscle | null) => void;
+  /** Feine Körperdetails (nur große Karte). */
+  details?: { fills: string[]; lines: string[] };
 }) {
   const theme = useTheme();
   const ramp = useRamp();
+  const dark = useColorScheme() === 'dark';
+  const reduced = useReducedMotion();
   const base = theme.backgroundSelected;
+  const detail = dark ? BodyDetail.dark : BodyDetail.light;
+  // Fokus: ist ein Muskel angetippt, treten die anderen in 200 ms zurück
+  const focus = useSharedValue(0);
+  const hasSelection = !!selected && regions.some((r) => r.muscle === selected);
+  useEffect(() => {
+    focus.set(reduced ? Number(hasSelection) : withTiming(Number(hasSelection), { duration: 200, easing: EASE }));
+  }, [focus, hasSelection, reduced]);
   const marked = selected ? regions.filter((r) => r.muscle === selected).flatMap((r) => r.paths) : [];
   const sparedPaths = regions.filter((r) => spared.includes(r.group)).flatMap((r) => r.paths);
   const svg = (
     <Svg width={width} height={height} viewBox={VIEWBOX}>
       <Path d={OUTLINE} fill={base} />
+      {details?.fills.map((d, i) => (
+        <Path key={`f${i}`} d={d} fill={detail} />
+      ))}
+      {details?.lines.map((d, i) => (
+        <Path key={`l${i}`} d={d} fill="none" stroke={detail} strokeWidth={gap * 0.8} strokeLinecap="round" />
+      ))}
       {ready
         ? regions.map((r) => (
-            <RegionPaths key={r.key} region={r} target={level(r)} mode={mode} ramp={ramp} base={base} gap={gap} dim={spared.includes(r.group)} />
+            <RegionPaths
+              key={r.key}
+              region={r}
+              target={level(r)}
+              mode={mode}
+              ramp={ramp}
+              base={base}
+              gap={gap}
+              dim={spared.includes(r.group)}
+              focus={focus}
+              chosen={r.muscle === selected}
+            />
           ))
         : null}
       {ready ? <WholeBodyRing target={whole} mode={mode} ramp={ramp} base={base} gap={gap} /> : null}
@@ -342,6 +386,7 @@ export function MuscleMap({
   const figure = (side: Side, w: number, h: number) => (
     <Figure
       regions={side === 'front' ? FIGURE.front : FIGURE.back}
+      details={DETAILS[side]}
       width={w}
       height={h}
       gap={w > 150 ? 0.8 : 1}
@@ -495,7 +540,17 @@ export function MuscleMapDone({ tally, label }: { tally: MuscleTally; label: str
   return (
     <View accessible accessibilityLabel={label} style={styles.row}>
       {[FIGURE.front, FIGURE.back].map((regions, i) => (
-        <Figure key={i} regions={regions} width={100} height={214} gap={1.2} level={level} whole={tally.whole > 0 ? 4 : 0} mode="grow" />
+        <Figure
+          key={i}
+          regions={regions}
+          details={i === 0 ? DETAILS.front : DETAILS.back}
+          width={100}
+          height={214}
+          gap={1.2}
+          level={level}
+          whole={tally.whole > 0 ? 4 : 0}
+          mode="grow"
+        />
       ))}
     </View>
   );

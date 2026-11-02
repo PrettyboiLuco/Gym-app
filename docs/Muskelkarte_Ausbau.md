@@ -85,3 +85,25 @@ keine Dauerbewegung.
   Werte der Bewegung in `constants/motion.ts` (`MapFade`).
 - Im Browser setzt Reanimated animierte SVG-Farben nicht um; dort stehen die Farben direkt am Ziel (iPhone/Android gleiten).
 - Sichtprüfung: `node scripts/muskelkarte/ansicht.mjs`.
+
+## Feinschliff (umgesetzt)
+
+| # | Was | Umsetzung |
+|---|---|---|
+| F1 | Brust als Fächer | Die drei Brustbänder haben gebogene Grenzen, die zur Achsel zusammenlaufen – wie die Fasern zum Oberarm – statt waagrechter Streifen. |
+| F2 | Körperdetails | Schlüsselbein, Kniescheiben, vorderer Schienbeinmuskel, Daumen, Kniekehle und Achillessehne zart im Körperton (`BodyDetail`), unter den Muskeln, ohne Daten, nicht antippbar. Nur auf der großen Karte. |
+| F3 | Fokus beim Antippen | Die übrigen Muskeln treten in 200 ms auf 55 % zurück, der gewählte bleibt voll und bekommt den Rand. Tippen daneben holt alle zurück. |
+
+## Ideen aus anderen Apps (noch offen)
+
+Gesichtet: Hevy (Satzverteilung je Muskel, Körperform umschaltbar), Fitbod (Erholung in % – bewusst nicht, Hausregel),
+TeamBuildr und react-native-body-highlighter (linke/rechte Seite getrennt, Heranzoomen beim Antippen), MuscleSquad
+(dunkler = häufiger trainiert).
+
+| Idee | Nutzen | Aufwand |
+|---|---|---|
+| Körperform wählen (männlich/weiblich) | Persönlicher; Hevy bietet das an | Zweite Zeichnung mit eigenen Flächen; Treffer und Tests laufen mit |
+| Vergleich zur Vorwoche | Pfeil/Zahl je Muskel „+4 Sätze“ zeigt Trend ohne Bewertung | Klein: zweite Woche laden, Differenz in der Liste |
+| Durchschnitt über 4 Wochen | Glättet Ausreißer (Urlaub, Deload) | Klein: Zeitraum-Schalter, gleiche Zählung |
+| Heranzoomen beim Antippen | Kleine Muskeln (Unterarm, Nacken) groß sehen | Mittel: Ausschnitt der Zeichnung animiert vergrößern |
+| Links/rechts getrennt | Ungleichgewicht bei einseitigen Übungen sichtbar | Groß: Sätze müssten je Seite erfasst werden |

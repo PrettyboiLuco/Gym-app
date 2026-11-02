@@ -24,19 +24,19 @@ const load = (file) => {
   new Function('module', 'exports', 'require', js)(mod, mod.exports, () => ({ MAP_GROUP: new Proxy({}, { get: () => 'gruppe' }) }));
   return mod.exports;
 };
-const { FIGURE, OUTLINE, VIEWBOX } = load('src/components/muscle-figure.ts');
+const { DETAILS, FIGURE, OUTLINE, VIEWBOX } = load('src/components/muscle-figure.ts');
 const themeSrc = fs.readFileSync(join(app, 'src/constants/theme.ts'), 'utf8');
 const ramp = (name) => [...themeSrc.match(new RegExp(`${name}: \\[([^\\]]+)\\]`))[1].matchAll(/'(#[0-9A-Fa-f]{6})'/g)].map((m) => m[1]);
 const THEMES = {
-  light: { bg: '#FFFFFF', body: '#EEEEEE', ramp: ramp('light') },
-  dark: { bg: '#111111', body: '#2A2A2A', ramp: ramp('dark') },
+  light: { bg: '#FFFFFF', body: '#EEEEEE', detail: '#DCDDE0', ramp: ramp('light') },
+  dark: { bg: '#111111', body: '#2A2A2A', detail: '#363636', ramp: ramp('dark') },
 };
 
 const out = resolve(process.argv[2] ?? 'muskelkarte.png');
 const levels = JSON.parse(process.argv[3] || '{"brust":4,"schultern":3,"arme":2,"bauch":1,"beine":4,"nacken":2,"ruecken":3,"gesaess":4,"waden":1,"huefte":2}');
 const whole = Number(process.argv[4] ?? 0);
 
-function view(regions, theme, w, h, gap) {
+function view(regions, theme, w, h, gap, details) {
   const muscles = regions
     .map((r) =>
       r.paths
@@ -48,15 +48,19 @@ function view(regions, theme, w, h, gap) {
     )
     .join('');
   const ring = whole ? `<path d="${OUTLINE}" fill="none" stroke="${theme.ramp[whole]}" stroke-width="${gap * 1.2}" stroke-linejoin="round"/>` : '';
-  return `<svg width="${w}" height="${h}" viewBox="${VIEWBOX}"><path d="${OUTLINE}" fill="${theme.body}"/>${muscles}${ring}</svg>`;
+  const extra = details
+    ? details.fills.map((d) => `<path d="${d}" fill="${theme.detail}"/>`).join('') +
+      details.lines.map((d) => `<path d="${d}" fill="none" stroke="${theme.detail}" stroke-width="${gap * 0.8}" stroke-linecap="round"/>`).join('')
+    : '';
+  return `<svg width="${w}" height="${h}" viewBox="${VIEWBOX}"><path d="${OUTLINE}" fill="${theme.body}"/>${extra}${muscles}${ring}</svg>`;
 }
 
 let html = '<body style="margin:0">';
 for (const theme of Object.values(THEMES)) {
   html += `<div style="background:${theme.bg};padding:20px;display:flex;gap:24px;align-items:flex-end">`;
-  html += view(FIGURE.front, theme, 124, 265, 1) + view(FIGURE.back, theme, 124, 265, 1);
+  html += view(FIGURE.front, theme, 124, 265, 1, DETAILS.front) + view(FIGURE.back, theme, 124, 265, 1, DETAILS.back);
   html += `<div style="display:flex;gap:4px">${view(FIGURE.frontMini, theme, 54, 116, 1.6)}${view(FIGURE.backMini, theme, 54, 116, 1.6)}</div>`;
-  html += view(FIGURE.front, theme, 372, 795, 1) + view(FIGURE.back, theme, 372, 795, 1) + '</div>';
+  html += view(FIGURE.front, theme, 372, 795, 1, DETAILS.front) + view(FIGURE.back, theme, 372, 795, 1, DETAILS.back) + '</div>';
 }
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1300, height: 900 }, deviceScaleFactor: 2 });

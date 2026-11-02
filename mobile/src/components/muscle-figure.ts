@@ -128,10 +128,10 @@ const FRONT_HALF: Half = {
   nacken: NECK_FRONT,
   schulter_seitlich: [DELT_SIDE],
   schulter_vorn: [DELT_INNER],
-  // Brust als Fächer in drei Bändern (oben = Schlüsselbeinanteil, Mitte, unten)
-  brust_oben: ['M49.4 38.2 C45 36.8 39.4 36.6 35 37.4 C32.6 37.8 31.4 39.8 30.8 42.6 C30.5 44 30.2 45.4 29.8 46.6 C35.4 44.6 42.4 43.8 49.4 44.4 Z'],
-  brust_mitte: ['M49.4 45.6 C42.4 45 35.6 45.8 29.4 48 C29 49.4 28.6 50.6 28.1 51.8 C35 50.6 42.4 50.8 49.4 52 Z'],
-  brust_unten: ['M49.4 53.2 C42.4 52 35.2 52 28.4 53 C32 57.6 37.4 60.4 42.4 60.4 C45.2 60.4 47.6 59.8 49.4 58.8 Z'],
+  // Brust als Fächer: drei Bänder, deren Grenzen gebogen zur Achsel zusammenlaufen (wie die Fasern zum Oberarm)
+  brust_oben: ['M49.4 38.2 C45 36.8 39.4 36.6 35 37.4 C32.6 37.8 31.4 39.8 30.8 42.6 C30.4 44.6 30.1 46.4 29.7 48 C36 46.2 43 45 49.4 45 Z'],
+  brust_mitte: ['M49.4 45 C43 45 36 46.2 29.7 48 C29.3 49.4 28.8 50.8 28.1 51.9 C35 52.6 42 53.2 49.4 52.4 Z'],
+  brust_unten: ['M49.4 52.4 C42 53.2 35 52.6 28.1 51.9 L27.8 52.4 C31.4 57.4 37 60.4 42.4 60.4 C45.2 60.4 47.6 59.8 49.4 58.8 Z'],
   // Sägemuskel: drei Zacken unter der Achsel
   saegemuskel: [
     'M27.8 55.4 C29.6 55.8 31.2 56.8 32.4 58 C31.4 59 29.8 59 28.4 58.2 C28 57.2 27.8 56.2 27.8 55.4 Z',
@@ -234,6 +234,45 @@ const BACK_MINI_HALF: GroupHalf = {
   waden: [
     'M32.6 153.8 C31.2 159 31.2 166 32.6 172 C34.2 177.4 37.4 179.4 40 179.2 C42.8 179.4 45.4 177.6 46.4 172.4 C47.2 166.4 47 160 46.2 157 C42 152.4 37 152.4 32.6 153.8 Z',
   ],
+};
+
+// ------------------------------------------------------------------------------------ Körperdetails
+
+/**
+ * Feine Körperdetails ohne Daten (Feinschliff): zart im Körperton, unter den Muskeln, nicht antippbar. Flächen
+ * (Kniescheibe, Schienbeinmuskel) und Linien (Schlüsselbein, Daumen, Kniekehle, Achillessehne). Nur auf der großen Karte.
+ */
+type Details = { fills: string[]; lines: string[] };
+const both = (half: string[]) => half.flatMap((d) => [d, mirror(d)]);
+
+const DETAIL_FRONT_HALF = {
+  fills: [
+    // Kniescheibe
+    'M39.4 146.8 C41.4 146.8 42.8 148.4 42.8 150.4 C42.8 152.4 41.4 154 39.4 154 C37.4 154 36 152.4 36 150.4 C36 148.4 37.4 146.8 39.4 146.8 Z',
+    // vorderer Schienbeinmuskel (zwischen den Wadenrändern)
+    'M37.6 157 C36.6 163 36.6 170 37.4 177 C37.9 182 38.6 187 39.4 191 C40 185.4 40.6 179 40.6 171.6 C40.6 165 40 160 38.8 156.4 Z',
+  ],
+  lines: [
+    // Schlüsselbein
+    'M47.6 36.4 C43.4 35.9 37.8 36.1 32.2 35.8',
+    // Daumen
+    'M17 105.6 C15.8 108.6 15.4 112 15.8 114.8',
+  ],
+};
+
+const DETAIL_BACK_HALF: { fills: string[]; lines: string[] } = {
+  fills: [],
+  lines: [
+    // Kniekehle
+    'M35.8 152 C38 152.8 40.8 152.8 43.4 152',
+    // Achillessehne
+    'M40.4 181.6 C40.6 187.4 40.8 192.6 40.8 197.4',
+  ],
+};
+
+export const DETAILS: { front: Details; back: Details } = {
+  front: { fills: both(DETAIL_FRONT_HALF.fills), lines: both(DETAIL_FRONT_HALF.lines) },
+  back: { fills: both(DETAIL_BACK_HALF.fills), lines: both(DETAIL_BACK_HALF.lines) },
 };
 
 // ------------------------------------------------------------------------------------ Regionen und Treffer

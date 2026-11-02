@@ -64,6 +64,9 @@ export const MuscleRamp = {
   dark: ['#444444', '#4E5E22', '#77922F', '#A0C43E', '#C6F24E'],
 } as const;
 
+/** Feine Körperdetails der Muskelkarte (Kniescheibe, Schlüsselbein …): knapp vom Körperton abgesetzt. */
+export const BodyDetail = { light: '#DCDDE0', dark: '#363636' } as const;
+
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
