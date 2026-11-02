@@ -1,0 +1,204 @@
+# Phase 1 Scan (01.11.2026)
+
+Ein vollständiger Abgleich vor den nächsten Prioritäten. Geprüft wurden:
+- die Arbeitsgrundlage v2.0 (PDF, 96 Seiten, 147 Anforderungen)
+- Lucs Trainingsplan, nur Seite 1
+- Fahrplan und Ausbauplan ab den Anfangsphasen
+- der ganze Code auf Fehler
+- die Oberfläche im Hell- und Dunkelmodus
+- das App-Symbol
+- Pakete und Sicherheit
+
+**Es wurde nichts am Code geändert.** Die Einzeltabellen stehen in `docs/phase1_scan/` (A–E). Gefundene Fehler wurden
+mit Wegwerf-Skripten gegen den echten Code bestätigt oder sind ausdrücklich als „unbestätigt“ markiert.
+
+## 1. Kurzfazit
+
+| Bereich | Ergebnis |
+|---|---|
+| Arbeitsgrundlage (147 IDs) | **69 umgesetzt**, 8 fertig gebaut, aber noch ohne Fachfreigabe, **19 teilweise**, **0 fehlen ganz**, 28 bewusst verschoben (mit Doku-Beleg), 14 extern offen (Anwalt, Store, Luc), 9 kein App-Thema |
+| Lucs Plan (Seite 1) | vollständig drin: 4 Tage So/Mo/Mi/Fr, Satzzahlen 16/18/17/13, RIR, Hinweise. Klein: der wöchentliche Wechsel „Chest Press ↔ Multipresse“ und „Trizeps im Wechsel mit Curls“ stehen nur als Notiz, die App wechselt nicht selbst |
+| Fehler im Code | **kein kritischer** (kein Absturz, kein großer Datenverlust), **11 mittlere, 21 geringe**, bestätigt |
+| Plan und Doku | Code fast vollständig. **Texte in der App und Docs sind nicht mitgezogen** (Datenschutz, Hilfe, Fotos-Hinweis, Feedback-Bogen) |
+| Oberfläche | sauber und ruhig, aber fast nur Schwarz/Weiß. Die Markenfarbe Lime kommt kaum vor (bewusste Regel vom 31.10.: „Lime nur auf Daten“) |
+| App-Symbol | 3D-Look stammt aus einem getlayers-Preset; die Doku sagt „selbst gezeichnet“. **3 eigene Vorschläge** liegen bereit |
+| Technik | alle Expo-Pakete passen zu SDK 58; tsc, Lint und 676 Tests sind grün. 16 Warnungen in npm audit betreffen nur das Build-Werkzeug von Expo, nicht die App |
+
+## 2. Fehler, die dich direkt treffen (Gym und Alltag)
+
+| # | Fehler | Wirkung | Fundstelle |
+|---|---|---|---|
+| F1 | **App-Sperre wirft das laufende Training aus dem Bildschirm** | Bei 3–5 min Pause und gesperrtem Handy (> 60 s) sind getippte, noch nicht abgehakte Werte, das Pausen-Vollbild und der Halte-Countdown weg. Abgehakte Sätze bleiben | `components/lock-gate.tsx:36–50` |
+| F2 | **Doppeltipp auf „Training starten“ legt zwei Trainings an** | Mini-Player und „Heute“ zeigen danach ein Geister-Training | `app/training/index.tsx:112` |
+| F3 | **Doppeltipp bucht doppelt** (Lebensmittel, Vorlage, „In eigenen Worten“, Schnell eintragen, Vortag kopieren, Planassistent) | doppelte Kalorien; beim Assistenten zwei Fassungen, „Rückgängig“ greift die falsche | `nutrition/food/[id].tsx:70`, `add.tsx:102`, `text.tsx:158`, `assistant.tsx:233` u. a. |
+| F4 | **Gescannte Produkte lassen sich beim Bearbeiten nicht speichern** | Werte wie Salz „0,0762“ gelten als ungültig | `domain/nutrition.ts:102/310` |
+| F5 | **Lebensmittel bearbeiten löscht den Koffeinwert** | Energy-Drink: Namen ändern, danach 0 mg Koffein | `domain/nutrition.ts:335`, `data/nutrition.ts:190` |
+| F6 | **Coach bleibt aus**, wenn Ernährung aus- und wieder eingeschaltet wird | Coach muss man von Hand wieder einschalten (und weiß das nicht) | `app/more/modules.tsx:19` |
+| F7 | **Bereitschaft: Trainingslast in den ersten 2–4 Wochen zu hoch** | Ampel zeigt ohne Grund „Last hoch“ (Faktor 1,45–2,0 statt ~1,0) | `domain/readiness.ts:77` |
+| F8 | **Check-in schlägt beim Abnehmen mehr Kalorien vor**, wenn das eigene Ziel unter 1200 liegt | widersprüchlicher Vorschlag „1100 → 1200“ | `domain/checkin.ts:181/199`, `adaptive.ts:297` |
+| F9 | **Notizen werden im Browser nie gespeichert**; auf dem iPhone vielleicht nicht, wenn man bei offener Tastatur „Abschließen“ tippt (unbestätigt) | Trainingsnotiz weg | `session/[id].tsx:917`, `summary/[id].tsx:292` |
+| F10 | **Planeditor lädt nach dem Planassistenten nicht neu** | Ändern und Speichern überschreibt still die Fassung des Assistenten | `plan/[id].tsx:157` |
+| F11 | **Ältere Sicherung wiederherstellen holt Datenumwandlungen nicht nach** | Kalorienziel (v ≤ 3) und neue Kabelgeräte (v ≤ 14) fehlen; Plank als Wdh. statt Sekunden | `data/backup.ts:155–179` |
+
+**Geringe Fehler (Auswahl, alle in Anhang D und E):**
+
+*Training*
+- „Leichte Woche“ am Sonntag gestartet dauert nur einen Tag.
+- „Ca. 10 % leichter“ bleibt beim selben Gewicht, wenn der Geräteschritt groß ist.
+- Halte-Countdown geht verloren, wenn man „Zurück“ tippt.
+- Verlauf zeigt nach Mitternacht den Vortag (UTC).
+
+*Ernährung*
+- Rezept-Import: „1.000 g“ wird zu 1 g; „2–3 EL“ und „ca. 200 g“ ergeben keine Menge.
+- „Tag endet um X Uhr“ wirkt nicht im Tagwechsler.
+- Nachträge bekommen die Erfassungszeit als Essenszeit.
+- Menge 0,25 Portion wird beim Ändern zu 0,3.
+- Einkaufsliste: eigenes Rezept ohne Portionen zählt immer als 1 Rezept.
+
+*Module, Daten und Bedienung*
+- Module wirken nicht überall:
+  - Dehnen auf „Heute“ trotz ausgeschalteter Routinen.
+  - Supplement-Erinnerung läuft ohne Ernährung weiter.
+  - Bettzeit-Erinnerung läuft ohne Bereitschaft weiter.
+  - Check-in ist ohne Coach erreichbar.
+- Bericht für Arzt/Trainer zählt Gegengewicht als Gewicht.
+- Eine fehlgeschlagene Wiederherstellung löscht alle Erinnerungen.
+- Fehler beim Laden bleiben ewig im Ladezustand.
+- Die Knöpfe „‹ › ✕“ im Wochenplan sind ohne Ansage für VoiceOver.
+
+**Ohne Befund geprüft:**
+- Einheiten kg/lb, cm/in, ml/oz
+- Komma/Punkt bei Eingaben
+- Pausenuhr im Hintergrund
+- Migrationen 6/7/10/26 (Daten, Indizes, Fremdschlüssel bleiben)
+- Sicherung deckt alle 38 Tabellen ab
+- Energiebedarf, Untergrenzen, Wochenstart Montag, Sommerzeit
+- alle 153 Navigationspfade (keine fehlende Seite)
+
+## 3. Lücken aus PDF und Plan
+
+**Teilweise umgesetzt (Code):**
+1. **Journal ohne Zielgröße „Leistung“:** in A6.10 versprochen („kommt mit A8“), nie gebaut.
+2. **Zwei Aktivitätsmodelle (COACH-003):** Rechner und Coach können für dieselbe Person zwei verschiedene Ziele ergeben.
+3. **Coach gibt volle Makroverteilung vor (COACH-005):** Das PDF will Eiweiß als Bereich bis zur Fachfreigabe. Luc hat das bewusst so entschieden, die Fachprüfung (Mappe B) steht aus.
+4. **Gewichts-Hochrechnung mit Datum:** widerspricht `Entscheidungen.md` („keine Zielprognose“) und GOAL-006, zeigt keine Unsicherheit → **Entscheidung Luc**.
+5. **PDF-Bericht und KI-Zusammenfassung ignorieren „ohne Zahlen“ und die sensible Situation (TRACK-006).**
+6. Kleinere Punkte:
+   - keine eigene Stange und keine eigenen Scheiben (A1.10)
+   - „Wie am Vortag“ nur für den ganzen Tag (A3.4)
+   - Dehn-/HIIT-Protokoll nicht als CSV
+   - Blutdruck nicht im Arztbericht
+   - Abrufzeit der Schritte gespeichert, aber nicht angezeigt (HEALTH-006, wichtig erst mit Apple Health)
+   - Open Food Facts: kein Backoff bei Überlast (FOOD-003); Kennung ohne Kontakt-E-Mail (FOOD-006)
+
+**Texte in der App veraltet (das sieht jeder Nutzer):**
+- **Fotos:** „Eine eigene App-Sperre gibt es noch nicht … Sicherung kommt später (Phase 6)“. Beides gibt es längst (`de.ts:2158`).
+- **Hilfe/FAQ:** 30 Fragen, keine zu A1–A11; „Was kann die App?“ ist veraltet.
+- **Feedback-Bogen für den Pilot:** Cardio, Coach, Bereitschaft, Essen planen, Supplements und Statistik fehlen.
+- **Datenschutz und „Welche Daten verlassen mein Handy?“:** nennen nur Open Food Facts.
+  - Fehlt: **Rezept per Link** (lädt beliebige Webseiten), CSV/PDF-Export, KI-Zusammenfassung, Teilen-Karten, Strong/Hevy-Import, USDA.
+- **Interne Begriffe und alte Stände sichtbar:** „Fahrplan 6.1/6.2“ (`de.ts:1718`), „fließt später ein“ beim Cardio, ein Rechner-Text auf altem Stand.
+
+**Für die Übungsbilder fehlt Claudes Zulieferung:** Liste der 150 häufigsten Übungen und eine Stilvorgabe. Die Bilder
+selbst entstehen mit Higgsfield (Luc).
+
+## 4. Recht und Datenschutz (vor Pilot und Store)
+
+- **Rechtsmappe und Datenschutzentwurf stehen auf dem 30.10.**
+  - Es fehlen: Rezept-Link (zweiter Netzzugriff), Exporte, Blutdruck, Bereitschaft/Status, USDA.
+  - Export-Dateien (CSV/PDF) haben keinen Hinweis „enthält Gesundheitsdaten“.
+- **Abgrenzung zum Medizinprodukt (LAW-010):** Blutdruck-Tagebuch, Bereitschafts-Ampel und „Bericht für Arzt“ sind neu und stehen nicht in der Zweckbestimmung → vor dem Anwalt ergänzen.
+- **Gesundheitsdaten-Einwilligung (LAW-004):** In der App gibt es keine eigene Einwilligung nach Art. 9. Die Frage an den Anwalt steht in der Mappe.
+- **Expo-Updates mit Server in den USA (LAW-005/008):** behalten oder vor dem Store abschalten? Offen.
+- **Sicherungsdatei unverschlüsselt (TECH-013, verschoben):** Es gibt nur einen Warnhinweis.
+- **Support, Notfallplan, Not-Aus für Onlinefunktionen (TECH-020, LAW-018):** Der Fahrplan legt das in Phase 11, das PDF verlangt es **vor der öffentlichen Beta**.
+- **App-Symbol (MEDIA-013):** 3D-Look aus dem getlayers-Preset „Heart“, Nutzungsbedingungen nicht dokumentiert. Die Doku nennt es „selbst gezeichnet“ (`Freigabematrix.md:14`, `Rechtspruefung_Mappe.md:51`).
+- **Weitere offene externe Punkte:** Impressum, öffentliche Datenschutz-URL, DSFA-Schwelle, Nutzungsbedingungen, Gewerbe, Versicherung.
+
+## 5. Oberfläche: mehr Stimmung (nur Befund und Vorschläge)
+
+**Befund (Screenshots aller Haupt-Tabs, hell und dunkel):**
+- Ordentlich, ruhig, gut lesbar, aber fast **monochrom**.
+- Lime erscheint nur als kleiner Punkt („Jetzt dran“) und in Diagrammen.
+- Das Herz aus dem Start sieht man danach nie wieder.
+- Die Wochenpunkte sind graue Kreise, die Hero-Karte „Push (So)“ ist eine reine Textkarte.
+- Leere Zustände lesen sich trocken („0 von 0 Plan-Wochen“).
+
+Ursache ist die bewusste Regel vom 31.10. („Lime nur auf Daten, nie auf Knöpfen“). Sie war richtig gegen
+„zu bunt“, hat aber auch die Stimmung mitgenommen.
+
+**Vorschlag:** sechs dosierte Schritte. Die Navigation bleibt schwarz/weiß, die Stimmung entsteht dort, wo Training
+und Erfolg passieren.
+
+| # | Idee | Wo | Stärke |
+|---|---|---|---|
+| U1 | **Lichtband hinter der Hero-Karte:** ein weicher Lime-Schein von unten (wie das getlayers-Gradient „Meridian“, als einfacher Verlauf ohne Shader) | „Heute“, Training-Vorschlag | leicht |
+| U2 | **Wochenpunkte mit Leben:** erledigte Tage als gefüllte Lime-Punkte mit leichtem Glühen, geplante Tage als Lime-Ring, heute pulsiert einmal | „Heute“, Training | leicht |
+| U3 | **Tageszeit-Stimmung im Kopf:** morgens kühles Weiß-Blau, abends ein warmer, sehr dunkler Ton hinter „Guten Abend“ | Kopf von „Heute“ | sehr leicht |
+| U4 | **Muskelkarte in der Hero-Karte:** die vorhandene Muskelkarte klein neben „Push (So)“, die trainierten Muskeln in Lime | Hero „Heute“ und Training | mittel |
+| U5 | **Erfolgsmomente:** Satz abgehakt → kurzer Lime-Puls; Training fertig → das Herz aus dem Start kommt zurück (Ring schließt sich) | Training, Abschluss | mittel |
+| U6 | **Leere Zustände mit Charakter:** statt „0 von 0“ ein Satz und ein kleines Lime-Symbol („Deine erste Plan-Woche beginnt mit dem ersten Training“) | Meilensteine, Fortschritt | leicht |
+
+**MCP-Referenzen** (getlayers.ai):
+- Gradient **Meridian** („eine Lichtlinie mit Abfall“, ruhig) – Vorbild für U1
+- Gradient **Antumbra** (weiches Schattenlicht, gibt es auch in Grün)
+- Palette **Iris Voltage** – zeigt, wie Acid-Lime auf Dunkel wirkt, wenn es rationiert ist
+
+Die Shader selbst wären für eine App zu schwer. Gemeint sind Look und Dosierung, umgesetzt als einfacher Verlauf
+bzw. mit Reanimated. Nichts davon ist gebaut.
+
+## 6. App-Symbol: 3 eigene Vorschläge
+
+Dateien: `design/logo/vorschlaege/` (SVG, PNG 1024 und `logo-vergleich.png` mit echter Home-Bildschirm-Größe).
+Alle drei sind vollständig selbst gezeichnet (keine Vorlage) und bleiben in der Markenwelt Lime auf Fast-Schwarz.
+
+| # | Name | Idee | Klein lesbar? |
+|---|---|---|---|
+| 1 | **Puls-Hantel** | Hantel, deren Stange eine Pulslinie ist: Training + Gesundheit in einem Zeichen | ja; Linien für die Endfassung etwas dicker |
+| 2 | **M-Puls** | Das „M“ von Myhealth als Herzschlag, mit Punkt am Ende | sehr gut, am klarsten |
+| 3 | **Ring + Herzschlag** | Fortschrittsring wie in der App, innen ein weißer Herzschlag – passt zu den Ringen auf „Heute“ | gut |
+
+Die Vorschläge sind flache Entwürfe. Die gewählte Form kann danach wie das jetzige Herz als 3D-Version gerendert
+werden, mit eigenem Render statt Preset.
+
+## 7. Was ich vergessen bzw. nicht nachgezogen hatte
+
+Ehrlich aufgelistet. Das sind Dinge, die bei A1–A11 hätten mitlaufen müssen:
+
+1. **Datenschutz-Texte** in App und Docs bei neuen Netzzugriffen und Exporten (Rezept-Link, CSV, PDF, KI-Text).
+2. **Hilfe/FAQ und Feedback-Bogen** um die neuen Bereiche ergänzen (beim Feedback-Bogen ist das schon zum zweiten Mal passiert).
+3. **Fotos-Hinweistext** nach App-Sperre und Sicherung aktualisieren.
+4. **Module ein/aus** auch bei Supplement- und Bettzeit-Erinnerung, Dehnen-Angebot und Check-in.
+5. **Doppeltipp-Sperre** als gemeinsames Muster für alle Speichern-Knöpfe (statt je Bildschirm).
+6. **Stand-Pflege der Docs:**
+   - `Pakete_und_Sicherheit.md` (3 Pakete fehlen, 508 statt 676 Tests)
+   - `Freigabematrix.md`
+   - `Store_Texte.md`
+   - `Pilot_Leitfaden.md`
+   - `Entscheidungen.md` („ml/oz nicht“ ist überholt)
+   - Köpfe „Stand 30.10“
+7. **Ausbauplan** sagt „fertig“, obwohl die eigenen „Fertig, wenn“-Tests durch Luc noch offen sind. Besser „gebaut, Test offen“.
+8. **Gerätetest-Liste** ohne Tests für Supersatz, Scheibenrechner, Blutdruck, Meilensteine, leichte Woche und Atemübung.
+9. **Zulieferung Übungsbilder** (Top-150-Liste und Stilvorgabe).
+10. **`expo-dev-client`** fehlt, obwohl `eas.json` ein Entwicklungsprofil hat. Wird mit dem MacBook gebraucht.
+
+## 8. Fragen an Luc
+
+1. **Stimmung:** Welche der Ideen U1–U6 willst du? Alle sechs, oder erst U1+U2+U6 (leicht) und den Rest danach?
+2. **Lime-Regel:** Darf Lime künftig auch auf den Haupt-Knopf „Training starten“ (statt Weiß/Schwarz)? Das wäre der größte Einzelschritt zu mehr Stimmung.
+3. **App-Symbol:** Welcher der drei Vorschläge oder beim 3D-Herz bleiben? Falls neu: flach lassen oder als 3D rendern?
+4. **Gewichts-Hochrechnung mit Datum:** behalten (dann mit Unsicherheitsbereich und Eintrag in die Fachprüfungs-Mappe) oder entfernen (wie in `Entscheidungen.md`)?
+5. **Coach-Makros:** bei der festen Verteilung bleiben (deine Entscheidung) oder bis zur Fachprüfung nur Eiweiß als Bereich?
+6. **Expo-Updates (Server in den USA):** für Pilot und Store behalten oder abschalten?
+7. **Entscheidungen E2–E5:** Fasten-Timer, GLP-1-Modus, Körperfett von der Waage, Englisch. Willst du die jetzt entscheiden oder später?
+8. **Wöchentlicher Wechsel** (Chest Press ↔ Multipresse, Trizeps ↔ Curls): soll die App das automatisch abwechseln oder reicht die Notiz?
+9. **Support/Notfallplan:** vor dem Pilot einbauen (wie das PDF verlangt) oder erst Phase 11?
+
+## 9. Vorschlag für die Reihenfolge danach (Entwurf, wird nach deinen Antworten festgelegt)
+
+1. **P1 Fehler, die im Gym stören:** F1 App-Sperre, F2/F3 Doppeltipp (gemeinsames Muster), F9 Notizen, F10 Planeditor.
+2. **P2 Falsche Zahlen und Daten:** F4/F5 Lebensmittel, F7 Bereitschaft, F8 Check-in, F11 alte Sicherungen, F6 Coach-Schalter, geringe Rechenfehler.
+3. **P3 Texte und Datenschutz nachziehen:** Fotos-Text, Hilfe, Feedback-Bogen, Datenschutz in App und Docs, Export-Hinweis, Module überall.
+4. **P4 Stimmung und App-Symbol** nach deiner Auswahl.
+5. **P5 Doku-Stand** und Gerätetest-Liste ergänzen; Zulieferung Übungsbilder.
+6. **Mit MacBook:** Development Build, Apple Health und Health Connect (D3/D4/D9).
