@@ -1,5 +1,7 @@
+import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/native-tabs';
+import { Platform } from 'react-native';
 
 import { MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
@@ -7,6 +9,13 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
 import { useLiveTraining } from '@/providers/live-training';
 import { useModules } from '@/providers/profile-provider';
+
+/**
+ * O10: Auf iOS 26 zeichnet das System die Tab-Leiste als Liquid Glass (schwebend, mit gleitender Auswahl-Pille – N7
+ * übernimmt dort das System). Geprüft wird das über expo-glass-effect: dann keine eigene Hintergrundfarbe, das Glas nimmt
+ * den Inhalt darunter auf. Ältere iPhones und Android behalten den bisherigen schwarzen bzw. hellen Grund.
+ */
+const LIQUID_GLASS = Platform.OS === 'ios' && isLiquidGlassAvailable();
 
 export default function AppTabs() {
   const scheme = useColorScheme();
@@ -22,7 +31,7 @@ export default function AppTabs() {
     <NativeTabs
       // iOS 26: Leiste schrumpft beim Scrollen nach unten und kommt beim Zurückscrollen wieder.
       minimizeBehavior="onScrollDown"
-      backgroundColor={colors.background}
+      backgroundColor={LIQUID_GLASS ? undefined : colors.background}
       indicatorColor={colors.backgroundElement}
       tintColor={colors.text}
       labelStyle={{ selected: { color: colors.text } }}>

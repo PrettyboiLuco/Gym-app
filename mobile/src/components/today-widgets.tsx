@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
+import { MeterBar } from '@/components/charts';
+import { introRunning, onIntroExit } from '@/components/intro-state';
 import { MuscleMapMini } from '@/components/muscle-map';
 import { ThemedText } from '@/components/themed-text';
-import { Press, Spring } from '@/constants/motion';
+import { CardStagger, Press, Spring } from '@/constants/motion';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -36,6 +38,9 @@ export function TrainingBlock({
   muscles,
   spared = [],
   body = 'm',
+  live = false,
+  growIn = false,
+  countUp = false,
 }: {
   label: string;
   title: string;
@@ -50,17 +55,26 @@ export function TrainingBlock({
   spared?: readonly MuscleGroup[];
   /** Körperform der kleinen Karte (Einstellung der Muskelkarte). */
   body?: 'm' | 'w';
+  /** Training läuft gerade: Beschriftung mit Punkt in der Datenfarbe (O2). */
+  live?: boolean;
+  /** Wochenbalken wachsen beim Öffnen gestaffelt (N10), die Sätze zählen hoch (N1) – auf „Heute“. */
+  growIn?: boolean;
+  countUp?: boolean;
 }) {
   const theme = useTheme();
   const groups = muscles ? (Object.keys(muscles) as MuscleGroup[]).filter((g) => (muscles[g] ?? 0) > 0) : [];
   const overlap = groups.filter((g) => spared.includes(g));
+  const dataColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
   return (
     <View style={[styles.block, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
       <View style={styles.headRow}>
         <View style={[styles.head, styles.flex]}>
-          <ThemedText themeColor="textSecondary" style={styles.label}>
-            {label}
-          </ThemedText>
+          <View style={styles.labelRow}>
+            {live ? <View style={[styles.liveDot, { backgroundColor: dataColor }]} /> : null}
+            <ThemedText themeColor={live ? undefined : 'textSecondary'} style={[styles.label, live && { color: dataColor }]}>
+              {label}
+            </ThemedText>
+          </View>
           <ThemedText type="title" style={styles.answer} numberOfLines={2} accessibilityRole="header">
             {title}
           </ThemedText>
@@ -80,7 +94,7 @@ export function TrainingBlock({
           {t('today.sparedHint', { list: overlap.map((g) => t(`muscle.${g}`)).join(', ') })}
         </ThemedText>
       ) : null}
-      <WeekStrip days={week} summary={weekSummary} />
+      <WeekStrip days={week} summary={weekSummary} growIn={growIn} countUp={countUp} />
       <View style={styles.action}>
         <Button label={action} onPress={onPress} />
       </View>
@@ -108,14 +122,33 @@ const BAR_AREA = 56;
  * die geplanten Sätze (dunkle Fläche), erledigte Sätze in der Datenfarbe darüber. Ruhetag = kurze Linie, heute = feine
  * Linie in der Datenfarbe. Oben die Sätze der Woche, darunter die Tage in Worten. Lime nur auf Daten (taste-skill).
  */
-export function WeekStrip({ days, summary, celebrateToday = false }: { days: WeekDay[]; summary: string; celebrateToday?: boolean }) {
+export function WeekStrip({
+  days,
+  summary,
+  celebrateToday = false,
+  growIn = false,
+  countUp = false,
+}: {
+  days: WeekDay[];
+  summary: string;
+  celebrateToday?: boolean;
+  /** Balken wachsen beim ersten Erscheinen von links nach rechts versetzt aus der Grundlinie (N10). */
+  growIn?: boolean;
+  /** Erledigte Sätze in der Überschrift zählen hoch (N1). */
+  countUp?: boolean;
+}) {
   const theme = useTheme();
+  // Beim App-Start erst wachsen, wenn der Vorhang des Intros abgeht – sonst passiert es unsichtbar dahinter.
+  const [start, setStart] = useState(() => !growIn || !introRunning());
+  useEffect(() => (start ? undefined : onIntroExit(() => setStart(true))), [start]);
   // Datenfarbe: dunkel Lime, hell das dunklere Grün (Lime auf Weiß hätte unter 3:1 Kontrast).
   const doneColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
   const planned = days.reduce((n, d) => n + (d.plannedSets ?? 0), 0);
   const done = days.reduce((n, d) => n + (d.doneSets ?? 0), 0);
   const max = Math.max(1, ...days.map((d) => Math.max(d.plannedSets ?? 0, d.doneSets ?? 0)));
   const headline = planned > 0 ? t('today.weekSets', { done, planned }) : t('today.weekSetsDone', { count: done });
+  const counted = Math.round(useCountUp(done, countUp));
+  const shownHeadline = planned > 0 ? t('today.weekSets', { done: counted, planned }) : t('today.weekSetsDone', { count: counted });
   const description = days
     .map((d) =>
       (d.plannedSets ?? 0) > 0 || (d.doneSets ?? 0) > 0
@@ -128,7 +161,7 @@ export function WeekStrip({ days, summary, celebrateToday = false }: { days: Wee
   return (
     <View accessible accessibilityLabel={`${headline}. ${summary}. ${description}`} style={styles.weekWrap}>
       <ThemedText type="smallBold" style={styles.weekHeadline}>
-        {headline}
+        {shownHeadline}
       </ThemedText>
       <View style={styles.week}>
         {days.map((d, i) => {
@@ -145,11 +178,22 @@ export function WeekStrip({ days, summary, celebrateToday = false }: { days: Wee
               </ThemedText>
               <View style={styles.barArea}>
                 {planHeight > 0 ? (
-                  <View style={[styles.bar, { height: planHeight, backgroundColor: theme.backgroundSelected }]} />
+                  <GrowBar height={planHeight} color={theme.backgroundSelected} growIn={growIn} start={start} delay={i * CardStagger.staggerMs} />
                 ) : doneHeight === 0 ? (
                   <View style={[styles.rest, { backgroundColor: theme.backgroundSelected }]} />
                 ) : null}
-                {doneHeight > 0 ? <DoneBar height={doneHeight} color={doneColor} grow={celebrateToday && d.today} /> : null}
+                {doneHeight > 0 ? (
+                  <GrowBar
+                    done
+                    height={doneHeight}
+                    color={doneColor}
+                    celebrate={celebrateToday && d.today}
+                    growIn={growIn}
+                    start={start}
+                    // Die erledigten Sätze wachsen kurz nach der Planfläche desselben Tages.
+                    delay={i * CardStagger.staggerMs + 80}
+                  />
+                ) : null}
               </View>
               <ThemedText type="small" themeColor={did > 0 ? 'text' : 'textSecondary'} style={styles.dayFigure}>
                 {figure}
@@ -166,15 +210,44 @@ export function WeekStrip({ days, summary, celebrateToday = false }: { days: Wee
   );
 }
 
-/** Erledigte Sätze eines Tages; `grow` lässt den heutigen Balken einmal auffedern (Abschluss-Bildschirm, U5). */
-function DoneBar({ height, color, grow }: { height: number; color: string; grow: boolean }) {
+/**
+ * Balken der Satz-Woche (geplant bzw. erledigt).
+ * - `celebrate`: der heutige erledigte Balken federt einmal auf (Abschluss-Bildschirm, U5)
+ * - `growIn`: wächst beim ersten Erscheinen nach `delay` aus der Grundlinie (N10), sobald `start` gilt; spätere Änderungen
+ *   federn zum neuen Wert
+ * Bei „Bewegung reduzieren“ steht der Balken sofort.
+ */
+function GrowBar({
+  height,
+  color,
+  done = false,
+  celebrate = false,
+  growIn = false,
+  start = true,
+  delay = 0,
+}: {
+  height: number;
+  color: string;
+  done?: boolean;
+  celebrate?: boolean;
+  growIn?: boolean;
+  start?: boolean;
+  delay?: number;
+}) {
   const reduced = useReducedMotion();
-  const h = useSharedValue(grow && !reduced ? 0 : height);
+  const animate = (celebrate || growIn) && !reduced;
+  const h = useSharedValue(animate ? 0 : height);
+  const grown = useRef(!animate);
   useEffect(() => {
-    h.set(grow && !reduced ? withDelay(250, withSpring(height, { ...Spring, stiffness: 260, damping: 12 })) : height);
-  }, [grow, reduced, height, h]);
+    if (!animate) h.set(height);
+    else if (celebrate) h.set(withDelay(250, withSpring(height, { ...Spring, stiffness: 260, damping: 12 })));
+    else if (start) {
+      h.set(grown.current ? withSpring(height, Spring) : withDelay(delay, withSpring(height, Spring)));
+      grown.current = true;
+    }
+  }, [animate, celebrate, delay, h, height, start]);
   const animated = useAnimatedStyle(() => ({ height: h.value }));
-  return <Animated.View style={[styles.bar, styles.doneBar, { backgroundColor: color }, animated]} />;
+  return <Animated.View style={[styles.bar, done && styles.doneBar, { backgroundColor: color }, animated]} />;
 }
 
 export type Figure = {
@@ -186,8 +259,10 @@ export type Figure = {
   accessibilityLabel: string;
   /** Ohne Handler ist die Kennzahl nur Anzeige (kein Knopf für VoiceOver). */
   onPress?: () => void;
-  /** Zahl zählt beim Erscheinen hoch (Abschluss-Bildschirm); `format` macht daraus den angezeigten Wert. */
+  /** Zahl zählt beim Erscheinen hoch (Abschluss-Bildschirm, „Heute“); `format` macht daraus den angezeigten Wert. */
   count?: { to: number; format: (value: number) => string };
+  /** Anteil am Tagesziel (0…1, darüber voll): dünner Balken in der Datenfarbe unter dem Wert (O2). */
+  progress?: number | null;
 };
 
 /** Kennzahlen als Schrift: ein Feld, gleich breite Spalten, 1-px-Trenner, Wert in Manrope mit Tabellenziffern. */
@@ -209,6 +284,8 @@ export function FigureStrip({ figures }: { figures: Figure[] }) {
 }
 
 function FigureCell({ figure, divider }: { figure: Figure; divider: string | null }) {
+  const theme = useTheme();
+  const dataColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
   const counted = useCountUp(figure.count?.to ?? 0, !!figure.count);
   const shown = figure.count ? figure.count.format(counted) : figure.value;
   const scale = useSharedValue(1);
@@ -235,6 +312,11 @@ function FigureCell({ figure, divider }: { figure: Figure; divider: string | nul
           ) : null}
         </View>
       )}
+      {figure.progress != null ? (
+        <View style={styles.meter}>
+          <MeterBar progress={figure.progress} color={dataColor} trackColor={theme.backgroundSelected} height={4} growIn />
+        </View>
+      ) : null}
       {figure.sub ? (
         <ThemedText themeColor="textSecondary" style={styles.sub} numberOfLines={2}>
           {figure.sub}
@@ -269,6 +351,9 @@ const styles = StyleSheet.create({
   headRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
   flex: { flex: 1 },
   label: { fontSize: 14, lineHeight: 20 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 2 },
+  liveDot: { width: 8, height: 8, borderRadius: 4 },
+  meter: { paddingTop: Spacing.one, paddingRight: Spacing.one },
   answer: { marginTop: Spacing.half },
   weekWrap: { gap: Spacing.two },
   weekHeadline: { fontVariant: ['tabular-nums'] },

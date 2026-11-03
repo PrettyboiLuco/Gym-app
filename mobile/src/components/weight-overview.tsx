@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { EmptyState } from '@/components/empty-state';
 import { Segmented } from '@/components/fields';
 import { SmoothChart } from '@/components/smooth-chart';
 import { ThemedText } from '@/components/themed-text';
@@ -113,7 +114,7 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
           })}
         />
       ) : (
-        <ThemedText themeColor="textSecondary">{t('progress.chartEmpty')}</ThemedText>
+        <EmptyState icon="chart" title={t('progress.chartEmpty')} />
       )}
 
       {points.length >= 2 ? (

@@ -105,7 +105,8 @@ export async function goalProgressLines(
   } else {
     const settings = await loadNutritionSettings(db);
     if (!settings.drinkGoalMl) return { lines: [t('goals.progress.noDrinkGoal')], reached: false };
-    days = await drinkGoalDays(db, from, settings.drinkGoalMl);
+    // Geplante Getränke an kommenden Tagen (B1) zählen erst am Tag selbst.
+    days = (await drinkGoalDays(db, from, settings.drinkGoalMl)).filter((d) => d <= today);
   }
   const weeks = habitWeeks(days, today, goal.perWeek!);
   return {

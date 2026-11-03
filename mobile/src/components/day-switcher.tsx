@@ -11,12 +11,24 @@ import { t } from '@/i18n';
 import { dayLabel } from '@/services/nutrition-format';
 
 /**
- * ‹ Tag › als eine ruhige Leiste: runde Pfeil-Knöpfe, der Tag in der Mitte. In die Zukunft geht es nicht;
- * ist ein vergangener Tag gewählt, führt „Zu heute“ mit einem Tipp zurück.
+ * ‹ Tag › als eine ruhige Leiste: runde Pfeil-Knöpfe, der Tag in der Mitte. In die Zukunft geht es nur bis `maxDay`
+ * (Standard: heute; das Tagebuch erlaubt geplante Tage, B1); ist ein anderer Tag gewählt, führt „Zu heute“ mit einem
+ * Tipp zurück.
  */
-export function DaySwitcher({ day, onChange, today = todayDay() }: { day: string; onChange: (day: string) => void; today?: string }) {
+export function DaySwitcher({
+  day,
+  onChange,
+  today = todayDay(),
+  maxDay = today,
+}: {
+  day: string;
+  onChange: (day: string) => void;
+  today?: string;
+  maxDay?: string;
+}) {
   const theme = useTheme();
-  const canForward = day < today;
+  const canForward = day < maxDay;
+  const away = day !== today;
   const step = (delta: number) => {
     haptic.tap();
     onChange(shiftDay(day, delta));
@@ -33,9 +45,9 @@ export function DaySwitcher({ day, onChange, today = todayDay() }: { day: string
         </View>
       </Pressable>
       <Pressable
-        accessibilityRole={canForward ? 'button' : undefined}
-        accessibilityLabel={canForward ? `${dayLabel(day, today)}. ${t('nutrition.toToday')}` : dayLabel(day, today)}
-        disabled={!canForward}
+        accessibilityRole={away ? 'button' : undefined}
+        accessibilityLabel={away ? `${dayLabel(day, today)}. ${t('nutrition.toToday')}` : dayLabel(day, today)}
+        disabled={!away}
         onPress={() => {
           haptic.tap();
           onChange(today);
@@ -44,7 +56,7 @@ export function DaySwitcher({ day, onChange, today = todayDay() }: { day: string
         <ThemedText type="smallBold" accessibilityRole="header">
           {dayLabel(day, today)}
         </ThemedText>
-        {canForward ? (
+        {away ? (
           <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>
             {t('nutrition.toToday')}
           </ThemedText>

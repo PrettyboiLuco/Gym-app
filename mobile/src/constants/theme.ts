@@ -80,7 +80,7 @@ export const TabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
 /**
  * Erledigte Satzzeile (O3/N4): ganz leicht in der Datenfarbe getönt (Lime dunkel, Grün hell) – Lime bleibt Daten-/Erfolgsfarbe.
  */
-export const SetDoneTint = { light: 'rgba(74, 115, 0, 0.10)', dark: 'rgba(198, 242, 78, 0.13)' } as const;
+export const SetDoneTint = { light: 'rgba(74, 115, 0, 0.10)', dark: 'rgba(198, 242, 78, 0.11)' } as const;
 
 export const Spacing = {
   half: 2,

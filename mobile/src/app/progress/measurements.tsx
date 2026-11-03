@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, EntryRow, Field } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { addMeasurements, deleteMeasurement, listMeasurements, loadMeasureGoals, saveMeasureGoals } from '@/data/goals';
@@ -123,9 +124,7 @@ export default function MeasurementsScreen() {
       </Card>
 
       <Card title={t('measure.goalsTitle')}>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('measure.goalsHint')}
-        </ThemedText>
+        <InsightInfo text={t('measure.goalsHint')} />
         {goalForm ? (
           <>
             {MEASURE_SITES.map((site) => (

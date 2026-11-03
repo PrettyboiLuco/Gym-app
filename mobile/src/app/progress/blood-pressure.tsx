@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { ConfirmButton, EntryRow, Field } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -64,9 +66,7 @@ export default function BloodPressureScreen() {
           </ThemedText>
         ))}
         <Button label={t('common.save')} onPress={save} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('bloodPressure.hint')}
-        </ThemedText>
+        <InsightInfo text={t('bloodPressure.hint')} />
       </Card>
       {week ? (
         <Card title={t('bloodPressure.weekTitle')}>
@@ -75,7 +75,7 @@ export default function BloodPressureScreen() {
         </Card>
       ) : null}
       <Card title={t('bloodPressure.history')}>
-        {list.length === 0 ? <ThemedText type="small">{t('bloodPressure.empty')}</ThemedText> : null}
+        {list.length === 0 ? <EmptyState icon="heart" title={t('bloodPressure.empty')} /> : null}
         {list.map((m) => (
           <EntryRow
             key={m.id}

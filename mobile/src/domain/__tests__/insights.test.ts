@@ -73,7 +73,9 @@ describe('Kacheln', () => {
     expect(t.kalorien.days).toBe(2);
   });
   test('Eiweiß mit Ziel: an x von y Tagen erreicht', () => {
-    const days = range((day, i) => (day <= FOOD_END && day > shiftDay(FOOD_END, -7) ? { food: { kcal: 2000, protein: i % 2 ? 140 : 100 }, proteinGoal: 120 } : {}));
+    const days = range((day, i) =>
+      day <= FOOD_END && day > shiftDay(FOOD_END, -7) ? { food: { kcal: 2000, protein: i % 2 ? 140 : 100 }, proteinGoal: 120 } : {}
+    );
     const t = tileSummaries(days, [], TODAY, FOOD_END);
     expect(t.eiweiss.kind).toBe('count');
     expect(t.eiweiss.of).toBe(7);

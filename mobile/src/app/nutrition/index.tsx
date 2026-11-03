@@ -3,46 +3,65 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { MeterBar } from '@/components/charts';
 import { DaySummary } from '@/components/day-summary';
 import { DaySwitcher } from '@/components/day-switcher';
-import { Field, ListRow, Presets } from '@/components/fields';
+import { DiaryCopySheet } from '@/components/diary-copy-sheet';
+import { DiaryDrinks } from '@/components/diary-drinks';
+import { DiaryEntryRow } from '@/components/diary-entry-row';
+import { useFreshEntries } from '@/components/diary-fresh';
+import { DiaryMealFeeling } from '@/components/diary-meal-feeling';
+import { DiaryTimeline, entrySubtitle, windowLine } from '@/components/diary-timeline';
+import { Field, ListRow, Segmented } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
+import { currentFast, loadFastingSettings } from '@/data/fasting';
 import { calorieGoalOn } from '@/data/goals';
+import { loadDayFeelings, saveMealFeeling } from '@/data/meal-feeling';
 import {
   copyDay,
   copyMeal,
   DEFAULT_SETTINGS,
+  deleteEvent,
   listDay,
   loadNutritionSettings,
-  logCaffeineDrink,
-  logWater,
   saveTemplateFromMeal,
   type ConsumptionEvent,
 } from '@/data/nutrition';
 import { parseMicros, sumMicros } from '@/domain/basis-foods';
-import { CAFFEINE_DRINKS, type CaffeineDrink } from '@/domain/caffeine';
 import type { Macros } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
+import { isPlannedDay, PLAN_AHEAD_DAYS } from '@/domain/diary';
+import { DEFAULT_FASTING, fastingStatus, fastingVisible, splitDuration, type FastingStatus } from '@/domain/fasting';
+import { EMPTY_FEELING, type DayFeelings, type MealFeeling } from '@/domain/meal-feeling';
 import { drinkTotals, MEALS, sumNutrients, type Meal } from '@/domain/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { foodTitle } from '@/format/food-title';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, formatVolume, t } from '@/i18n';
-import { useUnits } from '@/providers/profile-provider';
-import { diaryToday, formatAmount, formatKcal, formatKcalSum, whenFor } from '@/services/nutrition-format';
+import { t } from '@/i18n';
+import { useProfile, useUnits } from '@/providers/profile-provider';
+import { syncMealReminders } from '@/services/alerts';
+import { diaryToday, formatKcalSum, whenFor } from '@/services/nutrition-format';
 
 async function loadDiary(db: Db, day: string) {
   const [events, settings, goal] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day)]);
-  return { events, settings, goal: goal?.kcal ?? null, macros: goal?.macros ?? null, estimated: goal?.source === 'rechner' };
+  // Tagebuch-Ausbau (B1): Befinden je Mahlzeit, Fasten-Timer (Kann-Funktion); Mahlzeit-Erinnerungen nach jedem Laden
+  // neu planen – so entfällt die heutige Mitteilung einer Mahlzeit, sobald etwas eingetragen ist.
+  const [feelings, fasting, fast] = await Promise.all([loadDayFeelings(db, day), loadFastingSettings(db), currentFast(db)]);
+  const fastStatus = fast ? fastingStatus(fast, Date.now()) : null;
+  syncMealReminders(db, diaryToday()).catch(() => undefined);
+  return { day, events, settings, goal: goal?.kcal ?? null, macros: goal?.macros ?? null, estimated: goal?.source === 'rechner', feelings, fasting, fastStatus };
 }
+
+type DiaryView = 'mahlzeiten' | 'zeitleiste';
+const VIEWS: readonly DiaryView[] = ['mahlzeiten', 'zeitleiste'];
+// Gewählte Ansicht für die Dauer der Sitzung merken (beim Zurückkommen gleich wieder da).
+let lastView: DiaryView = 'mahlzeiten';
 
 export default function DiaryScreen() {
   const theme = useTheme();
@@ -67,7 +86,7 @@ export default function DiaryScreen() {
     return () => sub.remove();
   }, [syncToday]);
   useFocusEffect(syncToday);
-  const { data, reload, db } = useLoad(
+  const { data, reload, db, loaded } = useLoad(
     (d) => loadDiary(d, day),
     {
       events: [] as ConsumptionEvent[],
@@ -75,11 +94,22 @@ export default function DiaryScreen() {
       goal: null as number | null,
       macros: null as Macros | null,
       estimated: false,
+      day: '',
+      feelings: {} as DayFeelings,
+      fasting: DEFAULT_FASTING,
+      fastStatus: null as FastingStatus | null,
     },
     day
   );
   const { events, settings, goal, estimated } = data;
   const hide = settings.hideNumbers;
+  const today = diaryToday();
+  const planned = isPlannedDay(day, today);
+  const { profile } = useProfile();
+  const fresh = useFreshEntries(data.day, events.map((e) => e.id), loaded);
+  const [view, setView] = useState<DiaryView>(lastView);
+  const [copyFor, setCopyFor] = useState<{ ids: string[]; title: string } | null>(null);
+  const windowText = windowLine(events);
 
   // Hinweise pro Mahlzeit (z. B. „3 Einträge kopiert“) und offenes Vorlagen-Formular.
   const [notice, setNotice] = useState<{ meal: Meal; text: string } | null>(null);
@@ -94,8 +124,6 @@ export default function DiaryScreen() {
   const caffeineMg = events.reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
   // Vitamine und Mineralstoffe (A4): nur aus Einträgen mit Angaben, Abdeckung wird dazugeschrieben.
   const microSum = sumMicros(events.filter((e) => e.kind === 'essen' || e.microsJson).map((e) => parseMicros(e.microsJson)));
-  // Drei häufige Koffein-Getränke sofort, der Rest auf Wunsch – statt einer Wand aus 13 Chips.
-  const [allCaffeine, setAllCaffeine] = useState(false);
 
   function changeDay(next: string) {
     setDay(next);
@@ -123,31 +151,42 @@ export default function DiaryScreen() {
     await reload();
   }
 
-  async function addCaffeine(drink: CaffeineDrink) {
-    const name = t(`caffeine.drinks.${drink.id}`);
-    await logCaffeineDrink(db, { ...drink, name }, whenFor(day));
-    showToast(t('caffeine.saved', { name }));
+  // Löschen per Wisch-Geste (B1, N3): die Zeile gleitet hinaus, danach wird neu geladen.
+  async function removeEntry(id: string) {
+    await deleteEvent(db, id);
+    showToast(t('diary.deleted'));
     await reload();
   }
 
-  async function addWater(ml: number) {
-    await logWater(db, ml, whenFor(day), t('nutrition.water'));
+  async function changeFeeling(meal: Meal, next: MealFeeling) {
+    await saveMealFeeling(db, day, meal, next);
     await reload();
   }
+
+  const openEntry = (id: string) => router.push(`/nutrition/entry/${id}`);
 
   const entryRow = (e: ConsumptionEvent) => (
-    <ListRow
+    <DiaryEntryRow
       key={e.id}
       title={foodTitle(e)}
-      subtitle={hide ? formatAmount(e.amount, e.unit) : `${formatAmount(e.amount, e.unit)} · ${formatKcal(e.kcal)}`}
-      accessory="›"
-      onPress={() => router.push(`/nutrition/entry/${e.id}`)}
+      subtitle={entrySubtitle(e, hide, planned ? t('diary.planned') : undefined)}
+      fresh={fresh.has(e.id)}
+      onPress={() => openEntry(e.id)}
+      onDelete={() => removeEntry(e.id)}
     />
   );
 
+  const showFasting = !profile.sensitive;
+  const fastStatus = fastingVisible(data.fasting, profile.sensitive) ? data.fastStatus : null;
+
   return (
     <Screen title={t('nutrition.title')}>
-      <DaySwitcher day={day} onChange={changeDay} today={diaryToday()} />
+      <DaySwitcher day={day} onChange={changeDay} today={today} maxDay={shiftDay(today, PLAN_AHEAD_DAYS)} />
+      {planned ? (
+        <ThemedText type="small" themeColor="textSecondary" accessibilityRole="text">
+          {t('diary.plannedDay')}
+        </ThemedText>
+      ) : null}
 
       <Card title={t('nutrition.summary.title')}>
         {events.length === 0 ? (
@@ -182,7 +221,38 @@ export default function DiaryScreen() {
         ) : null}
       </Card>
 
-      {MEALS.map((meal) => {
+      {/* Mahlzeiten oder Zeitleiste (B1, W6); darunter das Essensfenster als reine Anzeige. */}
+      <Segmented
+        label={t('diary.view.label')}
+        options={VIEWS}
+        value={view}
+        onChange={(v) => {
+          lastView = v;
+          setView(v);
+        }}
+        format={(v) => t(`diary.view.${v}`)}
+      />
+      {windowText ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {windowText}
+        </ThemedText>
+      ) : null}
+
+      {view === 'zeitleiste' ? (
+        <Card title={t('diary.view.zeitleiste')}>
+          <DiaryTimeline events={events} hide={hide} fresh={fresh} onOpen={openEntry} onDelete={removeEntry} />
+          <View style={styles.links}>
+            <Button
+              label={t('nutrition.add')}
+              size="compact"
+              icon={<Icon name="plus" color={theme.onPrimary} size={16} strokeWidth={2.2} />}
+              onPress={() => router.push({ pathname: '/nutrition/add', params: { day } })}
+            />
+          </View>
+        </Card>
+      ) : null}
+
+      {(view === 'mahlzeiten' ? MEALS : []).map((meal) => {
         const items = events.filter((e) => e.kind === 'essen' && e.meal === meal);
         const mealKcal = sumNutrients(items);
         return (
@@ -207,10 +277,21 @@ export default function DiaryScreen() {
               {items.length === 0 ? (
                 <Button label={t('nutrition.copyYesterday')} variant="secondary" size="compact" onPress={() => copyFromPreviousDay(meal)} />
               ) : null}
+              {items.length > 0 ? (
+                <Button
+                  label={t('diary.copy.open')}
+                  variant="quiet"
+                  size="compact"
+                  onPress={() => setCopyFor({ ids: items.map((e) => e.id), title: t(`nutrition.meals.${meal}`) })}
+                />
+              ) : null}
               {items.some((e) => e.foodId) && templateFor !== meal ? (
                 <Button label={t('nutrition.saveTemplate')} variant="quiet" size="compact" onPress={() => setTemplateFor(meal)} />
               ) : null}
             </View>
+            {items.length > 0 && !planned ? (
+              <DiaryMealFeeling feeling={data.feelings[meal] ?? EMPTY_FEELING} onChange={(next) => changeFeeling(meal, next)} />
+            ) : null}
             {templateFor === meal ? (
               <View style={styles.templateRow}>
                 <Field
@@ -230,55 +311,22 @@ export default function DiaryScreen() {
       })}
 
       <Card title={t('nutrition.drinks.title')}>
-        <ThemedText>
-          {settings.drinkGoalMl
-            ? t('nutrition.drinks.progress', { all: formatVolume(allMl, units.volume), goal: formatVolume(settings.drinkGoalMl, units.volume) })
-            : t('nutrition.drinks.progressNoGoal', { all: formatVolume(allMl, units.volume) })}
-        </ThemedText>
-        {settings.drinkGoalMl ? <MeterBar progress={allMl / settings.drinkGoalMl} color={dataColor} trackColor={theme.backgroundSelected} height={8} /> : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('nutrition.drinks.water', { water: formatVolume(waterMl, units.volume) })}
-        </ThemedText>
-        {/* Ziel erreicht: nur feststellen, nicht zum Weitertrinken auffordern (TIME-012). */}
-        {settings.drinkGoalMl && allMl >= settings.drinkGoalMl ? <ThemedText type="smallBold">{t('nutrition.drinks.reached')}</ThemedText> : null}
-        {drinks.map(entryRow)}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('nutrition.drinks.quick')}
-        </ThemedText>
-        <Presets
-          label={t('nutrition.water')}
-          options={settings.glassSizes}
-          onChange={addWater}
-          format={(ml) => t('nutrition.drinks.addGlass', { ml: formatVolume(ml, units.volume) })}
+        {/* Wasserglas, vier zuletzt genutzte Getränke, der Rest hinter „Mehr …“ (B1, N10/O5). */}
+        <DiaryDrinks
+          day={day}
+          settings={settings}
+          units={units}
+          allMl={allMl}
+          waterMl={waterMl}
+          caffeineMg={caffeineMg}
+          rows={drinks.map(entryRow)}
+          onChanged={reload}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('caffeine.title')}
-        </ThemedText>
-        <Presets
-          label={t('caffeine.title')}
-          options={(allCaffeine ? CAFFEINE_DRINKS : CAFFEINE_DRINKS.slice(0, 3)).map((d) => d.id)}
-          onChange={(id) => addCaffeine(CAFFEINE_DRINKS.find((d) => d.id === id)!)}
-          format={(id) => t('caffeine.chip', { name: t(`caffeine.drinks.${id}`), ml: CAFFEINE_DRINKS.find((d) => d.id === id)!.ml })}
-        />
-        {!allCaffeine ? (
-          <View style={styles.moreRow}>
-            <Button label={t('caffeine.more', { count: CAFFEINE_DRINKS.length - 3 })} variant="quiet" size="compact" onPress={() => setAllCaffeine(true)} />
-          </View>
-        ) : null}
-        {caffeineMg > 0 ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('caffeine.today', { mg: formatNumber(caffeineMg, 0) })} · {t('caffeine.reference')}
-          </ThemedText>
-        ) : null}
-        <Button
-          label={t('nutrition.drinks.other')}
-          variant="secondary"
-          onPress={() => router.push({ pathname: '/nutrition/add', params: { day, drink: 'sonstiges' } })}
-        />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('nutrition.drinks.basis')}
-        </ThemedText>
       </Card>
+
+      {copyFor ? (
+        <DiaryCopySheet visible sourceDay={day} eventIds={copyFor.ids} title={copyFor.title} onClose={() => setCopyFor(null)} onCopied={reload} />
+      ) : null}
 
       <Card>
         <ListRow
@@ -298,6 +346,24 @@ export default function DiaryScreen() {
         />
         <ListRow icon="book" title={t('nutrition.recipesLink')} accessory="›" onPress={() => router.push('/nutrition/recipes')} />
         <ListRow icon="pill" title={t('supplements.link')} accessory="›" onPress={() => router.push('/nutrition/supplements')} />
+        {/* Fasten-Timer (B1, E2): Kann-Funktion, bei „sensibler Situation“ komplett ausgeblendet. */}
+        {showFasting ? (
+          <ListRow
+            icon="clock"
+            title={t('fasting.link')}
+            subtitle={
+              fastStatus
+                ? fastStatus.phase === 'erreicht'
+                  ? t('fasting.linkReached')
+                  : t('fasting.linkRunning', splitDuration(fastStatus.remainingMs))
+                : data.fasting.enabled
+                  ? t('fasting.linkOn')
+                  : t('fasting.linkOff')
+            }
+            accessory="›"
+            onPress={() => router.push('/nutrition/fasting')}
+          />
+        ) : null}
         <ListRow
           icon="target"
           title={t('nutrition.settingsLink')}

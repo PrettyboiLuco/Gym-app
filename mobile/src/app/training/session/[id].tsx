@@ -1162,8 +1162,8 @@ function doneCountOf(rows: SetRow[]) {
 }
 
 const styles = StyleSheet.create({
-  setNote: { marginLeft: SetCols.set + Spacing.two, marginTop: -Spacing.one },
-  inlineAsk: { marginLeft: SetCols.set + Spacing.two },
+  setNote: { marginLeft: SetCols.set + SetCols.gap, marginTop: -Spacing.one },
+  inlineAsk: { marginLeft: SetCols.set + SetCols.gap },
   cell: { textAlign: 'center', fontWeight: 600 },
   missed: { flex: 2, textAlign: 'right', fontWeight: 500 },
   nowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: -Spacing.one },

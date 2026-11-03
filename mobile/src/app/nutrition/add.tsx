@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ConfirmButton, Field, ListRow } from '@/components/fields';
+import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -19,6 +20,7 @@ import {
   listFavoriteFoods,
   listRecipes,
   listTemplates,
+  logFoods,
   recentFoods,
   saveFood,
   searchFoods,
@@ -34,7 +36,10 @@ import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
-import { formatKcal, readTarget, targetParams, whenFor, type TargetParams } from '@/services/nutrition-format';
+import { formatAmount, formatKcal, readTarget, targetParams, whenFor, type TargetParams } from '@/services/nutrition-format';
+
+/** Menge bei der Mehrfachauswahl: eine Portion, sonst 100 g/ml – danach im Tagebuch änderbar. */
+const defaultAmount = (f: Food) => f.servingAmount ?? 100;
 
 async function loadAdd(db: Db, query: string) {
   if (query.trim()) {
@@ -78,6 +83,31 @@ export default function AddScreen() {
   const [onlineError, setOnlineError] = useState<OffError | null>(null);
   const [searching, setSearching] = useState(false);
 
+  // Mehrfachauswahl (B1, W5): Lebensmittel antippen sammelt sie, „Eintragen“ bucht alle auf einmal.
+  const [multi, setMulti] = useState(false);
+  const [picked, setPicked] = useState<Food[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  function togglePick(f: Food) {
+    setPicked((list) => (list.some((p) => p.id === f.id) ? list.filter((p) => p.id !== f.id) : [...list, f]));
+  }
+
+  async function logPicked() {
+    if (picked.length === 0 || saving) return;
+    setSaving(true);
+    try {
+      await logFoods(
+        db,
+        picked.map((f) => ({ foodId: f.id, amount: defaultAmount(f) })),
+        target,
+        whenFor(day, target.kind === 'essen' ? target.meal : null)
+      );
+      router.dismissTo('/nutrition');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function openFood(id: string) {
     router.push({ pathname: '/nutrition/food/[id]', params: { id, ...passOn } });
   }
@@ -110,15 +140,29 @@ export default function AddScreen() {
     await reload();
   }
 
-  const foodRow = (f: Food) => (
-    <ListRow
-      key={f.id}
-      title={`${warn(foodFacts(f))}${foodTitle(f)}`}
-      subtitle={`${formatKcal(f.kcal)} / 100 ${f.basis}`}
-      accessory={f.favorite ? 'favorite' : '›'}
-      onPress={() => openFood(f.id)}
-    />
-  );
+  const foodRow = (f: Food) => {
+    const isPicked = picked.some((p) => p.id === f.id);
+    return (
+      <ListRow
+        key={f.id}
+        title={`${warn(foodFacts(f))}${foodTitle(f)}`}
+        subtitle={
+          multi ? `${formatAmount(defaultAmount(f), f.basis)} · ${formatKcal(f.kcal === null ? null : (f.kcal * defaultAmount(f)) / 100)}` : `${formatKcal(f.kcal)} / 100 ${f.basis}`
+        }
+        accessory={multi ? undefined : f.favorite ? 'favorite' : '›'}
+        trailing={
+          multi ? (
+            <View
+              style={[styles.check, { borderColor: isPicked ? theme.primary : theme.border, backgroundColor: isPicked ? theme.primary : 'transparent' }]}
+              accessibilityLabel={isPicked ? t('diary.multi.picked') : t('diary.multi.notPicked')}>
+              {isPicked ? <Icon name="check" color={theme.onPrimary} size={14} strokeWidth={2.4} /> : null}
+            </View>
+          ) : undefined
+        }
+        onPress={() => (multi ? togglePick(f) : openFood(f.id))}
+      />
+    );
+  };
 
   const showOnline = online && online.query === query.trim();
   const isEmptyStart = loaded && !query.trim() && data.favorites.length === 0 && data.recent.length === 0;
@@ -141,7 +185,28 @@ export default function AddScreen() {
           variant="secondary"
           onPress={() => router.push({ pathname: '/nutrition/food-edit/[id]', params: { id: 'neu', name: query.trim(), ...passOn } })}
         />
+        <Button
+          label={multi ? t('diary.multi.off') : t('diary.multi.on')}
+          variant="quiet"
+          onPress={() => {
+            setMulti((m) => !m);
+            setPicked([]);
+          }}
+        />
       </View>
+      {multi ? (
+        <Card>
+          <ThemedText type="small" themeColor="textSecondary">
+            {picked.length > 0 ? t('diary.multi.list', { names: picked.map((f) => f.name).join(', ') }) : t('diary.multi.hint')}
+          </ThemedText>
+          <Button
+            label={picked.length > 0 ? t('diary.multi.log', { count: picked.length }) : t('diary.multi.pick')}
+            disabled={picked.length === 0}
+            loading={saving}
+            onPress={logPicked}
+          />
+        </Card>
+      ) : null}
 
       {target.kind === 'essen' ? (
         <ListRow
@@ -235,4 +300,5 @@ export default function AddScreen() {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   template: { gap: Spacing.one },
+  check: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
 });

@@ -12,7 +12,9 @@
 //   wird die kleinste Menge, die die Hauptlücke des Lebensmittels schließt, sonst die größte erlaubte. Die Menge darf
 //   die übrigen kcal des Tagesziels nicht überschreiten; ist das Ziel erreicht, gibt es keine Vorschläge.
 // - Reihenfolge: geschlossener Anteil der Lücken (Eiweiß und Ballaststoffe zählen voll, Vitamine/Mineralstoffe halb,
-//   je Lücke höchstens 100 %) pro 100 kcal; mindestens 20 % einer Lücke; Favoriten × 1,2; höchstens zwei je Gruppe.
+//   je Lücke höchstens 100 %) geteilt durch (kcal + 100) – so zählen große Beiträge mehr als nur wenig kcal;
+//   mindestens 20 % einer Lücke; Favoriten × 1,2; höchstens zwei je Gruppe.
+// - Würzmengen (übliche Portion unter 10 g, z. B. Kräuter) werden weder vorgeschlagen noch in der Suche gelistet.
 
 import { MICRO_KEYS, type BasisGroup, type MicroKey, type Micros, type Portion } from './basis-foods';
 import type { Allergen, Diet, FoodDiet } from './diet';
@@ -25,6 +27,8 @@ export const MAX_AMOUNT = 400;
 export const MIN_COVERAGE = 0.2;
 export const FAVORITE_BONUS = 1.2;
 export const PER_GROUP = 2;
+/** Übliche Portion darunter = Würzmenge (Kräuter, Gewürze). */
+export const SEASONING_G = 10;
 const WEIGHT: Record<'protein' | 'fiber' | 'micro', number> = { protein: 1, fiber: 1, micro: 0.5 };
 const EXCLUDED_GROUPS: readonly BasisGroup[] = ['getraenke', 'suesses_snacks', 'fette_oele', 'aufstriche_saucen', 'backen_sonstiges'];
 
@@ -117,13 +121,19 @@ function coverage(food: GapFood, amount: number, gaps: Gap[]) {
   return { adds, total, best };
 }
 
+/** Übliche Menge unter 10 g (Kräuter, Gewürze): nicht vorschlagen, nicht listen. */
+export function isSeasoning(food: Pick<GapFood, 'serving' | 'portions'>): boolean {
+  const usual = food.serving ?? food.portions[0]?.g ?? null;
+  return usual !== null && usual < SEASONING_G;
+}
+
 /** Vorschläge, die die Lücken schließen, ohne die übrigen kcal zu überschreiten (`kcalLeft` null = kein Ziel). */
 export function suggestFoods(gaps: Gap[], kcalLeft: number | null, foods: GapFood[], limit = 6): Suggestion[] {
   if (gaps.length === 0 || (kcalLeft !== null && kcalLeft <= 0)) return [];
   const all: Suggestion[] = [];
   for (const food of foods) {
     if (!(food.kcal > 0)) continue;
-    if (food.group !== null && EXCLUDED_GROUPS.includes(food.group) && !food.favorite) continue;
+    if (!food.favorite && ((food.group !== null && EXCLUDED_GROUPS.includes(food.group)) || isSeasoning(food))) continue;
     const options = amountOptions(food).filter((o) => kcalLeft === null || (food.kcal * o.amount) / 100 <= kcalLeft);
     if (options.length === 0) continue;
     // Kleinste Menge, die die Hauptlücke schließt, sonst die größte erlaubte.
@@ -131,7 +141,7 @@ export function suggestFoods(gaps: Gap[], kcalLeft: number | null, foods: GapFoo
     const c = coverage(food, chosen.amount, gaps);
     if (c.best < MIN_COVERAGE) continue;
     const kcal = (food.kcal * chosen.amount) / 100;
-    const score = (c.total / Math.max(kcal, 50)) * 100 * (food.favorite ? FAVORITE_BONUS : 1);
+    const score = (c.total / (kcal + 100)) * 100 * (food.favorite ? FAVORITE_BONUS : 1);
     all.push({ food, amount: chosen.amount, portion: chosen.portion, count: chosen.count, kcal: Math.round(kcal), adds: c.adds, score });
   }
   all.sort((a, b) => b.score - a.score || a.food.name.localeCompare(b.food.name));
@@ -156,7 +166,7 @@ export const RANK_MIN_KCAL = 20;
 /** Lebensmittel nach Nährstoff je 100 g/ml oder je 100 kcal; ohne Angabe nicht in der Liste. */
 export function rankFoods(foods: GapFood[], key: GapKey, by: RankBy, limit = 30): { food: GapFood; value: number }[] {
   return foods
-    .filter((f) => f.group !== 'backen_sonstiges')
+    .filter((f) => f.group !== 'backen_sonstiges' && !isSeasoning(f))
     .map((food) => {
       const v = valuePer100(food, key);
       if (v === null || v <= 0) return null;

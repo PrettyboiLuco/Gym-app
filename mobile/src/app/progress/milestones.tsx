@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { ListRow, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ShareCard, type ShareCardContent } from '@/components/share-card';
@@ -111,7 +112,7 @@ export default function MilestonesScreen() {
       ) : null}
 
       <Card title={t('milestones.title')}>
-        {m.milestones.length === 0 ? <ThemedText type="small">{t('milestones.none')}</ThemedText> : null}
+        {m.milestones.length === 0 ? <EmptyState icon="target" title={t('milestones.none')} /> : null}
         {[...m.milestones].reverse().map((ms) => (
           <ListRow
             key={ms.id}

@@ -4,8 +4,11 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
+import { EmptyState } from '@/components/empty-state';
 import { ConfirmButton, EntryRow, Field, ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
+import { InsightInfo } from '@/components/insight-info';
+import { useDataColor } from '@/components/insight-tile';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
@@ -33,7 +36,7 @@ import { useProfile } from '@/providers/profile-provider';
 import { goalProgressLines, goalTitle } from '@/services/goal-progress';
 import { formatKcal } from '@/services/nutrition-format';
 
-type GoalCard = { goal: GoalVersion; title: string; lines: string[] };
+type GoalCard = { goal: GoalVersion; title: string; lines: string[]; reached: boolean };
 
 async function loadProgress(db: Db, units: Units, sensitive: boolean) {
   const today = todayDay();
@@ -48,8 +51,8 @@ async function loadProgress(db: Db, units: Units, sensitive: boolean) {
   const steps = stepsForDay(await listSteps(db, shiftDay(today, -1)), today);
   const cards: GoalCard[] = [];
   for (const goal of goals) {
-    const { lines } = await goalProgressLines(db, goal, units, today, sensitive);
-    cards.push({ goal, title: goalTitle(goal, units, exercises), lines });
+    const { lines, reached } = await goalProgressLines(db, goal, units, today, sensitive);
+    cards.push({ goal, title: goalTitle(goal, units, exercises), lines, reached });
   }
   return { weights, cards, calorie, measurements, photoCount: photos.length, steps: steps?.steps ?? null };
 }
@@ -58,6 +61,7 @@ const SHOWN = 10;
 
 export default function ProgressScreen() {
   const theme = useTheme();
+  const dataColor = useDataColor();
   const { profile } = useProfile();
   const modules = effectiveModules(profile.modules);
   const units = profile.units;
@@ -131,9 +135,7 @@ export default function ProgressScreen() {
       {/* Leitfrage „Bewege ich mich Richtung Ziel?“: der Trend groß, darunter der Verlauf, dann das Eintragen. */}
       <Card title={t('progress.weightTitle')}>
         <WeightOverview weights={weights} unit={units.weight} targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null} today={today} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('progress.trendHint')}
-        </ThemedText>
+        <InsightInfo label={t('progress.trendHintLabel')} text={t('progress.trendHint')} />
         <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
         <DaySwitcher day={day} onChange={setDay} />
         <View style={styles.row}>
@@ -162,6 +164,18 @@ export default function ProgressScreen() {
         ) : null}
       </Card>
 
+      {/* Einblicke (W9): Kacheln und Wochen-Muster auf eigener Seite. */}
+      <Card>
+        <ListRow
+          icon="chart"
+          title={t('insights.title')}
+          subtitle={t('insights.openSubtitle')}
+          accessory="›"
+          last
+          onPress={() => router.push('/progress/insights')}
+        />
+      </Card>
+
       <Card
         title={t('progress.goalsTitle')}
         trailing={
@@ -173,7 +187,13 @@ export default function ProgressScreen() {
             onPress={() => router.push('/progress/goal/new')}
           />
         }>
-        {cards.length === 0 ? <ThemedText themeColor="textSecondary">{t('progress.goalsEmpty')}</ThemedText> : null}
+        {cards.length === 0 ? (
+          <EmptyState
+            icon="target"
+            title={t('progress.goalsEmpty')}
+            action={{ label: t('progress.goalsAdd'), onPress: () => router.push('/progress/goal/new') }}
+          />
+        ) : null}
         {cards.map((c, i) => (
           <ListRow
             key={c.goal.goalId}
@@ -181,6 +201,8 @@ export default function ProgressScreen() {
             title={c.title}
             subtitle={c.lines.join('\n')}
             accessory="›"
+            // Erreichtes Ziel: Haken in der Datenfarbe (O2) – ohne Wertung, nur der Stand.
+            trailing={c.reached ? <Icon name="check" color={dataColor} size={18} strokeWidth={2.4} /> : undefined}
             last={i === cards.length - 1}
             onPress={() => router.push(`/progress/goal/${c.goal.goalId}`)}
           />
@@ -273,14 +295,12 @@ export default function ProgressScreen() {
           last
           onPress={() => router.push('/progress/profile')}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('progress.notIncluded')}
-        </ThemedText>
+        <InsightInfo text={t('progress.notIncluded')} />
       </Card>
 
       <Card title={t('progress.history')}>
         {weights.length === 0 ? (
-          <ThemedText themeColor="textSecondary">{t('progress.empty')}</ThemedText>
+          <EmptyState icon="scale" title={t('progress.empty')} />
         ) : (
           (showAll ? weights : weights.slice(0, SHOWN)).map((entry) => (
             <EntryRow

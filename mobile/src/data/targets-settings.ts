@@ -112,3 +112,11 @@ export async function loadDayTargets(db: Db, day: string): Promise<DayTargets> {
     settings,
   };
 }
+
+/** Makros des Tages für eine (noch nicht gespeicherte) Ernährungsform; null ohne Coach-Makros oder Kalorienziel. */
+export async function dietPreview(db: Db, day: string, profile: DietProfile): Promise<Macros | null> {
+  const [targets, goal] = await Promise.all([loadDayTargets(db, day), calorieGoalOn(db, day)]);
+  if (targets.kcal === null || goal?.kcal == null || !goal.macros) return null;
+  const effective = effectiveDietProfile(profile, targets.sensitive);
+  return dietMacros(effective, targets.kcal, goal.macros, goal.kcal, effective === 'eiweissreich' ? await weightOn(db, day) : null);
+}

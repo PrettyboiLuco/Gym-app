@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
@@ -168,11 +169,7 @@ export function ReadinessCard({
       ) : null}
       {offers.includes('leicht') ? <Button label={t('readiness.offer.leicht')} variant="secondary" disabled={busy} onPress={() => lighter('leicht')} /> : null}
       {offers.includes('dehnen') ? <Button label={t('readiness.offer.dehnen')} variant="secondary" onPress={() => router.push('/training/stretch')} /> : null}
-      {offers.length ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('readiness.offerHint')}
-        </ThemedText>
-      ) : null}
+      {offers.length ? <InsightInfo text={t('readiness.offerHint')} /> : null}
       <ListRow title={t('readiness.details')} accessory="›" last onPress={() => router.push('/progress/readiness')} />
     </Card>
   );

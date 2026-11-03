@@ -117,10 +117,18 @@ async function loadToday(db: Db) {
 
 const EMPTY_WEEK = Array.from({ length: 7 }, () => false);
 
-/** Zahl und Einheit für die Kachel „Trinken“ (ml unter 1 l, sonst l; oder fl oz). */
+/**
+ * Zahl und Einheit für die Kachel „Trinken“ (ml unter 1 l, sonst l; oder fl oz). `format` zeigt Zwischenwerte beim
+ * Hochzählen in derselben Einheit wie der Endwert (N1).
+ */
 function volumeFigure(ml: number, unit: VolumeUnit) {
-  if (unit === 'oz') return { value: formatNumber(mlToUnit(ml, 'oz'), 0), unit: 'fl oz' };
-  return ml >= 1000 ? { value: formatNumber(ml / 1000, 1), unit: 'l' } : { value: formatNumber(ml, 0), unit: 'ml' };
+  const format =
+    unit === 'oz'
+      ? (v: number) => formatNumber(mlToUnit(v, 'oz'), 0)
+      : ml >= 1000
+        ? (v: number) => formatNumber(v / 1000, 1)
+        : (v: number) => formatNumber(Math.round(v), 0);
+  return { value: format(ml), unit: unit === 'oz' ? 'fl oz' : ml >= 1000 ? 'l' : 'ml', count: { to: ml, format } };
 }
 
 export default function TodayScreen() {
@@ -215,6 +223,9 @@ export default function TodayScreen() {
     : {
         value: formatNumber(kcal, 0),
         unit: 'kcal',
+        // N1: kcal zählen beim Öffnen hoch; O2: dünner Balken zum Tagesziel in der Datenfarbe.
+        count: { to: kcal, format: (v: number) => formatNumber(Math.round(v), 0) },
+        progress: food.goal ? kcal / food.goal : null,
         sub:
           food.entries === 0
             ? t('today.tileKcalEmpty')
@@ -271,6 +282,9 @@ export default function TodayScreen() {
         muscles={!timed && !active && next && !restDay ? muscles : null}
         spared={spared}
         body={body}
+        live={!!(timed || active)}
+        growIn
+        countUp
       />
       {!modules.bereitschaft ? null : ready && ready.readiness.kind !== 'status' && !checkComplete ? (
         // T3: auf „Heute“ eine Zeile; der Check klappt beim Antippen hier auf (vier Antippen, kein Bildschirmwechsel).
@@ -297,6 +311,7 @@ export default function TodayScreen() {
                 {
                   label: t('today.tileDrinks'),
                   ...volumeFigure(food.drinksMl, units.volume),
+                  progress: food.drinkGoalMl ? food.drinksMl / food.drinkGoalMl : null,
                   sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: volume(food.drinkGoalMl) }) : null,
                   accessibilityLabel: `${t('today.tileDrinks')} ${volume(food.drinksMl)}`,
                   onPress: () => router.push('/nutrition'),

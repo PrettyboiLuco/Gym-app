@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,10 +8,14 @@ import { MeterBar, ProgressRing } from '@/components/charts';
 import { EntryRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { PressableScale } from '@/components/pressable-scale';
+import { TargetDayExtras } from '@/components/target-day-extras';
+import { TargetMicroBar } from '@/components/target-micro-bar';
 import { ThemedText } from '@/components/themed-text';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
+import type { DayTargets } from '@/data/targets-settings';
 import { MICRO_KEYS, MICRO_UNITS, type Micros } from '@/domain/basis-foods';
 import type { Macros } from '@/domain/coach';
+import { MICRO_TARGETS_VERSION } from '@/domain/micro-targets';
 import type { NutrientTotals } from '@/domain/nutrition';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -29,18 +34,25 @@ const grams = (v: number) => `${formatNumber(v, v < 10 ? 1 : 0)} g`;
  * Tagesübersicht Ernährung: Ring mit gegessenen kcal (Lime = Daten, Rot nur über dem Ziel), daneben Übrig und Ziel.
  * Darunter Eiweiß, Kohlenhydrate und Fett als Kacheln mit Balken zum Makro-Ziel des Coachs (ohne Ziel: Anteil an
  * den kcal), dann Ballaststoffe, Zucker, gesättigte Fettsäuren und Salz als Raster. „Vitamine & Mineralstoffe“
- * öffnet ein eigenes Fenster (nur Summen, keine Bewertung).
+ * öffnet ein eigenes Fenster: Balken mit Untergrenze/Ziel/Obergrenze (B2, W2), ohne Bewertung.
+ * Mit `targets` (B2) kommen Wochenbudget, Netto-Kohlenhydrate (Low-Carb/Keto) und angeheftete Nährstoffe dazu.
  */
 export function DaySummary({
   totals,
   goal,
   macroGoals,
   micros,
+  targets = null,
+  day,
 }: {
   totals: NutrientTotals;
   goal: number | null;
   macroGoals: Macros | null;
   micros: { values: Micros; known: number; total: number };
+  /** Ziele und Nährstoffe (B2); null = ohne Zusätze. */
+  targets?: DayTargets | null;
+  /** Tag der Übersicht (für die Nährstoff-Bildschirme). */
+  day?: string;
 }) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
@@ -153,6 +165,8 @@ export function DaySummary({
         ))}
       </View>
 
+      {targets && day ? <TargetDayExtras targets={targets} totals={totals} micros={micros.values} day={day} /> : null}
+
       {micros.known > 0 ? (
         <PressableScale
           accessibilityRole="button"
@@ -172,14 +186,34 @@ export function DaySummary({
         </PressableScale>
       ) : null}
 
-      <MicrosSheet visible={microsOpen} onClose={() => setMicrosOpen(false)} micros={micros} />
+      <MicrosSheet visible={microsOpen} onClose={() => setMicrosOpen(false)} micros={micros} targets={targets} day={day} />
     </View>
   );
 }
 
-/** Vitamine und Mineralstoffe des Tages als eigenes Fenster (von unten, wie ein iPhone-Blatt). */
-function MicrosSheet({ visible, onClose, micros }: { visible: boolean; onClose: () => void; micros: { values: Micros; known: number; total: number } }) {
+/**
+ * Vitamine und Mineralstoffe des Tages als eigenes Fenster (von unten, wie ein iPhone-Blatt). Mit Zielen (B2) als
+ * Balken; ohne Ziele (sensible Situation, „Zahlen ausblenden“) nur die Summen.
+ */
+function MicrosSheet({
+  visible,
+  onClose,
+  micros,
+  targets,
+  day,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  micros: { values: Micros; known: number; total: number };
+  targets: DayTargets | null;
+  day?: string;
+}) {
   const theme = useTheme();
+  const withTargets = targets !== null && !targets.hidden;
+  const openDetails = (params: Record<string, string>, pathname: '/nutrition/micros' | '/nutrition/nutrient') => {
+    onClose();
+    router.push({ pathname, params: day ? { ...params, day } : params });
+  };
   const keys = MICRO_KEYS.filter((k) => micros.values[k] != null && micros.values[k]! > 0);
   const missing = MICRO_KEYS.filter((k) => !keys.includes(k));
   return (
@@ -199,15 +233,29 @@ function MicrosSheet({ visible, onClose, micros }: { visible: boolean; onClose: 
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.sheetBody}>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('targets.micros.onlyLogged')}
+          </ThemedText>
           <View style={[styles.sheetCard, { backgroundColor: theme.backgroundElement }]}>
-            {keys.map((k, i) => (
-              <EntryRow
-                key={k}
-                title={t(`micros.${k}`)}
-                value={`${formatNumber(micros.values[k]!, micros.values[k]! < 10 ? 1 : 0)} ${MICRO_UNITS[k]}`}
-                last={i === keys.length - 1}
-              />
-            ))}
+            {withTargets
+              ? keys.map((k) => (
+                  <TargetMicroBar
+                    key={k}
+                    name={t(`micros.${k}`)}
+                    value={micros.values[k]!}
+                    unit={MICRO_UNITS[k]}
+                    limits={targets!.refs[k]}
+                    onPress={() => openDetails({ key: k }, '/nutrition/nutrient')}
+                  />
+                ))
+              : keys.map((k, i) => (
+                  <EntryRow
+                    key={k}
+                    title={t(`micros.${k}`)}
+                    value={`${formatNumber(micros.values[k]!, micros.values[k]! < 10 ? 1 : 0)} ${MICRO_UNITS[k]}`}
+                    last={i === keys.length - 1}
+                  />
+                ))}
           </View>
           {missing.length ? (
             <ThemedText type="small" themeColor="textSecondary">
@@ -217,6 +265,14 @@ function MicrosSheet({ visible, onClose, micros }: { visible: boolean; onClose: 
           <ThemedText type="small" themeColor="textSecondary">
             {t('micros.coverage', { known: micros.known, total: micros.total })}
           </ThemedText>
+          {withTargets ? (
+            <>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('targets.micros.sources', { version: MICRO_TARGETS_VERSION })}
+              </ThemedText>
+              <Button label={t('targets.micros.open')} variant="secondary" onPress={() => openDetails({}, '/nutrition/micros')} />
+            </>
+          ) : null}
           <Button label={t('common.close')} variant="secondary" onPress={onClose} />
         </ScrollView>
       </SafeAreaView>

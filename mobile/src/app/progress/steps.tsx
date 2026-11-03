@@ -5,6 +5,7 @@ import { Button, Card } from '@/components/card';
 import { DayBars } from '@/components/charts';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, EntryRow, Field } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -70,9 +71,7 @@ export default function StepsScreen() {
           <Button label={t('common.save')} onPress={save} />
         </View>
         {error ? <ThemedText style={{ color: theme.danger }}>{t('steps.invalid')}</ThemedText> : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('steps.manualHint')}
-        </ThemedText>
+        <InsightInfo text={t('steps.manualHint')} />
       </Card>
       <Card title={t('steps.weekTitle')}>
         {average === null ? (

@@ -1,6 +1,8 @@
 import { Manrope_600SemiBold, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
@@ -37,18 +39,23 @@ export default function TabLayout() {
     ...base,
     colors: { ...base.colors, primary: colors.tint, background: colors.background, card: colors.background, text: colors.text, border: colors.border },
   };
+  // Wurzel für Gesten (Wisch-Löschen in der Satztabelle, react-native-gesture-handler).
   return (
-    <ThemeProvider value={navigation}>
-      <StoreProvider>
-        <ProfileProvider>
-          <AnimatedSplashOverlay />
-          {/* Meldungen innerhalb der Sperre: Die Sperrebene deckt sie ab, gesperrt werden sie gar nicht gezeigt. */}
-          <LockGate>
-            <Gate />
-            <ToastHost />
-          </LockGate>
-        </ProfileProvider>
-      </StoreProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <ThemeProvider value={navigation}>
+        <StoreProvider>
+          <ProfileProvider>
+            <AnimatedSplashOverlay />
+            {/* Meldungen innerhalb der Sperre: Die Sperrebene deckt sie ab, gesperrt werden sie gar nicht gezeigt. */}
+            <LockGate>
+              <Gate />
+              <ToastHost />
+            </LockGate>
+          </ProfileProvider>
+        </StoreProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({ root: { flex: 1 } });

@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
+import { EmptyState } from '@/components/empty-state';
 import { Choice, ConfirmButton, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { Slider } from '@/components/slider';
@@ -210,7 +211,7 @@ export default function PhotosScreen() {
       ) : null}
 
       <Card title={t('photos.listTitle')}>
-        {photos.length === 0 ? <ThemedText themeColor="textSecondary">{t('photos.empty')}</ThemedText> : null}
+        {photos.length === 0 ? <EmptyState icon="camera" title={t('photos.empty')} /> : null}
         {photos.map((p) => (
           <View key={p.id} style={styles.entry}>
             <View style={styles.thumb}>

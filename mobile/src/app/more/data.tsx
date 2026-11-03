@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Toggle } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '@/data/backup';
@@ -149,9 +150,7 @@ export default function DataScreen() {
         <ThemedText type="small">{t('exportCsv.text')}</ThemedText>
         <Choice label={t('exportCsv.area')} options={EXPORT_AREAS} value={area} onChange={setArea} format={(a) => t(`exportCsv.areas.${a}`)} chips />
         <Button label={t('exportCsv.share')} variant="secondary" disabled={busy} onPress={exportCsv} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('common.healthDataHint')}
-        </ThemedText>
+        <InsightInfo text={t('common.healthDataHint')} />
       </Card>
 
       <Card title={t('importCsv.cardTitle')}>
@@ -162,9 +161,7 @@ export default function DataScreen() {
       <Card title={t('report.cardTitle')}>
         <ThemedText type="small">{t('report.cardText')}</ThemedText>
         <Button label={t('report.open')} variant="secondary" onPress={() => router.push('/more/report')} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('dataScreen.trainerText')}
-        </ThemedText>
+        <InsightInfo text={t('dataScreen.trainerText')} />
       </Card>
 
       <Card title={t('dataScreen.restoreTitle')}>
@@ -194,9 +191,7 @@ export default function DataScreen() {
       </Card>
 
       <Card title={t('dataScreen.encryptionTitle')}>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('dataScreen.encryption')}
-        </ThemedText>
+        <InsightInfo label={t('insights.info.privacy')} text={t('dataScreen.encryption')} />
       </Card>
     </Screen>
   );

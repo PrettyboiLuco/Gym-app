@@ -31,6 +31,13 @@ export default function NutritionLayout() {
       <Stack.Screen name="import-recipe" options={{ title: t('recipeImport.title') }} />
       <Stack.Screen name="settings" options={{ title: t('nutrition.settings.title') }} />
       <Stack.Screen name="supplements" options={{ title: t('supplements.title') }} />
+      {/* Ziele und Nährstoffe (B2) */}
+      <Stack.Screen name="budget" options={{ title: t('targets.budget.title') }} />
+      <Stack.Screen name="diet" options={{ title: t('targets.diet.title') }} />
+      <Stack.Screen name="micros" options={{ title: t('micros.title') }} />
+      <Stack.Screen name="nutrient" options={{ title: t('targets.nutrient.title') }} />
+      <Stack.Screen name="gaps" options={{ title: t('targets.gaps.title') }} />
+      <Stack.Screen name="fasting" options={{ title: t('fasting.title') }} />
     </Stack>
   );
 }

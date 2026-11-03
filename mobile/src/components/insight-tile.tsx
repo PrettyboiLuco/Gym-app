@@ -167,7 +167,11 @@ function InsightTileCard({ tile }: { tile: InsightTileData }) {
           {tile.sub}
         </ThemedText>
       ) : null}
-      {tile.levels ? <InsightLevels levels={tile.levels} /> : tile.spark ? <InsightSparkline values={tile.spark.values} bars={tile.spark.bars} color={color} /> : null}
+      {tile.levels ? (
+        <InsightLevels levels={tile.levels} />
+      ) : tile.spark ? (
+        <InsightSparkline values={tile.spark.values} bars={tile.spark.bars} color={color} />
+      ) : null}
     </>
   );
   const surface = { backgroundColor: theme.backgroundSelected };
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
   valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
   value: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4, fontVariant: ['tabular-nums'], flexShrink: 1 },
   sub: { fontSize: 12, lineHeight: 16 },
-  spark: { height: SPARK_HEIGHT, marginTop: 'auto', paddingTop: Spacing.one },
+  spark: { height: SPARK_HEIGHT + Spacing.one, marginTop: 'auto', paddingTop: Spacing.one },
   levels: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, paddingBottom: 6 },
   level: { flex: 1, height: 8, borderRadius: 4 },
 });

@@ -10,6 +10,7 @@ import { Spacing } from '@/constants/theme';
 import { NOTIFICATIONS_SUPPORTED, notificationPermission } from '@/data/notifications';
 import { loadSleepGoal, loadWakeTime, saveSleepGoal, saveWakeTime } from '@/data/readiness';
 import { loadReminders, saveReminders } from '@/data/reminders';
+import { MEALS } from '@/domain/nutrition';
 import { bedtimeFor, SLEEP_GOAL_RANGE } from '@/domain/readiness';
 import {
   BEDTIME_LEAD_MINUTES,
@@ -63,7 +64,8 @@ export default function NotificationsScreen() {
   const allowLeave = useUnsavedGuard(baseline !== '' && JSON.stringify({ form, wake, sleepGoal }) !== baseline);
   // Erinnerungen ausgeschalteter Bereiche gar nicht erst anbieten (Phase 1 Scan).
   const modules = useModules();
-  const anyOn = form.timerAlerts || form.training.enabled || form.drink.enabled || form.morning.enabled || form.bedtime.enabled;
+  const anyOn =
+    form.timerAlerts || form.training.enabled || form.drink.enabled || form.morning.enabled || form.bedtime.enabled || MEALS.some((m) => form.meals[m].enabled);
 
   async function save() {
     const found: (ReminderProblem | 'wakeTime')[] = validateReminders(form);
@@ -198,6 +200,32 @@ export default function NotificationsScreen() {
         </Card>
       ) : null}
 
+      {/* Mahlzeit-Erinnerungen (B1, W4): nur, wenn für die Mahlzeit an dem Tag noch nichts eingetragen ist. */}
+      {modules.ernaehrung ? (
+        <Card title={t('reminders.mealsTitle')}>
+          {MEALS.map((meal) => (
+            <View key={meal} style={styles.mealRow}>
+              {toggle(
+                form.meals[meal].enabled,
+                (enabled) => setForm((f) => ({ ...f, meals: { ...f.meals, [meal]: { ...f.meals[meal], enabled } } })),
+                t(`nutrition.meals.${meal}`)
+              )}
+              {form.meals[meal].enabled ? (
+                <Field
+                  label={t('reminders.mealTime', { meal: t(`nutrition.meals.${meal}`) })}
+                  value={form.meals[meal].time}
+                  onChangeText={(time) => setForm((f) => ({ ...f, meals: { ...f.meals, [meal]: { ...f.meals[meal], time } } }))}
+                  keyboardType="numbers-and-punctuation"
+                />
+              ) : null}
+            </View>
+          ))}
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('reminders.mealsHint')}
+          </ThemedText>
+        </Card>
+      ) : null}
+
       {modules.bereitschaft ? (
         <Card title={t('reminders.morningTitle')}>
           {toggle(form.morning.enabled, (enabled) => setForm((f) => ({ ...f, morning: { ...f.morning, enabled } })), t('reminders.morningToggle'))}
@@ -263,4 +291,5 @@ const styles = StyleSheet.create({
   chip: { paddingVertical: Spacing.two, paddingHorizontal: Spacing.three, borderRadius: 999, minWidth: 44, alignItems: 'center' },
   row: { flexDirection: 'row', gap: Spacing.two },
   flex: { flex: 1, minWidth: 0 },
+  mealRow: { gap: Spacing.two },
 });

@@ -122,7 +122,7 @@ const base = (tile: InsightTile): TileSummary => ({ tile, kind: 'mean', value: n
  */
 export function tileSummaries(
   days: readonly InsightDay[],
-  weights: readonly { day: string; kg: number }[],
+  weights: { day: string; kg: number }[],
   today: string,
   foodEnd: string
 ): Record<InsightTile, TileSummary> {

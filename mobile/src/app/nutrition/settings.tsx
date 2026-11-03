@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field, MultiChoice, Presets, Toggle } from '@/components/fields';
+import { Choice, Field, ListRow, MultiChoice, Presets, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -123,6 +123,12 @@ export default function NutritionSettingsScreen() {
           {t('nutrition.settings.kcalGoalHint')}
         </ThemedText>
         <Button label={t('nutrition.settings.calculator')} variant="secondary" onPress={() => router.push('/progress/calculator')} />
+      </Card>
+      {/* Ziele und Nährstoffe (B2): eigene Bildschirme, speichern selbst. */}
+      <Card title={t('targets.sectionTitle')}>
+        <ListRow icon="calendar" title={t('targets.budget.title')} subtitle={t('targets.budget.linkSub')} accessory="›" onPress={() => router.push('/nutrition/budget')} />
+        <ListRow icon="chart" title={t('targets.diet.title')} subtitle={t('targets.diet.linkSub')} accessory="›" onPress={() => router.push('/nutrition/diet')} />
+        <ListRow icon="list" title={t('micros.title')} subtitle={t('targets.micros.linkSub')} accessory="›" onPress={() => router.push('/nutrition/micros')} last />
       </Card>
       <Card>
         <Field

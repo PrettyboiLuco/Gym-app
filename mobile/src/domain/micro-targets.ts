@@ -15,7 +15,7 @@
 // Auswahl nach dem Formel-Term aus dem Profil (+5 bzw. −161, wie beim Energiebedarf); ohne Angabe gilt je der höhere Wert.
 // Gezählt wird nur, was erfasst ist: Einträge ohne Angaben sind unbekannt, nicht 0.
 
-import type { MicroKey, Micros } from './basis-foods';
+import type { MicroKey } from './basis-foods';
 import type { FormulaTerm } from './energy';
 
 export const MICRO_TARGETS_VERSION = 1;
@@ -88,10 +88,10 @@ export function sanitizePins(raw: unknown, keys: readonly MicroKey[]): MicroKey[
   return [...new Set(raw.filter((k): k is MicroKey => keys.includes(k as MicroKey)))].slice(0, MAX_PINNED);
 }
 
-/** Größte Quellen eines Nährstoffs unter den Einträgen eines Tages (nur Einträge mit Angabe). */
-export function topSources<T extends { name: string; micros: Micros | null }>(entries: T[], key: MicroKey, limit = 3): { entry: T; value: number }[] {
+/** Größte Quellen eines Nährstoffs unter den Einträgen eines Tages (nur Einträge mit Angabe über 0). */
+export function topSources<T>(entries: T[], valueOf: (entry: T) => number | null | undefined, limit = 3): { entry: T; value: number }[] {
   return entries
-    .map((entry) => ({ entry, value: entry.micros?.[key] ?? 0 }))
+    .map((entry) => ({ entry, value: valueOf(entry) ?? 0 }))
     .filter((s) => s.value > 0)
     .sort((a, b) => b.value - a.value)
     .slice(0, limit);

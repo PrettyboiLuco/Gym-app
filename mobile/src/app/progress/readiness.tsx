@@ -4,7 +4,9 @@ import { StyleSheet, View } from 'react-native';
 
 import { HIDDEN } from '@/components/a11y';
 import { Button, Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { Choice, ConfirmButton, Field, ListRow, MultiChoice } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { levelColor, reasonText } from '@/components/readiness';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -295,9 +297,7 @@ function SleepCard({ stats, goal }: { stats: SleepStats; goal: number }) {
           {stats.bedSpread !== null ? <ThemedText type="small">{t('readiness.bedSpread', { minutes: stats.bedSpread })}</ThemedText> : null}
         </>
       )}
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('readiness.sleepHint')}
-      </ThemedText>
+      <InsightInfo text={t('readiness.sleepHint')} />
       <ListRow title={t('readiness.sleepReminder')} accessory="›" last onPress={() => router.push('/more/notifications')} />
     </Card>
   );
@@ -309,7 +309,7 @@ function JournalCard({ findings, days }: { findings: JournalFinding[]; days: num
   return (
     <Card title={t('readiness.journalTitle')}>
       {findings.length === 0 ? (
-        <ThemedText type="small">{t('readiness.journalEmpty', { days })}</ThemedText>
+        <EmptyState icon="book" title={t('readiness.journalEmpty', { days })} />
       ) : (
         findings.slice(0, 6).map((f) => (
           <ThemedText key={`${f.factor}-${f.metric}`} type="small">
@@ -323,9 +323,7 @@ function JournalCard({ findings, days }: { findings: JournalFinding[]; days: num
           </ThemedText>
         ))
       )}
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('readiness.journalHint')}
-      </ThemedText>
+      <InsightInfo text={t('readiness.journalHint')} />
     </Card>
   );
 }
@@ -335,7 +333,7 @@ function HistoryCard({ history }: { history: HistoryDay[] }) {
   const shown = history.filter((h) => h.check || h.load > 0 || h.readiness.kind === 'status');
   return (
     <Card title={t('readiness.historyTitle')}>
-      {shown.length === 0 ? <ThemedText type="small">{t('readiness.historyEmpty')}</ThemedText> : null}
+      {shown.length === 0 ? <EmptyState icon="calendar" title={t('readiness.historyEmpty')} /> : null}
       {shown.length > 0 ? (
         // Vier Wochen auf einen Blick: ein Feld je Tag (älteste oben links), Farbe = Ampel des Tages, grau = kein Wert.
         <View style={styles.grid} {...HIDDEN}>

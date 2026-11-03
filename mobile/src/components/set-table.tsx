@@ -25,7 +25,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
 /** Spaltenbreiten – Kopf und Zeilen teilen sie, damit alles bündig steht. „Vorher“ nimmt den Rest. */
-export const SetCols = { set: 36, weight: 72, reps: 60, timedReps: 72, hold: 48, check: 44, trash: 36 } as const;
+export const SetCols = { set: 32, weight: 64, reps: 52, timedReps: 64, hold: 48, check: 44, trash: 28, gap: 6 } as const;
 
 const WEB = Platform.OS === 'web';
 const fillEase = Easing.bezier(...MapFade.easing);
@@ -169,13 +169,13 @@ function DeleteAction({ translation, label, onPress }: { translation: SharedValu
 
 const styles = StyleSheet.create({
   flex: { flex: 1, minWidth: 0 },
-  headRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingHorizontal: Spacing.two, marginHorizontal: -Spacing.two },
+  headRow: { flexDirection: 'row', alignItems: 'center', gap: SetCols.gap, paddingHorizontal: Spacing.two, marginHorizontal: -Spacing.two },
   head: { fontSize: 12, lineHeight: 16, letterSpacing: 0.2 },
   headCheck: { alignItems: 'center' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
+    gap: SetCols.gap,
     minHeight: 52,
     paddingHorizontal: Spacing.two,
     borderRadius: 12,

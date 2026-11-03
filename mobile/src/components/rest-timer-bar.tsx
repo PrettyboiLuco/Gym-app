@@ -1,6 +1,18 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
 import { AccessibilityInfo, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { HIDDEN } from '@/components/a11y';
 import { Button } from '@/components/card';
@@ -8,9 +20,10 @@ import { ProgressRing } from '@/components/charts';
 import { haptic } from '@/components/haptics';
 import { useAppLocked } from '@/components/lock-gate';
 import { PressableScale } from '@/components/pressable-scale';
+import { restPulseSecond } from '@/components/set-table-logic';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Press } from '@/constants/motion';
+import { Press, RestMorph } from '@/constants/motion';
 import { BottomTabInset, DisplayFont, Spacing } from '@/constants/theme';
 import { formatClock, isRestVisible, REST_PRESETS, restRemainingMs, restSecondsFor, type RestTimer } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -69,6 +82,27 @@ export function RestTimerBar({
   const remaining = restRemainingMs(timer, now);
   const signalled = useRef<number | null>(null);
   const lastTick = useRef<string | null>(null);
+  // N5: Puls des Rings in den letzten Sekunden (Leiste und Vollbild teilen ihn) und Ausgangspunkt des Morphs.
+  const reduced = useReducedMotion();
+  const pulse = useSharedValue(1);
+  const pulseSecond = restPulseSecond(remaining, RestMorph.pulseSeconds);
+  const ringRef = useRef<ComponentRef<typeof View>>(null);
+  const [origin, setOrigin] = useState<Origin | null>(null);
+  useEffect(() => {
+    if (pulseSecond === null || reduced) return;
+    pulse.set(withSequence(withTiming(RestMorph.pulseScale, { duration: RestMorph.pulseUpMs, easing: Easing.out(Easing.quad) }), withSpring(1, Press.out)));
+  }, [pulseSecond, reduced, pulse]);
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+
+  /** Ring der Leiste vermessen, dann Vollbild öffnen – es wächst aus genau dieser Stelle. */
+  function expand() {
+    const ring = ringRef.current;
+    if (!ring) return onFocusChange?.(true);
+    ring.measureInWindow((x, y, width, height) => {
+      setOrigin(width > 0 ? { x: x + width / 2, y: y + height / 2, size: width } : null);
+      onFocusChange?.(true);
+    });
+  }
 
   useEffect(() => {
     if (!timer || !visible) return;
@@ -146,14 +180,17 @@ export function RestTimerBar({
           <>
             {/* Restzeit mitten im Ring; Tippen öffnet die Pause im Vollbild. */}
             <Pressable
+              ref={ringRef}
               accessibilityRole="button"
               accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}. ${t('session.restExpand')}`}
-              onPress={() => onFocusChange?.(true)}>
-              <ProgressRing progress={progress} size={64} stroke={5} color={theme.tint} trackColor={theme.backgroundSelected} follow="tick">
-                <ThemedText type="subtitle" style={styles.clock}>
-                  {formatClock(remaining)}
-                </ThemedText>
-              </ProgressRing>
+              onPress={expand}>
+              <Animated.View style={pulseStyle}>
+                <ProgressRing progress={progress} size={BAR_RING} stroke={5} color={theme.tint} trackColor={theme.backgroundSelected} follow="tick">
+                  <ThemedText type="subtitle" numeric style={styles.clock}>
+                    {formatClock(remaining)}
+                  </ThemedText>
+                </ProgressRing>
+              </Animated.View>
             </Pressable>
             <View style={styles.text} />
           </>
@@ -163,6 +200,8 @@ export function RestTimerBar({
       </ThemedView>
       <RestFocus
         visible={focus}
+        origin={origin}
+        pulse={pulse}
         remaining={remaining}
         progress={progress}
         next={next}
@@ -173,14 +212,28 @@ export function RestTimerBar({
           onSkip();
         }}
         onClose={() => onFocusChange?.(false)}
+        onClosed={() => setOrigin(null)}
       />
     </>
   );
 }
 
-/** Pause im Vollbild: ein großer Ring, die Zeit, was als Nächstes kommt. Lime nur auf dem Ring (Daten). */
+/** Mitte und Größe des kleinen Rings in Fensterkoordinaten. */
+type Origin = { x: number; y: number; size: number };
+const BAR_RING = 64;
+const FOCUS_RING = 264;
+
+/**
+ * Pause im Vollbild: ein großer Ring, die Zeit, was als Nächstes kommt. Lime nur auf dem Ring (Daten).
+ * N5: Statt von unten hereinzuschieben, wächst der Ring aus dem kleinen Ring der Leiste an seinen Platz (Feder), Grund,
+ * Text und Knöpfe blenden mit; Verkleinern läuft den Weg zurück. Öffnet sich das Vollbild nach einem Satz von selbst
+ * (kein Ausgangspunkt), steigt es verkleinert von unten auf. Bei „Bewegung reduzieren“ steht es sofort da.
+ * Weiter ein natives Modal (über Kopf- und Tab-Leiste) – aber durchsichtig und ohne eigene Animation.
+ */
 function RestFocus({
   visible,
+  origin,
+  pulse,
   remaining,
   progress,
   next,
@@ -188,8 +241,11 @@ function RestFocus({
   onExtend,
   onSkip,
   onClose,
+  onClosed,
 }: {
   visible: boolean;
+  origin: Origin | null;
+  pulse: SharedValue<number>;
   remaining: number;
   progress: number;
   next: NextUp;
@@ -197,48 +253,147 @@ function RestFocus({
   onExtend: () => void;
   onSkip: () => void;
   onClose: () => void;
+  onClosed: () => void;
 }) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
-  // Ein natives Modal läge über der App-Sperre: gesperrt bleibt es zu, nach dem Entsperren erscheint es wieder.
+  const reduced = useReducedMotion();
+  // Ein natives Modal läge über der App-Sperre: gesperrt bleibt es zu (sofort, ohne Animation), nach dem Entsperren
+  // erscheint es wieder.
   const locked = useAppLocked();
+  const want = visible && !locked;
+  // Nach dem Zuklappen bleibt das Modal offen, bis der Ring zurück in der Leiste ist.
+  const [closing, setClosing] = useState(false);
+  const [wasWanted, setWasWanted] = useState(want);
+  if (wasWanted !== want) {
+    setWasWanted(want);
+    setClosing(!want && !locked && !reduced);
+  }
+  if (locked && closing) setClosing(false);
+
+  const open = useSharedValue(0);
+  const dx = useSharedValue(0);
+  const dy = useSharedValue<number>(RestMorph.fallbackRise);
+  const from = useSharedValue<number>(RestMorph.fallbackScale);
+  const ringBox = useRef<ComponentRef<typeof View>>(null);
+  const placed = useRef(false);
+  // Fertig zugeklappt: Modal schließen und den Ausgangspunkt vergessen (stabil, damit der Effekt nicht bei jedem Tick neu startet).
+  const onClosedRef = useRef(onClosed);
+  useEffect(() => {
+    onClosedRef.current = onClosed;
+  });
+  const finishClose = useCallback(() => {
+    setClosing(false);
+    onClosedRef.current();
+  }, []);
+
+  useEffect(() => {
+    if (want) {
+      // Wieder geöffnet, während es noch zuklappte: von der jetzigen Stelle zurück aufgehen.
+      // Sonst startet das Öffnen erst, wenn der Ring vermessen ist (onLayout unten).
+      if (open.get() > 0 && !placed.current) {
+        placed.current = true;
+        open.set(reduced ? 1 : withSpring(1, RestMorph.spring));
+      }
+      return;
+    }
+    placed.current = false;
+    if (!closing) {
+      open.set(0);
+      return;
+    }
+    open.set(
+      withTiming(0, { duration: RestMorph.closeMs, easing: Easing.in(Easing.cubic) }, (finished) => {
+        if (finished) scheduleOnRN(finishClose);
+      })
+    );
+  }, [want, closing, open, finishClose, reduced]);
+
+  /** Großen Ring vermessen: Weg und Größe vom kleinen Ring hierher bestimmen, dann aufgehen. */
+  function place() {
+    if (!want || placed.current) return;
+    placed.current = true;
+    const go = () => open.set(reduced ? 1 : withSpring(1, RestMorph.spring));
+    const box = ringBox.current;
+    if (!origin || !box) {
+      dx.set(0);
+      dy.set(RestMorph.fallbackRise);
+      from.set(RestMorph.fallbackScale);
+      return go();
+    }
+    box.measureInWindow((x, y, width, height) => {
+      dx.set(origin.x - (x + width / 2));
+      dy.set(origin.y - (y + height / 2));
+      from.set(origin.size / FOCUS_RING);
+      go();
+    });
+  }
+
+  const backdrop = useAnimatedStyle(() => ({ opacity: open.value }));
+  const ringStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: (1 - open.value) * dx.value },
+      { translateY: (1 - open.value) * dy.value },
+      { scale: interpolate(open.value, [0, 1], [from.value, 1]) * pulse.value },
+    ],
+  }));
+  const rest = useAnimatedStyle(() => ({
+    opacity: interpolate(open.value, [0.35, 1], [0, 1], 'clamp'),
+    transform: [{ translateY: (1 - open.value) * 24 }],
+  }));
+
   const done = remaining === 0;
   return (
-    <Modal visible={visible && !locked} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <SafeAreaView style={[styles.focus, { backgroundColor: theme.background }]}>
-        <View style={styles.focusTop}>
+    <Modal visible={(want || closing) && !locked} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: theme.background }, backdrop]} />
+      <SafeAreaView style={styles.focus}>
+        <Animated.View style={[styles.focusTop, rest]}>
           <ThemedText themeColor="textSecondary">{done ? t('session.restDone') : t('session.restTitle')}</ThemedText>
           <Pressable accessibilityRole="button" accessibilityLabel={t('session.restCollapse')} onPress={onClose} hitSlop={12}>
             <ThemedText style={{ color: theme.textSecondary }}>{t('session.restCollapse')}</ThemedText>
           </Pressable>
-        </View>
+        </Animated.View>
         <View style={styles.focusCenter} accessible accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}>
-          <ProgressRing progress={progress} size={264} stroke={12} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} follow="tick">
-            <ThemedText style={styles.focusClock}>{formatClock(remaining)}</ThemedText>
-          </ProgressRing>
+          <Animated.View ref={ringBox} onLayout={place} style={ringStyle}>
+            <ProgressRing
+              progress={progress}
+              size={FOCUS_RING}
+              stroke={12}
+              color={dark ? theme.accent : theme.tint}
+              trackColor={theme.backgroundSelected}
+              follow="tick">
+              <ThemedText numeric style={styles.focusClock}>
+                {formatClock(remaining)}
+              </ThemedText>
+            </ProgressRing>
+          </Animated.View>
         </View>
-        {ask}
-        {next ? (
-          <View style={[styles.next, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('session.nextUp')}
-            </ThemedText>
-            <ThemedText style={styles.nextTitle} numberOfLines={2}>
-              {next.title}
-            </ThemedText>
-            <ThemedText themeColor="textSecondary">{next.detail}</ThemedText>
-          </View>
-        ) : null}
-        <View style={styles.focusActions}>
-          {!done ? (
-            <View style={styles.flex}>
-              <Button label={t('session.restPlus')} variant="secondary" onPress={onExtend} />
+        <Animated.View style={[styles.focusBottom, rest]}>
+          {ask}
+          {next ? (
+            <View style={[styles.next, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('session.nextUp')}
+              </ThemedText>
+              <ThemedText style={styles.nextTitle} numberOfLines={2}>
+                {next.title}
+              </ThemedText>
+              <ThemedText themeColor="textSecondary" numeric>
+                {next.detail}
+              </ThemedText>
             </View>
           ) : null}
-          <View style={styles.flex}>
-            <Button label={done ? t('session.restGo') : t('session.restSkip')} onPress={onSkip} />
+          <View style={styles.focusActions}>
+            {!done ? (
+              <View style={styles.flex}>
+                <Button label={t('session.restPlus')} variant="secondary" onPress={onExtend} />
+              </View>
+            ) : null}
+            <View style={styles.flex}>
+              <Button label={done ? t('session.restGo') : t('session.restSkip')} onPress={onSkip} />
+            </View>
           </View>
-        </View>
+        </Animated.View>
       </SafeAreaView>
     </Modal>
   );
@@ -253,14 +408,15 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   doneDot: { width: 44, height: 44, borderRadius: 22 },
   text: { flex: 1 },
-  clock: { fontSize: 17, lineHeight: 22, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
+  clock: { fontSize: 17, lineHeight: 22, letterSpacing: -0.3 },
   presets: { gap: Spacing.two },
   chooseHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   preset: { minHeight: 40, minWidth: 56, paddingHorizontal: Spacing.three, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   focus: { flex: 1, paddingHorizontal: Spacing.four, paddingBottom: Spacing.four, gap: Spacing.four },
   focusTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.three, minHeight: 44 },
   focusCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  focusClock: { fontFamily: DisplayFont.bold, fontSize: 64, lineHeight: 72, letterSpacing: -2, fontVariant: ['tabular-nums'] },
+  focusClock: { fontFamily: DisplayFont.bold, fontSize: 64, lineHeight: 72, letterSpacing: -2 },
+  focusBottom: { gap: Spacing.four },
   next: { borderRadius: 20, borderWidth: 1, padding: Spacing.four - 4, gap: Spacing.one },
   nextTitle: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.3 },
   focusActions: { flexDirection: 'row', gap: Spacing.three },

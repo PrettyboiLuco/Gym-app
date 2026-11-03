@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Toggle } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { canLock, unlock } from '@/data/app-lock';
@@ -50,9 +51,7 @@ export default function SecurityScreen() {
     <Screen withHeader>
       <Card>
         {Platform.OS === 'web' ? <ThemedText>{t('security.webOnly')}</ThemedText> : <Toggle label={t('security.toggle')} value={on} onChange={change} />}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('security.hint')}
-        </ThemedText>
+        <InsightInfo text={t('security.hint')} />
         {message ? (
           <ThemedText style={message === t('security.noPasscode') || message === t('security.notConfirmed') ? { color: theme.danger } : undefined}>
             {message}

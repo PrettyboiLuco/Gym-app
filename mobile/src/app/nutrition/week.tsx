@@ -34,7 +34,9 @@ async function loadRange(db: Db, endDay: string, days: number) {
 
 export default function WeekScreen() {
   const params = useLocalSearchParams<{ day?: string }>();
-  const endDay = params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : todayDay();
+  // Geplante Tage (nach heute, B1) zählen erst am Tag selbst: die Auswertung endet spätestens heute.
+  const asked = params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : todayDay();
+  const endDay = asked > todayDay() ? todayDay() : asked;
   const [range, setRange] = useState<(typeof RANGES)[number]>('7');
   const { data } = useLoad((d) => loadRange(d, endDay, Number(range)), { rows: [] as DayRow[], hide: DEFAULT_SETTINGS.hideNumbers }, `${endDay}-${range}`);
   const stats = weekAverage(data.rows);

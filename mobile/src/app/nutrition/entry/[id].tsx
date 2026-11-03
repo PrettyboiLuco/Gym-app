@@ -3,11 +3,15 @@ import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
+import { DiaryCopySheet } from '@/components/diary-copy-sheet';
 import { Choice, ConfirmButton, Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { deleteEvent, getEvent, updateEvent, type ConsumptionEvent } from '@/data/nutrition';
+import { shiftDay } from '@/domain/dates';
+import { atTimeOnDay, isPlannedDay, minutesOfDay, PLAN_AHEAD_DAYS } from '@/domain/diary';
 import { fractionOf, MEALS, parseAmount, type Meal } from '@/domain/nutrition';
+import { formatTime, parseTime } from '@/domain/reminders';
 import { foodTitle } from '@/format/food-title';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
@@ -15,7 +19,7 @@ import { formatNumber, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 import { diaryToday, extraLine, formatKcal, macroLine } from '@/services/nutrition-format';
 
-type EntryForm = { amount: string; meal: Meal | null; day: string };
+type EntryForm = { amount: string; meal: Meal | null; day: string; time: string };
 
 export default function EntryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,7 +27,9 @@ export default function EntryScreen() {
   const theme = useTheme();
   const [event, setEvent] = useState<ConsumptionEvent | null>(null);
   const [missing, setMissing] = useState(false);
-  const [form, setForm] = useState<EntryForm>({ amount: '', meal: null, day: '' });
+  const [form, setForm] = useState<EntryForm>({ amount: '', meal: null, day: '', time: '' });
+  const [copying, setCopying] = useState(false);
+  const [timeError, setTimeError] = useState(false);
   const [baseline, setBaseline] = useState('');
   const [error, setError] = useState(false);
 
@@ -36,7 +42,7 @@ export default function EntryScreen() {
         return;
       }
       // 3 Nachkommastellen: „0,25 Portion“ darf beim Ändern der Mahlzeit nicht zu 0,3 werden (Phase 1 Scan).
-      const loaded = { amount: formatNumber(e.amount, 3), meal: e.meal, day: e.diaryDate };
+      const loaded = { amount: formatNumber(e.amount, 3), meal: e.meal, day: e.diaryDate, time: formatTime(minutesOfDay(e.occurredAt)) };
       setEvent(e);
       setForm(loaded);
       setBaseline(JSON.stringify(loaded));
@@ -61,7 +67,13 @@ export default function EntryScreen() {
       setError(true);
       return;
     }
-    await updateEvent(db, event.id, { amount, meal: form.meal, diaryDate: form.day });
+    // Uhrzeit (B1, W6): bezogen auf den gewählten Tag; beim Tageswechsel bleibt die Uhrzeit.
+    const minutes = parseTime(form.time);
+    if (minutes === null) {
+      setTimeError(true);
+      return;
+    }
+    await updateEvent(db, event.id, { amount, meal: form.meal, diaryDate: form.day, occurredAt: atTimeOnDay(form.day, minutes) });
     allowLeave();
     router.back();
   }
@@ -126,9 +138,32 @@ export default function EntryScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {t('nutrition.entry.day')}
         </ThemedText>
-        <DaySwitcher day={form.day} onChange={(day) => setForm((f) => ({ ...f, day }))} today={diaryToday()} />
+        <DaySwitcher day={form.day} onChange={(day) => setForm((f) => ({ ...f, day }))} today={diaryToday()} maxDay={shiftDay(diaryToday(), PLAN_AHEAD_DAYS)} />
+        {isPlannedDay(form.day, diaryToday()) ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('diary.plannedDay')}
+          </ThemedText>
+        ) : null}
+        <Field
+          label={t('diary.time')}
+          value={form.time}
+          onChangeText={(time) => {
+            setForm((f) => ({ ...f, time }));
+            setTimeError(false);
+          }}
+          keyboardType="numbers-and-punctuation"
+          placeholder="08:30"
+        />
+        {timeError ? <ThemedText style={{ color: theme.danger }}>{t('diary.timeInvalid')}</ThemedText> : null}
         <Button label={t('nutrition.entry.save')} onPress={save} />
       </Card>
+      <Card>
+        <Button label={t('diary.copy.open')} variant="secondary" onPress={() => setCopying(true)} />
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('diary.copy.entryHint')}
+        </ThemedText>
+      </Card>
+      <DiaryCopySheet visible={copying} onClose={() => setCopying(false)} sourceDay={event.diaryDate} eventIds={[event.id]} title={foodTitle(event)} />
       <ConfirmButton label={t('common.delete')} onConfirm={remove} />
     </Screen>
   );
