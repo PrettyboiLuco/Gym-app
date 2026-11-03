@@ -26,6 +26,7 @@ export function ProgressRing({
   color,
   trackColor,
   follow = 'spring',
+  growIn = false,
   children,
 }: {
   progress: number;
@@ -35,13 +36,15 @@ export function ProgressRing({
   trackColor: string;
   /** spring = federt auf neue Werte · tick = Wert ändert sich jede Sekunde (Pausen-Timer), Ring läuft gleichmäßig weiter. */
   follow?: 'spring' | 'tick';
+  /** Beim ersten Erscheinen einmal von 0 aufs Ziel laufen (Tagesübersicht). */
+  growIn?: boolean;
   children?: ReactNode;
 }) {
   const reduced = useReducedMotion();
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const target = clamp01(progress);
-  const value = useSharedValue(target);
+  const value = useSharedValue(growIn && !reduced ? 0 : target);
 
   useEffect(() => {
     if (reduced) value.value = target;
@@ -76,11 +79,24 @@ export function ProgressRing({
 }
 
 /** Waagrechter Balken (Kalorien, Makros, Trinken): Füllung = echter Anteil, über 100 % voll. Federt nur bei Änderungen. */
-export function MeterBar({ progress, color, trackColor, height = 8 }: { progress: number; color: string; trackColor: string; height?: number }) {
+export function MeterBar({
+  progress,
+  color,
+  trackColor,
+  height = 8,
+  growIn = false,
+}: {
+  progress: number;
+  color: string;
+  trackColor: string;
+  height?: number;
+  /** Beim ersten Erscheinen einmal von 0 aufs Ziel laufen. */
+  growIn?: boolean;
+}) {
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
   const target = clamp01(progress);
-  const value = useSharedValue(target);
+  const value = useSharedValue(growIn && !reduced ? 0 : target);
 
   useEffect(() => {
     value.value = reduced ? target : withSpring(target, Spring);
