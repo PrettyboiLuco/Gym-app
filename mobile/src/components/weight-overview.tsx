@@ -49,7 +49,11 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
   const high = points.length ? Math.max(...points.map((p) => p.kg)) : null;
   const rangeChange = line.length >= 2 ? line[line.length - 1].kg - line[0].kg : null;
   const signed = (kg: number) => `${kg > 0.05 ? '+' : kg < -0.05 ? '−' : '±'}${formatWeight(Math.abs(kg), unit)}`;
-  const mid = shiftDay(start, Math.floor(days / 2));
+  // Erst ab der ersten Messung im Zeitraum zeichnen – sonst klebt die Kurve bei langen Zeiträumen rechts am Rand.
+  const firstDay = [...points, ...line].reduce((min, p) => (p.day < min ? p.day : min), today);
+  const from = firstDay > start ? firstDay : start;
+  const span = dayIndex(today) - dayIndex(from);
+  const mid = shiftDay(from, Math.floor(span / 2));
 
   return (
     <View style={styles.wrap}>
@@ -95,13 +99,13 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
       {points.length >= 2 || line.length >= 2 ? (
         <SmoothChart
           animationKey={range}
-          domain={[dayIndex(start), dayIndex(today)]}
+          domain={[dayIndex(from), dayIndex(today)]}
           line={line.map((p) => ({ x: dayIndex(p.day), value: u(p.kg), label: formatDay(p.day) }))}
           dots={points.map((p) => ({ x: dayIndex(p.day), value: u(p.kg), label: formatDay(p.day) }))}
           reference={targetKg !== null ? { value: u(targetKg), label: t('progress.chartTarget', { value: formatWeight(targetKg, unit) }) } : undefined}
           color={data}
           format={(v) => formatNumber(v, 1)}
-          xLabels={[formatDay(start), formatDay(mid), formatDay(today)]}
+          xLabels={span >= 4 ? [formatDay(from), formatDay(mid), formatDay(today)] : [formatDay(from), formatDay(today)]}
           accessibilityLabel={t('progress.chartLabel', {
             range: t(`progress.range.${range}`),
             min: low !== null ? formatWeight(low, unit) : '–',

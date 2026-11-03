@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, type GestureResponderEvent } from 'react-native';
-import Animated, { Easing, useAnimatedProps, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedProps,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 
 import { HIDDEN } from '@/components/a11y';
 import { approxLength, axisTicks, monotonePath, nearestIndex, type XY } from '@/components/chart-path';
@@ -12,19 +22,32 @@ import { useTheme } from '@/hooks/use-theme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedG = Animated.createAnimatedComponent(G);
+const AnimatedLine = Animated.createAnimatedComponent(Line);
 const SVG_FONT = Platform.OS === 'web' ? 'system-ui, -apple-system, Segoe UI, sans-serif' : undefined;
 
 export type ChartPoint = { x: number; value: number; label: string };
 
 const LANE = 40; // rechts: Achsenwerte
 const TOP = 10;
+const EDGE = 8;
 const BOTTOM = 10;
-const DRAW_MS = 900;
+// Choreografie nach getlayers.ai Vorlage „Relay“ (Sparkline im Abschnitt Proof): Linie zeichnet sich in 720 ms
+// (ease-in-out cubic), die Fläche blendet ab einem Drittel davon in 480 ms ein (ease-out), dann landet der „Jetzt“-Punkt
+// (96 ms) samt senkrechter Leuchtlinie, und ein Ring pulsiert um ihn (560 ms, hier ruhig wiederholt alle 2,4 s).
+// Die Web-Bibliothek dort (react-spring) läuft nicht in React Native – Zeiten und Kurven sind 1:1 auf Reanimated übertragen.
+const DRAW_MS = 720;
+const AREA_AT = DRAW_MS / 3;
+const AREA_MS = 480;
+const DOT_MS = 96;
+const PULSE_MS = 560;
+const PULSE_EVERY = 2400;
 
 /**
  * Verlaufsdiagramm mit weicher Kurve (ohne Überschwingen), heller Fläche darunter und Messpunkten:
- * - Beim Öffnen und bei jedem Wechsel des Zeitraums zeichnet sich die Kurve von links nach rechts ein (0,9 s), die
- *   Fläche blendet nach, der letzte Wert erscheint als Ring.
+ * - Beim Öffnen und bei jedem Wechsel des Zeitraums zeichnet sich die Kurve von links nach rechts ein; die Linie läuft
+ *   von gedämpft (früher) zu voller Datenfarbe (jetzt), darunter blendet eine auslaufende Fläche ein, am Ende landet der
+ *   „Jetzt“-Punkt mit Leuchtlinie und einem ruhig pulsierenden Ring (getlayers „Relay“, Sparkline).
  * - Finger aufs Diagramm (oder Maus ziehen): senkrechte Linie, Punkt und Schild mit Wert und Datum; spürbarer Tick
  *   bei jedem neuen Tag.
  * - `reference`: gestrichelte Linie (z. B. Zielgewicht). Achsenwerte rechts, Datum unten (Anfang, Mitte, Ende).
@@ -69,13 +92,17 @@ export function SmoothChart({
     []
   );
   const draw = useSharedValue(reduced ? 1 : 0);
+  const fill = useSharedValue(reduced ? 1 : 0);
+  const dot = useSharedValue(reduced ? 1 : 0);
+  const pulse = useSharedValue(0);
 
   const values = [...line, ...dots].map((p) => p.value).concat(reference ? [reference.value] : []);
   const ticks = values.length ? axisTicks(Math.min(...values), Math.max(...values)) : [];
   const lo = ticks[0] ?? 0;
   const hi = ticks[ticks.length - 1] ?? 1;
   const plotW = Math.max(width - LANE, 1);
-  const x = (v: number) => ((v - domain[0]) / Math.max(domain[1] - domain[0], 1)) * plotW;
+  // Links und rechts je 8 px Luft, damit Punkte und der „Jetzt“-Ring am Rand nicht abgeschnitten werden.
+  const x = (v: number) => EDGE + ((v - domain[0]) / Math.max(domain[1] - domain[0], 1)) * (plotW - 2 * EDGE);
   const y = (v: number) => TOP + (1 - (v - lo) / Math.max(hi - lo, 1e-9)) * (height - TOP - BOTTOM);
 
   const pts: XY[] = line.map((p) => [x(p.x), y(p.value)]);
@@ -87,15 +114,42 @@ export function SmoothChart({
   useEffect(() => {
     if (reduced || width === 0) {
       draw.set(1);
+      fill.set(1);
+      dot.set(1);
       return;
     }
-    draw.set(0);
-    draw.set(withDelay(80, withTiming(1, { duration: DRAW_MS, easing: Easing.out(Easing.cubic) })));
-  }, [animationKey, draw, reduced, width]);
+    const jump = { duration: 0 };
+    const start = 80;
+    // Startwert jeweils als eigener Schritt (direktes Setzen kurz vor einer Animation geht im Web verloren).
+    draw.set(withTimingFrom(0, withDelay(start, withTiming(1, { duration: DRAW_MS, easing: Easing.inOut(Easing.cubic) })), jump));
+    fill.set(withTimingFrom(0, withDelay(start + AREA_AT, withTiming(1, { duration: AREA_MS, easing: Easing.out(Easing.cubic) })), jump));
+    dot.set(withTimingFrom(0, withDelay(start + DRAW_MS, withTiming(1, { duration: DOT_MS })), jump));
+    pulse.set(
+      withTimingFrom(
+        0,
+        withDelay(
+          start + DRAW_MS,
+          withRepeat(
+            withSequence(
+              withTiming(1, { duration: PULSE_MS, easing: Easing.out(Easing.cubic) }),
+              withTiming(1, { duration: PULSE_EVERY - PULSE_MS }),
+              withTiming(0, jump)
+            ),
+            -1
+          )
+        ),
+        jump
+      )
+    );
+    return () => cancelAnimation(pulse);
+  }, [animationKey, draw, fill, dot, pulse, reduced, width]);
 
   const lineProps = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - draw.value) }));
-  const areaProps = useAnimatedProps(() => ({ opacity: Math.max(0, (draw.value - 0.35) / 0.65) }));
-  const endProps = useAnimatedProps(() => ({ r: draw.value > 0.92 ? 5 * Math.min(1, (draw.value - 0.92) / 0.08) : 0 }));
+  const areaProps = useAnimatedProps(() => ({ opacity: fill.value }));
+  const dotsProps = useAnimatedProps(() => ({ opacity: 0.25 + 0.75 * fill.value }));
+  const nowProps = useAnimatedProps(() => ({ opacity: dot.value }));
+  const nowDotProps = useAnimatedProps(() => ({ r: 4.5 * dot.value }));
+  const haloProps = useAnimatedProps(() => ({ r: 4.5 + 10 * pulse.value, opacity: dot.value * 0.8 * (1 - pulse.value) }));
 
   // Finger: nächster Punkt der Kurve (oder der Messpunkte, wenn es keine Kurve gibt).
   const pickFrom = line.length ? line : dots;
@@ -134,8 +188,23 @@ export function SmoothChart({
         onResponderTerminate={() => setActive(null)}>
         {width > 0 ? (
           <Svg width={width} height={height} {...HIDDEN}>
+            <Defs>
+              {/* Fläche: Datenfarbe 26 % oben, nach unten auslaufend. Linie: links gedämpft, rechts (jetzt) volle Farbe. */}
+              <LinearGradient id="chartArea" x1="0" y1={TOP} x2="0" y2={height - BOTTOM} gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor={color} stopOpacity={0.26} />
+                <Stop offset="1" stopColor={color} stopOpacity={0} />
+              </LinearGradient>
+              <LinearGradient id="chartLine" x1="0" y1="0" x2={plotW} y2="0" gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor={color} stopOpacity={0.35} />
+                <Stop offset="0.6" stopColor={color} stopOpacity={1} />
+              </LinearGradient>
+              <LinearGradient id="chartNow" x1="0" y1={TOP} x2="0" y2={height - BOTTOM} gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor={color} stopOpacity={0.9} />
+                <Stop offset="1" stopColor={color} stopOpacity={0.05} />
+              </LinearGradient>
+            </Defs>
             {ticks.map((tv) => (
-              <Line key={`g${tv}`} x1={0} x2={plotW} y1={y(tv)} y2={y(tv)} stroke={theme.backgroundSelected} strokeWidth={1} />
+              <Line key={`g${tv}`} x1={0} x2={plotW} y1={y(tv)} y2={y(tv)} stroke={theme.backgroundSelected} strokeWidth={1} strokeDasharray="2 4" />
             ))}
             {ticks.map((tv) => (
               <SvgText key={`t${tv}`} x={width - 2} y={y(tv) + 4} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
@@ -159,14 +228,19 @@ export function SmoothChart({
                 </SvgText>
               </>
             ) : null}
-            {area ? <AnimatedPath d={area} fill={color} fillOpacity={0.14} animatedProps={areaProps} /> : null}
-            {dots.map((p) => (
-              <Circle key={`d${p.x}`} cx={x(p.x)} cy={y(p.value)} r={2.6} fill={theme.textSecondary} />
-            ))}
+            {area ? <AnimatedPath d={area} fill="url(#chartArea)" animatedProps={areaProps} /> : null}
+            <AnimatedG animatedProps={dotsProps}>
+              {dots.map((p) => (
+                <Circle key={`d${p.x}`} cx={x(p.x)} cy={y(p.value)} r={2.6} fill={theme.textSecondary} />
+              ))}
+            </AnimatedG>
+            {last && !sel ? (
+              <AnimatedLine x1={last[0]} x2={last[0]} y1={last[1]} y2={height - BOTTOM} stroke="url(#chartNow)" strokeWidth={1.5} animatedProps={nowProps} />
+            ) : null}
             {path ? (
               <AnimatedPath
                 d={path}
-                stroke={color}
+                stroke="url(#chartLine)"
                 strokeWidth={3}
                 fill="none"
                 strokeLinejoin="round"
@@ -176,7 +250,10 @@ export function SmoothChart({
               />
             ) : null}
             {last && !sel ? (
-              <AnimatedCircle cx={last[0]} cy={last[1]} fill={theme.backgroundElement} stroke={color} strokeWidth={3} animatedProps={endProps} />
+              <>
+                <AnimatedCircle cx={last[0]} cy={last[1]} fill="none" stroke={color} strokeWidth={1.5} animatedProps={haloProps} />
+                <AnimatedCircle cx={last[0]} cy={last[1]} fill={color} stroke={theme.backgroundElement} strokeWidth={2} animatedProps={nowDotProps} />
+              </>
             ) : null}
             {sel ? (
               <>
@@ -215,6 +292,12 @@ export function SmoothChart({
       </View>
     </View>
   );
+}
+
+/** Erst sofort auf `from` springen, dann die eigentliche Animation – als eine Folge, damit es auch im Web greift. */
+function withTimingFrom(from: number, then: number, jump: { duration: number }): number {
+  'worklet';
+  return withSequence(withTiming(from, jump), then);
 }
 
 const styles = StyleSheet.create({
