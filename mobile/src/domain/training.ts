@@ -139,6 +139,14 @@ export function nextDayIndex(dayCount: number, lastCompletedIndex: number | null
 export const REST_PRESETS = [30, 60, 90, 120, 180, 240, 300] as const;
 
 /**
+ * Pause nach einem Satz: einmal gewählte Länge (gilt für alle Sätze, bis du sie änderst) oder sonst die Pause aus dem
+ * Plan für diesen Satz. 0 = keine Pause.
+ */
+export function restSecondsFor(choice: number | null, planned: number): number {
+  return choice !== null && choice > 0 ? choice : Math.max(planned, 0);
+}
+
+/**
  * `stopped` statt null nach „Überspringen“: so bleibt die Generation erhalten und der nächste
  * Timer bekommt eine neue Nummer. Sonst würde das Endsignal für ihn als „schon gemeldet“ gelten.
  */

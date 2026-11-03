@@ -11,6 +11,7 @@ import {
   parseSetInput,
   isRestVisible,
   restRemainingMs,
+  restSecondsFor,
   startRest,
   stopRest,
   validatePlan,
@@ -71,6 +72,13 @@ describe('Dauer und nächster Tag', () => {
 });
 
 describe('Pausentimer', () => {
+  test('einmal gewählte Pause gilt für jeden Satz, sonst die Pause aus dem Plan', () => {
+    expect(restSecondsFor(120, 240)).toBe(120);
+    expect(restSecondsFor(90, 0)).toBe(90); // auch ohne Pause im Plan (freies Training)
+    expect(restSecondsFor(null, 240)).toBe(240);
+    expect(restSecondsFor(null, 0)).toBe(0);
+    expect(restSecondsFor(0, 180)).toBe(180);
+  });
   test('Start: Restzeit aus Endzeit', () => {
     const timer = startRest(null, 90, 1_000);
     expect(restRemainingMs(timer, 31_000)).toBe(60_000);

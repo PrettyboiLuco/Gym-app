@@ -43,11 +43,13 @@ import {
   updateSetDetails,
   type PlanHint,
   loadRestAuto,
+  loadRestChoice,
   loadRestTimer,
   reopenSet,
   replaceOpenSets,
   saveProgressionOn,
   saveRestAuto,
+  saveRestChoice,
   saveRestTimer,
   type Exercise,
   type LastPerformance,
@@ -61,7 +63,17 @@ import { replacementOptions } from '@/domain/planner';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep, type Advice, type PastSession } from '@/domain/progression';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import { nowMs } from '@/domain/time';
-import { extendRest, formatClock, isStaleSession, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
+import {
+  extendRest,
+  formatClock,
+  isStaleSession,
+  parseSecondsInput,
+  parseSetInput,
+  restSecondsFor,
+  startRest,
+  stopRest,
+  type RestTimer,
+} from '@/domain/training';
 import { kgToUnit, parseDecimal, type WeightUnit } from '@/domain/units';
 import { exerciseName } from '@/format/exercise-name';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -108,6 +120,8 @@ export default function SessionScreen() {
   // RIR und Hinweise aus dem Plan (z. B. „Becken bleibt am Polster“).
   const [hints, setHints] = useState<Record<string, PlanHint>>({});
   const [restAuto, setRestAuto] = useState(true);
+  // Einmal gewählte Pausenlänge (null = wie im Plan je Übung) – startet nach jedem abgehakten Satz von selbst.
+  const [restChoice, setRestChoice] = useState<number | null>(null);
   // Steigerungsvorschläge (TRAIN-018) und Ersatz bei belegtem Gerät (TRAIN-016).
   const [progressionOn, setProgressionOn] = useState(true);
   const [history, setHistory] = useState<Record<string, PastSession[]>>({});
@@ -139,6 +153,7 @@ export default function SessionScreen() {
       timedSessionsForWorkout(db, id),
       loadProgressionOn(db),
     ]);
+    setRestChoice(await loadRestChoice(db));
     setProgressionOn(progression);
     setPlateSetup(await loadPlateSetup(db));
     setUsable((await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT])).equipment);
@@ -281,9 +296,10 @@ export default function SessionScreen() {
     // In der Pause fragen, wie viele Wiederholungen noch gegangen wären (nicht bei Zeit- und Aufwärmsätzen).
     setAskRirFor(!isTimed(row.exerciseId) && row.setType !== 'aufwaermen' ? row.id : null);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
-    if (restAuto && row.restSeconds > 0 && !beforeDrop) {
+    const restSeconds = restSecondsFor(restChoice, row.restSeconds);
+    if (restAuto && restSeconds > 0 && !beforeDrop) {
       try {
-        await updateTimer(startRest(timer, row.restSeconds, nowMs()));
+        await updateTimer(startRest(timer, restSeconds, nowMs()));
         // Pause im Vollbild, solange noch etwas zu tun ist.
         if (anyOpenElsewhere) setRestFocus(true);
       } catch {
@@ -548,6 +564,18 @@ export default function SessionScreen() {
           <RestTimerBar
             timer={timer}
             onStart={(seconds) => updateTimer(startRest(timer, seconds, nowMs()))}
+            choice={restChoice}
+            planned={sets.find((s) => !s.completedAt)?.restSeconds || null}
+            auto={restAuto}
+            onChoose={async (seconds) => {
+              setRestChoice(seconds);
+              await saveRestChoice(db, seconds);
+              // Eine Zeit zu wählen heißt: sie soll laufen – Automatik einschalten, falls sie aus war.
+              if (!restAuto) {
+                setRestAuto(true);
+                await saveRestAuto(db, true);
+              }
+            }}
             onExtend={() => updateTimer(extendRest(timer, 30, nowMs()))}
             onSkip={() => updateTimer(stopRest(timer))}
             next={nextUp}

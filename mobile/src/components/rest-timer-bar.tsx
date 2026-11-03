@@ -5,10 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/card';
 import { ProgressRing } from '@/components/charts';
 import { haptic } from '@/components/haptics';
+import { PressableScale } from '@/components/pressable-scale';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Press } from '@/constants/motion';
 import { BottomTabInset, DisplayFont, Spacing } from '@/constants/theme';
-import { formatClock, isRestVisible, REST_PRESETS, restRemainingMs, type RestTimer } from '@/domain/training';
+import { formatClock, isRestVisible, REST_PRESETS, restRemainingMs, restSecondsFor, type RestTimer } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
@@ -22,7 +24,8 @@ export type NextUp = { title: string; detail: string } | null;
  * - Läuft eine Pause: Restzeit aus der gespeicherten Endzeit, +30 s, Überspringen; Tippen auf den Ring = Vollbild.
  * - Vollbild: großer Ring, Restzeit groß, was als Nächstes kommt; die letzten 3 Sekunden schlagen spürbar,
  *   am Ende ein Erfolgs-Signal (einmal pro Timer-Generation).
- * - Sonst: Pause von Hand starten, Schnellwahl 0:30 bis 5:00.
+ * - Sonst: Pausenlänge einmal wählen (wie im Plan oder 0:30 bis 5:00) – sie startet dann nach jedem abgehakten Satz
+ *   von selbst; „Jetzt starten“ für eine Pause von Hand.
  */
 export function RestTimerBar({
   timer,
@@ -33,8 +36,19 @@ export function RestTimerBar({
   focus = false,
   onFocusChange,
   ask = null,
+  choice,
+  planned,
+  auto,
+  onChoose,
 }: {
   timer: RestTimer;
+  /** Einmal gewählte Pausenlänge (null = wie im Plan). */
+  choice: number | null;
+  /** Pause laut Plan für den nächsten offenen Satz (null = keine). */
+  planned: number | null;
+  /** Startet die Pause nach dem Abhaken von selbst? */
+  auto: boolean;
+  onChoose: (seconds: number | null) => void;
   onStart: (seconds: number) => void;
   onExtend: () => void;
   onSkip: () => void;
@@ -69,26 +83,43 @@ export function RestTimerBar({
   }, [timer, visible, remaining]);
 
   if (!visible) {
+    // Einmal wählen, dann läuft die Pause nach jedem abgehakten Satz von selbst (gilt auch fürs nächste Training).
+    const options: (number | null)[] = planned ? [null, ...REST_PRESETS] : [...REST_PRESETS];
+    const current = restSecondsFor(choice, planned ?? 0);
     return (
       <ThemedView type="backgroundElement" style={styles.bar}>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('session.restManual')}
-        </ThemedText>
+        <View style={styles.chooseHead}>
+          <ThemedText type="smallBold" style={styles.text}>
+            {t('session.restChoose')}
+          </ThemedText>
+          {current > 0 ? <Button label={t('session.restNow')} variant="quiet" size="compact" onPress={() => onStart(current)} /> : null}
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presets}>
-          {REST_PRESETS.map((seconds) => (
-            <Pressable
-              key={seconds}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('session.restManual')} ${formatClock(seconds * 1000)}`}
-              onPress={() => {
-                haptic.tap();
-                onStart(seconds);
-              }}
-              style={({ pressed }) => [styles.preset, { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.6 : 1 }]}>
-              <ThemedText type="smallBold">{formatClock(seconds * 1000)}</ThemedText>
-            </Pressable>
-          ))}
+          {options.map((seconds) => {
+            const selected = seconds === null ? choice === null : choice === seconds;
+            const label = seconds === null ? `${t('session.restPlan')} ${formatClock((planned ?? 0) * 1000)}` : formatClock(seconds * 1000);
+            return (
+              <PressableScale
+                key={seconds ?? 'plan'}
+                scaleTo={Press.button}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${t('session.restChoose')}: ${label}`}
+                onPress={() => {
+                  haptic.tap();
+                  onChoose(seconds);
+                }}
+                style={[styles.preset, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+                <ThemedText type="smallBold" style={{ color: selected ? theme.onPrimary : theme.text }}>
+                  {label}
+                </ThemedText>
+              </PressableScale>
+            );
+          })}
         </ScrollView>
+        <ThemedText type="small" themeColor="textSecondary">
+          {auto ? t('session.restAutoHint') : t('session.restAutoOff')}
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -217,6 +248,7 @@ const styles = StyleSheet.create({
   text: { flex: 1 },
   clock: { fontSize: 17, lineHeight: 22, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
   presets: { gap: Spacing.two },
+  chooseHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   preset: { minHeight: 40, minWidth: 56, paddingHorizontal: Spacing.three, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   focus: { flex: 1, paddingHorizontal: Spacing.four, paddingBottom: Spacing.four, gap: Spacing.four },
   focusTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.three, minHeight: 44 },
