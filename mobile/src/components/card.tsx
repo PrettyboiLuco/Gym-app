@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View, type GestureResponderEvent, type PressableProps } from 'react-native';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, View, type GestureResponderEvent, type PressableProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { haptic } from '@/components/haptics';
@@ -93,6 +93,8 @@ export function Button({
         {...props}
         disabled={disabled}
         onPress={(e) => {
+          // Ein Knopf schließt die Eingabe ab (z. B. „Speichern“ nach dem Gewicht): Tastatur zu.
+          Keyboard.dismiss();
           if (variant === 'destructive') haptic.warning();
           else haptic.tap();
           press(e);
