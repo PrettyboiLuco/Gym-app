@@ -1,4 +1,4 @@
-// Kalorienrechner und Tagesübersicht (Register CALC-001–005, TRACK-001–003, COACH-002/003).
+// Kalorienrechner (Register CALC-001–005, COACH-002/003).
 // Alle Zahlen sind Schätzungen. Aktivitätsfaktoren und Untergrenzen sind noch nicht fachlich
 // freigegeben und werden deshalb von außen übergeben statt hier festgelegt.
 
@@ -20,13 +20,6 @@ export function restingEnergy(kg: number, cm: number, age: number, term: Formula
   return 10 * kg + 6.25 * cm - 5 * age + SEX_TERM[term];
 }
 
-/** Tagesbedarf-Schätzung: Ruheenergie × Aktivitätsfaktor aus einer dokumentierten Tabelle. */
-export function energyEstimate(resting: number, level: string, activityTable: Record<string, number>): number {
-  const factor = activityTable[level];
-  if (factor === undefined) throw new Error('unknown activity level');
-  return resting * factor;
-}
-
 export type TargetResult = { status: 'vorschlag'; kcal: number } | { status: 'fachpruefung' };
 
 /** Zielvorschlag; unterhalb der Untergrenze gibt es keine Zahl, sondern einen Prüfhinweis. */
@@ -36,18 +29,6 @@ export function calorieTarget(estimate: number, goal: Goal, delta: number, floor
   if (goal === 'zunehmen' && delta <= 0) throw new Error('gain requires surplus');
   const kcal = estimate + delta;
   return kcal < floor ? { status: 'fachpruefung' } : { status: 'vorschlag', kcal };
-}
-
-export type DaySummary = { eaten: number; remaining: number; incomplete: boolean };
-
-/**
- * Tagesübersicht aus den Kalorien der Einträge. Unbekannte Werte (null) zählen nicht als 0,
- * sondern markieren den Tag als unvollständig. Training wird nicht zusätzlich gutgeschrieben.
- */
-export function daySummary(entryKcal: (number | null)[], goalKcal: number): DaySummary {
-  const known = entryKcal.filter((k): k is number => k !== null);
-  const eaten = known.reduce((sum, k) => sum + k, 0);
-  return { eaten, remaining: goalKcal - eaten, incomplete: known.length !== entryKcal.length };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -79,6 +60,19 @@ export const DELTA_OPTIONS: Record<Goal, readonly number[]> = {
 
 /** Feste Untergrenze in kcal; zusätzlich nie unter der geschätzten Ruheenergie (CALC-005). */
 export const CALORIE_FLOOR = 1200;
+
+/** Untergrenze für Vorschläge: max(1200, Ruheenergie), auf 10 kcal aufgerundet; ohne Ruheenergie 1200 (CALC-005). */
+export function calorieFloor(resting: number | null): number {
+  return Math.ceil(Math.max(CALORIE_FLOOR, resting ?? 0) / 10) * 10;
+}
+
+/** Untergrenze aus Körperdaten (Ruheenergie nach Mifflin-St Jeor); fehlt etwas oder Alter außerhalb 19–78: 1200. */
+export function calorieFloorFor(body: { weightKg: number | null; heightCm: number | null; age: number | null; term: FormulaTerm | null }): number {
+  const { weightKg, heightCm, age, term } = body;
+  if (weightKg === null || heightCm === null || age === null || term === null || !(weightKg > 0) || !(heightCm > 0)) return CALORIE_FLOOR;
+  if (age < POPULATION_AGE.min || age > POPULATION_AGE.max) return CALORIE_FLOOR;
+  return calorieFloor(restingEnergy(weightKg, heightCm, age, term));
+}
 
 /** WHO-Grenze für Untergewicht bei Erwachsenen (BMI). Schwelle für die App fachlich offen (GOAL-007). */
 export const UNDERWEIGHT_BMI = 18.5;
@@ -162,7 +156,8 @@ export function calculate(input: CalculatorInput): CalculatorResult {
 
   const resting = restingEnergy(kg, cm, age, input.term!);
   const factor = ACTIVITY_LEVELS[input.activity!] + (input.sport ? SPORT_PAL : 0);
-  const estimate = energyEstimate(resting, 'x', { x: factor });
+  // Tagesbedarf = Ruheenergie × Aktivitätsfaktor (Stufe aus ACTIVITY_LEVELS, ggf. mit Sportzuschlag).
+  const estimate = resting * factor;
   const floor = Math.max(CALORIE_FLOOR, resting);
   const target = calorieTarget(estimate, input.goal, input.delta, floor);
   if (target.status === 'fachpruefung') return { status: 'fachpruefung', resting, factor, estimate };

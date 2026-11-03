@@ -23,10 +23,5 @@ export function remainingMs(endAtMs: number, nowMs: number): number {
   return Math.max(0, endAtMs - nowMs);
 }
 
-/** Ein Alarm gilt nur, wenn er zur aktuellen Timer-Generation gehört (verhindert Altalarme). */
-export function isCurrentAlarm(alarmGeneration: number, timerGeneration: number): boolean {
-  return alarmGeneration === timerGeneration;
-}
-
 /** Jetzt in Millisekunden – nur in Event-Handlern aufrufen, nicht beim Rendern (Timer, Startzeiten). */
 export const nowMs = () => Date.now();

@@ -2,6 +2,8 @@
 // vorhanden, sonst der eigene Eintrag (HEALTH-005). Schritte erhöhen das Kalorienziel nicht – sie stecken
 // schon in der Aktivitätsstufe (HEALTH-007).
 
+import { mean } from './math';
+
 export type StepSource = 'manuell' | 'apple_health';
 export type StepEntry = { id: string; day: string; steps: number; source: StepSource; fetchedAt: string };
 
@@ -24,7 +26,7 @@ export function stepGoalDays(entries: StepEntry[], target: number): string[] {
 /** Durchschnitt über Tage mit Wert (Tage ohne Eintrag zählen nicht als 0). */
 export function stepsAverage(entries: StepEntry[], days: string[]): number | null {
   const values = days.map((d) => stepsForDay(entries, d)?.steps).filter((v): v is number => v !== undefined);
-  return values.length ? values.reduce((s, v) => s + v, 0) / values.length : null;
+  return mean(values);
 }
 
 export function parseSteps(input: string): number | null {

@@ -1,5 +1,7 @@
 // Blutdruck-Tagebuch (A10.4): Eingabe prüfen und Schnitt bilden. Die App bewertet die Werte nicht.
 
+import { mean } from './math';
+
 export const BP_RANGE = { systolic: { min: 50, max: 260 }, diastolic: { min: 30, max: 180 }, pulse: { min: 25, max: 220 } } as const;
 
 export type BpProblem = 'systolic' | 'diastolic' | 'order' | 'pulse';
@@ -25,7 +27,7 @@ export function parseBloodPressure(form: { systolic: string; diastolic: string; 
 /** Schnitt der Messungen (gerundet), z. B. der letzten 7 Tage; leer → null. */
 export function bpAverage(list: { systolic: number; diastolic: number; pulse: number | null }[]) {
   if (!list.length) return null;
-  const avg = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
+  const avg = (xs: number[]) => Math.round(mean(xs)!);
   const pulses = list.map((m) => m.pulse).filter((p): p is number => p !== null);
   return {
     systolic: avg(list.map((m) => m.systolic)),

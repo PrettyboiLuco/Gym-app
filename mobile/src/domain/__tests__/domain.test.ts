@@ -1,10 +1,13 @@
 // Übernahme der isolierten Referenztests (reference/Referenztests*.py) als App-Tests.
+// Entfallen (03.11.2026): die Fälle zu daySummary (Kalorientracker), energyEstimate (Schätzung mit Aktivitätstabelle)
+// und isCurrentAlarm (Timer-Generation). Diese Funktionen wurden in der App nicht genutzt und sind entfernt; die
+// Tagesübersicht rechnet nutrition.ts (Tagessummen mit unbekannten Werten), der Rechner Ruheenergie × Faktor direkt.
 
 import { describe, expect, test } from '@jest/globals';
 
-import { calorieTarget, daySummary, energyEstimate, restingEnergy } from '../energy';
+import { calorieTarget, restingEnergy } from '../energy';
 import { nutrientForAmount, recipePortion } from '../nutrition';
-import { isCurrentAlarm, localDay, remainingMs } from '../time';
+import { localDay, remainingMs } from '../time';
 import { weightTrend } from '../weight';
 
 describe('Nährwerte', () => {
@@ -26,20 +29,10 @@ describe('Kalorienrechner', () => {
   test('Alter 80 außerhalb Population', () => expect(() => restingEnergy(70, 175, 80, '+5')).toThrow());
   test('Gewicht 0 abgelehnt', () => expect(() => restingEnergy(0, 175, 30, '+5')).toThrow());
 
-  const testTable = { test_mittel: 1.55 }; // Testparameter, keine freigegebene Stufe
-  test('Schätzung 1780 × 1,55 = 2759', () => expect(energyEstimate(1780, 'test_mittel', testTable)).toBeCloseTo(2759));
-  test('unbekannte Aktivitätsstufe abgelehnt', () => expect(() => energyEstimate(1780, 'extrem', testTable)).toThrow());
   test('abnehmen −500 ergibt 2259', () => expect(calorieTarget(2759, 'abnehmen', -500, 1200)).toEqual({ status: 'vorschlag', kcal: 2259 }));
   test('unter Untergrenze keine Zahl', () => expect(calorieTarget(1600, 'abnehmen', -500, 1200)).toEqual({ status: 'fachpruefung' }));
   test('abnehmen mit Überschuss abgelehnt', () => expect(() => calorieTarget(2000, 'abnehmen', 300, 1200)).toThrow());
   test('halten mit Delta abgelehnt', () => expect(() => calorieTarget(2000, 'halten', -100, 1200)).toThrow());
-});
-
-describe('Kalorientracker', () => {
-  test('bekannte 800 kcal gegessen, 1200 übrig, unvollständig', () =>
-    expect(daySummary([500, 300, null], 2000)).toEqual({ eaten: 800, remaining: 1200, incomplete: true }));
-  test('bekannte Null bleibt vollständig', () => expect(daySummary([0, 250], 2000).incomplete).toBe(false));
-  test('Überschreitung ergibt negativen Rest', () => expect(daySummary([1500, 800], 2000).remaining).toBe(-300));
 });
 
 describe('Gewicht', () => {
@@ -83,5 +76,4 @@ describe('Zeit und Timer', () => {
   });
   test('Restzeit aus Endzeit', () => expect(remainingMs(1000, 970)).toBe(30));
   test('abgelaufener Timer bleibt bei 0', () => expect(remainingMs(1000, 1100)).toBe(0));
-  test('alter Alarm wird ignoriert', () => expect(isCurrentAlarm(1, 2)).toBe(false));
 });

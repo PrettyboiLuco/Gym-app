@@ -5,15 +5,17 @@
 // - Nur mit genug Daten: in beiden Wochen an ≥ 4 Tagen gewogen (7-Tage-Schnitt über Tagesmittel) und ≥ 5 vollständig erfasste Tage.
 // - Nie bei sensibler Situation (COACH-010) und nie ein Abnehm-Vorschlag bei Untergewicht (GOAL-007).
 // - Lag das Essen im Schnitt > 150 kcal über dem Ziel, wird das Ziel nicht gesenkt, sondern erst Einhalten empfohlen.
-// - Schritte von ±100 kcal, nie unter die Untergrenze (CALC-005); Ziel abnehmen: kein Rückgang → −100,
+// - Schritte von ±100 kcal, nie unter die Untergrenze max(1200, Ruheenergie) (CALC-005; bis 03.11.2026 wurde hier
+//   nur 1200 geprüft); Ziel abnehmen: kein Rückgang → −100,
 //   mehr als 1 % des Gewichts pro Woche verloren → +100. Zunehmen: kein Anstieg → +100, mehr als 0,5 % → −100.
 //   Halten: mehr als ±0,5 kg → ±100 in Gegenrichtung.
 // - Schlaf ist nur Kontext (COACH-006): kurzer Schlaf ergibt einen Hinweis, nie eine Kalorienänderung.
 // - Status krank/verletzt/Pause in der Woche (A6.7): kein Kalorienvorschlag.
 
 import type { V2Result } from './adaptive';
-import { daysBetween, shiftDay } from './dates';
+import { daysBetween, shiftDay, weekDays as weekFrom } from './dates';
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI, type Goal } from './energy';
+import { mean } from './math';
 import { weekAverage } from './nutrition';
 import { weightTrend, type WeightEntry } from './weight';
 
@@ -58,6 +60,8 @@ export type CheckinInput = {
   currentGoal: number | null;
   /** Status krank/verletzt/Pause in dieser Woche (A6): dann kein Kalorienvorschlag. */
   paused?: string | null;
+  /** Untergrenze max(1200, Ruheenergie) (CALC-005, energy.ts calorieFloor); ohne Angabe 1200. */
+  floor?: number;
 };
 
 export type CheckinSummary = {
@@ -93,12 +97,21 @@ export type CheckinSuggestion =
 
 export type CheckinHint = 'trainingWeniger' | 'trainingOk' | 'schlafKurz' | 'eiweissWenig' | 'ballaststoffeWenig';
 
-export type CheckinResult = { summary: CheckinSummary; suggestion: CheckinSuggestion; hints: CheckinHint[] };
+export type CheckinResult = {
+  summary: CheckinSummary;
+  suggestion: CheckinSuggestion;
+  hints: CheckinHint[];
+  /** Untergrenze, mit der gerechnet wurde (für Fassung 2, applyV2); fehlt = 1200. */
+  floor?: number;
+};
 
-/** Die 7 Tage bis einschließlich weekEnd, älteste zuerst. */
-export function weekDays(weekEnd: string): string[] {
-  return Array.from({ length: 7 }, (_, i) => shiftDay(weekEnd, i - 6));
+/** Die 7 Tage bis einschließlich weekEnd, älteste zuerst (anders als dates.weekDays, das ab Montag zählt). */
+export function weekDaysUntil(weekEnd: string): string[] {
+  return weekFrom(shiftDay(weekEnd, -6));
 }
+
+/** Alter Name von weekDaysUntil – bleibt nur, bis app/progress/checkin.tsx auf weekDaysUntil umgestellt ist. */
+export const weekDays = weekDaysUntil;
 
 /** Ist ein neuer Check-in fällig (letzter vor ≥ 7 Tagen oder noch keiner)? */
 export function checkinDue(lastWeekEnd: string | null, today: string): boolean {
@@ -112,7 +125,7 @@ export function weeklyCheckin(input: CheckinInput): CheckinResult {
   const change = weightAvg !== null && weightAvgPrev !== null ? weightAvg - weightAvgPrev : null;
   const week = weekAverage(input.days);
   const goals = input.days.filter((d) => d.goal !== null).map((d) => d.goal as number);
-  const sleepAvg = input.sleepHours.length ? input.sleepHours.reduce((s, h) => s + h, 0) / input.sleepHours.length : null;
+  const sleepAvg = mean(input.sleepHours);
   const summary: CheckinSummary = {
     weightAvg,
     weightAvgPrev,
@@ -120,7 +133,7 @@ export function weeklyCheckin(input: CheckinInput): CheckinResult {
     completeDays: week.trackedDays,
     incompleteDays: week.incompleteDays,
     kcalAvg: week.average,
-    goalAvg: goals.length ? goals.reduce((s, g) => s + g, 0) / goals.length : null,
+    goalAvg: mean(goals),
     workouts: input.workouts,
     plannedPerWeek: input.plannedPerWeek,
     stepsAvg: input.stepsAvg,
@@ -138,16 +151,13 @@ export function weeklyCheckin(input: CheckinInput): CheckinResult {
     if (summary.fiberAvg !== null && summary.fiberGoal !== null && summary.fiberAvg < summary.fiberGoal * 0.8) hints.push('ballaststoffeWenig');
   }
 
-  return { summary, suggestion: suggest(input, summary), hints };
+  return { summary, suggestion: suggest(input, summary), hints, floor: input.floor ?? CALORIE_FLOOR };
 }
 
 /** Eiweiß und Ballaststoffe im Schnitt der vollständig erfassten Tage, mit Ziel (C9). */
 function macroAverages(days: CheckinDay[]) {
   const complete = days.filter((d) => d.entries > 0 && d.kcal !== null && d.unknownKcal === 0 && !d.flagged);
-  const avg = (values: (number | null | undefined)[]) => {
-    const known = values.filter((v): v is number => typeof v === 'number');
-    return known.length ? known.reduce((s, v) => s + v, 0) / known.length : null;
-  };
+  const avg = (values: (number | null | undefined)[]) => mean(values.filter((v): v is number => typeof v === 'number'));
   return {
     proteinAvg: avg(complete.map((d) => d.protein)),
     proteinGoal: avg(days.map((d) => d.goalProtein)),
@@ -196,10 +206,11 @@ function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
   if (delta === 0) return { kind: 'passt' };
   // Kein Senken bei Untergewicht oder unter die Untergrenze (GOAL-007, CALC-005).
   if (delta < 0 && input.heightCm !== null && bmi(weight, input.heightCm) < UNDERWEIGHT_BMI) return { kind: 'passt' };
-  const to = Math.max(CALORIE_FLOOR, goal + delta);
+  const floor = input.floor ?? CALORIE_FLOOR;
+  const to = Math.max(floor, goal + delta);
   if (to === goal) return { kind: 'passt' };
   // Liegt das eigene Ziel unter der Untergrenze, ist das der Grund – nicht der Gewichtsverlauf (Phase 1 Scan, F8).
-  if (goal < CALORIE_FLOOR && to > goal) return { kind: 'kcal', from: goal, to, reason: 'untergrenze' };
+  if (goal < floor && to > goal) return { kind: 'kcal', from: goal, to, reason: 'untergrenze' };
   return { kind: 'kcal', from: goal, to, reason };
 }
 
@@ -210,9 +221,12 @@ function suggest(input: CheckinInput, s: CheckinSummary): CheckinSuggestion {
 export function applyV2(result: CheckinResult, v2: V2Result): CheckinResult & { rulesVersion: 1 | 2 } {
   const blocked = ['sensibel', 'ohneZahlen', 'pausiert'].includes(result.suggestion.kind);
   if (blocked || v2.kind === 'ohne') return { ...result, rulesVersion: 1 };
+  // Untergrenze des Check-ins (max(1200, Ruheenergie)) gilt auch hier, selbst wenn suggestV2 nur 1200 kannte.
+  const floor = result.floor ?? CALORIE_FLOOR;
+  const to = v2.kind === 'kcal' ? Math.max(floor, v2.to) : null;
   const suggestion: CheckinSuggestion =
-    v2.kind === 'kcal'
-      ? { kind: 'kcal', from: v2.from, to: v2.to, reason: v2.from < CALORIE_FLOOR && v2.to > v2.from ? 'untergrenze' : 'verbrauch' }
+    v2.kind === 'kcal' && to !== v2.from
+      ? { kind: 'kcal', from: v2.from, to: to!, reason: v2.from < floor && to! > v2.from ? 'untergrenze' : 'verbrauch' }
       : { kind: 'passt' };
   return { ...result, suggestion, rulesVersion: 2 };
 }

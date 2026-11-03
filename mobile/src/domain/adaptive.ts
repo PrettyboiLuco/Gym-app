@@ -11,13 +11,16 @@
 // - Check-in Fassung 2 (nur, wenn gewählt): Ziel = Verbrauch + Abstand der Coach-Einrichtung (z. B. −500), auf 50 kcal
 //   gerundet, höchstens ±200 kcal Änderung je Woche, unter 100 kcal Unterschied kein Vorschlag, nie unter die Untergrenze, kein Senken bei Untergewicht; ohne
 //   Schätzung gilt Fassung 1.
+//
+// Regeln Fassung 2 (03.11.2026): wie Fassung 1, die Untergrenze ist max(1200, Ruheenergie) statt nur 1200 (CALC-005,
+// `floor`; der Check-in prüft sie zusätzlich in applyV2).
 
 import { shiftDay } from './dates';
 import { bmi, CALORIE_FLOOR, UNDERWEIGHT_BMI } from './energy';
-import { roundTo } from './math';
+import { mean, roundTo } from './math';
 import { weightTrend, type WeightEntry } from './weight';
 
-export const ADAPTIVE_RULES_VERSION = 1;
+export const ADAPTIVE_RULES_VERSION = 2;
 export const WINDOW_DAYS = 28;
 export const MIN_COMPLETE_DAYS = 14;
 export const KCAL_PER_KG = 7700;
@@ -66,7 +69,7 @@ export function estimateExpenditure(days: IntakeDay[], weights: Pick<WeightEntry
     };
   }
   const spanDays = windowDays - 7;
-  const intakeAvg = complete.reduce((s, d) => s + (d.kcal ?? 0), 0) / complete.length;
+  const intakeAvg = mean(complete.map((d) => d.kcal ?? 0))!;
   const change = trendEnd - trendStart;
   const kcal = roundTo(intakeAvg - (change * KCAL_PER_KG) / spanDays, 10);
   const plusMinus = roundTo((KCAL_PER_KG * TREND_NOISE_KG) / spanDays + BASE_UNCERTAINTY, ROUND_TO);
@@ -85,7 +88,7 @@ export function weeklyBalance(days: IntakeDay[], weights: Pick<WeightEntry, 'day
     const to = shiftDay(endDay, -7 * w);
     const from = shiftDay(to, -6);
     const complete = days.filter((d) => d.day >= from && d.day <= to && isComplete(d));
-    const intakeAvg = complete.length ? complete.reduce((s, d) => s + (d.kcal ?? 0), 0) / complete.length : null;
+    const intakeAvg = mean(complete.map((d) => d.kcal ?? 0));
     const end = weightTrend(weights, to);
     const start = weightTrend(weights, shiftDay(to, -7));
     const change = end !== null && start !== null ? end - start : null;
@@ -102,6 +105,8 @@ export type V2Input = {
   currentGoal: number | null;
   weightKg: number | null;
   heightCm: number | null;
+  /** Untergrenze max(1200, Ruheenergie) (CALC-005); ohne Angabe 1200. */
+  floor?: number;
 };
 
 export type V2Result =
@@ -114,9 +119,10 @@ export function suggestV2(i: V2Input): V2Result {
   if (i.estimate.kind !== 'schaetzung') return { kind: 'ohne', why: 'lernen' };
   if (i.delta === null) return { kind: 'ohne', why: 'keineEinrichtung' };
   if (i.currentGoal === null) return { kind: 'ohne', why: 'keinZiel' };
-  const target = Math.max(CALORIE_FLOOR, roundTo(i.estimate.kcal + i.delta, ROUND_TO));
+  const floor = i.floor ?? CALORIE_FLOOR;
+  const target = Math.max(floor, roundTo(i.estimate.kcal + i.delta, ROUND_TO));
   let to = Math.max(i.currentGoal - MAX_WEEKLY_CHANGE, Math.min(i.currentGoal + MAX_WEEKLY_CHANGE, target));
-  to = Math.max(CALORIE_FLOOR, roundTo(to, ROUND_TO));
+  to = Math.max(floor, roundTo(to, ROUND_TO));
   const underweight = i.weightKg !== null && i.heightCm !== null && bmi(i.weightKg, i.heightCm) < UNDERWEIGHT_BMI;
   if (to < i.currentGoal && underweight) return { kind: 'passt', target };
   if (Math.abs(to - i.currentGoal) < MIN_CHANGE) return { kind: 'passt', target };

@@ -1,10 +1,4 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
- */
-
-import '@/global.css';
-
+// Gestaltung: Farben für Hell/Dunkel, Abstände und Schrift – eine Quelle für die ganze App.
 import { Platform } from 'react-native';
 
 /**

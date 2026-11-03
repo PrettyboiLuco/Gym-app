@@ -1,6 +1,6 @@
 // Datenbankzugriffe für Schlaf und den wöchentlichen Check-in (Phase 9.2, COACH-006, COACH-008).
 
-import { weekDays, type CheckinInput, type CheckinResult, type CheckinSuggestion } from '@/domain/checkin';
+import { weekDaysUntil, type CheckinInput, type CheckinResult, type CheckinSuggestion } from '@/domain/checkin';
 import type { MacroChoice } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
 import type { Goal } from '@/domain/energy';
@@ -9,7 +9,7 @@ import { stepsAverage } from '@/domain/steps';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
-import { activeWeightGoal, adjustCalorieGoal, calorieGoalOn, trainingDays } from './goals';
+import { activeWeightGoal, adjustCalorieGoal, calorieFloorOn, calorieGoalOn, trainingDays } from './goals';
 import { daySums, loadNutritionSettings } from './nutrition';
 import { saveCheck, statusDuring } from './readiness';
 import { listSteps } from './steps';
@@ -69,11 +69,11 @@ export async function deleteSleep(db: Db, id: string) {
 
 /** Sammelt alle Werte der Woche bis weekEnd (einschließlich). */
 export async function checkinInput(db: Db, weekEnd: string, profile: Profile, timeZone: string): Promise<CheckinInput> {
-  const days = weekDays(weekEnd);
+  const days = weekDaysUntil(weekEnd);
   const from = days[0];
   // Der Vorschlag bezieht sich auf das Ziel, das ab heute gilt (der Tag nach der Woche).
   const today = shiftDay(weekEnd, 1);
-  const [weights, sums, steps, sleep, plans, weightGoal, trained, current, settings] = await Promise.all([
+  const [weights, sums, steps, sleep, plans, weightGoal, trained, current, settings, floor] = await Promise.all([
     listWeights(db),
     daySums(db, from, weekEnd),
     listSteps(db, from),
@@ -84,6 +84,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     trainingDays(db, `${shiftDay(from, -1)}T00:00:00.000Z`, timeZone),
     calorieGoalOn(db, today),
     loadNutritionSettings(db),
+    calorieFloorOn(db, today),
   ]);
   const goals = await Promise.all(days.map((d) => calorieGoalOn(db, d)));
   const paused = await statusDuring(db, from, weekEnd);
@@ -117,6 +118,7 @@ export async function checkinInput(db: Db, weekEnd: string, profile: Profile, ti
     heightCm: profile.heightCm,
     currentGoal: current?.baseKcal ?? null,
     paused,
+    floor,
   };
 }
 

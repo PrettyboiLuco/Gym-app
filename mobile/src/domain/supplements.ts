@@ -2,8 +2,8 @@
 // schlägt keine Menge vor, nennt keine Marken und verspricht keine Wirkung (Health-Claims-Verordnung, LAW-010).
 // Name, Menge und Einheit stammen ausschließlich von dir.
 
-import { DAY_MS } from './dates';
-import { parseTime } from './reminders';
+import { daysBetween } from './dates';
+import { formatTime, parseTime } from './reminders';
 
 export const SUPPLEMENT_UNITS = ['g', 'mg', 'mcg', 'ie', 'ml', 'kapsel', 'tablette', 'tropfen', 'messloeffel', 'portion'] as const;
 export type SupplementUnit = (typeof SUPPLEMENT_UNITS)[number];
@@ -54,7 +54,7 @@ export function parseSupplementForm(form: SupplementForm, otherReminders: number
   if (minutes !== null && otherReminders >= MAX_SUPPLEMENT_REMINDERS) problems.push('tooManyReminders');
 
   if (problems.length > 0) return { value: null, problems };
-  const reminderTime = minutes === null ? null : `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  const reminderTime = minutes === null ? null : formatTime(minutes);
   return {
     value: { name, amount: amount === null || Number.isNaN(amount) ? null : amount, unit: amount === null ? null : form.unit, reminderTime },
     problems: [],
@@ -63,12 +63,10 @@ export function parseSupplementForm(form: SupplementForm, otherReminders: number
 
 /** An wie vielen der `days` Tage bis einschließlich `today` etwas abgehakt wurde. */
 export function takenOnDays(loggedDays: string[], today: string, days = 7): number {
-  const end = Date.parse(`${today}T12:00:00Z`);
-  const start = end - (days - 1) * DAY_MS;
   return new Set(
     loggedDays.filter((d) => {
-      const t = Date.parse(`${d}T12:00:00Z`);
-      return t >= start && t <= end;
+      const ago = daysBetween(d, today);
+      return ago >= 0 && ago < days;
     })
   ).size;
 }

@@ -4,12 +4,16 @@
 
 import type { Measurement, MeasureSite } from '@/domain/body';
 import { dayTarget, rescalePlan, type GoalPlan, type Macros } from '@/domain/coach';
-import type { Goal } from '@/domain/energy';
+import { calorieFloorFor, type Goal } from '@/domain/energy';
 import type { GoalDraft, GoalKind, Habit, LiftSet } from '@/domain/goals';
+import { ageOn } from '@/domain/profile';
 import { localDay } from '@/domain/time';
+import { weightTrend } from '@/domain/weight';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
+import { loadProfile } from './profile';
+import { listWeights } from './weights';
 
 // ----------------------------------------------------------------------------- Kalorienziel
 
@@ -129,8 +133,24 @@ export async function setCalorieGoal(
  */
 export async function adjustCalorieGoal(db: Db, kcal: number | null, validFrom: string, source: CalorieGoal['source'], inputs: unknown = null) {
   const current = await calorieGoalOn(db, validFrom);
-  const plan = kcal !== null && current?.plan?.macros ? rescalePlan(current.plan, kcal) : null;
+  // Ruhetag nie unter max(1200, Ruheenergie) – wie bei der Einrichtung, nicht nur 1200 (CALC-005).
+  const plan = kcal !== null && current?.plan?.macros ? rescalePlan(current.plan, kcal, await calorieFloorOn(db, validFrom)) : null;
   await setCalorieGoal(db, kcal, validFrom, plan ? 'coach' : source, inputs, plan);
+}
+
+/**
+ * Untergrenze für Kalorienvorschläge an diesem Tag: max(1200, Ruheenergie) aus Profil (Größe, Alter, Formel-Term) und
+ * Gewichtstrend, sonst dem letzten Gewicht (CALC-005). Fehlen Angaben, gilt 1200.
+ */
+export async function calorieFloorOn(db: Db, day: string): Promise<number> {
+  const [profile, weights] = await Promise.all([loadProfile(db), listWeights(db)]);
+  const weightKg = weightTrend(weights, day) ?? weights.find((w) => w.day <= day)?.kg ?? null;
+  return calorieFloorFor({
+    weightKg,
+    heightCm: profile.heightCm,
+    age: profile.birthMonth ? ageOn(profile.birthMonth, day) : null,
+    term: profile.formulaTerm,
+  });
 }
 
 export async function listCalorieGoals(db: Db, limit = 20): Promise<CalorieGoal[]> {

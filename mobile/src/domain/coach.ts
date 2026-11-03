@@ -9,11 +9,14 @@
 // - Makros: Eiweiß 1,6 g/kg (Cut 2,0; ohne regelmäßiges Training 0,8 bzw. Cut 1,2), Fett 30 % (mind. 20 %),
 //   Kohlenhydrate der Rest, Ballaststoffe mindestens 30 g (DGE).
 // - Trainingstage +200 kcal, Ruhetage so viel weniger, dass der Wochenschnitt gleich bleibt (höchstens −300).
+//
+// Fassung 2 (03.11.2026): wie Fassung 1; wird das Ziel später neu skaliert (Check-in, Einstellungen), gilt für den
+// Ruhetag ebenfalls max(1200, Ruheenergie) statt nur 1200.
 
 import { isoWeekday } from './dates';
-import { bmi, CALORIE_FLOOR, DELTA_OPTIONS, POPULATION_AGE, restingEnergy, UNDERWEIGHT_BMI, type FormulaTerm, type Goal } from './energy';
+import { bmi, CALORIE_FLOOR, calorieFloor, DELTA_OPTIONS, POPULATION_AGE, restingEnergy, UNDERWEIGHT_BMI, type FormulaTerm, type Goal } from './energy';
 
-export const COACH_RULES_VERSION = 1;
+export const COACH_RULES_VERSION = 2;
 
 /** Schritte pro Tag → Aktivitätsfaktor (Stufen nach Tudor-Locke; Zuordnung zum PAL vorläufig). */
 export const STEP_LEVELS = [
@@ -118,7 +121,7 @@ export function coachEnergy(input: CoachInput): CoachEnergy {
   const gym = gymPal(input.gymDays);
   const pal = Math.round((stepPal + gym) * 1000) / 1000;
   const maintenance = round10(resting * pal);
-  const floor = Math.ceil(Math.max(CALORIE_FLOOR, resting) / 10) * 10;
+  const floor = calorieFloor(resting);
   const wanted = round10(maintenance + input.delta);
   return {
     status: 'ok',
@@ -229,7 +232,10 @@ export function buildPlan(kcal: number, protein: number, trainingWeekdays: numbe
   };
 }
 
-/** Neues Kalorienziel (z. B. aus dem Check-in): Eiweiß, Ballaststoffe und Trainingstage bleiben, der Rest passt sich an. */
+/**
+ * Neues Kalorienziel (z. B. aus dem Check-in): Eiweiß, Ballaststoffe und Trainingstage bleiben, der Rest passt sich an.
+ * `floor` = Untergrenze für den Ruhetag, max(1200, Ruheenergie) (CALC-005, energy.ts calorieFloor); ohne Angaben 1200.
+ */
 export function rescalePlan(plan: GoalPlan, kcal: number, floor = CALORIE_FLOOR): GoalPlan {
   if (!plan.macros) return { ...plan, kcal, trainingKcal: null, restKcal: null, trainingWeekdays: null };
   // Fettanteil des bisherigen Ziels übernehmen (z. B. „Lean“ 20 %), damit die Ausrichtung erhalten bleibt.
