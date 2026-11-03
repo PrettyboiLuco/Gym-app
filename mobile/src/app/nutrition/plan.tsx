@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, ListRow } from '@/components/fields';
+import { Choice, ItemTools, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -89,6 +89,104 @@ export default function PlanScreen() {
     }
   }
 
+  // Tage mit Einträgen (oder gerade geöffnetem „Eigenes Rezept“) als eigene Karte; freie Tage gesammelt in einer Liste
+  // statt sieben gleicher Karten mit „Noch nichts geplant“.
+  const isOpenDay = (day: string) => data.entries.some((e) => e.day === day) || ownFor === day;
+  const freeDays = data.days.filter((day) => day >= today && !isOpenDay(day));
+
+  function renderDay(day: string, i: number) {
+    const list = data.entries.filter((e) => e.day === day);
+    // Vergangene Tage ohne Plan nicht zeigen
+    if (day < today && list.length === 0) return null;
+    const total = totals.get(day);
+    const goal = data.goals[i];
+    return (
+      <Card key={day} title={`${t(`reminders.day.${i + 1}`)}, ${formatDay(day)}`}>
+        {MEALS.map((meal) =>
+          list
+            .filter((e) => e.meal === meal)
+            .map((e) => {
+              const n = data.nutrients.get(e.id);
+              const facts =
+                !hide && n?.kcal != null
+                  ? ` · ${formatKcal(n.kcal * e.portions)} · ${formatNumber((n.protein ?? 0) * e.portions, 0)} g ${t('mealPlan.protein')}`
+                  : '';
+              return (
+                <View key={e.id} style={styles.entry}>
+                  <ThemedText type="small" style={styles.flex}>
+                    {`${t(`nutrition.meals.${meal}`)}: ${e.name} (${t('mealPlan.portions', { value: formatNumber(e.portions, 1) })})${facts}`}
+                  </ThemedText>
+                  {e.eatenEventId ? (
+                    <ThemedText type="small" style={{ color: theme.tint }}>
+                      {t('mealPlan.eaten')}
+                    </ThemedText>
+                  ) : (
+                    <>
+                      {e.day <= today ? <Button label={t('mealPlan.eat')} size="compact" onPress={() => eat(e)} /> : null}
+                      <ItemTools
+                        name={e.name}
+                        reorder={false}
+                        onRemove={async () => {
+                          await deletePlanEntry(db, e.id);
+                          await reload();
+                        }}
+                      />
+                    </>
+                  )}
+                </View>
+              );
+            })
+        )}
+        {list.length === 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('mealPlan.empty')}
+          </ThemedText>
+        ) : null}
+        {!hide && total ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {goal.kcal !== null
+              ? t('mealPlan.totalGoal', {
+                  kcal: formatKcal(Math.round(total.kcal)),
+                  goal: formatKcal(goal.kcal),
+                  protein: formatNumber(total.protein, 0),
+                })
+              : t('mealPlan.total', { kcal: formatKcal(Math.round(total.kcal)), protein: formatNumber(total.protein, 0) })}
+            {total.unknown ? ` ${t('mealPlan.unknown', { count: total.unknown })}` : ''}
+          </ThemedText>
+        ) : null}
+        <View style={styles.row}>
+          <Button
+            label={t('mealPlan.add')}
+            variant="secondary"
+            size="compact"
+            onPress={() => router.push({ pathname: '/nutrition/book', params: { planDay: day } })}
+          />
+          {data.own.length ? (
+            <Button label={t('mealPlan.addOwn')} variant="secondary" size="compact" onPress={() => setOwnFor(ownFor === day ? null : day)} />
+          ) : null}
+        </View>
+        {ownFor === day ? (
+          <>
+            <Choice label={t('nutrition.meal')} options={MEALS} value={ownMeal} onChange={setOwnMeal} format={(m) => t(`book.mealShort.${m}`)} />
+            {data.own.map((r) => (
+              <ListRow
+                key={r.recipeId}
+                title={r.name}
+                subtitle={r.portions ? t('mealPlan.ownPortions', { count: r.portions }) : t('mealPlan.ownNoPortions')}
+                accessory="+"
+                onPress={async () => {
+                  await addPlanEntries(db, [{ day, meal: ownMeal, source: 'eigen', ref: r.recipeId, name: r.name, portions: 1 }]);
+                  setOwnFor(null);
+                  await reload();
+                }}
+              />
+            ))}
+          </>
+        ) : null}
+      </Card>
+    );
+  }
+
   return (
     <Screen withHeader>
       <Card>
@@ -126,102 +224,23 @@ export default function PlanScreen() {
         />
       </Card>
 
-      {loaded
-        ? data.days.map((day, i) => {
-            const list = data.entries.filter((e) => e.day === day);
-            // Vergangene Tage ohne Plan nicht zeigen
-            if (day < today && list.length === 0) return null;
-            const total = totals.get(day);
-            const goal = data.goals[i];
-            return (
-              <Card key={day} title={`${t(`reminders.day.${i + 1}`)}, ${formatDay(day)}`}>
-                {MEALS.map((meal) =>
-                  list
-                    .filter((e) => e.meal === meal)
-                    .map((e) => {
-                      const n = data.nutrients.get(e.id);
-                      const facts =
-                        !hide && n?.kcal != null
-                          ? ` · ${formatKcal(n.kcal * e.portions)} · ${formatNumber((n.protein ?? 0) * e.portions, 0)} g ${t('mealPlan.protein')}`
-                          : '';
-                      return (
-                        <View key={e.id} style={styles.entry}>
-                          <ThemedText type="small" style={styles.flex}>
-                            {`${t(`nutrition.meals.${meal}`)}: ${e.name} (${t('mealPlan.portions', { value: formatNumber(e.portions, 1) })})${facts}`}
-                          </ThemedText>
-                          {e.eatenEventId ? (
-                            <ThemedText type="small" style={{ color: theme.tint }}>
-                              {t('mealPlan.eaten')}
-                            </ThemedText>
-                          ) : (
-                            <>
-                              {e.day <= today ? <Button label={t('mealPlan.eat')} size="compact" onPress={() => eat(e)} /> : null}
-                              <Button
-                                label="✕"
-                                accessibilityLabel={`${t('mealPlan.remove')}: ${e.name}`}
-                                variant="secondary"
-                                size="compact"
-                                onPress={async () => {
-                                  await deletePlanEntry(db, e.id);
-                                  await reload();
-                                }}
-                              />
-                            </>
-                          )}
-                        </View>
-                      );
-                    })
-                )}
-                {list.length === 0 ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {t('mealPlan.empty')}
-                  </ThemedText>
-                ) : null}
-                {!hide && total ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {goal.kcal !== null
-                      ? t('mealPlan.totalGoal', {
-                          kcal: formatKcal(Math.round(total.kcal)),
-                          goal: formatKcal(goal.kcal),
-                          protein: formatNumber(total.protein, 0),
-                        })
-                      : t('mealPlan.total', { kcal: formatKcal(Math.round(total.kcal)), protein: formatNumber(total.protein, 0) })}
-                    {total.unknown ? ` ${t('mealPlan.unknown', { count: total.unknown })}` : ''}
-                  </ThemedText>
-                ) : null}
-                <View style={styles.row}>
-                  <Button
-                    label={t('mealPlan.add')}
-                    variant="secondary"
-                    size="compact"
-                    onPress={() => router.push({ pathname: '/nutrition/book', params: { planDay: day } })}
-                  />
-                  {data.own.length ? (
-                    <Button label={t('mealPlan.addOwn')} variant="secondary" size="compact" onPress={() => setOwnFor(ownFor === day ? null : day)} />
-                  ) : null}
-                </View>
-                {ownFor === day ? (
-                  <>
-                    <Choice label={t('nutrition.meal')} options={MEALS} value={ownMeal} onChange={setOwnMeal} format={(m) => t(`book.mealShort.${m}`)} />
-                    {data.own.map((r) => (
-                      <ListRow
-                        key={r.recipeId}
-                        title={r.name}
-                        subtitle={r.portions ? t('mealPlan.ownPortions', { count: r.portions }) : t('mealPlan.ownNoPortions')}
-                        accessory="+"
-                        onPress={async () => {
-                          await addPlanEntries(db, [{ day, meal: ownMeal, source: 'eigen', ref: r.recipeId, name: r.name, portions: 1 }]);
-                          setOwnFor(null);
-                          await reload();
-                        }}
-                      />
-                    ))}
-                  </>
-                ) : null}
-              </Card>
-            );
-          })
-        : null}
+      {loaded ? data.days.map((day, i) => (isOpenDay(day) ? renderDay(day, i) : null)) : null}
+      {loaded && freeDays.length > 0 ? (
+        <Card title={t('mealPlan.freeTitle')}>
+          {freeDays.map((day, k) => (
+            <View key={day} style={[styles.freeRow, { borderColor: k === freeDays.length - 1 ? 'transparent' : theme.backgroundSelected }]}>
+              <ThemedText style={styles.flex}>{`${t(`reminders.day.${data.days.indexOf(day) + 1}`)}, ${formatDay(day)}`}</ThemedText>
+              {data.own.length ? <Button label={t('mealPlan.addOwn')} variant="quiet" size="compact" onPress={() => setOwnFor(day)} /> : null}
+              <Button
+                label={t('mealPlan.add')}
+                variant="secondary"
+                size="compact"
+                onPress={() => router.push({ pathname: '/nutrition/book', params: { planDay: day } })}
+              />
+            </View>
+          ))}
+        </Card>
+      ) : null}
       <ThemedText type="small" themeColor="textSecondary">
         {t('mealPlan.hint')}
       </ThemedText>
@@ -233,4 +252,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   flex: { flex: 1 },
+  freeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
 });

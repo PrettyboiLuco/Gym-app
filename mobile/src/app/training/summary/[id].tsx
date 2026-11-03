@@ -15,7 +15,7 @@ import { SessionFeedback } from '@/components/session-feedback';
 import { ShareCard } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';
 import { FigureStrip, WeekStrip, weekDays } from '@/components/today-widgets';
-import { DisplayFont, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
 import { timedSessionsForWorkout } from '@/data/routines';
@@ -36,7 +36,6 @@ import { EMPTY_TALLY, tallyMuscles, type MapMuscle, type MuscleTally } from '@/d
 import { findRecords, summarize, type Record } from '@/domain/summary';
 import { todayDay } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
@@ -104,7 +103,6 @@ async function loadSummary(db: Db, id: string) {
 export default function SummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  const dark = useColorScheme() === 'dark';
   const units = useUnits();
   const { data, db } = useLoad(
     (d) => loadSummary(d, id),
@@ -270,9 +268,6 @@ export default function SummaryScreen() {
               accessibilityLabel={`${nameOf(r.exerciseId)}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
               onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
               style={({ pressed }) => [styles.record, { opacity: pressed ? 0.7 : 1 }]}>
-              <View style={[styles.recordMark, { backgroundColor: dark ? theme.accent : theme.tint }]}>
-                <ThemedText style={[styles.recordMarkText, { color: dark ? theme.onAccent : theme.onTint }]}>↑</ThemedText>
-              </View>
               <View style={styles.flex}>
                 <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
@@ -349,18 +344,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.three,
     minHeight: 48,
-  },
-  recordMark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recordMarkText: {
-    fontFamily: DisplayFont.bold,
-    fontSize: 16,
-    lineHeight: 20,
   },
   recordName: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
   flex: { flex: 1 },

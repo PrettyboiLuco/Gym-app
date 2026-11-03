@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
-import { ConfirmButton, Field, ListRow } from '@/components/fields';
+import { ConfirmButton, EntryRow, Field, ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
@@ -290,11 +290,12 @@ export default function ProgressScreen() {
           <ThemedText themeColor="textSecondary">{t('progress.empty')}</ThemedText>
         ) : (
           (showAll ? weights : weights.slice(0, SHOWN)).map((entry) => (
-            <View key={entry.id} style={[styles.entry, { borderColor: theme.backgroundSelected }]}>
-              <ThemedText style={styles.flex}>{formatDay(entry.day)}</ThemedText>
-              <ThemedText style={styles.num}>{formatWeight(entry.kg, units.weight)}</ThemedText>
-              <ConfirmButton label={t('common.delete')} size="compact" onConfirm={() => remove(entry.id)} />
-            </View>
+            <EntryRow
+              key={entry.id}
+              title={formatDay(entry.day)}
+              value={formatWeight(entry.kg, units.weight)}
+              action={<ConfirmButton label={t('common.delete')} size="compact" onConfirm={() => remove(entry.id)} />}
+            />
           ))
         )}
         {weights.length > SHOWN ? (

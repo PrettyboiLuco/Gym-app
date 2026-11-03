@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { ConfirmButton, Field } from '@/components/fields';
+import { ConfirmButton, EntryRow, Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -73,18 +73,22 @@ export default function BloodPressureScreen() {
       <Card title={t('bloodPressure.history')}>
         {list.length === 0 ? <ThemedText type="small">{t('bloodPressure.empty')}</ThemedText> : null}
         {list.map((m) => (
-          <View key={m.id} style={styles.entry}>
-            <ThemedText style={styles.flex}>
-              {`${formatDay(m.day)} ${time(m.measuredAt)} · ${m.systolic}/${m.diastolic} mmHg${m.pulse ? ` · ${t('bloodPressure.pulseShort', { pulse: m.pulse })}` : ''}${m.note ? ` · ${m.note}` : ''}`}
-            </ThemedText>
-            <ConfirmButton
-              label={t('common.delete')}
-              onConfirm={async () => {
-                await deleteBloodPressure(db, m.id);
-                await reload();
-              }}
-            />
-          </View>
+          <EntryRow
+            key={m.id}
+            title={`${formatDay(m.day)} · ${time(m.measuredAt)}`}
+            subtitle={[m.pulse ? t('bloodPressure.pulseShort', { pulse: m.pulse }) : '', m.note ?? ''].filter(Boolean).join(' · ') || undefined}
+            value={`${m.systolic}/${m.diastolic}`}
+            action={
+              <ConfirmButton
+                label={t('common.delete')}
+                size="compact"
+                onConfirm={async () => {
+                  await deleteBloodPressure(db, m.id);
+                  await reload();
+                }}
+              />
+            }
+          />
         ))}
       </Card>
       <ThemedText type="small" themeColor="textSecondary">

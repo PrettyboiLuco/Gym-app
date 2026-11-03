@@ -2,16 +2,17 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { Card } from '@/components/card';
-import { Choice, ListRow } from '@/components/fields';
+import { DayBars } from '@/components/charts';
+import { Choice, EntryRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { daySums, DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
-import { shiftDay } from '@/domain/dates';
+import { isoWeekday, shiftDay } from '@/domain/dates';
 import { weekAverage } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
-import { formatDay, t } from '@/i18n';
+import { formatDay, formatNumber, t } from '@/i18n';
 import { formatKcal } from '@/services/nutrition-format';
 
 const RANGES = ['7', '30'] as const;
@@ -60,14 +61,31 @@ export default function WeekScreen() {
           {t('nutrition.week.basis')}
         </ThemedText>
       </Card>
+      {!data.hide && range === '7' && stats.trackedDays > 0 ? (
+        <Card>
+          <DayBars
+            label={data.rows.map((r) => `${formatDay(r.day)}: ${r.kcal === null ? t('nutrition.week.emptyDay') : formatKcal(r.kcal)}`).join(', ')}
+            days={[...data.rows].reverse().map((r) => ({
+              label: t(`reminders.dayShort.${isoWeekday(r.day)}` as 'reminders.dayShort.1'),
+              value: r.kcal,
+              today: r.day === endDay,
+            }))}
+            format={(v) => formatNumber(v, 0)}
+          />
+        </Card>
+      ) : null}
       <Card>
-        {data.rows.map((r) => {
+        {data.rows.map((r, i) => {
           const status =
-            r.entries === 0 ? t('nutrition.week.emptyDay') : r.kcal === null || r.unknownKcal > 0 || r.flagged ? t('nutrition.week.incompleteDay') : null;
-          const parts = data.hide
-            ? [t('nutrition.week.entries', { count: r.entries }), status]
-            : [r.entries === 0 ? null : r.kcal === null ? t('nutrition.kcalUnknown') : `${r.unknownKcal > 0 ? '≥ ' : ''}${formatKcal(r.kcal)}`, status];
-          return <ListRow key={r.day} title={formatDay(r.day)} subtitle={parts.filter(Boolean).join(' · ')} />;
+            r.entries === 0 ? t('nutrition.week.emptyDay') : r.kcal === null || r.unknownKcal > 0 || r.flagged ? t('nutrition.week.incompleteDay') : undefined;
+          const value = data.hide
+            ? t('nutrition.week.entries', { count: r.entries })
+            : r.entries === 0
+              ? '–'
+              : r.kcal === null
+                ? t('nutrition.kcalUnknown')
+                : `${r.unknownKcal > 0 ? '≥ ' : ''}${formatKcal(r.kcal)}`;
+          return <EntryRow key={r.day} title={formatDay(r.day)} subtitle={status} value={value} last={i === data.rows.length - 1} />;
         })}
       </Card>
     </Screen>

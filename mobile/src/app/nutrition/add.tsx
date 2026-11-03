@@ -115,7 +115,7 @@ export default function AddScreen() {
       key={f.id}
       title={`${warn(foodFacts(f))}${foodTitle(f)}`}
       subtitle={`${formatKcal(f.kcal)} / 100 ${f.basis}`}
-      accessory={f.favorite ? '★' : '›'}
+      accessory={f.favorite ? 'favorite' : '›'}
       onPress={() => openFood(f.id)}
     />
   );
@@ -205,7 +205,7 @@ export default function AddScreen() {
                     accessory={t('nutrition.add')}
                     onPress={() => applyTemplate(tpl.id)}
                   />
-                  <ConfirmButton label={t('common.delete')} onConfirm={() => removeTemplate(tpl.id)} />
+                  <ConfirmButton label={t('common.delete')} size="compact" onConfirm={() => removeTemplate(tpl.id)} />
                 </View>
               ))}
             </Card>

@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Card } from '@/components/card';
+import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
+import { Spacing } from '@/constants/theme';
 import { loadCoachSetup } from '@/data/coach';
 import { DEFAULT_SETTINGS, loadNutritionSettings } from '@/data/nutrition';
 import { MEALS, type Meal } from '@/domain/nutrition';
@@ -35,6 +37,8 @@ export default function RecipeBookScreen() {
   const [dietChoice, setDiet] = useState<DietOption | null>(null);
   const [tag, setTag] = useState<TagOption>('alle');
   const [query, setQuery] = useState('');
+  // Filter zugeklappt: die Rezepte stehen gleich unter der Suche, die gewählten Filter in einer Zeile darüber.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const goal = goalChoice ?? suggested ?? 'alle';
   const diet = dietChoice ?? data.settings.diet;
 
@@ -57,30 +61,45 @@ export default function RecipeBookScreen() {
         clearButtonMode="while-editing"
         returnKeyType="search"
       />
-      <Card>
-        <Choice label={t('book.theme')} options={['alle', ...BOOK_TAGS] as const} value={tag} onChange={setTag} format={(g) => t(`book.tags.${g}`)} />
-        <Choice label={t('book.goal')} options={['alle', ...BOOK_GOALS] as const} value={goal} onChange={setGoal} format={(g) => t(`book.goals.${g}`)} />
-        {goal !== 'alle' ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t(`book.goalHint.${goal}`)}
-            {suggested === goal ? ` ${t('book.fromCoach')}` : ''}
-          </ThemedText>
-        ) : null}
-        <Choice
-          label={t('nutrition.meal')}
-          options={['alle', ...MEALS] as const}
-          value={meal}
-          onChange={setMeal}
-          format={(m) => (m === 'alle' ? t('book.goals.alle') : t(`nutrition.meals.${m}`))}
-        />
-        <Choice
-          label={t('book.diet')}
-          options={['alles', 'vegetarisch', 'vegan'] as const}
-          value={diet}
-          onChange={setDiet}
-          format={(d) => t(`book.diets.${d}`)}
-        />
-      </Card>
+      <View style={styles.filterBar}>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.flex} numberOfLines={2}>
+          {[
+            tag !== 'alle' ? t(`book.tags.${tag}`) : null,
+            goal !== 'alle' ? t(`book.goals.${goal}`) : null,
+            meal !== 'alle' ? t(`nutrition.meals.${meal}`) : null,
+            diet !== 'alles' ? t(`book.diets.${diet}`) : null,
+          ]
+            .filter(Boolean)
+            .join(' · ') || t('book.noFilter')}
+        </ThemedText>
+        <Button label={filtersOpen ? t('book.filtersDone') : t('book.filters')} variant="secondary" size="compact" onPress={() => setFiltersOpen((v) => !v)} />
+      </View>
+      {filtersOpen ? (
+        <Card>
+          <Choice label={t('book.theme')} options={['alle', ...BOOK_TAGS] as const} value={tag} onChange={setTag} format={(g) => t(`book.tags.${g}`)} />
+          <Choice label={t('book.goal')} options={['alle', ...BOOK_GOALS] as const} value={goal} onChange={setGoal} format={(g) => t(`book.goals.${g}`)} />
+          {goal !== 'alle' ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t(`book.goalHint.${goal}`)}
+              {suggested === goal ? ` ${t('book.fromCoach')}` : ''}
+            </ThemedText>
+          ) : null}
+          <Choice
+            label={t('nutrition.meal')}
+            options={['alle', ...MEALS] as const}
+            value={meal}
+            onChange={setMeal}
+            format={(m) => (m === 'alle' ? t('book.goals.alle') : t(`nutrition.meals.${m}`))}
+          />
+          <Choice
+            label={t('book.diet')}
+            options={['alles', 'vegetarisch', 'vegan'] as const}
+            value={diet}
+            onChange={setDiet}
+            format={(d) => t(`book.diets.${d}`)}
+          />
+        </Card>
+      ) : null}
 
       <Card title={t('book.count', { count: list.length })}>
         {list.length === 0 ? <ThemedText themeColor="textSecondary">{t('book.empty')}</ThemedText> : null}
@@ -105,3 +124,8 @@ export default function RecipeBookScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  filterBar: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
+  flex: { flex: 1, minWidth: 0 },
+});

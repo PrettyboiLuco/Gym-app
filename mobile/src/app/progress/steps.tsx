@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { DayBars } from '@/components/charts';
 import { DaySwitcher } from '@/components/day-switcher';
-import { ConfirmButton, Field } from '@/components/fields';
+import { ConfirmButton, EntryRow, Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { addSteps, deleteSteps, listSteps } from '@/data/steps';
-import { shiftDay } from '@/domain/dates';
+import { isoWeekday, shiftDay } from '@/domain/dates';
 import { parseSteps, stepsAverage, stepsForDay, type StepEntry } from '@/domain/steps';
 import { localDay, timeZone, todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
@@ -68,15 +69,25 @@ export default function StepsScreen() {
         </ThemedText>
       </Card>
       <Card title={t('steps.weekTitle')}>
-        <ThemedText>{average === null ? t('steps.averageNone') : t('steps.average', { steps: formatNumber(average, 0) })}</ThemedText>
-        {week.map((d) => {
-          const v = stepsForDay(entries, d);
-          return (
-            <ThemedText key={d} type="small" themeColor={v ? 'text' : 'textSecondary'}>
-              {formatDay(d)} · {v ? formatNumber(v.steps, 0) : t('steps.empty')}
+        {average === null ? (
+          <ThemedText themeColor="textSecondary">{t('steps.averageNone')}</ThemedText>
+        ) : (
+          <View>
+            <ThemedText style={styles.kpi}>{formatNumber(average, 0)}</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('steps.averageLabel')}
             </ThemedText>
-          );
-        })}
+          </View>
+        )}
+        <DayBars
+          label={week.map((d) => `${formatDay(d)}: ${stepsForDay(entries, d) ? formatNumber(stepsForDay(entries, d)!.steps, 0) : t('steps.empty')}`).join(', ')}
+          days={[...week].reverse().map((d) => ({
+            label: t(`reminders.dayShort.${isoWeekday(d)}` as 'reminders.dayShort.1'),
+            value: stepsForDay(entries, d)?.steps ?? null,
+            today: d === today,
+          }))}
+          format={(v) => formatNumber(v, 0)}
+        />
         <ThemedText type="small" themeColor="textSecondary">
           {t('steps.noCredit')}
         </ThemedText>
@@ -87,18 +98,22 @@ export default function StepsScreen() {
       {entries.length > 0 ? (
         <Card title={t('steps.history')}>
           {entries.slice(0, 20).map((e) => (
-            <View key={e.id} style={styles.entry}>
-              <ThemedText style={styles.flex}>
-                {formatDay(e.day)} · {formatNumber(e.steps, 0)} · {t(`steps.source.${e.source}`)}
-              </ThemedText>
-              <ConfirmButton
-                label={t('common.delete')}
-                onConfirm={async () => {
-                  await deleteSteps(db, e.id);
-                  await reload();
-                }}
-              />
-            </View>
+            <EntryRow
+              key={e.id}
+              title={formatDay(e.day)}
+              subtitle={t(`steps.source.${e.source}`)}
+              value={formatNumber(e.steps, 0)}
+              action={
+                <ConfirmButton
+                  label={t('common.delete')}
+                  size="compact"
+                  onConfirm={async () => {
+                    await deleteSteps(db, e.id);
+                    await reload();
+                  }}
+                />
+              }
+            />
           ))}
         </Card>
       ) : null}
@@ -107,6 +122,7 @@ export default function StepsScreen() {
 }
 
 const styles = StyleSheet.create({
+  kpi: { fontSize: 34, lineHeight: 40, fontWeight: 600, letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.two },
   flex: { flex: 1, minWidth: 0 },
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Card } from '@/components/card';
-import { Choice } from '@/components/fields';
+import { Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { notificationPermission } from '@/data/notifications';
@@ -33,39 +33,27 @@ export default function ModulesScreen() {
       <ThemedText type="small" themeColor="textSecondary">
         {t('modules.intro')}
       </ThemedText>
-      {MODULES.map((id) => (
-        <Card key={id} title={t(`modules.names.${id}`)}>
-          <Choice
+      <Card>
+        {MODULES.map((id) => (
+          <Toggle
+            key={id}
             label={t(`modules.names.${id}`)}
-            options={['an', 'aus'] as const}
-            value={effective[id] ? 'an' : 'aus'}
-            onChange={(v) => toggle(id, v === 'an')}
-            format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+            hint={id === 'coach' && !profile.modules.ernaehrung ? `${t(`modules.hints.${id}`)} ${t('modules.coachNeedsNutrition')}` : t(`modules.hints.${id}`)}
+            value={effective[id]}
+            onChange={(on) => toggle(id, on)}
           />
-          <ThemedText type="small" themeColor="textSecondary">
-            {t(`modules.hints.${id}`)}
-          </ThemedText>
-          {id === 'coach' && !profile.modules.ernaehrung ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('modules.coachNeedsNutrition')}
-            </ThemedText>
-          ) : null}
-        </Card>
-      ))}
-      <Card title={t('modules.onlineTitle')}>
-        <Choice
+        ))}
+      </Card>
+      <Card>
+        <Toggle
           label={t('modules.onlineTitle')}
-          options={['an', 'aus'] as const}
-          value={online ? 'an' : 'aus'}
-          onChange={async (v) => {
-            await saveOnlineSetting(db, v === 'an');
-            setOnline(v === 'an');
+          hint={t('modules.onlineHint')}
+          value={online}
+          onChange={async (on) => {
+            await saveOnlineSetting(db, on);
+            setOnline(on);
           }}
-          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('modules.onlineHint')}
-        </ThemedText>
       </Card>
     </Screen>
   );

@@ -577,7 +577,7 @@ function ProposalView({
                 ]
                   .filter(Boolean)
                   .join('\n')}
-                accessory={how ? (openHow === key ? '▴' : 'ⓘ') : undefined}
+                accessory={how ? (openHow === key ? 'collapse' : 'info') : undefined}
                 onPress={how ? () => setOpenHow(openHow === key ? null : key) : undefined}
               />
             );

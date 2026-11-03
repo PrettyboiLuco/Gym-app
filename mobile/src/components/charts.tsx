@@ -3,7 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedProps, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 
+import { HIDDEN } from '@/components/a11y';
+import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
+import { Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -50,7 +55,7 @@ export function ProgressRing({
 
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} {...HIDDEN}>
         <Circle cx={size / 2} cy={size / 2} r={radius} stroke={trackColor} strokeWidth={stroke} fill="none" />
         <AnimatedCircle
           cx={size / 2}
@@ -94,7 +99,66 @@ export function MeterBar({ progress, color, trackColor, height = 8 }: { progress
   );
 }
 
+export type DayBar = { label: string; value: number | null; today?: boolean };
+
+/**
+ * Tage als Säulen (Schritte, Kalorien der Woche): Höhe = Wert, Zahl darüber in gleich breiten Ziffern, Tag darunter.
+ * Ohne Eintrag ein kurzer grauer Strich. `goal` zieht eine feine Linie auf Zielhöhe. Lime nur auf den Säulen
+ * (hell das dunklere Grün); Werte über dem Ziel bleiben gleichfarbig – die Zahl sagt genug.
+ */
+export function DayBars({
+  days,
+  format,
+  goal,
+  label,
+  height = 96,
+}: {
+  days: DayBar[];
+  format: (value: number) => string;
+  goal?: number;
+  /** Ganze Grafik in Worten für Bildschirmleser. */
+  label: string;
+  height?: number;
+}) {
+  const theme = useTheme();
+  const color = useColorScheme() === 'dark' ? theme.accent : theme.tint;
+  const max = Math.max(1, goal ?? 0, ...days.map((d) => d.value ?? 0));
+  return (
+    <View accessible accessibilityRole="image" accessibilityLabel={label} style={styles.bars}>
+      {goal ? <View style={[styles.goal, { bottom: 22 + (height * goal) / max, borderColor: theme.border }]} /> : null}
+      {days.map((d, i) => (
+        <View key={i} style={styles.barCol}>
+          <ThemedText type="small" themeColor={d.value ? 'text' : 'textSecondary'} style={styles.barValue} numberOfLines={1}>
+            {d.value ? format(d.value) : ''}
+          </ThemedText>
+          <View style={[styles.barArea, { height }]}>
+            <View
+              style={[
+                styles.barFill,
+                d.value
+                  ? { height: Math.max(4, (height * d.value) / max), backgroundColor: color }
+                  : { height: 2, width: 12, backgroundColor: theme.backgroundSelected },
+              ]}
+            />
+          </View>
+          <ThemedText type="small" themeColor={d.today ? 'text' : 'textSecondary'} style={[styles.barLabel, d.today && styles.barToday]}>
+            {d.label}
+          </ThemedText>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   center: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   track: { width: '100%', overflow: 'hidden' },
+  bars: { flexDirection: 'row', gap: Spacing.one, paddingTop: Spacing.one },
+  barCol: { flex: 1, alignItems: 'center', gap: Spacing.half },
+  barValue: { fontSize: 11, lineHeight: 14, fontVariant: ['tabular-nums'] },
+  barArea: { width: '100%', justifyContent: 'flex-end', alignItems: 'center' },
+  barFill: { width: '70%', maxWidth: 28, borderRadius: 4 },
+  barLabel: { fontSize: 12, lineHeight: 16 },
+  barToday: { fontWeight: 700 },
+  goal: { position: 'absolute', left: 0, right: 0, borderTopWidth: 1, borderStyle: 'dashed' },
 });

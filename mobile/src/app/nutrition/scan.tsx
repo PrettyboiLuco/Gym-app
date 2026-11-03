@@ -188,7 +188,7 @@ export default function ScanScreen() {
         </Card>
       ) : null}
 
-      <Card title={t('nutrition.scan.manual')}>
+      <Card>
         <Field
           label={t('nutrition.scan.manual')}
           value={manual}

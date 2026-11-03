@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { ConfirmButton, Field, ListRow } from '@/components/fields';
+import { ConfirmButton, Field, ItemTools, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -234,23 +234,12 @@ export default function RoutineScreen() {
                       {exerciseName(exercise)}
                       {sideNote}
                     </ThemedText>
-                    {index > 0 ? (
-                      <Button
-                        label="↑"
-                        accessibilityLabel={`${t('common.moveUp')} ${exerciseName(exercise)}`}
-                        variant="secondary"
-                        onPress={() => change({ items: moveItem(form.items, index, index - 1) })}
-                      />
-                    ) : null}
-                    {index < form.items.length - 1 ? (
-                      <Button
-                        label="↓"
-                        accessibilityLabel={`${t('common.moveDown')} ${exerciseName(exercise)}`}
-                        variant="secondary"
-                        onPress={() => change({ items: moveItem(form.items, index, index + 1) })}
-                      />
-                    ) : null}
-                    <Button label={t('common.remove')} variant="danger" onPress={() => change({ items: form.items.filter((_, i) => i !== index) })} />
+                    <ItemTools
+                      name={exerciseName(exercise)}
+                      onUp={index > 0 ? () => change({ items: moveItem(form.items, index, index - 1) }) : undefined}
+                      onDown={index < form.items.length - 1 ? () => change({ items: moveItem(form.items, index, index + 1) }) : undefined}
+                      onRemove={() => change({ items: form.items.filter((_, i) => i !== index) })}
+                    />
                   </View>
                   {currentKind === 'dehnen' ? (
                     <Field
@@ -405,7 +394,7 @@ export default function RoutineScreen() {
 
 const styles = StyleSheet.create({
   item: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spacing.two, gap: Spacing.two },
-  itemHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  itemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.three },
   numbers: { flexDirection: 'row', gap: Spacing.two },
   numberField: { flex: 1, minWidth: 0 },
   flex: { flex: 1 },

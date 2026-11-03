@@ -90,6 +90,8 @@ export default function DiaryScreen() {
   // Vitamine und Mineralstoffe (A4): nur aus Einträgen mit Angaben, Abdeckung wird dazugeschrieben.
   const microSum = sumMicros(events.filter((e) => e.kind === 'essen' || e.microsJson).map((e) => parseMicros(e.microsJson)));
   const [showMicros, setShowMicros] = useState(false);
+  // Drei häufige Koffein-Getränke sofort, der Rest auf Wunsch – statt einer Wand aus 13 Chips.
+  const [allCaffeine, setAllCaffeine] = useState(false);
 
   function changeDay(next: string) {
     setDay(next);
@@ -262,7 +264,7 @@ export default function DiaryScreen() {
                 <Button label={t('nutrition.copyYesterday')} variant="secondary" size="compact" onPress={() => copyFromPreviousDay(meal)} />
               ) : null}
               {items.some((e) => e.foodId) && templateFor !== meal ? (
-                <Button label={t('nutrition.saveTemplate')} variant="secondary" size="compact" onPress={() => setTemplateFor(meal)} />
+                <Button label={t('nutrition.saveTemplate')} variant="quiet" size="compact" onPress={() => setTemplateFor(meal)} />
               ) : null}
             </View>
             {templateFor === meal ? (
@@ -310,10 +312,15 @@ export default function DiaryScreen() {
         </ThemedText>
         <Presets
           label={t('caffeine.title')}
-          options={CAFFEINE_DRINKS.map((d) => d.id)}
+          options={(allCaffeine ? CAFFEINE_DRINKS : CAFFEINE_DRINKS.slice(0, 3)).map((d) => d.id)}
           onChange={(id) => addCaffeine(CAFFEINE_DRINKS.find((d) => d.id === id)!)}
           format={(id) => t('caffeine.chip', { name: t(`caffeine.drinks.${id}`), ml: CAFFEINE_DRINKS.find((d) => d.id === id)!.ml })}
         />
+        {!allCaffeine ? (
+          <View style={styles.moreRow}>
+            <Button label={t('caffeine.more', { count: CAFFEINE_DRINKS.length - 3 })} variant="quiet" size="compact" onPress={() => setAllCaffeine(true)} />
+          </View>
+        ) : null}
         {caffeineMg > 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
             {t('caffeine.today', { mg: formatNumber(caffeineMg, 0) })} · {t('caffeine.reference')}
@@ -372,6 +379,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  moreRow: { flexDirection: 'row' },
   links: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   numbers: { flexDirection: 'row', gap: Spacing.two },
   big: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },

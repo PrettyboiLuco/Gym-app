@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice } from '@/components/fields';
+import { Choice, EntryRow } from '@/components/fields';
 import { MuscleMap, type MapView } from '@/components/muscle-map';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -151,10 +151,8 @@ export default function StatsScreen() {
           </Card>
           <Card title={t('stats.recordsTitle')}>
             {s.records.length === 0 ? <ThemedText type="small">{t('stats.noRecords')}</ThemedText> : null}
-            {s.records.slice(0, 15).map((r) => (
-              <ThemedText key={r.exerciseId} type="small">
-                {`${name(r.exerciseId)}: ${record(r)} · ${formatDay(r.day)}`}
-              </ThemedText>
+            {s.records.slice(0, 15).map((r, i, list) => (
+              <EntryRow key={r.exerciseId} title={name(r.exerciseId)} subtitle={formatDay(r.day)} value={record(r)} last={i === list.length - 1} />
             ))}
           </Card>
           <Card title={t('stats.volumeTitle')}>

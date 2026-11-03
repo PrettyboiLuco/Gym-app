@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { ConfirmButton, Field, ListRow } from '@/components/fields';
+import { ConfirmButton, EntryRow, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -106,18 +106,21 @@ export default function StretchScreen() {
           <>
             <ThemedText>{t('stretch.flexLatest', { value: formatLength(data.tests[0].cm, units.length), date: formatDay(data.tests[0].day) })}</ThemedText>
             {data.tests.slice(1, 6).map((test) => (
-              <View key={test.id} style={styles.entry}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.flex}>
-                  {formatDay(test.day)} · {formatLength(test.cm, units.length)}
-                </ThemedText>
-                <ConfirmButton
-                  label={t('common.delete')}
-                  onConfirm={async () => {
-                    await deleteFlexibilityTest(db, test.id);
-                    await reload();
-                  }}
-                />
-              </View>
+              <EntryRow
+                key={test.id}
+                title={formatDay(test.day)}
+                value={formatLength(test.cm, units.length)}
+                action={
+                  <ConfirmButton
+                    label={t('common.delete')}
+                    size="compact"
+                    onConfirm={async () => {
+                      await deleteFlexibilityTest(db, test.id);
+                      await reload();
+                    }}
+                  />
+                }
+              />
             ))}
           </>
         ) : null}

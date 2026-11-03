@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, ConfirmButton } from '@/components/fields';
+import { ConfirmButton, Toggle } from '@/components/fields';
 import { KeepAwake } from '@/components/keep-awake';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -232,16 +232,14 @@ export default function RunScreen() {
       </Card>
 
       <Card>
-        <Choice
+        <Toggle
           label={t('run.voice')}
-          options={['an', 'aus'] as const}
-          value={voice ? 'an' : 'aus'}
-          onChange={async (v) => {
-            setVoice(v === 'an');
-            if (v === 'aus') Speech.stop();
-            await saveVoice(db, v === 'an');
+          value={voice}
+          onChange={async (on) => {
+            setVoice(on);
+            if (!on) Speech.stop();
+            await saveVoice(db, on);
           }}
-          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
         />
         <ConfirmButton label={t('run.stop')} confirmLabel={t('run.stopConfirm')} onConfirm={() => finish('abgebrochen', 'beendet')} />
       </Card>

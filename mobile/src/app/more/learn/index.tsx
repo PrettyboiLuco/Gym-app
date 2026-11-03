@@ -7,6 +7,12 @@ import { ThemedText } from '@/components/themed-text';
 import { LEARN_ARTICLES, LEARN_TOPICS } from '@/domain/learn';
 import { t } from '@/i18n';
 
+/** Erster Satz eines Artikels als Vorschau – sagt mehr als ein Symbol und eine Lesezeit, die überall gleich wäre. */
+function teaser(body: string): string {
+  const first = body.split('\n\n')[0].split(/(?<=[a-zäöüß)]{3}[.!?])\s(?=[A-ZÄÖÜ„])/)[0];
+  return first.length > 110 ? `${first.slice(0, 107).trimEnd()} …` : first;
+}
+
 /** Lerninhalte (Ausbauplan A10.8): kurze Artikel nach Thema. */
 export default function LearnScreen() {
   return (
@@ -21,9 +27,8 @@ export default function LearnScreen() {
             {list.map((id, i) => (
               <ListRow
                 key={id}
-                icon="book"
                 title={t(`learn.articles.${id}.title`)}
-                value={t('learn.readMinutes', { count: Math.max(1, Math.round(t(`learn.articles.${id}.body`).split(/\s+/).length / 180)) })}
+                subtitle={teaser(t(`learn.articles.${id}.body`))}
                 accessory="›"
                 last={i === list.length - 1}
                 onPress={() => router.push({ pathname: '/more/learn/[id]', params: { id } })}

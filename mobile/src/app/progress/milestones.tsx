@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
-import { Choice, ListRow } from '@/components/fields';
+import { ListRow, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ShareCard, type ShareCardContent } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';
@@ -132,19 +132,15 @@ export default function MilestonesScreen() {
       </Card>
 
       <Card>
-        <Choice
+        <Toggle
           label={t('balance.toggle')}
-          options={['an', 'aus'] as const}
-          value={m.showBalance ? 'an' : 'aus'}
-          onChange={async (v) => {
-            await saveBalanceOn(db, v === 'an');
+          hint={t('balance.toggleHint')}
+          value={m.showBalance}
+          onChange={async (on) => {
+            await saveBalanceOn(db, on);
             await reload();
           }}
-          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('balance.toggleHint')}
-        </ThemedText>
       </Card>
     </Screen>
   );

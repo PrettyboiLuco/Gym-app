@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Pressable, StyleSheet, Switch, TextInput, View, type TextInputProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
@@ -8,6 +8,7 @@ import { Icon, type IconName } from '@/components/icon';
 import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -24,7 +25,11 @@ export function Field({ label, style, onFocus, onBlur, ...props }: TextInputProp
       <TextInput
         accessibilityLabel={label}
         placeholderTextColor={theme.textSecondary}
-        style={[styles.input, { color: theme.text, borderColor: focused ? theme.text : theme.border, backgroundColor: theme.background }]}
+        style={[
+          styles.input,
+          props.multiline && styles.multiline,
+          { color: theme.text, borderColor: focused ? theme.text : theme.border, backgroundColor: theme.background },
+        ]}
         onFocus={(e) => {
           setFocused(true);
           onFocus?.(e);
@@ -93,6 +98,7 @@ export function Choice<T extends string>({
   onChange,
   format,
   chips = false,
+  hideLabel = false,
 }: {
   label: string;
   options: readonly T[];
@@ -102,13 +108,17 @@ export function Choice<T extends string>({
   format: (value: T) => string;
   /** Immer als Chips (z. B. wenn der Platz für einen Segment-Schalter zu knapp ist). */
   chips?: boolean;
+  /** Beschriftung nur für Bildschirmleser – wenn die Karte darüber schon dasselbe sagt. */
+  hideLabel?: boolean;
 }) {
-  const segmented = !chips && options.length >= 2 && options.length <= 4 && options.every((o) => format(o).length <= 14);
+  const segmented = !chips && options.length >= 2 && options.length <= 4 && options.every((o) => format(o).length <= Math.floor(32 / options.length));
   return (
     <View style={styles.field}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
+      {hideLabel ? null : (
+        <ThemedText type="small" themeColor="textSecondary">
+          {label}
+        </ThemedText>
+      )}
       {segmented ? (
         <Segmented label={label} options={options} value={value} onChange={onChange} format={format} />
       ) : (
@@ -119,6 +129,60 @@ export function Choice<T extends string>({
         </View>
       )}
     </View>
+  );
+}
+
+/**
+ * Ein/Aus als Schalter-Zeile: Titel links (darunter optional eine graue Erklärung), Schalter rechts. Die ganze
+ * Zeile ist antippbar. An-Farbe: dunkel Lime (Signalgrün), hell fast Schwarz – nie ein Segment „An | Aus“.
+ */
+export function Toggle({
+  label,
+  hint,
+  value,
+  onChange,
+  disabled = false,
+}: {
+  label: string;
+  hint?: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
+}) {
+  const theme = useTheme();
+  const dark = useColorScheme() === 'dark';
+  const flip = () => {
+    if (disabled) return;
+    haptic.tap();
+    onChange(!value);
+  };
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ checked: value, disabled }}
+      onPress={flip}
+      style={[styles.toggle, disabled && { opacity: 0.6 }]}>
+      <View style={styles.rowText}>
+        <ThemedText style={styles.toggleTitle}>{label}</ThemedText>
+        {hint ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      <Switch
+        value={value}
+        onValueChange={flip}
+        disabled={disabled}
+        accessible={false}
+        trackColor={{ false: theme.backgroundSelected, true: dark ? theme.accent : theme.primary }}
+        thumbColor={dark ? (value ? theme.onAccent : theme.textSecondary) : theme.backgroundElement}
+        ios_backgroundColor={theme.backgroundSelected}
+        {...({ activeThumbColor: dark ? theme.onAccent : theme.backgroundElement } as object)}
+      />
+    </Pressable>
   );
 }
 
@@ -218,7 +282,7 @@ export function MultiChoice<T extends string>({
   );
 }
 
-/** Auswahl mit längeren Beschriftungen untereinander, z. B. Aktivitätsstufen – mit echtem Optionskreis. */
+/** Auswahl mit längeren Beschriftungen untereinander, z. B. Aktivitätsstufen – Zeilen mit echtem Optionskreis, ohne Kästen. */
 export function RadioList<T extends string>({
   label,
   options,
@@ -254,7 +318,7 @@ export function RadioList<T extends string>({
             }}
             style={({ pressed }) => [
               styles.radio,
-              { borderColor: selected ? theme.text : theme.border, backgroundColor: pressed ? theme.backgroundSelected : 'transparent' },
+              { borderColor: theme.backgroundSelected, backgroundColor: pressed ? theme.backgroundSelected : 'transparent' },
             ]}>
             <View style={[styles.radioOuter, { borderColor: selected ? theme.text : theme.border }]}>
               {selected ? <View style={[styles.radioInner, { backgroundColor: theme.text }]} /> : null}
@@ -308,6 +372,8 @@ export function Presets<T extends string | number>({
 /**
  * Löschen mit Rückfrage: erster Tipp fragt nach (spürbare Warnung), zweiter Tipp löscht.
  * Ohne Antwort klappt die Rückfrage nach 6 Sekunden wieder zu.
+ * - size regular: Knopf über die volle Breite (roter Rahmen – die Aktion steht für sich am Ende eines Bereichs)
+ * - size compact: für Listenzeilen – ruhiges graues Papierkorb-Symbol, Rot erst in der Rückfrage
  */
 export function ConfirmButton({
   label,
@@ -320,23 +386,44 @@ export function ConfirmButton({
   onConfirm: () => void;
   size?: 'regular' | 'compact';
 }) {
+  const theme = useTheme();
   const [asking, setAsking] = useState(false);
   useEffect(() => {
     if (!asking) return;
     const id = setTimeout(() => setAsking(false), 6000);
     return () => clearTimeout(id);
   }, [asking]);
+  const ask = () => {
+    haptic.warning();
+    setAsking(true);
+  };
   if (!asking)
+    return size === 'compact' ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        hitSlop={4}
+        onPress={ask}
+        style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: theme.backgroundSelected }]}>
+        <Icon name="trash" color={theme.textSecondary} size={20} />
+      </Pressable>
+    ) : (
+      <Button label={label} variant="danger" size={size} onPress={ask} />
+    );
+  if (size === 'compact')
     return (
-      <Button
-        label={label}
-        variant="danger"
-        size={size}
-        onPress={() => {
-          haptic.warning();
-          setAsking(true);
-        }}
-      />
+      <View style={styles.confirmInline}>
+        <Button label={t('common.cancel')} variant="quiet" size="compact" onPress={() => setAsking(false)} />
+        <Button
+          label={confirmLabel}
+          variant="destructive"
+          size="compact"
+          onPress={() => {
+            setAsking(false);
+            onConfirm();
+          }}
+        />
+      </View>
     );
   return (
     <View style={styles.confirm}>
@@ -359,9 +446,104 @@ export function ConfirmButton({
 }
 
 /**
+ * Eintrag in einem Verlauf: links Datum (darunter optional eine graue Zeile), rechts der Wert in
+ * gleich breiten Ziffern, danach eine kleine Aktion (z. B. Löschen). Zeilen trennt eine feine Linie.
+ */
+export function EntryRow({
+  title,
+  subtitle,
+  value,
+  action,
+  last = false,
+}: {
+  title: string;
+  subtitle?: string;
+  value: string;
+  action?: ReactNode;
+  last?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={[styles.entry, { borderColor: last ? 'transparent' : theme.backgroundSelected }]}>
+      <View style={styles.rowText}>
+        <ThemedText>{title}</ThemedText>
+        {subtitle ? (
+          <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
+            {subtitle}
+          </ThemedText>
+        ) : null}
+      </View>
+      <ThemedText style={styles.entryValue}>{value}</ThemedText>
+      {action}
+    </View>
+  );
+}
+
+/**
+ * Werkzeuge einer Zeile in einem Editor (Plan, Routine): nach oben, nach unten, entfernen – als ruhige
+ * Symbol-Knöpfe rechts neben dem Namen statt drei großer Pillen (die den Namen in schmale Zeilen gequetscht haben).
+ */
+export function ItemTools({
+  name,
+  onUp,
+  onDown,
+  onRemove,
+  reorder = true,
+}: {
+  name: string;
+  onUp?: () => void;
+  onDown?: () => void;
+  onRemove: () => void;
+  /** false = nur Entfernen (keine Plätze für die Pfeile freihalten). */
+  reorder?: boolean;
+}) {
+  const theme = useTheme();
+  const tool = (label: string, onPress: (() => void) | undefined, icon: ReactNode) =>
+    onPress ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label} ${name}`}
+        hitSlop={2}
+        onPress={() => {
+          haptic.tap();
+          onPress();
+        }}
+        style={({ pressed }) => [styles.iconButton, { backgroundColor: pressed ? theme.border : theme.backgroundSelected }]}>
+        {icon}
+      </Pressable>
+    ) : (
+      <View style={styles.iconButton} />
+    );
+  return (
+    <View style={styles.tools}>
+      {reorder &&
+        tool(
+          t('common.moveUp'),
+          onUp,
+          <View style={styles.up}>
+            <Icon name="chevron" color={theme.text} size={18} strokeWidth={2} />
+          </View>
+        )}
+      {reorder &&
+        tool(
+          t('common.moveDown'),
+          onDown,
+          <View style={styles.down}>
+            <Icon name="chevron" color={theme.text} size={18} strokeWidth={2} />
+          </View>
+        )}
+      {tool(t('common.remove'), onRemove, <Icon name="trash" color={theme.textSecondary} size={18} />)}
+    </View>
+  );
+}
+
+/** Symbole statt Textzeichen (ⓘ, ✕, ★) am rechten Rand einer Listenzeile. */
+const ACCESSORY_ICONS: Record<string, IconName> = { info: 'info', collapse: 'chevron', remove: 'close', favorite: 'star' };
+
+/**
  * Zeile in einer Liste, als Ganzes antippbar.
  * - icon: ruhiges graues Symbol links (hilft beim Finden) · value: Wert rechts (z. B. „Wie iPhone“)
- * - accessory „›“ wird als gezeichneter Pfeil dargestellt, andere Zeichen als Text
+ * - accessory „›“ wird als gezeichneter Pfeil dargestellt; „info“, „collapse“, „remove“, „favorite“ als Symbol; anderes als Text
  * Beim Drücken hellt die Zeile auf (statt durchsichtig zu werden).
  */
 export function ListRow({
@@ -415,6 +597,10 @@ export function ListRow({
         {trailing}
         {accessory === '›' ? (
           <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
+        ) : accessory && accessory in ACCESSORY_ICONS ? (
+          <View style={accessory === 'collapse' ? styles.up : undefined}>
+            <Icon name={ACCESSORY_ICONS[accessory]} color={theme.textSecondary} size={18} strokeWidth={2} />
+          </View>
         ) : accessory ? (
           <ThemedText style={{ color: theme.textSecondary }}>{accessory}</ThemedText>
         ) : null}
@@ -433,6 +619,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     fontSize: 16,
   },
+  /** Mehrzeilig: Platz für einige Zeilen, Text beginnt oben (sonst schneidet das Feld die zweite Zeile ab). */
+  multiline: { minHeight: 112, paddingTop: Spacing.three, paddingBottom: Spacing.three, textAlignVertical: 'top' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   chip: {
     minHeight: 40,
@@ -455,6 +643,22 @@ const styles = StyleSheet.create({
   thumb: { position: 'absolute', top: 4, bottom: 4, left: 4, borderRadius: Radius.pill },
   segment: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.two, minHeight: 36 },
   confirm: { flexDirection: 'row', gap: Spacing.two },
+  entry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    minHeight: 52,
+    paddingVertical: Spacing.one,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  entryValue: { fontWeight: 600, fontVariant: ['tabular-nums'], textAlign: 'right' },
+  tools: { flexDirection: 'row', gap: Spacing.one + 2 },
+  up: { transform: [{ rotate: '-90deg' }] },
+  down: { transform: [{ rotate: '90deg' }] },
+  confirmInline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
+  iconButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 48 },
+  toggleTitle: { fontWeight: 500 },
   flex: { flex: 1 },
   rowOuter: {
     flexDirection: 'row',
@@ -480,9 +684,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-    borderWidth: 1.5,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: -Spacing.two,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.two + 2,
     borderRadius: Radius.field,
-    padding: Spacing.three,
     minHeight: 48,
   },
   radioOuter: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },

@@ -56,25 +56,11 @@ export default function QuickEntryScreen() {
             value={protein}
             onChangeText={setProtein}
             keyboardType="decimal-pad"
-            placeholder={t('nutrition.unknown')}
+            placeholder="–"
             style={styles.cell}
           />
-          <Field
-            label={`${t('nutrition.carbs')} (g)`}
-            value={carbs}
-            onChangeText={setCarbs}
-            keyboardType="decimal-pad"
-            placeholder={t('nutrition.unknown')}
-            style={styles.cell}
-          />
-          <Field
-            label={`${t('nutrition.fat')} (g)`}
-            value={fat}
-            onChangeText={setFat}
-            keyboardType="decimal-pad"
-            placeholder={t('nutrition.unknown')}
-            style={styles.cell}
-          />
+          <Field label={`${t('nutrition.carbs')} (g)`} value={carbs} onChangeText={setCarbs} keyboardType="decimal-pad" placeholder="–" style={styles.cell} />
+          <Field label={`${t('nutrition.fat')} (g)`} value={fat} onChangeText={setFat} keyboardType="decimal-pad" placeholder="–" style={styles.cell} />
         </View>
         <Field label={t('quick.name')} value={name} onChangeText={setName} placeholder={t('quick.namePlaceholder')} />
         <Choice label={t('nutrition.meal')} options={MEALS} value={meal} onChange={setMeal} format={(m) => t(`book.mealShort.${m}`)} />
@@ -89,6 +75,6 @@ export default function QuickEntryScreen() {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: Spacing.two },
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.two },
   cell: { flex: 1, minWidth: 0 },
 });

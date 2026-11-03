@@ -275,7 +275,7 @@ export default function CheckinScreen() {
             key={entry.id}
             title={t('checkin.sleepEntry', { day: formatDay(entry.day), hours: formatNumber(entry.hours) })}
             subtitle={entry.quality ? `${t('checkin.sleepQuality')} ${entry.quality}` : undefined}
-            accessory="✕"
+            accessory="remove"
             onPress={async () => {
               await deleteSleep(db, entry.id);
               await reload();

@@ -335,6 +335,24 @@ function HistoryCard({ history }: { history: HistoryDay[] }) {
   return (
     <Card title={t('readiness.historyTitle')}>
       {shown.length === 0 ? <ThemedText type="small">{t('readiness.historyEmpty')}</ThemedText> : null}
+      {shown.length > 0 ? (
+        // Vier Wochen auf einen Blick: ein Feld je Tag (älteste oben links), Farbe = Ampel des Tages, grau = kein Wert.
+        <View style={styles.grid} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {Array.from({ length: Math.ceil(history.length / 7) }, (_, w) => (
+            <View key={w} style={styles.gridRow}>
+              {[...history]
+                .reverse()
+                .slice(w * 7, w * 7 + 7)
+                .map((h) => (
+                  <View
+                    key={h.day}
+                    style={[styles.cell, { backgroundColor: h.readiness.kind === 'ampel' ? levelColor(h.readiness.level, theme) : theme.backgroundSelected }]}
+                  />
+                ))}
+            </View>
+          ))}
+        </View>
+      ) : null}
       {shown.map((h) => {
         const r = h.readiness;
         const label =
@@ -379,4 +397,7 @@ const styles = StyleSheet.create({
   histRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: 2 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   date: { width: 84 },
+  grid: { gap: 4, marginBottom: Spacing.two },
+  gridRow: { flexDirection: 'row', gap: 4 },
+  cell: { flex: 1, height: 14, borderRadius: 3 },
 });

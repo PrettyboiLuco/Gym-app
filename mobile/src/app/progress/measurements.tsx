@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
-import { ConfirmButton, Field } from '@/components/fields';
+import { ConfirmButton, EntryRow, Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
 import { addMeasurements, deleteMeasurement, listMeasurements, loadMeasureGoals, saveMeasureGoals } from '@/data/goals';
 import { latestBySite, MEASURE_SITES, type Measurement, type MeasureSite } from '@/domain/body';
 import { todayDay } from '@/domain/time';
@@ -183,26 +182,25 @@ export default function MeasurementsScreen() {
       {list.length > 0 ? (
         <Card title={t('measure.history')}>
           {list.map((m) => (
-            <View key={m.id} style={styles.entry}>
-              <ThemedText style={styles.flex}>
-                {formatDay(m.day)} · {t(`measure.sites.${m.site}`)} · {formatLength(m.cm, units.length)}
-              </ThemedText>
-              <ConfirmButton
-                label={t('common.delete')}
-                onConfirm={async () => {
-                  await deleteMeasurement(db, m.id);
-                  await reload();
-                }}
-              />
-            </View>
+            <EntryRow
+              key={m.id}
+              title={t(`measure.sites.${m.site}`)}
+              subtitle={formatDay(m.day)}
+              value={formatLength(m.cm, units.length)}
+              action={
+                <ConfirmButton
+                  label={t('common.delete')}
+                  size="compact"
+                  onConfirm={async () => {
+                    await deleteMeasurement(db, m.id);
+                    await reload();
+                  }}
+                />
+              }
+            />
           ))}
         </Card>
       ) : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  entry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.two },
-  flex: { flex: 1 },
-});

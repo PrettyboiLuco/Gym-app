@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field, MultiChoice, Presets } from '@/components/fields';
+import { Choice, Field, MultiChoice, Presets, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -140,7 +140,7 @@ export default function NutritionSettingsScreen() {
           label={t('common.remove')}
           options={form.glassSizes}
           onChange={(ml) => setForm((f) => ({ ...f, glassSizes: f.glassSizes.filter((g) => g !== ml) }))}
-          format={(ml) => `${ml} ml ✕`}
+          format={(ml) => `${ml} ml ×`}
         />
         <View style={styles.row}>
           <Field label="ml" value={newGlass} onChangeText={setNewGlass} keyboardType="number-pad" style={styles.flex} />
@@ -148,16 +148,12 @@ export default function NutritionSettingsScreen() {
         </View>
       </Card>
       <Card>
-        <Choice
+        <Toggle
           label={t('nutrition.settings.hideNumbers')}
-          options={['aus', 'an'] as const}
-          value={form.hideNumbers ? 'an' : 'aus'}
-          onChange={(v) => setForm((f) => ({ ...f, hideNumbers: v === 'an' }))}
-          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+          hint={t('nutrition.settings.hideNumbersHint')}
+          value={form.hideNumbers}
+          onChange={(on) => setForm((f) => ({ ...f, hideNumbers: on }))}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('nutrition.settings.hideNumbersHint')}
-        </ThemedText>
       </Card>
       <Card title={t('diet.mealTimesTitle')}>
         <View style={styles.row}>

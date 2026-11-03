@@ -32,7 +32,6 @@ export const de = {
     remove: 'Entfernen',
     back: 'Zurück',
     ok: 'OK',
-    on: 'An',
     off: 'Aus',
     moveUp: 'Nach oben',
     moveDown: 'Nach unten',
@@ -209,6 +208,7 @@ export const de = {
     allEquipment: 'Alle',
     count: { one: '1 Übung', other: '{{count}} Übungen' },
     custom: 'Eigene Übung',
+    customOpen: 'Eigene Übung anlegen',
     customName: 'Name der Übung',
     equipment: 'Gerät',
     muscleGroup: 'Muskelgruppe',
@@ -634,6 +634,9 @@ export const de = {
     title: 'Rezeptbuch',
     linkSub: '{{count}} Rezepte: Diät, Aufbau, Masse, Snacks, Waffeln, Pancakes',
     open: 'Rezeptbuch öffnen ({{count}} Rezepte)',
+    filters: 'Filter',
+    filtersDone: 'Fertig',
+    noFilter: 'Alle Rezepte, ohne Filter',
     goal: 'Ziel',
     goals: {
       alle: 'Alle',
@@ -819,6 +822,7 @@ export const de = {
   },
   caffeine: {
     title: 'Kaffee, Tee & Co.',
+    more: '{{count}} weitere',
     drinks: {
       kaffee: 'Kaffee',
       espresso: 'Espresso',
@@ -1636,7 +1640,8 @@ export const de = {
     noneListed: 'Laut Angaben keines deiner Allergene – Angaben können fehlen, bitte Etikett prüfen.',
     dietConflict: 'Laut Angaben nicht {{diet}}.',
     dietUnknown: 'Keine Angabe, ob {{diet}}.',
-    attention: '⚠',
+    // Warnzeichen vor einem Lebensmittel mit Konflikt in Suchlisten: ein Statuszeichen, kein Schmuck.
+    attention: '⚠', // taste-skill-ignore
     foodAllergens: 'Allergene (laut Etikett)',
     foodAllergensOption: { unbekannt: 'keine Angabe', angegeben: 'angeben' },
     foodAllergensHint: 'Enthält – nichts gewählt heißt „keine laut Etikett“',
@@ -2287,7 +2292,7 @@ export const de = {
     invalid: 'Bitte eine Zahl von 0 bis 100000 eingeben.',
     manualHint: 'Trag den Tagesstand ein, z. B. aus der Health-App. Ein neuer Wert ersetzt den alten.',
     weekTitle: 'Letzte 7 Tage',
-    average: 'Durchschnitt: {{steps}} Schritte (nur Tage mit Eintrag)',
+    averageLabel: 'Schritte im Schnitt pro Tag (nur Tage mit Eintrag)',
     averageNone: 'Noch keine Werte – der Schnitt erscheint ab der ersten Messung.',
     empty: 'kein Eintrag',
     noCredit: 'Schritte erhöhen dein Kalorienziel nicht – deine Bewegung steckt schon in der Aktivitätsstufe.',
@@ -2531,7 +2536,6 @@ export const de = {
     intro:
       'Kurz und ohne Versprechen: Grundlagen, auf denen die Vorschläge der App beruhen. Für Fragen zu deiner Gesundheit ist eine Ärztin oder ein Arzt die richtige Stelle.',
     topics: { training: 'Training', ernaehrung: 'Ernährung', erholung: 'Erholung' },
-    readMinutes: 'ca. {{count}} min',
     articles: {
       progression: {
         title: 'Steigerung: in kleinen Schritten mehr',
@@ -2611,7 +2615,7 @@ export const de = {
   mealPlan: {
     prevWeek: 'Vorherige Woche',
     nextWeek: 'Nächste Woche',
-    remove: 'Aus dem Plan entfernen',
+    freeTitle: 'Noch frei',
     title: 'Wochenplan',
     linkSub: 'Mahlzeiten planen, Einkaufsliste, Rezept per Link',
     week: 'Woche {{from}} – {{to}}',
@@ -2626,7 +2630,7 @@ export const de = {
     portions: '{{value}} Port.',
     protein: 'Eiweiß',
     eat: 'Gegessen',
-    eaten: '✓ eingetragen',
+    eaten: 'eingetragen',
     logged: 'Ins Tagebuch eingetragen.',
     logFailed: 'Eintragen ging nicht – beim eigenen Rezept fehlt vermutlich die Portionszahl.',
     empty: 'Noch nichts geplant.',

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field, MultiChoice } from '@/components/fields';
+import { Choice, Field, MultiChoice, Toggle } from '@/components/fields';
 import { CalculatorFields, UnitFields } from '@/components/profile-fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -42,16 +42,7 @@ export default function ProfileScreen() {
       <UnitFields form={form} onChange={change} />
       <CalculatorFields form={form} onChange={change} />
       <Card>
-        <Choice
-          label={t('profile.sensitive')}
-          options={['aus', 'an'] as const}
-          value={form.sensitive ? 'an' : 'aus'}
-          onChange={(v) => change({ sensitive: v === 'an' })}
-          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-        />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('profile.sensitiveHint')}
-        </ThemedText>
+        <Toggle label={t('profile.sensitive')} hint={t('profile.sensitiveHint')} value={form.sensitive} onChange={(on) => change({ sensitive: on })} />
       </Card>
       <Card title={t('profile.trainingTitle')}>
         <Choice

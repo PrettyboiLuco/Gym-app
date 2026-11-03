@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice } from '@/components/fields';
+import { Choice, Toggle } from '@/components/fields';
 import { HeartLoop } from '@/components/heart-loop';
 import { UnitFields } from '@/components/profile-fields';
 import { Rise, RiseText } from '@/components/rise-text';
@@ -115,16 +115,7 @@ export function Onboarding() {
           {form.sensitive ? (
             <>
               <ThemedText>{t('onboarding.sensitiveYes')}</ThemedText>
-              <Choice
-                label={t('onboarding.hideNumbers')}
-                options={['aus', 'an'] as const}
-                value={hideNumbers ? 'an' : 'aus'}
-                onChange={(v) => setHideNumbers(v === 'an')}
-                format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-              />
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('onboarding.hideNumbersHint')}
-              </ThemedText>
+              <Toggle label={t('onboarding.hideNumbers')} hint={t('onboarding.hideNumbersHint')} value={hideNumbers} onChange={(on) => setHideNumbers(on)} />
             </>
           ) : null}
           <ThemedText type="small" themeColor="textSecondary">

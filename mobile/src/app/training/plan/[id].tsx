@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { Choice, ConfirmButton, Field, ListRow, Presets } from '@/components/fields';
+import { Choice, ConfirmButton, Field, ItemTools, ListRow, Presets, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -287,37 +287,20 @@ export default function PlanEditorScreen() {
                     })}
                   </ThemedText>
                 ) : null}
-                {/* Name über volle Breite, Knöpfe darunter – sonst bricht ein langer Name mitten im Wort. */}
-                <View>
-                  <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
-                  {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {exerciseName(byId.get(item.exerciseId))}
-                    </ThemedText>
-                  ) : null}
-                </View>
                 <View style={styles.itemHeader}>
-                  <View style={styles.flex} />
-                  {itemIndex > 0 ? (
-                    <Button
-                      label="↑"
-                      accessibilityLabel={`${t('common.moveUp')} ${exerciseName(byId.get(item.exerciseId))}`}
-                      variant="secondary"
-                      onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex - 1) })}
-                    />
-                  ) : null}
-                  {itemIndex < day.items.length - 1 ? (
-                    <Button
-                      label="↓"
-                      accessibilityLabel={`${t('common.moveDown')} ${exerciseName(byId.get(item.exerciseId))}`}
-                      variant="secondary"
-                      onPress={() => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex + 1) })}
-                    />
-                  ) : null}
-                  <Button
-                    label={t('common.remove')}
-                    variant="danger"
-                    onPress={() => updateDay(dayIndex, { items: day.items.filter((_, i) => i !== itemIndex) })}
+                  <View style={styles.flex}>
+                    <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
+                    {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {exerciseName(byId.get(item.exerciseId))}
+                      </ThemedText>
+                    ) : null}
+                  </View>
+                  <ItemTools
+                    name={exerciseName(byId.get(item.exerciseId))}
+                    onUp={itemIndex > 0 ? () => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex - 1) }) : undefined}
+                    onDown={itemIndex < day.items.length - 1 ? () => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex + 1) }) : undefined}
+                    onRemove={() => updateDay(dayIndex, { items: day.items.filter((_, i) => i !== itemIndex) })}
                   />
                 </View>
                 <View style={styles.numbers}>
@@ -377,20 +360,8 @@ export default function PlanEditorScreen() {
               ) : null}
             </Fragment>
           ))}
-          <Choice
-            label={t('plan.warmup')}
-            options={['an', 'aus'] as const}
-            value={day.warmup ? 'an' : 'aus'}
-            onChange={(v) => updateDay(dayIndex, { warmup: v === 'an' })}
-            format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-          />
-          <Choice
-            label={t('plan.cooldown')}
-            options={['an', 'aus'] as const}
-            value={day.cooldown ? 'an' : 'aus'}
-            onChange={(v) => updateDay(dayIndex, { cooldown: v === 'an' })}
-            format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-          />
+          <Toggle label={t('plan.warmup')} value={day.warmup} onChange={(on) => updateDay(dayIndex, { warmup: on })} />
+          <Toggle label={t('plan.cooldown')} value={day.cooldown} onChange={(on) => updateDay(dayIndex, { cooldown: on })} />
           {day.items.length > 0 && day.warmup ? (
             <ThemedText type="small" themeColor="textSecondary">
               {t('plan.warmupHint', { minutes: Math.round(blockSeconds(day, 'aufwaermen') / 60) })}
@@ -417,7 +388,7 @@ export default function PlanEditorScreen() {
               />
               <Button
                 label={t('common.remove')}
-                variant="danger"
+                variant="quiet"
                 size="compact"
                 onPress={() => updateDay(dayIndex, { cardio: (day.cardio ?? []).filter((_, i) => i !== cardioIndex) })}
               />
@@ -530,7 +501,7 @@ export default function PlanEditorScreen() {
 
 const styles = StyleSheet.create({
   item: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spacing.two, gap: Spacing.two },
-  itemHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  itemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.three },
   numbers: { flexDirection: 'row', gap: Spacing.two },
   flex: { flex: 1 },
   numberField: { flex: 1, minWidth: 0 },

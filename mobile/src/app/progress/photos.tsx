@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
-import { Choice, ConfirmButton } from '@/components/fields';
+import { Choice, ConfirmButton, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { Slider } from '@/components/slider';
 import { ThemedText } from '@/components/themed-text';
@@ -169,13 +169,7 @@ export default function PhotosScreen() {
                   onChange={setMode}
                   format={(m) => t(`photos.modes.${m}`)}
                 />
-                <Choice
-                  label={t('photos.guides')}
-                  options={['an', 'aus'] as const}
-                  value={guides ? 'an' : 'aus'}
-                  onChange={(v) => setGuides(v === 'an')}
-                  format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-                />
+                <Toggle label={t('photos.guides')} value={guides} onChange={(on) => setGuides(on)} />
                 {mode === 'nebeneinander' ? (
                   <View style={styles.row}>
                     {[first, second].map((photo) => (

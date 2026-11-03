@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, type ScrollViewInstance } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { Choice, Field, ListRow } from '@/components/fields';
+import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -72,6 +73,8 @@ export default function ExercisesScreen() {
   const [openHow, setOpenHow] = useState<string | null>(null);
   // ID der eigenen Übung, die gerade bearbeitet wird (UX-013); null = neue Übung.
   const [editing, setEditing] = useState<string | null>(null);
+  // Formular für eigene Übungen nur auf Wunsch: oben steht sonst gleich die Suche und die Liste.
+  const [creating, setCreating] = useState(false);
   const scrollRef = useRef<ScrollViewInstance>(null);
   // Übersicht: aufgeklappte Muskelgruppen, Suche und Gerätefilter (rund 1000 Übungen).
   const [openGroups, setOpenGroups] = useState<MuscleGroup[]>([]);
@@ -79,6 +82,7 @@ export default function ExercisesScreen() {
   const [equipmentFilter, setEquipmentFilter] = useState<Equipment | 'alle'>('alle');
 
   function reset() {
+    setCreating(false);
     setLoadMode('auto');
     setEditing(null);
     setName('');
@@ -144,7 +148,7 @@ export default function ExercisesScreen() {
           ]
             .filter(Boolean)
             .join(' · ')}
-          accessory={e.customName ? t('common.edit') : hasInfo(e) ? (openHow === e.id ? '▴' : 'ⓘ') : undefined}
+          accessory={e.customName ? t('common.edit') : hasInfo(e) ? (openHow === e.id ? 'collapse' : 'info') : undefined}
           onPress={e.customName ? () => startEdit(e) : hasInfo(e) ? () => setOpenHow((id) => (id === e.id ? null : e.id)) : undefined}
         />
         {openHow === e.id ? <ExerciseMedia exerciseId={e.id} label={exerciseName(e)} /> : null}
@@ -177,46 +181,62 @@ export default function ExercisesScreen() {
 
   return (
     <Screen withHeader scrollRef={scrollRef}>
-      <Card title={editing ? t('exercises.editTitle') : t('exercises.custom')}>
-        {editing ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('exercises.editHint')}
-          </ThemedText>
-        ) : null}
-        <Field label={t('exercises.customName')} value={name} onChangeText={setName} />
-        <Choice label={t('exercises.equipment')} options={EQUIPMENT} value={equipment} onChange={setEquipment} format={(v) => t(`equipment.${v}`)} />
-        <Choice label={t('exercises.muscleGroup')} options={MUSCLE_GROUPS} value={muscle} onChange={setMuscle} format={(v) => t(`muscle.${v}`)} />
-        <Choice label={t('exercises.kind')} options={EXERCISE_KINDS} value={kind} onChange={setKind} format={(v) => t(`exercises.kindOption.${v}`)} />
-        {isStretchKind(kind) ? (
-          <>
-            <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
-            <Field label={t('exercises.hold')} value={hold} onChangeText={setHold} keyboardType="number-pad" />
-          </>
-        ) : (
-          <>
-            <Choice label={t('exercises.measure')} options={MEASURES} value={measure} onChange={setMeasure} format={(v) => t(`exercises.measureOption.${v}`)} />
-            <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
-            <Choice
-              chips
-              label={t('logger.loadMode')}
-              options={['auto', ...LOAD_MODES] as const}
-              value={loadMode}
-              onChange={setLoadMode}
-              format={(v) => t(`logger.loadModes.${v}`)}
-            />
-            <Choice
-              label={t('exercises.pattern')}
-              options={['auto', ...MOVEMENT_PATTERNS] as const}
-              value={pattern}
-              onChange={setPattern}
-              format={(v) => (v === 'auto' ? t('exercises.patternAuto') : t(`pattern.${v}`))}
-            />
-          </>
-        )}
-        {error ? <ThemedText style={{ color: theme.danger }}>{error === 'name' ? t('exercises.nameMissing') : t('exercises.holdInvalid')}</ThemedText> : null}
-        <Button label={editing ? t('common.save') : t('common.add')} onPress={save} />
-        {editing ? <Button label={t('common.cancel')} variant="secondary" onPress={reset} /> : null}
-      </Card>
+      {!editing && !creating ? (
+        <Button
+          label={t('exercises.customOpen')}
+          variant="secondary"
+          icon={<Icon name="plus" color={theme.text} size={18} />}
+          onPress={() => setCreating(true)}
+        />
+      ) : null}
+      {editing || creating ? (
+        <Card title={editing ? t('exercises.editTitle') : t('exercises.custom')}>
+          {editing ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('exercises.editHint')}
+            </ThemedText>
+          ) : null}
+          <Field label={t('exercises.customName')} value={name} onChangeText={setName} />
+          <Choice label={t('exercises.equipment')} options={EQUIPMENT} value={equipment} onChange={setEquipment} format={(v) => t(`equipment.${v}`)} />
+          <Choice label={t('exercises.muscleGroup')} options={MUSCLE_GROUPS} value={muscle} onChange={setMuscle} format={(v) => t(`muscle.${v}`)} />
+          <Choice label={t('exercises.kind')} options={EXERCISE_KINDS} value={kind} onChange={setKind} format={(v) => t(`exercises.kindOption.${v}`)} />
+          {isStretchKind(kind) ? (
+            <>
+              <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
+              <Field label={t('exercises.hold')} value={hold} onChangeText={setHold} keyboardType="number-pad" />
+            </>
+          ) : (
+            <>
+              <Choice
+                label={t('exercises.measure')}
+                options={MEASURES}
+                value={measure}
+                onChange={setMeasure}
+                format={(v) => t(`exercises.measureOption.${v}`)}
+              />
+              <Choice label={t('exercises.sides')} options={SIDES} value={sides} onChange={setSides} format={(v) => t(`exercises.sidesOption.${v}`)} />
+              <Choice
+                chips
+                label={t('logger.loadMode')}
+                options={['auto', ...LOAD_MODES] as const}
+                value={loadMode}
+                onChange={setLoadMode}
+                format={(v) => t(`logger.loadModes.${v}`)}
+              />
+              <Choice
+                label={t('exercises.pattern')}
+                options={['auto', ...MOVEMENT_PATTERNS] as const}
+                value={pattern}
+                onChange={setPattern}
+                format={(v) => (v === 'auto' ? t('exercises.patternAuto') : t(`pattern.${v}`))}
+              />
+            </>
+          )}
+          {error ? <ThemedText style={{ color: theme.danger }}>{error === 'name' ? t('exercises.nameMissing') : t('exercises.holdInvalid')}</ThemedText> : null}
+          <Button label={editing ? t('common.save') : t('common.add')} onPress={save} />
+          <Button label={t('common.cancel')} variant="secondary" onPress={reset} />
+        </Card>
+      ) : null}
 
       <Card title={t('exercises.browseTitle')}>
         <Field label={t('exercises.search')} placeholder={t('exercises.searchPlaceholder')} value={query} onChangeText={setQuery} autoCorrect={false} />

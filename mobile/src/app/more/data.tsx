@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
-import { Choice, ConfirmButton } from '@/components/fields';
+import { Choice, ConfirmButton, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '@/data/backup';
@@ -139,16 +139,7 @@ export default function DataScreen() {
         <ThemedText type="small">{t('dataScreen.exportText')}</ThemedText>
         {PHOTOS_SUPPORTED ? (
           <>
-            <Choice
-              label={t('dataScreen.withPhotos')}
-              options={['aus', 'an'] as const}
-              value={withPhotos ? 'an' : 'aus'}
-              onChange={(v) => setWithPhotos(v === 'an')}
-              format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-            />
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('dataScreen.withPhotosHint')}
-            </ThemedText>
+            <Toggle label={t('dataScreen.withPhotos')} hint={t('dataScreen.withPhotosHint')} value={withPhotos} onChange={(on) => setWithPhotos(on)} />
           </>
         ) : null}
         <Button label={t('dataScreen.export')} disabled={busy} onPress={exportNow} />
