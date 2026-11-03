@@ -178,14 +178,17 @@ export default function ProgressScreen() {
 
       <Card
         title={t('progress.goalsTitle')}
+        // Ohne Ziele trägt der leere Zustand die eine Aktion – kein zweiter „Neu“-Knopf daneben (O8).
         trailing={
-          <Button
-            label={t('training.newPlanShort')}
-            variant="secondary"
-            size="compact"
-            icon={<Icon name="plus" color={theme.text} size={16} strokeWidth={2.2} />}
-            onPress={() => router.push('/progress/goal/new')}
-          />
+          cards.length === 0 ? undefined : (
+            <Button
+              label={t('training.newPlanShort')}
+              variant="secondary"
+              size="compact"
+              icon={<Icon name="plus" color={theme.text} size={16} strokeWidth={2.2} />}
+              onPress={() => router.push('/progress/goal/new')}
+            />
+          )
         }>
         {cards.length === 0 ? (
           <EmptyState

@@ -147,13 +147,7 @@ export type MealAlert = { id: string; day: string; meal: Meal; atMs: number };
  * Geplante Mahlzeit-Erinnerungen ab `today`: je eingeschalteter Mahlzeit und Tag eine, aber nur in der Zukunft und nur,
  * wenn für Tag und Mahlzeit noch nichts eingetragen ist (`logged` enthält „Tag|Mahlzeit“, auch geplante Einträge).
  */
-export function mealReminderPlan(
-  r: ReminderSettings,
-  today: string,
-  nowMs: number,
-  logged: ReadonlySet<string>,
-  otherReminders = 0
-): MealAlert[] {
+export function mealReminderPlan(r: ReminderSettings, today: string, nowMs: number, logged: ReadonlySet<string>, otherReminders = 0): MealAlert[] {
   const days = mealReminderDays(r, otherReminders);
   const alerts: MealAlert[] = [];
   for (let d = 0; d < days; d++) {

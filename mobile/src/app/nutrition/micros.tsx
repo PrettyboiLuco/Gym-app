@@ -8,7 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import type { Db } from '@/data/db';
 import { listDay } from '@/data/nutrition';
-import { loadDayTargets, saveTargetsSettings, type DayTargets } from '@/data/targets-settings';
+import { loadDayTargets, saveTargetsSettings } from '@/data/targets-settings';
 import { MICRO_KEYS, MICRO_UNITS, parseMicros, sumMicros, type MicroKey } from '@/domain/basis-foods';
 import { MAX_PINNED, MICRO_TARGETS_VERSION } from '@/domain/micro-targets';
 import { useLoad } from '@/hooks/use-load';
@@ -24,12 +24,11 @@ async function load(db: Db, day: string) {
 export default function MicrosScreen() {
   const params = useLocalSearchParams<{ day?: string }>();
   const day = params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : diaryToday();
-  const { data, reload, db } = useLoad((d) => load(d, day), { targets: null as DayTargets | null, sums: { values: {}, known: 0, total: 0 } }, day);
+  const { data, reload, db } = useLoad((d) => load(d, day), null as Awaited<ReturnType<typeof load>> | null, day);
+  if (!data) return <Screen withHeader>{null}</Screen>;
   const { targets, sums } = data;
-  if (!targets) return <Screen withHeader>{null}</Screen>;
 
   async function changePins(next: MicroKey[]) {
-    if (!targets) return;
     if (next.length > MAX_PINNED) {
       showToast(t('targets.micros.pinFull'));
       return;
@@ -47,7 +46,7 @@ export default function MicrosScreen() {
           {t('targets.micros.onlyLogged')}
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          {t('micros.coverage', { known: sums.known, total: sums.total })}
+          {t('micros.openHint', { known: sums.known, total: sums.total })}
         </ThemedText>
       </Card>
 

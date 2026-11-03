@@ -54,8 +54,11 @@ export function minutesOfDay(iso: string): number {
 
 type Timed = { kind: 'essen' | 'getraenk'; occurredAt: string; kcal: number | null };
 
-/** Zählt ein Eintrag fürs Essensfenster? Essen immer, Getränke nur mit Kalorien (Wasser, schwarzer Kaffee nicht). */
-const countsAsIntake = (e: Timed) => e.kind === 'essen' || (e.kcal ?? 0) > 0;
+/** Ab so vielen kcal zählt ein Getränk fürs Essensfenster (schwarzer Kaffee hat 2–5 kcal, Tee und Wasser 0). */
+export const DRINK_WINDOW_KCAL = 20;
+
+/** Zählt ein Eintrag fürs Essensfenster? Essen immer, Getränke nur mit nennenswert Kalorien (Saft, Milchkaffee). */
+const countsAsIntake = (e: Timed) => e.kind === 'essen' || (e.kcal ?? 0) >= DRINK_WINDOW_KCAL;
 
 export type EatingWindow = { firstAt: string; lastAt: string; hours: number; count: number };
 

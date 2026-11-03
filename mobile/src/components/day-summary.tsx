@@ -233,9 +233,11 @@ function MicrosSheet({
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.sheetBody}>
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('targets.micros.onlyLogged')}
-          </ThemedText>
+          {withTargets ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('targets.micros.onlyLogged')}
+            </ThemedText>
+          ) : null}
           <View style={[styles.sheetCard, { backgroundColor: theme.backgroundElement }]}>
             {withTargets
               ? keys.map((k) => (
@@ -263,7 +265,7 @@ function MicrosSheet({
             </ThemedText>
           ) : null}
           <ThemedText type="small" themeColor="textSecondary">
-            {t('micros.coverage', { known: micros.known, total: micros.total })}
+            {withTargets ? t('micros.openHint', { known: micros.known, total: micros.total }) : t('micros.coverage', { known: micros.known, total: micros.total })}
           </ThemedText>
           {withTargets ? (
             <>

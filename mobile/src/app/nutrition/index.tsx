@@ -31,6 +31,7 @@ import {
   saveTemplateFromMeal,
   type ConsumptionEvent,
 } from '@/data/nutrition';
+import { loadDayTargets, type DayTargets } from '@/data/targets-settings';
 import { parseMicros, sumMicros } from '@/domain/basis-foods';
 import type { Macros } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
@@ -40,7 +41,6 @@ import { EMPTY_FEELING, type DayFeelings, type MealFeeling } from '@/domain/meal
 import { drinkTotals, MEALS, sumNutrients, type Meal } from '@/domain/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { foodTitle } from '@/format/food-title';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -53,9 +53,22 @@ async function loadDiary(db: Db, day: string) {
   // Tagebuch-Ausbau (B1): Befinden je Mahlzeit, Fasten-Timer (Kann-Funktion); Mahlzeit-Erinnerungen nach jedem Laden
   // neu planen – so entfällt die heutige Mitteilung einer Mahlzeit, sobald etwas eingetragen ist.
   const [feelings, fasting, fast] = await Promise.all([loadDayFeelings(db, day), loadFastingSettings(db), currentFast(db)]);
+  // Ziele und Nährstoffe (B2): Tagesziel aus dem Wochenbudget, Makros nach Ernährungsform, angeheftete Nährstoffe.
+  const targets = await loadDayTargets(db, day);
   const fastStatus = fast ? fastingStatus(fast, Date.now()) : null;
   syncMealReminders(db, diaryToday()).catch(() => undefined);
-  return { day, events, settings, goal: goal?.kcal ?? null, macros: goal?.macros ?? null, estimated: goal?.source === 'rechner', feelings, fasting, fastStatus };
+  return {
+    day,
+    events,
+    settings,
+    goal: targets.kcal ?? goal?.kcal ?? null,
+    macros: targets.macros ?? goal?.macros ?? null,
+    estimated: goal?.source === 'rechner',
+    feelings,
+    fasting,
+    fastStatus,
+    targets,
+  };
 }
 
 type DiaryView = 'mahlzeiten' | 'zeitleiste';
@@ -66,8 +79,6 @@ let lastView: DiaryView = 'mahlzeiten';
 export default function DiaryScreen() {
   const theme = useTheme();
   const units = useUnits();
-  const dark = useColorScheme() === 'dark';
-  const dataColor = dark ? theme.accent : theme.tint;
   const [day, setDay] = useState(diaryToday);
   // App über Mitternacht offen oder Tagesende geändert: Wer „Heute“ angesehen hat, sieht nach dem Zurückkehren (App im
   // Vordergrund oder Bildschirm wieder im Fokus) den neuen Tag.
@@ -98,6 +109,7 @@ export default function DiaryScreen() {
       feelings: {} as DayFeelings,
       fasting: DEFAULT_FASTING,
       fastStatus: null as FastingStatus | null,
+      targets: null as DayTargets | null,
     },
     day
   );
@@ -106,7 +118,11 @@ export default function DiaryScreen() {
   const today = diaryToday();
   const planned = isPlannedDay(day, today);
   const { profile } = useProfile();
-  const fresh = useFreshEntries(data.day, events.map((e) => e.id), loaded);
+  const fresh = useFreshEntries(
+    data.day,
+    events.map((e) => e.id),
+    loaded
+  );
   const [view, setView] = useState<DiaryView>(lastView);
   const [copyFor, setCopyFor] = useState<{ ids: string[]; title: string } | null>(null);
   const windowText = windowLine(events);
@@ -200,7 +216,7 @@ export default function DiaryScreen() {
           <ThemedText>{t('nutrition.summary.hidden', { count: events.length })}</ThemedText>
         ) : (
           <>
-            <DaySummary totals={sums} goal={goal} macroGoals={data.macros} micros={microSum} />
+            <DaySummary totals={sums} goal={goal} macroGoals={data.macros} micros={microSum} targets={data.targets} day={day} />
           </>
         )}
         {sums.unknown.kcal > 0 ? (
@@ -346,6 +362,14 @@ export default function DiaryScreen() {
         />
         <ListRow icon="book" title={t('nutrition.recipesLink')} accessory="›" onPress={() => router.push('/nutrition/recipes')} />
         <ListRow icon="pill" title={t('supplements.link')} accessory="›" onPress={() => router.push('/nutrition/supplements')} />
+        {/* Was fehlt mir heute? (B2, W3) – ohne Zahlen nur der Hinweis auf dem Bildschirm selbst. */}
+        <ListRow
+          icon="search"
+          title={t('targets.gaps.title')}
+          subtitle={t('targets.gaps.linkSub')}
+          accessory="›"
+          onPress={() => router.push({ pathname: '/nutrition/gaps', params: { day } })}
+        />
         {/* Fasten-Timer (B1, E2): Kann-Funktion, bei „sensibler Situation“ komplett ausgeblendet. */}
         {showFasting ? (
           <ListRow

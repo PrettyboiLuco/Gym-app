@@ -79,7 +79,12 @@ export default function BudgetScreen() {
   return (
     <Screen withHeader>
       <Card>
-        <Toggle label={t('targets.budget.enabled')} hint={t('targets.budget.enabledHint')} value={current.enabled} onChange={(enabled) => change({ enabled })} />
+        <Toggle
+          label={t('targets.budget.enabled')}
+          hint={t('targets.budget.enabledHint')}
+          value={current.enabled}
+          onChange={(enabled) => change({ enabled })}
+        />
       </Card>
 
       <Card>
@@ -100,7 +105,11 @@ export default function BudgetScreen() {
               return (
                 <View key={d} style={[styles.shareRow, { borderColor: theme.backgroundSelected }]}>
                   <ThemedText style={styles.flex}>{name}</ThemedText>
-                  <StepButton icon="minus" label={t('targets.budget.less', { day: name })} onPress={() => change({ shares: stepShare(current.shares, i, -1) })} />
+                  <StepButton
+                    icon="minus"
+                    label={t('targets.budget.less', { day: name })}
+                    onPress={() => change({ shares: stepShare(current.shares, i, -1) })}
+                  />
                   <ThemedText style={styles.share}>{t('targets.budget.shareValue', { value: current.shares[i] })}</ThemedText>
                   <StepButton icon="plus" label={t('targets.budget.more', { day: name })} onPress={() => change({ shares: stepShare(current.shares, i, 1) })} />
                 </View>
@@ -122,7 +131,8 @@ export default function BudgetScreen() {
       </Card>
 
       {preview ? (
-        <Card title={t('targets.budget.weekTitle')} trailing={<ThemedText themeColor="textSecondary">{t('targets.budget.total', { total: kcal(preview.total) })}</ThemedText>}>
+        <Card title={t('targets.budget.weekTitle')}>
+          <ThemedText type="smallBold">{t('targets.budget.total', { total: kcal(preview.total) })}</ThemedText>
           {days.map((d, i) => {
             const eaten = data.eaten.get(d);
             const sub = [

@@ -42,6 +42,7 @@ export const de = {
     keepEditing: 'Weiter bearbeiten',
     discard: 'Verwerfen',
     edit: 'Bearbeiten',
+    loading: 'Wird geladen …',
   },
   today: {
     title: 'Heute',
@@ -929,7 +930,6 @@ export const de = {
       target: 'Ziel {{value}}',
       upper: 'Obergrenze {{value}}',
       value: '{{value}} von {{target}} {{unit}}',
-      sumOnly: '{{value}} {{unit}}',
       noData: 'keine Angaben',
       zone: {
         unterUntergrenze: 'unter der Untergrenze',
@@ -1688,16 +1688,16 @@ export const de = {
     tilesEmpty: 'Keine Kachel gewählt.',
     hidden: 'Ansicht ohne Kalorien- und Gewichtszahlen (sensible Situation bzw. Ernährungs-Einstellung).',
     tile: {
-      kalorien: 'Kalorien · Ø 7 Tage',
+      kalorien: 'Kalorien',
       eiweiss: 'Eiweiß',
       gewicht: 'Gewichtstrend',
       training: 'Trainingstage',
-      schritte: 'Schritte · Ø 7 Tage',
-      schlaf: 'Schlaf · Ø 7 Tage',
+      schritte: 'Schritte',
+      schlaf: 'Schlaf',
       bereitschaft: 'Bereitschaft',
     },
     sub: {
-      tracked: { one: 'an 1 Tag erfasst', other: 'an {{count}} Tagen erfasst' },
+      tracked: { one: 'Ø 7 Tage · 1 Tag erfasst', other: 'Ø 7 Tage · {{count}} Tage erfasst' },
       foodTracked: 'Tage vollständig erfasst (bis gestern)',
       tooFew: 'ab 3 Tagen mit Wert',
       proteinGoal: 'Tage mit Eiweißziel erreicht',

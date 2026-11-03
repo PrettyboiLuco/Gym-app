@@ -42,7 +42,8 @@ const clampShare = (v: number) => Math.min(SHARE_RANGE.max, Math.max(SHARE_RANGE
 /** Gespeicherte Einstellungen in den erlaubten Rahmen setzen (alte oder beschädigte Werte). */
 export function sanitizeBudget(raw: Partial<BudgetSettings> | null | undefined): BudgetSettings {
   const s = raw ?? {};
-  const shares = Array.isArray(s.shares) && s.shares.length === 7 && s.shares.every((v) => Number.isFinite(v)) ? s.shares.map(clampShare) : DEFAULT_BUDGET.shares;
+  const shares =
+    Array.isArray(s.shares) && s.shares.length === 7 && s.shares.every((v) => Number.isFinite(v)) ? s.shares.map(clampShare) : DEFAULT_BUDGET.shares;
   return {
     enabled: s.enabled === true,
     preset: BUDGET_PRESETS.includes(s.preset as BudgetPreset) ? (s.preset as BudgetPreset) : DEFAULT_BUDGET.preset,

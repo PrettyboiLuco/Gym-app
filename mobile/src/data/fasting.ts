@@ -47,11 +47,7 @@ export async function startFast(db: Db, plannedHours: number, at: Date = new Dat
 
 /** Beendet das laufende Fenster; das Ende liegt nie vor dem Start. */
 export async function stopFast(db: Db, id: string, at: Date = new Date()) {
-  await db.runAsync(
-    'UPDATE fasting_period SET ended_at_utc = MAX(started_at_utc, ?) WHERE id = ? AND ended_at_utc IS NULL',
-    at.toISOString(),
-    id
-  );
+  await db.runAsync('UPDATE fasting_period SET ended_at_utc = MAX(started_at_utc, ?) WHERE id = ? AND ended_at_utc IS NULL', at.toISOString(), id);
 }
 
 export async function deleteFast(db: Db, id: string) {

@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { Choice, Field } from '@/components/fields';
 import { Screen } from '@/components/screen';
+import { SkeletonCard } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
@@ -131,6 +132,13 @@ export default function ImportRecipeScreen() {
       </Card>
       {problem ? <ThemedText style={{ color: theme.danger }}>{problem}</ThemedText> : null}
 
+      {/* N8: Rezept wird aus dem Link gelesen – Rezept- und Zutatenkarte stehen schon grau da. */}
+      {busy && !rows ? (
+        <>
+          <SkeletonCard lines={['35%', '80%', '50%']} big={1} />
+          <SkeletonCard lines={['45%', '90%', '70%', '85%', '60%']} big={null} />
+        </>
+      ) : null}
       {rows ? (
         <>
           <Card title={t('recipeImport.recipeTitle')}>

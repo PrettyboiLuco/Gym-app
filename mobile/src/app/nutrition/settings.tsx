@@ -126,9 +126,28 @@ export default function NutritionSettingsScreen() {
       </Card>
       {/* Ziele und Nährstoffe (B2): eigene Bildschirme, speichern selbst. */}
       <Card title={t('targets.sectionTitle')}>
-        <ListRow icon="calendar" title={t('targets.budget.title')} subtitle={t('targets.budget.linkSub')} accessory="›" onPress={() => router.push('/nutrition/budget')} />
-        <ListRow icon="chart" title={t('targets.diet.title')} subtitle={t('targets.diet.linkSub')} accessory="›" onPress={() => router.push('/nutrition/diet')} />
-        <ListRow icon="list" title={t('micros.title')} subtitle={t('targets.micros.linkSub')} accessory="›" onPress={() => router.push('/nutrition/micros')} last />
+        <ListRow
+          icon="calendar"
+          title={t('targets.budget.title')}
+          subtitle={t('targets.budget.linkSub')}
+          accessory="›"
+          onPress={() => router.push('/nutrition/budget')}
+        />
+        <ListRow
+          icon="chart"
+          title={t('targets.diet.title')}
+          subtitle={t('targets.diet.linkSub')}
+          accessory="›"
+          onPress={() => router.push('/nutrition/diet')}
+        />
+        <ListRow
+          icon="list"
+          title={t('micros.title')}
+          subtitle={t('targets.micros.linkSub')}
+          accessory="›"
+          onPress={() => router.push('/nutrition/micros')}
+          last
+        />
       </Card>
       <Card>
         <Field

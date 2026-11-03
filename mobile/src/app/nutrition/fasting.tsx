@@ -58,7 +58,11 @@ export default function FastingScreen() {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
   const { profile } = useProfile();
-  const { data, reload, db, loaded } = useLoad(loadFasting, { settings: DEFAULT_FASTING, current: null as FastingPeriod | null, history: [] as FastingPeriod[] });
+  const { data, reload, db, loaded } = useLoad(loadFasting, {
+    settings: DEFAULT_FASTING,
+    current: null as FastingPeriod | null,
+    history: [] as FastingPeriod[],
+  });
   const { settings, current, history } = data;
   const [startText, setStartText] = useState('');
   const [startError, setStartError] = useState(false);
@@ -169,7 +173,9 @@ export default function FastingScreen() {
                   </ProgressRing>
                 </View>
                 <ThemedText style={styles.center}>
-                  {live.phase === 'erreicht' ? t('fasting.reachedLine', { hours: formatNumber(current.plannedHours, 1) }) : t('fasting.runningLine', { hours: formatNumber(current.plannedHours, 1) })}
+                  {live.phase === 'erreicht'
+                    ? t('fasting.reachedLine', { hours: formatNumber(current.plannedHours, 1) })
+                    : t('fasting.runningLine', { hours: formatNumber(current.plannedHours, 1) })}
                 </ThemedText>
                 <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
                   {t('fasting.window', { start: formatClock(current.startedAt), end: formatClock(new Date(live.endAtMs).toISOString()) })}

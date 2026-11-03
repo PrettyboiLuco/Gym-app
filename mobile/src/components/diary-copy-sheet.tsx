@@ -1,7 +1,7 @@
 // „Kopieren auf …“ (Ausbauplan B1, W5): Einträge einer Mahlzeit oder ein einzelner Eintrag auf mehrere Tage,
 // auch in die Zukunft. Zukünftige Tage sind „geplant“ und zählen erst am Tag selbst.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/card';
@@ -42,11 +42,9 @@ export function DiaryCopySheet({
 }) {
   const db = useDb();
   const today = diaryToday();
+  // Auswahl beginnt leer: das Blatt wird zum Öffnen jeweils neu eingehängt.
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    if (visible) setSelected([]);
-  }, [visible]);
 
   const options = copyDayOptions(sourceDay, today);
   const past = options.filter((d) => !isPlannedDay(d, today));
@@ -85,12 +83,7 @@ export function DiaryCopySheet({
       </ThemedText>
       <MultiChoice label={t('diary.copy.future')} options={future} value={selected} onChange={setSelected} format={(d) => shortDay(d, today)} />
       <View style={styles.row}>
-        <Button
-          label={t('diary.copy.nextWeek')}
-          variant="secondary"
-          size="compact"
-          onPress={() => setSelected((s) => [...new Set([...s, ...nextWeek])])}
-        />
+        <Button label={t('diary.copy.nextWeek')} variant="secondary" size="compact" onPress={() => setSelected((s) => [...new Set([...s, ...nextWeek])])} />
         {selected.length > 0 ? <Button label={t('diary.copy.clear')} variant="quiet" size="compact" onPress={() => setSelected([])} /> : null}
       </View>
       <MultiChoice label={t('diary.copy.past')} options={past} value={selected} onChange={setSelected} format={(d) => shortDay(d, today)} />

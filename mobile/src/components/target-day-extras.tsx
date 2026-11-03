@@ -82,7 +82,13 @@ export function TargetDayExtras({ targets, totals, micros, day }: { targets: Day
 }
 
 const styles = StyleSheet.create({
-  box: { borderWidth: StyleSheet.hairlineWidth, borderRadius: Radius.field + 4, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, gap: Spacing.two },
+  box: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radius.field + 4,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    gap: Spacing.two,
+  },
   block: { gap: Spacing.one + 2, paddingVertical: Spacing.one },
   head: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   flex: { flex: 1, minWidth: 0 },

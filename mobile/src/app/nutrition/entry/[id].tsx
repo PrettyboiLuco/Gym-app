@@ -163,7 +163,7 @@ export default function EntryScreen() {
           {t('diary.copy.entryHint')}
         </ThemedText>
       </Card>
-      <DiaryCopySheet visible={copying} onClose={() => setCopying(false)} sourceDay={event.diaryDate} eventIds={[event.id]} title={foodTitle(event)} />
+      {copying ? <DiaryCopySheet visible onClose={() => setCopying(false)} sourceDay={event.diaryDate} eventIds={[event.id]} title={foodTitle(event)} /> : null}
       <ConfirmButton label={t('common.delete')} onConfirm={remove} />
     </Screen>
   );

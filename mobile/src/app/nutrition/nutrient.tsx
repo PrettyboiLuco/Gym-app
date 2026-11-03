@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import type { Db } from '@/data/db';
 import { rankFoodsBy } from '@/data/nutrient-gaps';
 import { listDay, type ConsumptionEvent } from '@/data/nutrition';
-import { loadDayTargets, type DayTargets } from '@/data/targets-settings';
+import { loadDayTargets } from '@/data/targets-settings';
 import { MICRO_KEYS, MICRO_UNITS, parseMicros, type MicroKey } from '@/domain/basis-foods';
 import { topSources } from '@/domain/micro-targets';
 import { RANK_KEYS, type GapKey, type RankBy } from '@/domain/nutrient-gaps';
@@ -46,7 +46,8 @@ export default function NutrientScreen() {
   const day = params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day) ? params.day : diaryToday();
   const [key, setKey] = useState<GapKey>(RANK_KEYS.includes(params.key as GapKey) ? (params.key as GapKey) : 'protein');
   const [by, setBy] = useState<RankBy>('g100');
-  const { data } = useLoad((d) => load(d, day, key, by), { targets: null as DayTargets | null, ranked: [], today: [], total: null }, `${day}-${key}-${by}`);
+  const { data: loadedData } = useLoad((d) => load(d, day, key, by), null as Awaited<ReturnType<typeof load>> | null, `${day}-${key}-${by}`);
+  const data = loadedData ?? { targets: null, ranked: [], today: [], total: null };
   const { targets } = data;
   const hidden = targets?.hidden ?? true;
   const { target } = readTarget({ day });

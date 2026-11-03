@@ -279,9 +279,11 @@ export default function SessionScreen() {
     const scroll = scrollRef.current;
     const row = rowRefs.current.get(rowId);
     const inner = scroll?.getInnerViewRef?.();
+    console.warn('DBG scroll', !!scroll, !!row, !!inner, rowId);
     if (!scroll || !row || !inner) return;
     try {
       row.measureInWindow((_x, top, _w, h) => {
+        console.warn('DBG win', top, h, windowHeight);
         if (top >= SetRowMotion.visibleTop && top + h <= windowHeight - SetRowMotion.visibleBottom) return;
         row.measureLayout(inner, (_lx, y) => scroll.scrollTo({ y: Math.max(0, y - windowHeight * 0.35), animated: !reduced }));
       });

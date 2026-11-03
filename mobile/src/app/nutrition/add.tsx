@@ -147,7 +147,9 @@ export default function AddScreen() {
         key={f.id}
         title={`${warn(foodFacts(f))}${foodTitle(f)}`}
         subtitle={
-          multi ? `${formatAmount(defaultAmount(f), f.basis)} · ${formatKcal(f.kcal === null ? null : (f.kcal * defaultAmount(f)) / 100)}` : `${formatKcal(f.kcal)} / 100 ${f.basis}`
+          multi
+            ? `${formatAmount(defaultAmount(f), f.basis)} · ${formatKcal(f.kcal === null ? null : (f.kcal * defaultAmount(f)) / 100)}`
+            : `${formatKcal(f.kcal)} / 100 ${f.basis}`
         }
         accessory={multi ? undefined : f.favorite ? 'favorite' : '›'}
         trailing={

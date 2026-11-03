@@ -23,7 +23,6 @@ import {
   type Prep,
 } from '@/domain/nutrition';
 import { foldText } from '@/domain/text';
-import { localDay } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
@@ -440,12 +439,10 @@ export async function copyDay(db: Db, fromDate: string, when: When) {
     for (const e of source) {
       const target = targetOf(e);
       // Uhrzeit des Originals behalten, nur auf den neuen Tag verschoben – sonst landet der ganze Tag auf einer
-      // Uhrzeit (Journal: „spät gegessen“, Koffein). Heute nie in der Zukunft: dann die übergebene Zeit. Ein geplanter
-      // Tag (nach heute, B1) behält die Uhrzeiten des Originals.
+      // Uhrzeit (Journal: „spät gegessen“, Koffein). Nie in der Zukunft: dann die übergebene Zeit.
       const at = new Date(e.occurredAt);
       at.setDate(at.getDate() + days);
-      const planned = when.diaryDate > localDay(new Date(), when.timeZone);
-      const shifted = { ...when, at: !planned && at.getTime() > Date.now() ? when.at : at };
+      const shifted = { ...when, at: at.getTime() > Date.now() ? when.at : at };
       await insertCopy(db, e, target, shifted);
     }
   });

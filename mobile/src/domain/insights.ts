@@ -1,6 +1,6 @@
 // Einblicke (Review W9): wählbare Kacheln mit Kurzwert und Verlauf sowie sachliche Wochen-Muster aus den letzten Wochen.
 //
-// Regeln Fassung 1:
+// Regeln:
 // - Keine Serien, keine Bewertung: Kacheln und Muster beschreiben nur, was war („an 5 von 7 Tagen“, „Ø 2300 kcal“).
 // - Essen zählt nur an vollständig erfassten Tagen (Einträge, alle kcal bekannt, nicht als unvollständig markiert) –
 //   wie der Wochenschnitt der Ernährung (TRACK-002/004). Der laufende Ernährungstag zählt noch nicht.
@@ -15,8 +15,6 @@ import { mean, roundDigits, roundTo } from './math';
 import type { Modules } from './modules';
 import type { Level } from './readiness';
 import { weightTrend } from './weight';
-
-export const INSIGHTS_RULES_VERSION = 1;
 
 export const INSIGHT_TILES = ['kalorien', 'eiweiss', 'gewicht', 'training', 'schritte', 'schlaf', 'bereitschaft'] as const;
 export type InsightTile = (typeof INSIGHT_TILES)[number];

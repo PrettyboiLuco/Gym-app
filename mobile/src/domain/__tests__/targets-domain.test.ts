@@ -7,7 +7,7 @@ import { applyCarryover, distributeWeek, fillGoals, planWeek, presetWeights, san
 import { macrosFor } from '../coach';
 import { carbLimit, dietMacros, dietProfilesFor, effectiveDietProfile, netCarbs, showsNetCarbs } from '../diet-profile';
 import { MAX_PINNED, microBar, microRefs, microZone, sanitizePins, togglePin, topSources } from '../micro-targets';
-import { amountOptions, fitsDiet, openGaps, rankFoods, suggestFoods, valuePer100, type GapFood } from '../nutrient-gaps';
+import { amountOptions, fitsDiet, isSeasoning, openGaps, rankFoods, suggestFoods, valuePer100, type GapFood } from '../nutrient-gaps';
 
 const sum = (list: number[]) => list.reduce((a, b) => a + b, 0);
 
@@ -197,9 +197,33 @@ const food = (over: Partial<GapFood>): GapFood => ({
 });
 
 describe('Was fehlt mir heute?', () => {
-  const quark = food({ id: 'quark', name: 'Magerquark', kcal: 67, protein: 12, portions: [{ label: '1 Becher', g: 250 }], diet: 'vegetarisch', allergens: ['milch'] });
-  const huhn = food({ id: 'huhn', name: 'Hähnchenbrust', kcal: 110, protein: 23, group: 'fleisch_fisch', diet: 'nicht_vegetarisch', portions: [{ label: '1 Filet', g: 150 }] });
-  const linsen = food({ id: 'linsen', name: 'Linsen gekocht', kcal: 116, protein: 9, fiber: 8, group: 'huelsenfruechte' });
+  const quark = food({
+    id: 'quark',
+    name: 'Magerquark',
+    kcal: 67,
+    protein: 12,
+    portions: [{ label: '1 Becher', g: 250 }],
+    diet: 'vegetarisch',
+    allergens: ['milch'],
+  });
+  const huhn = food({
+    id: 'huhn',
+    name: 'Hähnchenbrust',
+    kcal: 110,
+    protein: 23,
+    group: 'fleisch_fisch',
+    diet: 'nicht_vegetarisch',
+    portions: [{ label: '1 Filet', g: 150 }],
+  });
+  const linsen = food({
+    id: 'linsen',
+    name: 'Linsen gekocht',
+    kcal: 116,
+    protein: 9,
+    fiber: 8,
+    group: 'huelsenfruechte',
+    portions: [{ label: '1 Tasse', g: 198 }],
+  });
   const schoko = food({ id: 'schoko', name: 'Schokolade', kcal: 540, protein: 8, fiber: 7, group: 'suesses_snacks' });
   const eier = food({ id: 'ei', name: 'Ei', kcal: 140, protein: 13, portions: [{ label: '1 Ei (M)', g: 50 }], diet: 'vegetarisch' });
 
@@ -236,6 +260,10 @@ describe('Was fehlt mir heute?', () => {
     expect(s.count).toBe(2);
     expect(s.amount).toBe(100); // 2 Eier: 13 g ≥ 12 g
     expect(amountOptions(food({ portions: [] })).map((o) => o.amount)).toEqual([50, 100, 150, 200]);
+    // Lücke nicht zu schließen: die übliche Portion, nicht drei davon
+    const pilze = food({ id: 'pilze', kcal: 38, micros: { iron: 3.6 }, portions: [{ label: '1 Portion', g: 100 }], group: 'gemuese' });
+    const iron = openGaps({ protein: null, fiber: null, micros: [{ key: 'iron', target: 16, eaten: 0 }] });
+    expect(suggestFoods(iron, null, [pilze])[0].amount).toBe(100);
   });
 
   test('Ballaststoff-Lücke: Hülsenfrüchte vor Fleisch', () => {
@@ -253,6 +281,19 @@ describe('Was fehlt mir heute?', () => {
     expect(fitsDiet(food({ diet: null }), 'vegetarisch', [])).toBe(false);
     expect(fitsDiet(food({ allergens: null }), 'alles', ['gluten'])).toBe(false);
     expect(fitsDiet(food({ allergens: null }), 'alles', [])).toBe(true);
+  });
+
+  test('Würzmengen (übliche Portion unter 10 g) weder vorschlagen noch listen', () => {
+    const parsley = food({ id: 'petersilie', kcal: 36, protein: 3, micros: { iron: 6.2 }, serving: 4, portions: [{ label: '1 EL', g: 4 }], group: 'gemuese' });
+    expect(isSeasoning(parsley)).toBe(true);
+    expect(isSeasoning(food({ serving: null, portions: [] }))).toBe(false);
+    const gaps = openGaps({ protein: null, fiber: null, micros: [{ key: 'iron', target: 16, eaten: 2 }] });
+    expect(suggestFoods(gaps, null, [parsley])).toEqual([]);
+    expect(rankFoods([parsley], 'iron', 'kcal100')).toEqual([]);
+    // Favorit: selbst gewählt, daher nicht ausgefiltert (kleine Lücke, damit 3 EL reichen)
+    const small = openGaps({ protein: null, fiber: null, micros: [{ key: 'iron', target: 4, eaten: 3 }] });
+    expect(suggestFoods(small, null, [parsley])).toEqual([]);
+    expect(suggestFoods(small, null, [{ ...parsley, favorite: true }])).toHaveLength(1);
   });
 
   test('Nährstoff-Suche je 100 g oder je 100 kcal', () => {

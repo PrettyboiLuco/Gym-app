@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
+import { RecordMedal } from '@/components/celebration';
 import { haptic } from '@/components/haptics';
 import { HeartLoop } from '@/components/heart-loop';
 import { Icon } from '@/components/icon';
@@ -272,7 +273,8 @@ export default function SummaryScreen() {
 
       {records.length > 0 ? (
         <Rise delay={3 * CardStagger.staggerMs}>
-          <Card title={t('summary.recordsTitle', { count: records.length })}>
+          {/* N6: Medaille dreht sich einmal, kurzer Burst – gleichzeitig mit dem Bestleistungs-Signal. */}
+          <Card title={t('summary.recordsTitle', { count: records.length })} trailing={<RecordMedal delayMs={3 * CardStagger.staggerMs} />}>
             {records.map((r, i) => (
               <Rise key={r.exerciseId} delay={(4 + i) * CardStagger.staggerMs}>
                 <PressableScale
@@ -282,7 +284,7 @@ export default function SummaryScreen() {
                   style={styles.record}>
                   <View style={styles.flex}>
                     <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary">
+                    <ThemedText type="small" themeColor="textSecondary" numeric>
                       {recordText(r)}
                       {e1rmText(r)}
                     </ThemedText>

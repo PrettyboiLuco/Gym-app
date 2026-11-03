@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { Choice } from '@/components/fields';
 import { Screen } from '@/components/screen';
+import { SkeletonCard } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { buildReport, periodFor, REPORT_WEEKS, reportHtml, reportSections, reportText, type Report, type ReportWeeks } from '@/data/report';
@@ -89,6 +90,8 @@ export default function ReportScreen() {
         </ThemedText>
       </Card>
       {error ? <ThemedText style={{ color: theme.danger }}>{t('report.failed')}</ThemedText> : null}
+      {/* N8: Während der Bericht entsteht, steht seine Karte schon grau da und atmet ruhig. */}
+      {!report && !error ? <SkeletonCard lines={['55%', '90%', '72%', '84%', '64%', '78%']} big={null} /> : null}
       {report ? (
         <Card title={t('report.period', { from: formatDay(report.from), to: formatDay(report.to) })}>
           {reportSections(report).map((sec) => (

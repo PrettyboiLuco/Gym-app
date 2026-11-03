@@ -9,7 +9,8 @@
 //   alle Favoriten (selbst gewählt, daher ohne Filter); Grundnahrungsmittel passend zu Ernährungsweise und Allergien
 //   aus den Einstellungen (unbekannte Angaben = nicht vorgeschlagen, sobald dort etwas gewählt ist).
 // - Menge: Portionen der Liste (1–3 Stück bis 100 g, sonst eine), ohne Portionen 50–200 g; höchstens 400 g. Gewählt
-//   wird die kleinste Menge, die die Hauptlücke des Lebensmittels schließt, sonst die größte erlaubte. Die Menge darf
+//   wird die kleinste Menge, die die Hauptlücke des Lebensmittels schließt, sonst die übliche Portion (bzw. 100 g,
+//   höchstens die größte erlaubte). Die Menge darf
 //   die übrigen kcal des Tagesziels nicht überschreiten; ist das Ziel erreicht, gibt es keine Vorschläge.
 // - Reihenfolge: geschlossener Anteil der Lücken (Eiweiß und Ballaststoffe zählen voll, Vitamine/Mineralstoffe halb,
 //   je Lücke höchstens 100 %) geteilt durch (kcal + 100) – so zählen große Beiträge mehr als nur wenig kcal;
@@ -121,6 +122,13 @@ function coverage(food: GapFood, amount: number, gaps: Gap[]) {
   return { adds, total, best };
 }
 
+/** Übliche Portion: die angegebene Portion, sonst die erste einzelne Portion, sonst 100 g; nie mehr als erlaubt. */
+function usualOption<T extends { amount: number; count: number }>(food: Pick<GapFood, 'serving' | 'portions'>, options: T[]): T {
+  const usual = food.serving ?? food.portions[0]?.g ?? 100;
+  const fitting = options.filter((o) => o.amount <= usual + 0.5);
+  return fitting.length > 0 ? fitting[fitting.length - 1] : options[0];
+}
+
 /** Übliche Menge unter 10 g (Kräuter, Gewürze): nicht vorschlagen, nicht listen. */
 export function isSeasoning(food: Pick<GapFood, 'serving' | 'portions'>): boolean {
   const usual = food.serving ?? food.portions[0]?.g ?? null;
@@ -136,8 +144,8 @@ export function suggestFoods(gaps: Gap[], kcalLeft: number | null, foods: GapFoo
     if (!food.favorite && ((food.group !== null && EXCLUDED_GROUPS.includes(food.group)) || isSeasoning(food))) continue;
     const options = amountOptions(food).filter((o) => kcalLeft === null || (food.kcal * o.amount) / 100 <= kcalLeft);
     if (options.length === 0) continue;
-    // Kleinste Menge, die die Hauptlücke schließt, sonst die größte erlaubte.
-    const chosen = options.find((o) => coverage(food, o.amount, gaps).best >= 1) ?? options[options.length - 1];
+    // Kleinste Menge, die die Hauptlücke schließt, sonst die übliche Portion (höchstens die größte erlaubte).
+    const chosen = options.find((o) => coverage(food, o.amount, gaps).best >= 1) ?? usualOption(food, options);
     const c = coverage(food, chosen.amount, gaps);
     if (c.best < MIN_COVERAGE) continue;
     const kcal = (food.kcal * chosen.amount) / 100;

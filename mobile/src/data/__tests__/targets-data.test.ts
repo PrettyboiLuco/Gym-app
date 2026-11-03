@@ -66,7 +66,10 @@ describe('Einstellungen im App-Zustand', () => {
       pinnedMicros: [],
       dietProfile: 'ausgewogen',
     });
-    await db.runAsync("INSERT INTO app_state (key, value) VALUES ('targets_settings', ?)", JSON.stringify({ pinnedMicros: ['iron', 'x'], dietProfile: 'paleo' }));
+    await db.runAsync(
+      "INSERT INTO app_state (key, value) VALUES ('targets_settings', ?)",
+      JSON.stringify({ pinnedMicros: ['iron', 'x'], dietProfile: 'paleo' })
+    );
     expect((await loadTargetsSettings(db)).pinnedMicros).toEqual(['iron']);
     expect((await loadTargetsSettings(db)).dietProfile).toBe('ausgewogen');
     const settings = await loadTargetsSettings(db);

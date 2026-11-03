@@ -1,12 +1,15 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
+import { ScanFrame } from '@/components/scan-frame';
 import { Screen } from '@/components/screen';
+import type { Rect } from '@/components/set-table-logic';
+import { SkeletonCard } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { findFoodByBarcode, saveFood } from '@/data/nutrition';
@@ -44,6 +47,9 @@ export default function ScanScreen() {
   const saving = useRef(false);
   const [savingShown, setSavingShown] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  // N9: Code erkannt – Kamerabild bleibt kurz stehen, die Ecken ziehen sich auf den Code und werden zum Haken.
+  const [lock, setLock] = useState<{ bounds: Rect | null } | null>(null);
+  const unlock = useCallback(() => setLock(null), []);
 
   function openFood(id: string) {
     router.replace({ pathname: '/nutrition/food/[id]', params: { id, ...passOn } });
@@ -67,12 +73,13 @@ export default function ScanScreen() {
     setPhase(res.ok ? { kind: 'found', draft: res.value } : { kind: 'error', code, error: res.error });
   }
 
-  function onScanned(data: string, typed = false) {
+  function onScanned(data: string, typed = false, bounds: Rect | null = null) {
     if (busy.current) return;
     // QR-Codes ohne Produktnummer (z. B. Werbung auf der Packung) still übergehen und weiter scannen.
     const code = typed ? data : productCodeFromScan(data);
     if (!code) return;
     busy.current = true;
+    if (!typed) setLock({ bounds });
     // Kurze Vibration bestätigt, dass der Code erkannt wurde.
     if (!typed) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     safeLookUp(code, typed);
@@ -91,6 +98,7 @@ export default function ScanScreen() {
 
   function scanAgain() {
     busy.current = false;
+    setLock(null);
     setSaveFailed(false);
     setPhase({ kind: 'scan' });
   }
@@ -117,7 +125,7 @@ export default function ScanScreen() {
     } else openFood(id);
   }
 
-  const showCamera = Platform.OS !== 'web' && phase.kind === 'scan' && permission?.granted;
+  const showCamera = Platform.OS !== 'web' && (phase.kind === 'scan' || lock !== null) && permission?.granted;
 
   return (
     <Screen withHeader>
@@ -137,15 +145,15 @@ export default function ScanScreen() {
             facing="back"
             enableTorch={torch}
             barcodeScannerSettings={{ barcodeTypes: [...BARCODE_TYPES] }}
-            onBarcodeScanned={(result) => onScanned(result.data)}
+            onBarcodeScanned={(result) => onScanned(result.data, false, boundsOf(result))}
           />
-          <View style={[styles.frame, { borderColor: theme.accent }]} pointerEvents="none" />
+          <ScanFrame lock={lock} onDone={unlock} />
           <ThemedText type="small" style={styles.cameraHint}>
             {t('nutrition.scan.hint')}
           </ThemedText>
         </View>
       ) : null}
-      {showCamera ? (
+      {showCamera && !lock ? (
         <Button
           label={torch ? t('nutrition.scan.torchOff') : t('nutrition.scan.torchOn')}
           variant="secondary"
@@ -154,7 +162,8 @@ export default function ScanScreen() {
         />
       ) : null}
 
-      {phase.kind === 'loading' ? <ThemedText>{t('nutrition.scan.loading')}</ThemedText> : null}
+      {/* N8: Produkt wird gesucht – die Fundkarte steht schon grau da (Titel, kcal groß, Makros) und atmet ruhig. */}
+      {phase.kind === 'loading' ? <SkeletonCard lines={['30%', '70%', '45%', '85%']} big={2} label={t('nutrition.scan.loading')} /> : null}
 
       {phase.kind === 'found' ? (
         <Card title={t('nutrition.scan.found')}>
@@ -230,9 +239,14 @@ export default function ScanScreen() {
   );
 }
 
+/** Lage des Codes im Kamerabild, wenn die Kamera sie meldet (nicht jedes Gerät und jeder Code-Typ tut das). */
+function boundsOf(result: BarcodeScanningResult): Rect | null {
+  const b = result.bounds;
+  return b?.origin && b.size ? { x: b.origin.x, y: b.origin.y, width: b.size.width, height: b.size.height } : null;
+}
+
 const styles = StyleSheet.create({
   cameraBox: { height: 320, borderRadius: Spacing.three, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
-  frame: { width: '80%', height: 120, borderWidth: 3, borderRadius: Spacing.two },
   cameraHint: { position: 'absolute', bottom: Spacing.two, color: '#fff' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
 });

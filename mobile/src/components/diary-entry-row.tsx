@@ -2,7 +2,7 @@
 // Lime auf (N2), Löschen per Wisch-Geste nach links mit Ausblenden (N3). Bei „Bewegung reduzieren“ ohne Bewegung.
 
 import { useEffect, useRef, useState } from 'react';
-import { PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Animated, {
   FadeInUp,
   FadeOut,
@@ -62,27 +62,21 @@ export function DiaryEntryRow({
     pulse.set(withSequence(withTiming(1, { duration: PULSE.inMs }), withDelay(PULSE.holdMs, withTiming(0, { duration: PULSE.outMs }))));
   }, [fresh, pulse, reduced]);
 
-  // Aktuelle Werte für den einmal erzeugten PanResponder.
-  const latest = useRef({ width, onDelete, reduced });
-  useEffect(() => {
-    latest.current = { width, onDelete, reduced };
-  });
-
   const remove = () => {
     if (removing.current) return;
     removing.current = true;
     haptic.warning();
-    latest.current.onDelete();
+    onDelete();
   };
 
   const settle = (to: number) => {
     open.current = to !== 0;
-    x.set(latest.current.reduced ? to : withSpring(to, Spring));
+    x.set(reduced ? to : withSpring(to, Spring));
   };
 
   const swipeAway = () => {
-    const w = latest.current.width || 400;
-    if (latest.current.reduced) {
+    const w = width || 400;
+    if (reduced) {
       x.set(-w);
       remove();
       return;
@@ -94,26 +88,31 @@ export function DiaryEntryRow({
     );
   };
 
-  const pan = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderMove: (_e, g) => {
-        const base = open.current ? -ACTION_WIDTH : 0;
-        const next = base + g.dx;
-        x.set(next > 0 ? next * RUBBER : next);
-      },
-      onPanResponderRelease: (_e, g) => {
-        const base = open.current ? -ACTION_WIDTH : 0;
-        const next = base + g.dx;
-        const w = latest.current.width || 400;
-        if (next < -w * FULL_SWIPE) swipeAway();
-        else if (next < -ACTION_WIDTH / 2) settle(-ACTION_WIDTH);
-        else settle(0);
-      },
-      onPanResponderTerminate: () => settle(open.current ? -ACTION_WIDTH : 0),
-    })
-  ).current;
+  // Wisch-Geste über das Antwort-System von React Native (läuft auch in Expo Go und im Web): erst bei deutlich
+  // waagrechter Bewegung übernimmt die Zeile, senkrechtes Scrollen bleibt bei der Liste.
+  const touch = useRef({ x: 0, y: 0, base: 0 });
+  const delta = (e: GestureResponderEvent) => ({ dx: e.nativeEvent.pageX - touch.current.x, dy: e.nativeEvent.pageY - touch.current.y });
+  const gesture = {
+    onTouchStart: (e: GestureResponderEvent) => {
+      touch.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, base: open.current ? -ACTION_WIDTH : 0 };
+    },
+    onMoveShouldSetResponderCapture: (e: GestureResponderEvent) => {
+      const { dx, dy } = delta(e);
+      return Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.5;
+    },
+    onResponderTerminationRequest: () => false,
+    onResponderMove: (e: GestureResponderEvent) => {
+      const next = touch.current.base + delta(e).dx;
+      x.set(next > 0 ? next * RUBBER : next);
+    },
+    onResponderRelease: (e: GestureResponderEvent) => {
+      const next = touch.current.base + delta(e).dx;
+      if (next < -(width || 400) * FULL_SWIPE) swipeAway();
+      else if (next < -ACTION_WIDTH / 2) settle(-ACTION_WIDTH);
+      else settle(0);
+    },
+    onResponderTerminate: () => settle(open.current ? -ACTION_WIDTH : 0),
+  };
 
   const slide = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   const glow = useAnimatedStyle(() => ({ opacity: pulse.value * PULSE.opacity }));
@@ -133,7 +132,7 @@ export function DiaryEntryRow({
         </Pressable>
       </View>
       <Animated.View
-        {...pan.panHandlers}
+        {...gesture}
         style={[{ backgroundColor: theme.backgroundElement }, slide]}
         accessibilityActions={[{ name: 'delete', label: t('common.delete') }]}
         onAccessibilityAction={(e) => {
