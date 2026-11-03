@@ -10,7 +10,7 @@ import { kgToUnit, type WeightUnit } from '@/domain/units';
 import { dailyMeans, projectWeight, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
+import { formatDay, formatDayShort, formatNumber, formatWeight, t } from '@/i18n';
 
 const RANGES = ['7', '30', '90', '365'] as const;
 type Range = (typeof RANGES)[number];
@@ -105,7 +105,7 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
           reference={targetKg !== null ? { value: u(targetKg), label: t('progress.chartTarget', { value: formatWeight(targetKg, unit) }) } : undefined}
           color={data}
           format={(v) => formatNumber(v, 1)}
-          xLabels={span >= 4 ? [formatDay(from), formatDay(mid), formatDay(today)] : [formatDay(from), formatDay(today)]}
+          xLabels={span >= 4 ? [formatDayShort(from), formatDayShort(mid), t('nutrition.today')] : [formatDayShort(from), t('nutrition.today')]}
           accessibilityLabel={t('progress.chartLabel', {
             range: t(`progress.range.${range}`),
             min: low !== null ? formatWeight(low, unit) : '–',

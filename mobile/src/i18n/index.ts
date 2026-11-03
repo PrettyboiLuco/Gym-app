@@ -27,6 +27,11 @@ export function formatNumber(value: number, maximumFractionDigits = 1): string {
 }
 
 /** Datum (YYYY-MM-DD) im Format der aktuellen Sprache, z. B. 29.10.2026. */
+/** Kurzes Datum für Diagramm-Achsen, z. B. „8. Okt.“. */
+export function formatDayShort(day: string): string {
+  return new Intl.DateTimeFormat(i18n.locale, { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${day}T00:00:00Z`));
+}
+
 export function formatDay(day: string): string {
   return new Intl.DateTimeFormat(i18n.locale, {
     day: '2-digit',

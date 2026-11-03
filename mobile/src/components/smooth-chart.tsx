@@ -11,7 +11,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Defs, G, Line, LinearGradient, Mask, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 
 import { HIDDEN } from '@/components/a11y';
 import { approxLength, axisTicks, monotonePath, nearestIndex, type XY } from '@/components/chart-path';
@@ -28,9 +28,10 @@ const SVG_FONT = Platform.OS === 'web' ? 'system-ui, -apple-system, Segoe UI, sa
 
 export type ChartPoint = { x: number; value: number; label: string };
 
-const LANE = 40; // rechts: Achsenwerte
-const TOP = 10;
+const LANE = 34; // rechts: Achsenwerte
+const TOP = 14;
 const EDGE = 8;
+const FADE_IN = 64;
 const BOTTOM = 10;
 // Choreografie nach getlayers.ai Vorlage „Relay“ (Sparkline im Abschnitt Proof): Linie zeichnet sich in 720 ms
 // (ease-in-out cubic), die Fläche blendet ab einem Drittel davon in 480 ms ein (ease-out), dann landet der „Jetzt“-Punkt
@@ -110,6 +111,8 @@ export function SmoothChart({
   const length = approxLength(pts);
   const area = pts.length > 1 ? `${path} L${pts[pts.length - 1][0]} ${height - BOTTOM} L${pts[0][0]} ${height - BOTTOM} Z` : '';
   const last = pts[pts.length - 1];
+  const rawPath = dots.length > 1 ? dots.map((p, i) => `${i ? 'L' : 'M'}${x(p.x).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ') : '';
+  const areaStart = pts[0]?.[0] ?? 0;
 
   useEffect(() => {
     if (reduced || width === 0) {
@@ -145,8 +148,10 @@ export function SmoothChart({
   }, [animationKey, draw, fill, dot, pulse, reduced, width]);
 
   const lineProps = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - draw.value) }));
+  const glowProps = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - draw.value) }));
+  const glowWideProps = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - draw.value) }));
   const areaProps = useAnimatedProps(() => ({ opacity: fill.value }));
-  const dotsProps = useAnimatedProps(() => ({ opacity: 0.25 + 0.75 * fill.value }));
+  const dotsProps = useAnimatedProps(() => ({ opacity: fill.value }));
   const nowProps = useAnimatedProps(() => ({ opacity: dot.value }));
   const nowDotProps = useAnimatedProps(() => ({ r: 4.5 * dot.value }));
   const haloProps = useAnimatedProps(() => ({ r: 4.5 + 10 * pulse.value, opacity: dot.value * 0.8 * (1 - pulse.value) }));
@@ -189,25 +194,34 @@ export function SmoothChart({
         {width > 0 ? (
           <Svg width={width} height={height} {...HIDDEN}>
             <Defs>
-              {/* Fläche: Datenfarbe 26 % oben, nach unten auslaufend. Linie: links gedämpft, rechts (jetzt) volle Farbe. */}
+              {/* Fläche: Datenfarbe oben kräftig, nach unten auslaufend; links blendet sie über eine Maske weich ein. */}
               <LinearGradient id="chartArea" x1="0" y1={TOP} x2="0" y2={height - BOTTOM} gradientUnits="userSpaceOnUse">
-                <Stop offset="0" stopColor={color} stopOpacity={0.26} />
+                <Stop offset="0" stopColor={color} stopOpacity={0.34} />
+                <Stop offset="0.55" stopColor={color} stopOpacity={0.1} />
                 <Stop offset="1" stopColor={color} stopOpacity={0} />
               </LinearGradient>
-              <LinearGradient id="chartLine" x1="0" y1="0" x2={plotW} y2="0" gradientUnits="userSpaceOnUse">
-                <Stop offset="0" stopColor={color} stopOpacity={0.35} />
-                <Stop offset="0.6" stopColor={color} stopOpacity={1} />
+              <LinearGradient id="chartFadeIn" x1={areaStart} y1="0" x2={areaStart + FADE_IN} y2="0" gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0} />
+                <Stop offset="1" stopColor="#FFFFFF" stopOpacity={1} />
+              </LinearGradient>
+              <Mask id="chartMask" maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
+                <Rect x="0" y="0" width={width} height={height} fill="url(#chartFadeIn)" />
+              </Mask>
+              {/* Linie: früher gedämpft, zur Gegenwart volle Farbe. */}
+              <LinearGradient id="chartLine" x1={areaStart} y1="0" x2={plotW} y2="0" gradientUnits="userSpaceOnUse">
+                <Stop offset="0" stopColor={color} stopOpacity={0.3} />
+                <Stop offset="0.5" stopColor={color} stopOpacity={1} />
               </LinearGradient>
               <LinearGradient id="chartNow" x1="0" y1={TOP} x2="0" y2={height - BOTTOM} gradientUnits="userSpaceOnUse">
-                <Stop offset="0" stopColor={color} stopOpacity={0.9} />
-                <Stop offset="1" stopColor={color} stopOpacity={0.05} />
+                <Stop offset="0" stopColor={color} stopOpacity={0.8} />
+                <Stop offset="1" stopColor={color} stopOpacity={0} />
               </LinearGradient>
             </Defs>
             {ticks.map((tv) => (
-              <Line key={`g${tv}`} x1={0} x2={plotW} y1={y(tv)} y2={y(tv)} stroke={theme.backgroundSelected} strokeWidth={1} strokeDasharray="2 4" />
+              <Line key={`g${tv}`} x1={0} x2={plotW} y1={y(tv)} y2={y(tv)} stroke={theme.text} strokeOpacity={0.07} strokeWidth={1} />
             ))}
             {ticks.map((tv) => (
-              <SvgText key={`t${tv}`} x={width - 2} y={y(tv) + 4} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
+              <SvgText key={`t${tv}`} x={width - 2} y={y(tv) + 3.5} fontSize={10} fontFamily={SVG_FONT} fill={theme.textSecondary} textAnchor="end">
                 {format(tv)}
               </SvgText>
             ))}
@@ -219,40 +233,76 @@ export function SmoothChart({
                   y1={y(reference.value)}
                   y2={y(reference.value)}
                   stroke={theme.text}
-                  strokeOpacity={0.5}
+                  strokeOpacity={0.45}
                   strokeWidth={1}
-                  strokeDasharray="4 4"
+                  strokeDasharray="3 5"
                 />
-                <SvgText x={4} y={y(reference.value) - 6} fontSize={11} fontFamily={SVG_FONT} fill={theme.textSecondary}>
+                <SvgText x={4} y={y(reference.value) - 6} fontSize={10} fontFamily={SVG_FONT} fill={theme.textSecondary}>
                   {reference.label}
                 </SvgText>
               </>
             ) : null}
-            {area ? <AnimatedPath d={area} fill="url(#chartArea)" animatedProps={areaProps} /> : null}
+            {area ? <AnimatedPath d={area} fill="url(#chartArea)" mask="url(#chartMask)" animatedProps={areaProps} /> : null}
+            {/* Tageswerte: feine, gedämpfte Zickzack-Linie mit hohlen Punkten – die Schwankung, über der der Trend liegt. */}
             <AnimatedG animatedProps={dotsProps}>
+              {rawPath ? <Path d={rawPath} stroke={theme.textSecondary} strokeOpacity={0.22} strokeWidth={1} fill="none" strokeLinejoin="round" /> : null}
               {dots.map((p) => (
-                <Circle key={`d${p.x}`} cx={x(p.x)} cy={y(p.value)} r={2.6} fill={theme.textSecondary} />
+                <Circle
+                  key={`d${p.x}`}
+                  cx={x(p.x)}
+                  cy={y(p.value)}
+                  r={2.3}
+                  fill={theme.backgroundElement}
+                  stroke={theme.textSecondary}
+                  strokeOpacity={0.7}
+                  strokeWidth={1.2}
+                />
               ))}
             </AnimatedG>
             {last && !sel ? (
               <AnimatedLine x1={last[0]} x2={last[0]} y1={last[1]} y2={height - BOTTOM} stroke="url(#chartNow)" strokeWidth={1.5} animatedProps={nowProps} />
             ) : null}
             {path ? (
-              <AnimatedPath
-                d={path}
-                stroke="url(#chartLine)"
-                strokeWidth={3}
-                fill="none"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                strokeDasharray={`${length} ${length}`}
-                animatedProps={lineProps}
-              />
+              <>
+                {/* Weicher Lichtschein unter der Trendlinie: zwei breite, sehr transparente Lagen statt eines Streifens. */}
+                <AnimatedPath
+                  d={path}
+                  stroke={color}
+                  strokeOpacity={0.05}
+                  strokeWidth={14}
+                  fill="none"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeDasharray={`${length} ${length}`}
+                  animatedProps={glowWideProps}
+                />
+                <AnimatedPath
+                  d={path}
+                  stroke={color}
+                  strokeOpacity={0.1}
+                  strokeWidth={7}
+                  fill="none"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeDasharray={`${length} ${length}`}
+                  animatedProps={glowProps}
+                />
+                <AnimatedPath
+                  d={path}
+                  stroke="url(#chartLine)"
+                  strokeWidth={3.5}
+                  fill="none"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeDasharray={`${length} ${length}`}
+                  animatedProps={lineProps}
+                />
+              </>
             ) : null}
             {last && !sel ? (
               <>
                 <AnimatedCircle cx={last[0]} cy={last[1]} fill="none" stroke={color} strokeWidth={1.5} animatedProps={haloProps} />
-                <AnimatedCircle cx={last[0]} cy={last[1]} fill={color} stroke={theme.backgroundElement} strokeWidth={2} animatedProps={nowDotProps} />
+                <AnimatedCircle cx={last[0]} cy={last[1]} fill={color} stroke={theme.backgroundElement} strokeWidth={2.5} animatedProps={nowDotProps} />
               </>
             ) : null}
             {sel ? (
