@@ -5,6 +5,8 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
+
 const DURATION = 600;
 // Gleiche Farbe und Bildgröße wie der native Startbildschirm in app.json (expo-splash-screen),
 // damit der Übergang nahtlos ist.
@@ -37,7 +39,7 @@ export function AnimatedSplashOverlay() {
   });
 
   // Rein dekorativ: für VoiceOver ausgeblendet.
-  const image = <Image style={styles.image} source={require('@/assets/images/splash-icon.png')} accessibilityElementsHidden importantForAccessibility="no" />;
+  const image = <Image style={styles.image} source={require('@/assets/images/splash-icon.png')} {...HIDDEN_FROM_A11Y} />;
 
   return animate ? (
     <Animated.View

@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { Button } from '@/components/card';
 import { ProgressRing } from '@/components/charts';
 import { haptic } from '@/components/haptics';
@@ -100,7 +101,7 @@ export function RestTimerBar({
       <ThemedView type="backgroundElement" style={[styles.bar, styles.row]} accessibilityLiveRegion="polite">
         {done ? (
           <>
-            <View style={[styles.doneDot, { backgroundColor: theme.accent }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+            <View style={[styles.doneDot, { backgroundColor: theme.accent }]} {...HIDDEN_FROM_A11Y} />
             <ThemedText type="smallBold" style={styles.text}>
               {t('session.restDone')}
             </ThemedText>

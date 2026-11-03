@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedProps, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { Spring } from '@/constants/motion';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -50,7 +51,7 @@ export function ProgressRing({
 
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} {...HIDDEN_FROM_A11Y}>
         <Circle cx={size / 2} cy={size / 2} r={radius} stroke={trackColor} strokeWidth={stroke} fill="none" />
         <AnimatedCircle
           cx={size / 2}
@@ -87,8 +88,7 @@ export function MeterBar({ progress, color, trackColor, height = 8 }: { progress
     <View
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       style={[styles.track, { height, borderRadius: height / 2, backgroundColor: trackColor }]}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants">
+      {...HIDDEN_FROM_A11Y}>
       <Animated.View style={[{ height, borderRadius: height / 2, backgroundColor: color }, fill]} />
     </View>
   );

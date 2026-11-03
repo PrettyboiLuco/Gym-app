@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { ThemedText, type ThemedTextProps } from '@/components/themed-text';
 import { PopScale, WordRise } from '@/constants/motion';
 
@@ -30,7 +31,7 @@ function Word({ word, delay, type }: { word: string; delay: number; type: Themed
   }, [delay, p, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: Math.min(p.value, 1), transform: [{ translateY: (1 - p.value) * WordRise.fromY }] }));
   return (
-    <Animated.View style={style} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+    <Animated.View style={style} {...HIDDEN_FROM_A11Y}>
       <ThemedText type={type}>{word}</ThemedText>
     </Animated.View>
   );
@@ -76,7 +77,7 @@ function Letter({ letter, delay, type }: { letter: string; delay: number; type: 
   }, [delay, p, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: Math.min(Math.max(p.value, 0), 1), transform: [{ scale: p.value }] }));
   return (
-    <Animated.View style={style} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+    <Animated.View style={style} {...HIDDEN_FROM_A11Y}>
       <ThemedText type={type}>{letter}</ThemedText>
     </Animated.View>
   );

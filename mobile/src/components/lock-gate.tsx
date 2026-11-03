@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { Button } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -52,11 +53,7 @@ export function LockGate({ children }: { children: ReactNode }) {
   const locked = state !== 'offen';
   return (
     <View style={styles.fill}>
-      <View
-        style={styles.fill}
-        accessibilityElementsHidden={locked}
-        importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'}
-        pointerEvents={locked ? 'none' : 'auto'}>
+      <View style={styles.fill} {...(locked ? HIDDEN_FROM_A11Y : null)} pointerEvents={locked ? 'none' : 'auto'}>
         {children}
       </View>
       {locked ? (

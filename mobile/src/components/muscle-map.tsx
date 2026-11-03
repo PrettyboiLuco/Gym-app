@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Ellipse, G, Path } from 'react-native-svg';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
@@ -102,7 +103,7 @@ export function MuscleMap({ sets }: { sets: Partial<Record<MuscleGroup, number>>
   const opacity = (g: MuscleGroup) => [1, 0.4, 0.6, 0.8, 1][level(g)];
   const figure = (regions: Regions, label: string) => (
     <View style={styles.figure}>
-      <Svg width={124} height={265} viewBox={VIEWBOX} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={124} height={265} viewBox={VIEWBOX} {...HIDDEN_FROM_A11Y}>
         <BodyView regions={regions} base={theme.backgroundSelected} fill={fill} opacity={opacity} />
       </Svg>
       <ThemedText type="small" themeColor="textSecondary">

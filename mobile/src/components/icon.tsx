@@ -1,5 +1,7 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
+
 /**
  * Ruhige Liniensymbole (24er-Raster, Strich 1,8, runde Enden) – ein Satz für die ganze App.
  * taste-skill: Symbole 14–20 px, grau, ohne farbigen Kreis; nur wo sie beim Finden helfen.
@@ -176,7 +178,7 @@ export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: Icon
     chart: <Path d="M4 4v16h16M7.5 15l3.5-4 3 2.5L19.5 7" {...p} />,
   };
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...HIDDEN_FROM_A11Y}>
       {paths[name]}
     </Svg>
   );

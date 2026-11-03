@@ -1,6 +1,7 @@
 import { Image, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useFrameCallback, useReducedMotion, useSharedValue } from 'react-native-reanimated';
 
+import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const FRAMES = 36;
@@ -37,7 +38,7 @@ export function HeartLoop({ size = 140, loops }: { size?: number; /** Nach so vi
   }));
 
   return (
-    <View style={[styles.clip, { width: size, height: size }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={[styles.clip, { width: size, height: size }]} {...HIDDEN_FROM_A11Y}>
       <Animated.View style={style}>
         <Image source={sprites[scheme]} style={{ width: size * COLS, height: size * COLS }} />
       </Animated.View>
