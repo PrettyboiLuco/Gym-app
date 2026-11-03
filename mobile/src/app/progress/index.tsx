@@ -10,7 +10,7 @@ import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
-import { WeightChart } from '@/components/weight-chart';
+import { WeightOverview } from '@/components/weight-overview';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn, listActiveGoals, listMeasurements, type CalorieGoal, type GoalVersion } from '@/data/goals';
@@ -24,7 +24,7 @@ import { effectiveModules } from '@/domain/modules';
 import { stepsForDay } from '@/domain/steps';
 import { todayDay } from '@/domain/time';
 import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
-import { dailyMeans, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
+import { weeklyChange, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
@@ -81,11 +81,7 @@ export default function ProgressScreen() {
   const [showAll, setShowAll] = useState(false);
 
   const today = todayDay();
-  const trend = weightTrend(weights, today);
   const change = weeklyChange(weights, today);
-  const chartDays = Array.from({ length: 30 }, (_, i) => shiftDay(today, i - 29));
-  const points = dailyMeans(weights, today, 30);
-  const trendPoints = chartDays.map((d) => ({ day: d, kg: weightTrend(weights, d) })).filter((p): p is { day: string; kg: number } => p.kg !== null);
   const latest = latestBySite(measurements);
 
   async function save() {
@@ -131,27 +127,7 @@ export default function ProgressScreen() {
     <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined}>
       {/* Leitfrage „Bewege ich mich Richtung Ziel?“: der Trend groß, darunter der Verlauf, dann das Eintragen. */}
       <Card title={t('progress.weightTitle')}>
-        <View
-          style={styles.big}
-          accessible
-          accessibilityLabel={trend === null ? t('progress.trendMissing') : t('progress.trend', { kg: formatWeight(trend, units.weight) })}>
-          {trend !== null ? (
-            <>
-              <ThemedText style={styles.bigValue}>{formatWeight(trend, units.weight).replace(/\s*\S+$/, '')}</ThemedText>
-              <ThemedText themeColor="textSecondary">{t('progress.trendUnit', { unit: units.weight })}</ThemedText>
-            </>
-          ) : (
-            <ThemedText themeColor="textSecondary">{t('progress.trendMissing')}</ThemedText>
-          )}
-        </View>
-        <WeightChart
-          days={chartDays}
-          points={points}
-          trend={trendPoints}
-          unit={units.weight}
-          targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null}
-          weeklyChangeKg={change}
-        />
+        <WeightOverview weights={weights} unit={units.weight} targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null} today={today} />
         <ThemedText type="small" themeColor="textSecondary">
           {t('progress.trendHint')}
         </ThemedText>
