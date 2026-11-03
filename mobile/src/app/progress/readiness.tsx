@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { HIDDEN } from '@/components/a11y';
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton, Field, ListRow, MultiChoice } from '@/components/fields';
 import { levelColor, reasonText } from '@/components/readiness';
@@ -17,8 +18,10 @@ import {
   journalDays,
   listChecks,
   loadSleepGoal,
+  loadSpared,
   readinessHistory,
   saveCheck,
+  saveSpared,
   startStatus,
   statusToday,
   type HistoryDay,
@@ -26,6 +29,7 @@ import {
 } from '@/data/readiness';
 import { loadReminders } from '@/data/reminders';
 import { shiftDay } from '@/domain/dates';
+import { SPARE_AREAS, type SpareArea } from '@/domain/muscle-map';
 import {
   hoursBetween,
   READINESS_RULES_VERSION,
@@ -51,7 +55,7 @@ type Scale = (typeof SCALE)[number];
 
 async function load(db: Db) {
   const today = todayDay();
-  const [check, status, goal, checks, history, journal, todayJournal] = await Promise.all([
+  const [check, status, goal, checks, history, journal, todayJournal, spared] = await Promise.all([
     getCheck(db, today),
     statusToday(db, today),
     loadSleepGoal(db),
@@ -59,11 +63,13 @@ async function load(db: Db) {
     readinessHistory(db, today, 28),
     journalDays(db, shiftDay(today, -89), today),
     journalDays(db, today, today),
+    loadSpared(db, today),
   ]);
   return {
     today,
     check,
     status,
+    spared: spared?.areas ?? [],
     goal,
     stats: sleepStats(checks, today, goal),
     history,
@@ -79,6 +85,7 @@ export default function ReadinessScreen() {
     today: '',
     check: null as DailyCheck | null,
     status: null as StatusPeriod | null,
+    spared: [] as SpareArea[],
     goal: 8,
     stats: null as SleepStats | null,
     history: [] as HistoryDay[],
@@ -90,7 +97,7 @@ export default function ReadinessScreen() {
   return (
     <Screen withHeader>
       <CheckForm key={data.today + JSON.stringify(data.check)} db={db} day={data.today} check={data.check} diary={data.diaryToday} onSaved={reload} />
-      <StatusCard db={db} today={data.today} status={data.status} onChanged={reload} />
+      <StatusCard db={db} today={data.today} status={data.status} spared={data.spared} onChanged={reload} />
       {data.stats ? <SleepCard stats={data.stats} goal={data.goal} /> : null}
       <JournalCard findings={data.findings} days={data.journalDays} />
       <HistoryCard history={data.history} />
@@ -192,8 +199,32 @@ function CheckForm({ db, day, check, diary, onSaved }: { db: Db; day: string; ch
   );
 }
 
-function StatusCard({ db, today, status, onChanged }: { db: Db; today: string; status: StatusPeriod | null; onChanged: () => void }) {
+function StatusCard({
+  db,
+  today,
+  status,
+  spared,
+  onChanged,
+}: {
+  db: Db;
+  today: string;
+  status: StatusPeriod | null;
+  spared: SpareArea[];
+  onChanged: () => void;
+}) {
   const [choice, setChoice] = useState<Status>('krank');
+  // Geschonte Bereiche (Muskelkarte Punkt 6): vor dem Start wählbar, während „verletzt“ jederzeit änderbar.
+  const [areas, setAreas] = useState<SpareArea[]>([]);
+  const [ownSpared, setOwnSpared] = useState<SpareArea[] | null>(null);
+  const currentSpared = ownSpared ?? spared;
+  const areaChoice = (value: readonly SpareArea[], onChange: (v: SpareArea[]) => void) => (
+    <>
+      <MultiChoice label={t('readiness.sparedLabel')} options={SPARE_AREAS} value={value} onChange={onChange} format={(a) => t(`muscle.${a}`)} />
+      <ThemedText type="small" themeColor="textSecondary">
+        {t('readiness.sparedHint')}
+      </ThemedText>
+    </>
+  );
   async function reschedule() {
     if ((await notificationPermission(false)) === 'granted') await applyReminders(db, await loadReminders(db));
   }
@@ -205,10 +236,18 @@ function StatusCard({ db, today, status, onChanged }: { db: Db; today: string; s
           <ThemedText type="small" themeColor="textSecondary">
             {t('readiness.statusEffects')}
           </ThemedText>
+          {status.status === 'verletzt'
+            ? areaChoice(currentSpared, async (next) => {
+                setOwnSpared(next);
+                await saveSpared(db, status.id, next);
+              })
+            : null}
           <Button
             label={t('readiness.statusEnd')}
             onPress={async () => {
               await endStatus(db, today);
+              setOwnSpared(null);
+              setAreas([]);
               await reschedule();
               showToast(t('readiness.statusEnded'));
               onChanged();
@@ -222,11 +261,14 @@ function StatusCard({ db, today, status, onChanged }: { db: Db; today: string; s
         <>
           <ThemedText type="small">{t('readiness.statusIntro')}</ThemedText>
           <Choice label={t('readiness.statusChoose')} options={STATUSES} value={choice} onChange={setChoice} format={(s) => t(`readiness.status.${s}`)} />
+          {choice === 'verletzt' ? areaChoice(areas, setAreas) : null}
           <ConfirmButton
             label={t('readiness.statusStart')}
             confirmLabel={t('readiness.statusStartConfirm', { status: t(`readiness.status.${choice}`) })}
             onConfirm={async () => {
               await startStatus(db, choice, today);
+              const started = await statusToday(db, today);
+              if (choice === 'verletzt' && started && areas.length) await saveSpared(db, started.id, areas);
               await reschedule();
               onChanged();
             }}
@@ -294,6 +336,24 @@ function HistoryCard({ history }: { history: HistoryDay[] }) {
   return (
     <Card title={t('readiness.historyTitle')}>
       {shown.length === 0 ? <ThemedText type="small">{t('readiness.historyEmpty')}</ThemedText> : null}
+      {shown.length > 0 ? (
+        // Vier Wochen auf einen Blick: ein Feld je Tag (älteste oben links), Farbe = Ampel des Tages, grau = kein Wert.
+        <View style={styles.grid} {...HIDDEN}>
+          {Array.from({ length: Math.ceil(history.length / 7) }, (_, w) => (
+            <View key={w} style={styles.gridRow}>
+              {[...history]
+                .reverse()
+                .slice(w * 7, w * 7 + 7)
+                .map((h) => (
+                  <View
+                    key={h.day}
+                    style={[styles.cell, { backgroundColor: h.readiness.kind === 'ampel' ? levelColor(h.readiness.level, theme) : theme.backgroundSelected }]}
+                  />
+                ))}
+            </View>
+          ))}
+        </View>
+      ) : null}
       {shown.map((h) => {
         const r = h.readiness;
         const label =
@@ -338,4 +398,7 @@ const styles = StyleSheet.create({
   histRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: 2 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   date: { width: 84 },
+  grid: { gap: 4, marginBottom: Spacing.two },
+  gridRow: { flexDirection: 'row', gap: 4 },
+  cell: { flex: 1, height: 14, borderRadius: 3 },
 });

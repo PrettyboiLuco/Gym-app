@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field, Presets, RadioList } from '@/components/fields';
+import { Field, Presets, RadioList, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -119,16 +119,7 @@ export default function FeedbackScreen() {
       </Card>
 
       <Card title={t('feedback.usageTitle')}>
-        <Choice
-          label={t('feedback.withUsage')}
-          options={['aus', 'an'] as const}
-          value={withUsage ? 'an' : 'aus'}
-          onChange={(v) => setWithUsage(v === 'an')}
-          format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-        />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('feedback.usageHint')}
-        </ThemedText>
+        <Toggle label={t('feedback.withUsage')} hint={t('feedback.usageHint')} value={withUsage} onChange={(on) => setWithUsage(on)} />
       </Card>
 
       <Card title={t('feedback.previewTitle')}>

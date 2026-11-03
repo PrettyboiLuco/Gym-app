@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { Card } from '@/components/card';
-import { Choice } from '@/components/fields';
+import { Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { canLock, unlock } from '@/data/app-lock';
@@ -49,17 +49,7 @@ export default function SecurityScreen() {
   return (
     <Screen withHeader>
       <Card>
-        {Platform.OS === 'web' ? (
-          <ThemedText>{t('security.webOnly')}</ThemedText>
-        ) : (
-          <Choice
-            label={t('security.toggle')}
-            options={['aus', 'an'] as const}
-            value={on ? 'an' : 'aus'}
-            onChange={(v) => change(v === 'an')}
-            format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-          />
-        )}
+        {Platform.OS === 'web' ? <ThemedText>{t('security.webOnly')}</ThemedText> : <Toggle label={t('security.toggle')} value={on} onChange={change} />}
         <ThemedText type="small" themeColor="textSecondary">
           {t('security.hint')}
         </ThemedText>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field, Presets } from '@/components/fields';
+import { Field, Presets, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -89,15 +89,7 @@ export default function NotificationsScreen() {
     showToast(t('common.saved'));
   }
 
-  const toggle = (value: boolean, onChange: (v: boolean) => void, label: string) => (
-    <Choice
-      label={label}
-      options={['aus', 'an'] as const}
-      value={value ? 'an' : 'aus'}
-      onChange={(v) => onChange(v === 'an')}
-      format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-    />
-  );
+  const toggle = (value: boolean, onChange: (v: boolean) => void, label: string) => <Toggle label={label} value={value} onChange={onChange} />;
   const times = drinkTimes(form.drink.from, form.drink.to, form.drink.everyHours);
   const bed = parseTime(wake) !== null ? bedtimeFor(wake, sleepGoal) : null;
 

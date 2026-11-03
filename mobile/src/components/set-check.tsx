@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Keyboard, Pressable, StyleSheet } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
@@ -66,6 +66,8 @@ export function SetCheck({
         if (!done) scale.set(withSpring(1, Spring));
       }}
       onPress={() => {
+        // Satz abgehakt: Zahlenfeld schließen, die Pause erscheint im Vollbild.
+        Keyboard.dismiss();
         if (done) haptic.tap();
         else haptic.press();
         press();

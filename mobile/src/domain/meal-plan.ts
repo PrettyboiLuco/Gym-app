@@ -178,7 +178,8 @@ export function shoppingText(items: ShoppingItem[], checked: Set<string>, title:
     const list = items.filter((i) => i.department === dep);
     if (!list.length) continue;
     lines.push(`\n${title(dep)}`);
-    for (const i of list) lines.push(`${checked.has(i.key) ? '☑' : '☐'} ${unit(i)} ${i.name}`);
+    // Geteilter Klartext (Nachricht, Notizen): Kästchen sind dort das übliche Zeichen.
+    for (const i of list) lines.push(`${checked.has(i.key) ? '☑' : '☐'} ${unit(i)} ${i.name}`); // taste-skill-ignore
   }
   return lines.join('\n').trim();
 }

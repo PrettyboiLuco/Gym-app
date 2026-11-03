@@ -13,17 +13,16 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { loadMotivation } from '@/data/motivation';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
-import { readinessToday, type ReadinessToday } from '@/data/readiness';
+import { loadSpared, readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
-import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
-import { loadTrainingWeek, plannedMuscles } from '@/data/training-week';
+import { expireTemporaryPlans, getActiveSession, listActivePlans, type SessionInfo } from '@/data/training';
+import { loadMapPrefs, loadTodayPlan, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
 import type { MuscleGroup } from '@/domain/exercises';
 import type { Milestone } from '@/domain/motivation';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
-import { nextDayIndex } from '@/domain/training';
 import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
@@ -54,6 +53,9 @@ async function loadToday(db: Db) {
     readinessToday(db, today),
   ]);
   const motivation = await loadMotivation(db, today);
+  // Geschonte Bereiche beim Status „verletzt“ (Muskelkarte Punkt 6.4)
+  const spared = (await loadSpared(db, today))?.areas ?? [];
+  const { body } = await loadMapPrefs(db);
   // Wochen-Check-in fällig (COACH-008)? Frühestens eine Woche nach dem letzten Check-in, sonst nach der
   // Coach-Einrichtung bzw. der ersten Gewichtsmessung – vorher gäbe es keine Woche zum Zurückschauen.
   const since = (await lastCheckinWeekEnd(db)) ?? setup?.doneAt ?? weights.at(-1)?.day ?? null;
@@ -69,12 +71,13 @@ async function loadToday(db: Db) {
   };
   let next: { plan: string; day: string } | null = null;
   let muscles: Partial<Record<MuscleGroup, number>> | null = null;
-  const plan = plans.find((p) => p.days.length > 0);
-  if (plan) {
-    const index = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
-    next = { plan: plan.name, day: plan.days[index].name };
-    // Muskeln des heutigen Plantags für die kleine Karte (U4).
-    muscles = await plannedMuscles(db, plan.days[index].id);
+  // Training oder Ruhetag nach Wochentagen im Plan bzw. den gespeicherten Trainingstagen (nicht einfach „nächster Plantag“).
+  const planToday = plans.some((p) => p.days.length > 0) ? await loadTodayPlan(db, today) : null;
+  if (planToday) {
+    const { plan, dayIndex } = planToday;
+    next = { plan: plan.name, day: plan.days[dayIndex].name };
+    // Muskeln des heutigen (bzw. nächsten) Plantags für die kleine Karte (U4).
+    muscles = await plannedMuscles(db, plan.days[dayIndex].id);
   }
   const coach: CoachTodayData = {
     setUp: setup !== null,
@@ -98,9 +101,13 @@ async function loadToday(db: Db) {
     checkin,
     coach,
     openSetup,
-    restDay: goal?.trainingDay === false,
+    // Ruhetag aus dem Plan (Wochentag) gilt immer; der aus dem Coach-Ziel nur mit eingeschaltetem Coach (siehe unten).
+    planRest: planToday?.today.kind === 'rest',
+    coachRest: goal?.trainingDay === false,
     week: trainingWeek,
     ready,
+    spared,
+    body,
     today,
     // Nur der neueste noch nicht angesehene Meilenstein (A10.5); ältere stehen in der Liste.
     milestone: motivation.fresh.at(-1) ?? null,
@@ -120,7 +127,8 @@ export default function TodayScreen() {
   const { data, db, loaded, reload } = useLoad(loadToday, {
     lastWeight: null as WeightEntry | null,
     trend: null as number | null,
-    restDay: false,
+    planRest: false,
+    coachRest: false,
     week: { done: EMPTY_WEEK, planned: EMPTY_WEEK, goal: null as number | null, todayIndex: 0, doneSets: [] as number[], plannedSets: [] as number[] },
     timed: null as string | null,
     checkin: false,
@@ -130,15 +138,17 @@ export default function TodayScreen() {
     coach: null as CoachTodayData | null,
     openSetup: false,
     ready: null as ReadinessToday | null,
+    spared: [] as MuscleGroup[],
+    body: 'm' as 'm' | 'w',
     today: '',
     milestone: null as Milestone | null,
     muscles: null as Partial<Record<MuscleGroup, number>> | null,
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, week, ready, today, milestone, muscles } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, week, ready, today, milestone, muscles, spared, body } = data;
   const units = useUnits();
   const modules = useModules();
-  // Ruhetag und Einrichtung kommen aus dem Coach – ist er (oder die Ernährung) aus, gelten sie nicht.
-  const restDay = data.restDay && modules.coach;
+  // Ruhetag aus dem Coach-Ziel und die Einrichtung gelten nur mit Coach; der Ruhetag laut Plan immer.
+  const restDay = data.planRest || (data.coachRest && modules.coach);
   const setupDue = openSetup && modules.coach;
   useEffect(() => {
     if (!setupDue) return;
@@ -259,6 +269,8 @@ export default function TodayScreen() {
         action={training.action}
         onPress={training.go}
         muscles={!timed && !active && next && !restDay ? muscles : null}
+        spared={spared}
+        body={body}
       />
       {!modules.bereitschaft ? null : ready && ready.readiness.kind !== 'status' && !checkComplete ? (
         // T3: auf „Heute“ eine Zeile; der Check klappt beim Antippen hier auf (vier Antippen, kein Bildschirmwechsel).

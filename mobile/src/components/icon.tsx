@@ -1,6 +1,6 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
+import { HIDDEN } from '@/components/a11y';
 
 /**
  * Ruhige Liniensymbole (24er-Raster, Strich 1,8, runde Enden) – ein Satz für die ganze App.
@@ -43,7 +43,10 @@ export type IconName =
   | 'pill'
   | 'drop'
   | 'flame'
-  | 'chart';
+  | 'chart'
+  | 'trash'
+  | 'info'
+  | 'star';
 
 export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: IconName; color: string; size?: number; strokeWidth?: number }) {
   const p = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -176,9 +179,17 @@ export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: Icon
       />
     ),
     chart: <Path d="M4 4v16h16M7.5 15l3.5-4 3 2.5L19.5 7" {...p} />,
+    info: (
+      <>
+        <Circle cx={12} cy={12} r={8.5} {...p} />
+        <Path d="M12 11v5.5M12 7.6v.4" {...p} />
+      </>
+    ),
+    star: <Path d="m12 4 2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z" {...p} />,
+    trash: <Path d="M4.5 7h15M10 7V4.5h4V7M6.5 7l1 12.5h9l1-12.5M10.5 11v5M13.5 11v5" {...p} />,
   };
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" {...HIDDEN_FROM_A11Y}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...HIDDEN}>
       {paths[name]}
     </Svg>
   );

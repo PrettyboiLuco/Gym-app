@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice } from '@/components/fields';
-import { MuscleMap } from '@/components/muscle-map';
+import { Choice, EntryRow } from '@/components/fields';
+import { MuscleMap, type MapView } from '@/components/muscle-map';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { FigureStrip } from '@/components/today-widgets';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
+import { loadSpared } from '@/data/readiness';
 import { listExercises, type Exercise } from '@/data/training';
 import { loadPeriodStats } from '@/data/training-stats';
-import { loadWeekSetsByMuscle } from '@/data/training-week';
+import { loadMapPrefs, loadWeekTally, saveMapPrefs, type MapPrefs } from '@/data/training-week';
 import { shiftDay } from '@/domain/dates';
-import type { MuscleGroup } from '@/domain/exercises';
+import { EMPTY_TALLY, type MuscleTally } from '@/domain/muscle-map';
 import { todayDay } from '@/domain/time';
 import type { PeriodRecord, PeriodStats } from '@/domain/training-stats';
 import { exerciseName } from '@/format/exercise-name';
@@ -43,8 +44,14 @@ async function load(db: Db, kind: Kind, offset: number, weekOffset: number) {
   const today = todayDay();
   const p = period(kind, offset, today);
   const weekDay = shiftDay(today, -7 * weekOffset);
-  const [stats, exercises, muscles] = await Promise.all([loadPeriodStats(db, p.from, p.to), listExercises(db), loadWeekSetsByMuscle(db, weekDay)]);
-  return { period: p, stats, exercises, muscles: Object.fromEntries(muscles.map((m) => [m.group, m.sets])) as Partial<Record<MuscleGroup, number>>, weekDay };
+  const [stats, exercises, tally, prefs, spared] = await Promise.all([
+    loadPeriodStats(db, p.from, p.to),
+    listExercises(db),
+    loadWeekTally(db, weekDay),
+    loadMapPrefs(db),
+    loadSpared(db, today),
+  ]);
+  return { period: p, stats, exercises, tally, prefs, spared, weekDay };
 }
 
 /** Monats- und Jahresstatistik mit Muskelkarte (Ausbauplan A8.5/A8.6). */
@@ -53,13 +60,15 @@ export default function StatsScreen() {
   const [kind, setKind] = useState<Kind>('monat');
   const [offset, setOffset] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
-  const { data, loaded } = useLoad(
+  const { data, loaded, db } = useLoad(
     (db) => load(db, kind, offset, weekOffset),
     {
       period: { from: '', to: '', label: '' },
       stats: null as PeriodStats | null,
       exercises: [] as Exercise[],
-      muscles: {} as Partial<Record<MuscleGroup, number>>,
+      tally: EMPTY_TALLY as MuscleTally,
+      prefs: null as MapPrefs | null,
+      spared: null as Awaited<ReturnType<typeof loadSpared>>,
       weekDay: '',
     },
     `${kind}-${offset}-${weekOffset}`
@@ -69,7 +78,14 @@ export default function StatsScreen() {
   const s = data.stats;
   const record = (r: PeriodRecord) =>
     r.kind === 'zeit' ? t('stats.recordTime', { seconds: r.seconds }) : `${formatWeight(r.weightKg ?? 0, units.weight, 2)} × ${r.reps}`;
-  const muscleList = Object.entries(data.muscles).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
+  // Einstellungen der Karte: gespeichert laden, beim Ändern sofort übernehmen und speichern (Punkte 2.3, 5.4).
+  const [ownPrefs, setOwnPrefs] = useState<MapPrefs | null>(null);
+  const prefs: MapPrefs = ownPrefs ?? data.prefs ?? { view: 'beide' as MapView, halfSecondary: true, body: 'm' };
+  const changePrefs = (change: Partial<MapPrefs>) => {
+    const next = { ...prefs, ...change };
+    setOwnPrefs(next);
+    saveMapPrefs(db, next);
+  };
 
   return (
     <Screen withHeader>
@@ -77,8 +93,18 @@ export default function StatsScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {weekOffset === 0 ? t('stats.thisWeek') : t('stats.weekOf', { date: formatDay(data.weekDay) })}
         </ThemedText>
-        <MuscleMap sets={data.muscles} />
-        <ThemedText type="small">{muscleList.length ? muscleList.map(([g, n]) => `${t(`muscle.${g}`)} ${n}`).join(' · ') : t('stats.noSets')}</ThemedText>
+        <MuscleMap
+          tally={data.tally}
+          ready={loaded}
+          halfSecondary={prefs.halfSecondary}
+          onHalfSecondary={(halfSecondary) => changePrefs({ halfSecondary })}
+          view={prefs.view}
+          onView={(view) => changePrefs({ view })}
+          body={prefs.body}
+          onBody={(body) => changePrefs({ body })}
+          spared={data.spared?.areas ?? []}
+          sparedSince={data.spared?.since ?? null}
+        />
         <View style={styles.row}>
           <Button label={t('stats.prevWeek')} variant="secondary" size="compact" onPress={() => setWeekOffset((w) => w + 1)} />
           {weekOffset > 0 ? <Button label={t('stats.nextWeek')} variant="secondary" size="compact" onPress={() => setWeekOffset((w) => w - 1)} /> : null}
@@ -124,10 +150,8 @@ export default function StatsScreen() {
           </Card>
           <Card title={t('stats.recordsTitle')}>
             {s.records.length === 0 ? <ThemedText type="small">{t('stats.noRecords')}</ThemedText> : null}
-            {s.records.slice(0, 15).map((r) => (
-              <ThemedText key={r.exerciseId} type="small">
-                {`${name(r.exerciseId)}: ${record(r)} · ${formatDay(r.day)}`}
-              </ThemedText>
+            {s.records.slice(0, 15).map((r, i, list) => (
+              <EntryRow key={r.exerciseId} title={name(r.exerciseId)} subtitle={formatDay(r.day)} value={record(r)} last={i === list.length - 1} />
             ))}
           </Card>
           <Card title={t('stats.volumeTitle')}>

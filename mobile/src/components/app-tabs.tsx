@@ -1,6 +1,7 @@
+import { usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/native-tabs';
 
-import { MiniPlayer } from '@/components/mini-player';
+import { MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
@@ -11,7 +12,10 @@ export default function AppTabs() {
   const scheme = useColorScheme();
   const colors = Colors[scheme];
   const live = useLiveTraining();
-  const running = !!live.session || !!live.timedTitle;
+  const pathname = usePathname();
+  // Im Training selbst blendet sich der Mini-Player aus – dann auch keinen leeren Platz über der Tab-Leiste lassen.
+  const inTraining = TRAINING_SCREENS.some((p) => pathname.startsWith(p));
+  const running = (!!live.session || !!live.timedTitle) && !inTraining;
   const modules = useModules();
 
   return (

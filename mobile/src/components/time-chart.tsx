@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -77,8 +77,6 @@ export function TimeChart({
   const y = (v: number) => TOP + (1 - (v - lo) / Math.max(hi - lo, 1e-9)) * (height - TOP - BOTTOM);
 
   const path = line.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ');
-  const area =
-    line.length > 1 ? `${path} L${x(line[line.length - 1].day).toFixed(1)} ${height - BOTTOM} L${x(line[0].day).toFixed(1)} ${height - BOTTOM} Z` : '';
   const last = line[line.length - 1];
 
   return (
@@ -86,12 +84,6 @@ export function TimeChart({
       <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height }}>
         {width > 0 ? (
           <Svg width={width} height={height}>
-            <Defs>
-              <LinearGradient id="timeArea" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={data} stopOpacity={0.14} />
-                <Stop offset="1" stopColor={data} stopOpacity={0} />
-              </LinearGradient>
-            </Defs>
             {ticks.map((tv) => (
               <Line key={`g${tv}`} x1={LANE} x2={width} y1={y(tv)} y2={y(tv)} stroke={theme.backgroundSelected} strokeWidth={1} />
             ))}
@@ -117,7 +109,6 @@ export function TimeChart({
                 </SvgText>
               </>
             ) : null}
-            {area ? <Path d={area} fill="url(#timeArea)" /> : null}
             {dots.map((p) => (
               <Circle key={`d${p.day}`} cx={x(p.day)} cy={y(p.value)} r={2.5} fill={theme.textSecondary} />
             ))}
@@ -152,6 +143,12 @@ export function TimeChart({
           <ThemedText type="small" themeColor="textSecondary" style={styles.dayText}>
             {dayLabel(allDays[0])}
           </ThemedText>
+          {end - start >= 4 * 86400000 ? (
+            // Mitte des Zeitraums: so lässt sich ein Punkt im Verlauf ungefähr einem Datum zuordnen.
+            <ThemedText type="small" themeColor="textSecondary" style={styles.dayText}>
+              {dayLabel(new Date((start + end) / 2).toISOString().slice(0, 10))}
+            </ThemedText>
+          ) : null}
           <ThemedText type="small" themeColor="textSecondary" style={styles.dayText}>
             {dayLabel(allDays[allDays.length - 1])}
           </ThemedText>

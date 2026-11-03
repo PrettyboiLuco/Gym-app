@@ -8,8 +8,9 @@ import { CardioRow } from '@/components/cardio-row';
 import { MeterBar } from '@/components/charts';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { Choice, ConfirmButton, ListRow } from '@/components/fields';
+import { ConfirmButton, ListRow, Toggle } from '@/components/fields';
 import { haptic } from '@/components/haptics';
+import { Icon } from '@/components/icon';
 import { KeepAwake } from '@/components/keep-awake';
 import { NoteField, type NoteFieldHandle } from '@/components/note-field';
 import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
@@ -43,11 +44,13 @@ import {
   updateSetDetails,
   type PlanHint,
   loadRestAuto,
+  loadRestChoice,
   loadRestTimer,
   reopenSet,
   replaceOpenSets,
   saveProgressionOn,
   saveRestAuto,
+  saveRestChoice,
   saveRestTimer,
   type Exercise,
   type LastPerformance,
@@ -61,7 +64,17 @@ import { replacementOptions } from '@/domain/planner';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep, type Advice, type PastSession } from '@/domain/progression';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import { nowMs } from '@/domain/time';
-import { extendRest, formatClock, isStaleSession, parseSecondsInput, parseSetInput, startRest, stopRest, type RestTimer } from '@/domain/training';
+import {
+  extendRest,
+  formatClock,
+  isStaleSession,
+  parseSecondsInput,
+  parseSetInput,
+  restSecondsFor,
+  startRest,
+  stopRest,
+  type RestTimer,
+} from '@/domain/training';
 import { kgToUnit, parseDecimal, type WeightUnit } from '@/domain/units';
 import { exerciseName } from '@/format/exercise-name';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -108,6 +121,8 @@ export default function SessionScreen() {
   // RIR und Hinweise aus dem Plan (z. B. „Becken bleibt am Polster“).
   const [hints, setHints] = useState<Record<string, PlanHint>>({});
   const [restAuto, setRestAuto] = useState(true);
+  // Einmal gewählte Pausenlänge (null = wie im Plan je Übung) – startet nach jedem abgehakten Satz von selbst.
+  const [restChoice, setRestChoice] = useState<number | null>(null);
   // Steigerungsvorschläge (TRAIN-018) und Ersatz bei belegtem Gerät (TRAIN-016).
   const [progressionOn, setProgressionOn] = useState(true);
   const [history, setHistory] = useState<Record<string, PastSession[]>>({});
@@ -143,6 +158,7 @@ export default function SessionScreen() {
       timedSessionsForWorkout(db, id),
       loadProgressionOn(db),
     ]);
+    const restChoice = await loadRestChoice(db);
     const plates = await loadPlateSetup(db);
     const equipment = (await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT])).equipment;
     const cardioRows = await listCardioForSession(db, id);
@@ -155,6 +171,7 @@ export default function SessionScreen() {
       historyByExercise[exerciseId] = await exerciseHistory(db, exerciseId, id, nowMs());
     }
     if (request !== latestLoad.current) return;
+    setRestChoice(restChoice);
     setProgressionOn(progression);
     setPlateSetup(plates);
     setUsable(equipment);
@@ -291,9 +308,10 @@ export default function SessionScreen() {
     // In der Pause fragen, wie viele Wiederholungen noch gegangen wären (nicht bei Zeit- und Aufwärmsätzen).
     setAskRirFor(!isTimed(row.exerciseId) && row.setType !== 'aufwaermen' ? row.id : null);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
-    if (restAuto && row.restSeconds > 0 && !beforeDrop) {
+    const restSeconds = restSecondsFor(restChoice, row.restSeconds);
+    if (restAuto && restSeconds > 0 && !beforeDrop) {
       try {
-        await updateTimer(startRest(timer, row.restSeconds, nowMs()));
+        await updateTimer(startRest(timer, restSeconds, nowMs()));
         // Pause im Vollbild, solange noch etwas zu tun ist.
         if (anyOpenElsewhere) setRestFocus(true);
       } catch {
@@ -563,6 +581,18 @@ export default function SessionScreen() {
           <RestTimerBar
             timer={timer}
             onStart={(seconds) => updateTimer(startRest(timer, seconds, nowMs()))}
+            choice={restChoice}
+            planned={sets.find((s) => !s.completedAt)?.restSeconds || null}
+            auto={restAuto}
+            onChoose={async (seconds) => {
+              setRestChoice(seconds);
+              await saveRestChoice(db, seconds);
+              // Eine Zeit zu wählen heißt: sie soll laufen – Automatik einschalten, falls sie aus war.
+              if (!restAuto) {
+                setRestAuto(true);
+                await saveRestAuto(db, true);
+              }
+            }}
             onExtend={() => updateTimer(extendRest(timer, 30, nowMs()))}
             onSkip={() => updateTimer(stopRest(timer))}
             next={nextUp}
@@ -589,11 +619,10 @@ export default function SessionScreen() {
         </Card>
       ) : null}
       {!active ? (
-        <Card>
-          <ThemedText themeColor="textSecondary">
-            {t('session.readOnly')} ({t(`history.status.${session.status}`)})
-          </ThemedText>
-        </Card>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('session.readOnly')}
+          {session.status !== 'abgeschlossen' ? ` (${t(`history.status.${session.status}`)})` : ''}
+        </ThemedText>
       ) : null}
       {showWarmup ? (
         <Card title={t('session.warmupTitle')}>
@@ -637,7 +666,7 @@ export default function SessionScreen() {
                   { backgroundColor: theme.backgroundElement, borderColor: theme.hairline, opacity: pressed ? 0.7 : 1 },
                 ]}>
                 <View style={[styles.doneMark, { backgroundColor: dark ? theme.accent : theme.tint }]}>
-                  <ThemedText style={[styles.doneMarkText, { color: dark ? theme.onAccent : theme.onTint }]}>✓</ThemedText>
+                  <Icon name="check" color={dark ? theme.onAccent : theme.onTint} size={16} strokeWidth={2.6} />
                 </View>
                 <View style={styles.flex}>
                   <ThemedText style={styles.doneTitle} numberOfLines={1}>
@@ -970,24 +999,20 @@ export default function SessionScreen() {
           <Button label={t('session.addExercise')} onPress={() => setPicking(true)} />
           <Button label={t('cardio.addInSession')} variant="secondary" onPress={() => router.push({ pathname: '/training/cardio', params: { session: id } })} />
           <Card>
-            <Choice
+            <Toggle
               label={t('session.restAuto')}
-              options={['an', 'aus'] as const}
-              value={restAuto ? 'an' : 'aus'}
-              format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-              onChange={async (v) => {
-                setRestAuto(v === 'an');
-                await saveRestAuto(db, v === 'an');
+              value={restAuto}
+              onChange={async (on) => {
+                setRestAuto(on);
+                await saveRestAuto(db, on);
               }}
             />
-            <Choice
+            <Toggle
               label={t('session.progressionOn')}
-              options={['an', 'aus'] as const}
-              value={progressionOn ? 'an' : 'aus'}
-              format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-              onChange={async (v) => {
-                setProgressionOn(v === 'an');
-                await saveProgressionOn(db, v === 'an');
+              value={progressionOn}
+              onChange={async (on) => {
+                setProgressionOn(on);
+                await saveProgressionOn(db, on);
               }}
             />
             {progressionOn ? (
@@ -1030,7 +1055,6 @@ const styles = StyleSheet.create({
   nowDot: { width: 8, height: 8, borderRadius: 4 },
   doneCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, borderRadius: 20, borderWidth: 1, padding: Spacing.three, minHeight: 64 },
   doneMark: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  doneMarkText: { fontSize: 16, lineHeight: 20, fontWeight: 700 },
   doneTitle: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
   input: {
     flex: 1,

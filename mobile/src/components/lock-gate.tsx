@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 
-import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
+import { HIDDEN } from '@/components/a11y';
 import { Button } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -61,7 +61,7 @@ export function LockGate({ children }: { children: ReactNode }) {
   // Native Modals liegen über jeder View-Ebene; sie lesen den Sperrzustand und bleiben dann zu.
   return (
     <View style={styles.fill}>
-      <View style={styles.fill} {...(locked ? HIDDEN_FROM_A11Y : null)} pointerEvents={locked ? 'none' : 'auto'}>
+      <View style={styles.fill} {...(locked ? HIDDEN : null)} pointerEvents={locked ? 'none' : 'auto'}>
         <LockedContext value={locked}>{children}</LockedContext>
       </View>
       {locked ? (

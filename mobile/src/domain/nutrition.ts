@@ -164,6 +164,57 @@ export type Meal = (typeof MEALS)[number];
 export const DRINK_TYPES = ['wasser', 'kaffee_tee', 'milch', 'saft', 'softdrink', 'alkohol', 'sonstiges'] as const;
 export type DrinkType = (typeof DRINK_TYPES)[number];
 
+// Getränke erkennen (Barcode, Lebensmittel öffnen): eindeutige Wörter im Namen bzw. Kategorien von Open Food Facts.
+// Ausschlüsse verhindern Fehlgriffe wie „Kaffeebohnen“, „Milchschokolade“ oder „Eistee-Pulver“.
+const NOT_A_DRINK = /pulver|schokolade|riegel|bohne|gemahlen|kapsel|pads|gummi|bonbon|keks|kuchen|joghurt|quark|käse|creme|eis(?!tee)|granulat|sirup/;
+const DRINK_WORDS: [RegExp, DrinkType][] = [
+  [/wasser|sprudel|mineralquelle/, 'wasser'],
+  [/kaffee|espresso|cappuccino|latte macchiato|\btee\b|eistee|\bmate\b/, 'kaffee_tee'],
+  [/\bbier\b|\bpils|radler|weizenbier|weißbier|hefeweizen|\bwein\b|\bsekt\b|prosecco|cider|spirituose|wodka|whisky|\brum\b|\bgin\b/, 'alkohol'],
+  [/saft|nektar|smoothie|schorle/, 'saft'],
+  [/cola|limo|limonade|energy|fanta|sprite|tonic|ginger ale|brause|softdrink|iso(tonisch)?\b/, 'softdrink'],
+  [/milch(?!reis)|kakao|haferdrink|mandeldrink|sojadrink|\bdrink\b|shake/, 'milch'],
+];
+const DRINK_CATEGORIES: [string, DrinkType][] = [
+  ['en:waters', 'wasser'],
+  ['en:mineral-waters', 'wasser'],
+  ['en:iced-teas', 'kaffee_tee'],
+  ['en:coffee-drinks', 'kaffee_tee'],
+  ['en:alcoholic-beverages', 'alkohol'],
+  ['en:beers', 'alkohol'],
+  ['en:wines', 'alkohol'],
+  ['en:juices', 'saft'],
+  ['en:fruit-juices', 'saft'],
+  ['en:nectars', 'saft'],
+  ['en:smoothies', 'saft'],
+  ['en:sodas', 'softdrink'],
+  ['en:carbonated-drinks', 'softdrink'],
+  ['en:energy-drinks', 'softdrink'],
+  ['en:sweetened-beverages', 'softdrink'],
+  ['en:artificially-sweetened-beverages', 'softdrink'],
+  ['en:milks', 'milch'],
+  ['en:plant-based-milks', 'milch'],
+  ['en:dairy-drinks', 'milch'],
+];
+
+/**
+ * Ist das ein Getränk, und welches? Zuerst die Kategorien von Open Food Facts (falls vorhanden), dann eindeutige Wörter
+ * im Namen. null = kein Getränk erkennbar (dann bleibt es Essen).
+ */
+export function guessDrinkType(name: string, categories: readonly string[] = []): DrinkType | null {
+  const tags = new Set(categories.map((c) => c.toLowerCase()));
+  const lower = name.toLowerCase();
+  if (NOT_A_DRINK.test(lower)) return null;
+  for (const [tag, type] of DRINK_CATEGORIES) if (tags.has(tag)) return type;
+  for (const [re, type] of DRINK_WORDS) if (re.test(lower)) return type;
+  return null;
+}
+
+/** Packungsangabe in Litern/Millilitern, z. B. „0,5 l“, „330 ml“, „1.5L“, „6 x 0,33 l“. */
+export function isLiquidQuantity(quantity: unknown): boolean {
+  return typeof quantity === 'string' && /\d\s*(ml|cl|l|liter)\b/i.test(quantity);
+}
+
 /** Wasser und alle Getränke getrennt (TIME-004). Gesamtwasser aus Essen zählt hier nicht (TIME-009). */
 export function drinkTotals(drinks: { drinkType: DrinkType | null; amount: number; unit: string }[]) {
   let waterMl = 0;
@@ -252,7 +303,13 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
       .find((v) => v.length > 0) ?? '';
   const brands = typeof product.brands === 'string' ? product.brands.split(',')[0].trim() : '';
   const unit = typeof product.product_quantity_unit === 'string' ? product.product_quantity_unit.toLowerCase() : '';
-  const basis: NutrientBasis = unit === 'ml' || unit === 'l' || unit === 'cl' ? 'ml' : 'g';
+  const categories = Array.isArray(product.categories_tags) ? product.categories_tags.filter((c): c is string => typeof c === 'string') : [];
+  // Getränk: Einheit der Packung in ml/l, Packungsangabe wie „0,5 l“ oder eine Getränke-Kategorie. Dann gelten die
+  // Nährwerte je 100 ml und der Eintrag zählt zur Trinkmenge (vorher landeten viele Getränke als Gramm im Essen).
+  const liquid = unit === 'ml' || unit === 'l' || unit === 'cl' || isLiquidQuantity(product.quantity) || guessDrinkType(name, categories) !== null;
+  const basis: NutrientBasis = liquid ? 'ml' : 'g';
+  // Packungsinhalt in ml umrechnen, wenn er in l/cl angegeben ist.
+  const quantityFactor = unit === 'l' ? 1000 : unit === 'cl' ? 10 : 1;
 
   return {
     name,
@@ -272,7 +329,7 @@ export function normalizeOffProduct(response: unknown, barcode: string): FoodDra
     },
     servingAmount: num(product.serving_quantity),
     // Packungsinhalt (z. B. 500 g) nur, wenn er in derselben Einheit wie die Nährwerte angegeben ist.
-    packageAmount: num(product.product_quantity),
+    packageAmount: num(product.product_quantity) === null ? null : num(product.product_quantity)! * quantityFactor,
     // Koffein: OFF speichert g je 100 g/ml → mg.
     caffeine: num(nutriments.caffeine_100g) === null ? null : Math.round(num(nutriments.caffeine_100g)! * 1000 * 10) / 10,
     allergens: allergensFromOff(product.allergens_tags),

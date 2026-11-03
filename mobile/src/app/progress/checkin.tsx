@@ -106,6 +106,8 @@ export default function CheckinScreen() {
   }
 
   async function addSleep() {
+    // Leeres Feld = nichts zu tun (z. B. „Fertig“ auf der Tastatur hat schon gespeichert und das Feld geleert) – keine Fehlermeldung.
+    if (!hours.trim()) return;
     const value = parseDecimal(hours, 1);
     if (value === null || value < 1 || value > 16) {
       setSleepError(true);
@@ -276,7 +278,7 @@ export default function CheckinScreen() {
             key={entry.id}
             title={t('checkin.sleepEntry', { day: formatDay(entry.day), hours: formatNumber(entry.hours) })}
             subtitle={entry.quality ? `${t('checkin.sleepQuality')} ${entry.quality}` : undefined}
-            accessory="✕"
+            accessory="remove"
             onPress={async () => {
               await deleteSleep(db, entry.id);
               await reload();

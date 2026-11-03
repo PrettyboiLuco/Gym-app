@@ -675,6 +675,10 @@ export const saveRestTimer = (db: Db, timer: RestTimer) => writeState(db, 'rest_
 export const loadRestAuto = (db: Db) => readState<boolean>(db, 'rest_auto', true);
 export const saveRestAuto = (db: Db, on: boolean) => writeState(db, 'rest_auto', on);
 
+/** Einmal gewählte Pausenlänge in Sekunden (null = wie im Plan je Übung). Gilt für alle Trainings, bis du sie änderst. */
+export const loadRestChoice = (db: Db) => readState<number | null>(db, 'rest_choice', null);
+export const saveRestChoice = (db: Db, seconds: number | null) => writeState(db, 'rest_choice', seconds);
+
 /** Steigerungsvorschläge im Training anzeigen (Standard: an, TRAIN-018). */
 export const loadProgressionOn = (db: Db) => readState<boolean>(db, 'progression_on', true);
 export const saveProgressionOn = (db: Db, on: boolean) => writeState(db, 'progression_on', on);

@@ -23,10 +23,12 @@ import {
   loadPlanDraft,
   loadIntervalRun,
   loadRestAuto,
+  loadRestChoice,
   loadRestTimer,
   savePlan,
   saveIntervalRun,
   saveRestAuto,
+  saveRestChoice,
   saveRestTimer,
   startSession,
   updateCustomExercise,
@@ -210,6 +212,13 @@ describe('Einstellungen und Intervall-Zustand', () => {
     expect(await loadRestAuto(db)).toBe(true);
     await saveRestAuto(db, false);
     expect(await loadRestAuto(db)).toBe(false);
+  });
+  test('gewählte Pausenlänge bleibt gespeichert, bis sie zurück auf „wie im Plan“ gestellt wird', async () => {
+    expect(await loadRestChoice(db)).toBeNull();
+    await saveRestChoice(db, 120);
+    expect(await loadRestChoice(db)).toBe(120);
+    await saveRestChoice(db, null);
+    expect(await loadRestChoice(db)).toBeNull();
   });
   test('laufender Intervall-Timer übersteht Neustart', async () => {
     const run = { config: { workSeconds: 40, restSeconds: 20, rounds: 8 }, startedAtMs: 123 };

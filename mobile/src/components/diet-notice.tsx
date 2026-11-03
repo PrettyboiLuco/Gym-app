@@ -23,7 +23,7 @@ export function DietNotice({ facts, prefs }: { facts: FoodFacts; prefs: DietPref
     <>
       {lines.map((line) => (
         <ThemedText key={line.text} type="small" style={line.warn ? { color: theme.danger } : undefined} themeColor={line.warn ? undefined : 'textSecondary'}>
-          {line.warn ? `⚠ ${line.text}` : line.text}
+          {line.text}
         </ThemedText>
       ))}
     </>

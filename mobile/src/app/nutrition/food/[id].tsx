@@ -4,13 +4,26 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DietNotice } from '@/components/diet-notice';
-import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
+import { Choice, ConfirmButton, Field, Presets, Segmented } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { archiveFood, DEFAULT_SETTINGS, foodFacts, getFood, loadNutritionSettings, logFood, per100, setFavorite, type Target } from '@/data/nutrition';
+import {
+  archiveFood,
+  cachedMealTimes,
+  DEFAULT_SETTINGS,
+  foodFacts,
+  getFood,
+  loadNutritionSettings,
+  logFood,
+  per100,
+  repairDrinkBasis,
+  setFavorite,
+  type Target,
+} from '@/data/nutrition';
 import { parseMicros, parsePortions, scaleMicros } from '@/domain/basis-foods';
-import { DRINK_TYPES, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
+import { suggestMealAt } from '@/domain/diet';
+import { DRINK_TYPES, guessDrinkType, MEALS, nutrientsForAmount, parseAmount } from '@/domain/nutrition';
 import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,10 +46,25 @@ export default function FoodScreen() {
   const theme = useTheme();
   const params = useLocalSearchParams<TargetParams & { id: string }>();
   const { day, target: initialTarget } = readTarget(params);
-  const { data: food, reload, db, loaded } = useLoad((d) => getFood(d, params.id), null, params.id);
+  // Früher als Gramm gescannte Getränke beim Öffnen auf ml umstellen (zählen dann zur Trinkmenge).
+  const {
+    data: food,
+    reload,
+    db,
+    loaded,
+  } = useLoad(
+    async (d) => {
+      const found = await getFood(d, params.id);
+      return found ? repairDrinkBasis(d, found) : null;
+    },
+    null,
+    params.id
+  );
   // Allergien/Ernährungsweise für Hinweise (COACH-009).
   const { data: settings } = useLoad(loadNutritionSettings, DEFAULT_SETTINGS);
-  const [target, setTarget] = useState<Target>(initialTarget);
+  // Gewählt (Essen/Getränk, Mahlzeit, Getränkeart); null = Vorgabe: Ein Getränk (ml) wird als Getränk gebucht – auch
+  // wenn der Weg über „Hinzufügen“ bei einer Mahlzeit kam –, damit es zur Trinkmenge zählt.
+  const [chosen, setChosen] = useState<Target | null>(null);
   // null = noch nicht angefasst: dann gilt die Portionsgröße bzw. 100.
   const [amountText, setAmountText] = useState<string | null>(null);
   const [error, setError] = useState(false);
@@ -46,6 +74,10 @@ export default function FoodScreen() {
   }
 
   const unit = food.basis;
+  const drinkGuess = guessDrinkType(food.name);
+  const target: Target =
+    chosen ?? (initialTarget.kind === 'essen' && unit === 'ml' ? { kind: 'getraenk', drinkType: drinkGuess ?? 'sonstiges' } : initialTarget);
+  const setTarget = setChosen;
   const shownAmount = amountText ?? formatNumber(food.servingAmount ?? 100);
   const amount = parseAmount(shownAmount);
   const values = per100(food);
@@ -183,6 +215,19 @@ export default function FoodScreen() {
         <ThemedText type="small" themeColor="textSecondary">
           {dayLabel(day, diaryToday())}
         </ThemedText>
+        <Segmented
+          label={t('nutrition.food.logAs')}
+          options={['essen', 'getraenk'] as const}
+          value={target.kind}
+          onChange={(kind) =>
+            setTarget(
+              kind === 'essen'
+                ? { kind: 'essen', meal: initialTarget.kind === 'essen' ? initialTarget.meal : suggestMealAt(new Date().getHours(), cachedMealTimes()) }
+                : { kind: 'getraenk', drinkType: drinkGuess ?? 'sonstiges' }
+            )
+          }
+          format={(k) => t(`nutrition.food.logAsOption.${k}`)}
+        />
         {target.kind === 'essen' ? (
           <Choice
             label={t('nutrition.meal')}

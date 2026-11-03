@@ -4,8 +4,9 @@ import { AppState, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { MeterBar } from '@/components/charts';
+import { DaySummary } from '@/components/day-summary';
 import { DaySwitcher } from '@/components/day-switcher';
-import { Choice, Field, ListRow, Presets } from '@/components/fields';
+import { Field, ListRow, Presets } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -15,8 +16,6 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import {
   copyDay,
-  isDayIncomplete,
-  setDayIncomplete,
   copyMeal,
   DEFAULT_SETTINGS,
   listDay,
@@ -28,6 +27,7 @@ import {
 } from '@/data/nutrition';
 import { parseMicros, sumMicros } from '@/domain/basis-foods';
 import { CAFFEINE_DRINKS, type CaffeineDrink } from '@/domain/caffeine';
+import type { Macros } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
 import { drinkTotals, MEALS, sumNutrients, type Meal } from '@/domain/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
@@ -37,16 +37,11 @@ import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatVolume, t } from '@/i18n';
 import { useUnits } from '@/providers/profile-provider';
-import { diaryToday, extraSumLine, formatAmount, formatKcal, formatKcalSum, macroSumLine, microLine, whenFor } from '@/services/nutrition-format';
+import { diaryToday, formatAmount, formatKcal, formatKcalSum, whenFor } from '@/services/nutrition-format';
 
 async function loadDiary(db: Db, day: string) {
-  const [events, settings, goal, incomplete] = await Promise.all([
-    listDay(db, day),
-    loadNutritionSettings(db),
-    calorieGoalOn(db, day),
-    isDayIncomplete(db, day),
-  ]);
-  return { events, settings, goal: goal?.kcal ?? null, estimated: goal?.source === 'rechner', incomplete };
+  const [events, settings, goal] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day)]);
+  return { events, settings, goal: goal?.kcal ?? null, macros: goal?.macros ?? null, estimated: goal?.source === 'rechner' };
 }
 
 export default function DiaryScreen() {
@@ -74,7 +69,13 @@ export default function DiaryScreen() {
   useFocusEffect(syncToday);
   const { data, reload, db } = useLoad(
     (d) => loadDiary(d, day),
-    { events: [] as ConsumptionEvent[], settings: DEFAULT_SETTINGS, goal: null as number | null, estimated: false, incomplete: false },
+    {
+      events: [] as ConsumptionEvent[],
+      settings: DEFAULT_SETTINGS,
+      goal: null as number | null,
+      macros: null as Macros | null,
+      estimated: false,
+    },
     day
   );
   const { events, settings, goal, estimated } = data;
@@ -90,11 +91,11 @@ export default function DiaryScreen() {
   const sums = sumNutrients(events);
   const drinks = events.filter((e) => e.kind === 'getraenk');
   const { waterMl, allMl } = drinkTotals(drinks);
-  const left = goal === null ? null : goal - sums.values.kcal;
   const caffeineMg = events.reduce((sum, e) => sum + (e.caffeineMg ?? 0), 0);
   // Vitamine und Mineralstoffe (A4): nur aus Einträgen mit Angaben, Abdeckung wird dazugeschrieben.
   const microSum = sumMicros(events.filter((e) => e.kind === 'essen' || e.microsJson).map((e) => parseMicros(e.microsJson)));
-  const [showMicros, setShowMicros] = useState(false);
+  // Drei häufige Koffein-Getränke sofort, der Rest auf Wunsch – statt einer Wand aus 13 Chips.
+  const [allCaffeine, setAllCaffeine] = useState(false);
 
   function changeDay(next: string) {
     setDay(next);
@@ -160,50 +161,7 @@ export default function DiaryScreen() {
           <ThemedText>{t('nutrition.summary.hidden', { count: events.length })}</ThemedText>
         ) : (
           <>
-            {/* Leitfrage „Wie viel habe ich gegessen, was ist noch offen?“: die gegessene Menge groß,
-                darunter der Balken als echter Anteil am Ziel (beide Enden beschriftet). */}
-            <View
-              style={styles.big}
-              accessible
-              accessibilityLabel={`${t('nutrition.summary.eaten')} ${formatKcalSum(sums)}${goal !== null ? `, ${t('nutrition.summary.goal')} ${formatKcal(goal)}` : ''}`}>
-              <ThemedText style={styles.bigValue}>{formatNumber(sums.values.kcal, 0)}</ThemedText>
-              <ThemedText themeColor="textSecondary">{goal !== null ? t('nutrition.summary.ofGoal', { goal: formatNumber(goal, 0) }) : 'kcal'}</ThemedText>
-            </View>
-            {goal !== null && goal > 0 ? (
-              <MeterBar
-                progress={sums.values.kcal / goal}
-                color={left !== null && left < 0 ? theme.danger : dataColor}
-                trackColor={theme.backgroundSelected}
-                height={10}
-              />
-            ) : null}
-            <View style={styles.numbers}>
-              {/* Fehlen Werte, ist „übrig“ höchstens so viel (≤). */}
-              <Stat
-                label={left !== null && left < 0 ? t('nutrition.summary.over') : t('nutrition.summary.left')}
-                value={left === null ? '–' : `${sums.unknown.kcal > 0 && left >= 0 ? '≤ ' : sums.unknown.kcal > 0 ? '≥ ' : ''}${formatKcal(Math.abs(left))}`}
-              />
-              <Stat label={t('nutrition.summary.goal')} value={goal === null ? '–' : formatKcal(goal)} />
-            </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              {macroSumLine(sums)}
-              {extraSumLine(sums) ? `\n${extraSumLine(sums)}` : ''}
-            </ThemedText>
-            {microSum.known > 0 ? (
-              showMicros ? (
-                <>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {microLine(microSum.values)}
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {t('micros.coverage', { known: microSum.known, total: microSum.total })}
-                  </ThemedText>
-                  <Button label={t('micros.hide')} variant="secondary" size="compact" onPress={() => setShowMicros(false)} />
-                </>
-              ) : (
-                <Button label={t('micros.show')} variant="secondary" size="compact" onPress={() => setShowMicros(true)} />
-              )
-            ) : null}
+            <DaySummary totals={sums} goal={goal} macroGoals={data.macros} micros={microSum} />
           </>
         )}
         {sums.unknown.kcal > 0 ? (
@@ -220,23 +178,6 @@ export default function DiaryScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {estimated ? `${t('nutrition.summary.estimated')} ` : ''}
             {t('nutrition.summary.training')}
-          </ThemedText>
-        ) : null}
-        {events.length > 0 ? (
-          <Choice
-            label={t('adaptive.dayComplete')}
-            options={['ja', 'nein'] as const}
-            value={data.incomplete ? 'nein' : 'ja'}
-            onChange={async (v) => {
-              await setDayIncomplete(db, day, v === 'nein');
-              await reload();
-            }}
-            format={(v) => t(`adaptive.dayCompleteOption.${v}`)}
-          />
-        ) : null}
-        {data.incomplete ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('adaptive.dayIncompleteHint')}
           </ThemedText>
         ) : null}
       </Card>
@@ -267,7 +208,7 @@ export default function DiaryScreen() {
                 <Button label={t('nutrition.copyYesterday')} variant="secondary" size="compact" onPress={() => copyFromPreviousDay(meal)} />
               ) : null}
               {items.some((e) => e.foodId) && templateFor !== meal ? (
-                <Button label={t('nutrition.saveTemplate')} variant="secondary" size="compact" onPress={() => setTemplateFor(meal)} />
+                <Button label={t('nutrition.saveTemplate')} variant="quiet" size="compact" onPress={() => setTemplateFor(meal)} />
               ) : null}
             </View>
             {templateFor === meal ? (
@@ -315,10 +256,15 @@ export default function DiaryScreen() {
         </ThemedText>
         <Presets
           label={t('caffeine.title')}
-          options={CAFFEINE_DRINKS.map((d) => d.id)}
+          options={(allCaffeine ? CAFFEINE_DRINKS : CAFFEINE_DRINKS.slice(0, 3)).map((d) => d.id)}
           onChange={(id) => addCaffeine(CAFFEINE_DRINKS.find((d) => d.id === id)!)}
           format={(id) => t('caffeine.chip', { name: t(`caffeine.drinks.${id}`), ml: CAFFEINE_DRINKS.find((d) => d.id === id)!.ml })}
         />
+        {!allCaffeine ? (
+          <View style={styles.moreRow}>
+            <Button label={t('caffeine.more', { count: CAFFEINE_DRINKS.length - 3 })} variant="quiet" size="compact" onPress={() => setAllCaffeine(true)} />
+          </View>
+        ) : null}
         {caffeineMg > 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
             {t('caffeine.today', { mg: formatNumber(caffeineMg, 0) })} · {t('caffeine.reference')}
@@ -365,18 +311,8 @@ export default function DiaryScreen() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.stat}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="smallBold">{value}</ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
+  moreRow: { flexDirection: 'row' },
   links: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   numbers: { flexDirection: 'row', gap: Spacing.two },
   big: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },

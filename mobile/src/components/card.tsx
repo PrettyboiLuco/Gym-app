@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View, type GestureResponderEvent, type PressableProps } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, View, type GestureResponderEvent, type PressableProps } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { haptic } from '@/components/haptics';
 import { ThemedText } from '@/components/themed-text';
-import { Spring } from '@/constants/motion';
+import { Press } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
 import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
@@ -32,10 +32,13 @@ export function Card({ title, trailing, children }: { title?: string; trailing?:
 
 /**
  * Knopf als Pille.
- * - variant: primary = gefüllt (dunkel weiß, hell schwarz) · secondary = Rahmen · danger = roter Rahmen · destructive = rot gefüllt
+ * - variant: primary = gefüllt (dunkel weiß, hell schwarz) · secondary = Rahmen · quiet = nur Schrift · danger = roter Rahmen ·
+ *   destructive = rot gefüllt
+ * - disabled: ruhige graue Fläche mit lesbarer grauer Schrift (statt eines blassen, unlesbaren Knopfs)
  * - size: regular (48 px) · compact (40 px, für Zeilen)
  * - icon: kleines Symbol vor der Beschriftung · loading: Drehkreis statt Beschriftung, nicht drückbar
- * Beim Drücken federt die Pille ein und gibt eine leichte spürbare Rückmeldung.
+ * Beim Drücken federt die Pille fest ein und springt beim Loslassen mit leichtem Überschwingen zurück (Press) – dazu
+ * eine leichte spürbare Rückmeldung.
  */
 export function Button({
   label,
@@ -46,28 +49,33 @@ export function Button({
   ...props
 }: PressableProps & {
   label: string;
-  variant?: 'primary' | 'secondary' | 'danger' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'quiet' | 'danger' | 'destructive';
   size?: 'regular' | 'compact';
   icon?: ReactNode;
   loading?: boolean;
 }) {
   const theme = useTheme();
-  const look = {
+  const off = props.disabled === true && !loading;
+  const looks = {
     primary: { background: theme.primary, border: theme.primary, color: theme.onPrimary },
     secondary: { background: 'transparent', border: theme.border, color: theme.text },
+    quiet: { background: 'transparent', border: 'transparent', color: theme.textSecondary },
     danger: { background: 'transparent', border: theme.danger, color: theme.danger },
     destructive: { background: theme.danger, border: theme.danger, color: theme.onDanger },
-  }[variant];
+  };
+  const look =
+    off && variant !== 'quiet' ? { background: theme.backgroundSelected, border: theme.backgroundSelected, color: theme.textSecondary } : looks[variant];
+  const reduced = useReducedMotion();
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const disabled = props.disabled || loading;
   const press = useOnce(props.onPress ?? undefined);
   const pressIn = (e: GestureResponderEvent) => {
-    scale.set(withSpring(0.96, Spring));
+    if (!reduced) scale.set(withSpring(Press.button, Press.in));
     props.onPressIn?.(e);
   };
   const pressOut = (e: GestureResponderEvent) => {
-    scale.set(withSpring(1, Spring));
+    if (!reduced) scale.set(withSpring(1, Press.out));
     props.onPressOut?.(e);
   };
   return (
@@ -79,11 +87,14 @@ export function Button({
         style={({ pressed }) => [
           styles.button,
           size === 'compact' && styles.compact,
-          { backgroundColor: look.background, borderColor: look.border, opacity: pressed ? 0.85 : props.disabled ? 0.4 : 1 },
+          variant === 'quiet' && styles.quiet,
+          { backgroundColor: look.background, borderColor: look.border, opacity: pressed ? 0.85 : off && variant === 'quiet' ? 0.5 : 1 },
         ]}
         {...props}
         disabled={disabled}
         onPress={(e) => {
+          // Ein Knopf schließt die Eingabe ab (z. B. „Speichern“ nach dem Gewicht): Tastatur zu.
+          Keyboard.dismiss();
           if (variant === 'destructive') haptic.warning();
           else haptic.tap();
           press(e);
@@ -124,5 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   compact: { minHeight: 40, minWidth: 40, paddingHorizontal: Spacing.three },
+  /** Nur Schrift: bündig mit dem Text darüber, die Fläche zum Antippen bleibt 40–48 px hoch. */
+  quiet: { paddingHorizontal: 0, alignSelf: 'flex-start' },
   content: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
 });

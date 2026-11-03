@@ -5,10 +5,11 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay
 import { Button } from '@/components/card';
 import { MuscleMapMini } from '@/components/muscle-map';
 import { ThemedText } from '@/components/themed-text';
-import { Spring } from '@/constants/motion';
+import { Press, Spring } from '@/constants/motion';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCountUp } from '@/hooks/use-count-up';
 import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -33,6 +34,8 @@ export function TrainingBlock({
   action,
   onPress,
   muscles,
+  spared = [],
+  body = 'm',
 }: {
   label: string;
   title: string;
@@ -43,9 +46,14 @@ export function TrainingBlock({
   onPress: () => void;
   /** Geplante Sätze je Muskel des heutigen Plantags (U4); ohne = keine Karte. */
   muscles?: Partial<Record<MuscleGroup, number>> | null;
+  /** Geschonte Bereiche (Status „verletzt“): gestrichelt auf der kleinen Karte, Hinweis bei Überschneidung. */
+  spared?: readonly MuscleGroup[];
+  /** Körperform der kleinen Karte (Einstellung der Muskelkarte). */
+  body?: 'm' | 'w';
 }) {
   const theme = useTheme();
   const groups = muscles ? (Object.keys(muscles) as MuscleGroup[]).filter((g) => (muscles[g] ?? 0) > 0) : [];
+  const overlap = groups.filter((g) => spared.includes(g));
   return (
     <View style={[styles.block, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
       <View style={styles.headRow}>
@@ -58,8 +66,20 @@ export function TrainingBlock({
           </ThemedText>
           {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
         </View>
-        {groups.length ? <MuscleMapMini sets={muscles!} label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })} /> : null}
+        {groups.length ? (
+          <MuscleMapMini
+            sets={muscles!}
+            spared={spared}
+            body={body}
+            label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })}
+          />
+        ) : null}
       </View>
+      {overlap.length ? (
+        <ThemedText type="small" style={{ color: theme.danger }}>
+          {t('today.sparedHint', { list: overlap.map((g) => t(`muscle.${g}`)).join(', ') })}
+        </ThemedText>
+      ) : null}
       <WeekStrip days={week} summary={weekSummary} />
       <View style={styles.action}>
         <Button label={action} onPress={onPress} />
@@ -166,6 +186,8 @@ export type Figure = {
   accessibilityLabel: string;
   /** Ohne Handler ist die Kennzahl nur Anzeige (kein Knopf für VoiceOver). */
   onPress?: () => void;
+  /** Zahl zählt beim Erscheinen hoch (Abschluss-Bildschirm); `format` macht daraus den angezeigten Wert. */
+  count?: { to: number; format: (value: number) => string };
 };
 
 /** Kennzahlen als Schrift: ein Feld, gleich breite Spalten, 1-px-Trenner, Wert in Manrope mit Tabellenziffern. */
@@ -187,6 +209,8 @@ export function FigureStrip({ figures }: { figures: Figure[] }) {
 }
 
 function FigureCell({ figure, divider }: { figure: Figure; divider: string | null }) {
+  const counted = useCountUp(figure.count?.to ?? 0, !!figure.count);
+  const shown = figure.count ? figure.count.format(counted) : figure.value;
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const press = useOnce(figure.onPress);
@@ -202,7 +226,7 @@ function FigureCell({ figure, divider }: { figure: Figure; divider: string | nul
       ) : (
         <View style={styles.valueRow}>
           <ThemedText style={styles.value} numberOfLines={1}>
-            {figure.value}
+            {shown}
           </ThemedText>
           {figure.unit ? (
             <ThemedText type="small" themeColor="textSecondary">
@@ -225,8 +249,8 @@ function FigureCell({ figure, divider }: { figure: Figure; divider: string | nul
           accessibilityRole="button"
           accessibilityLabel={figure.accessibilityLabel}
           onPress={press}
-          onPressIn={() => scale.set(withSpring(0.96, Spring))}
-          onPressOut={() => scale.set(withSpring(1, Spring))}
+          onPressIn={() => scale.set(withSpring(Press.button, Press.in))}
+          onPressOut={() => scale.set(withSpring(1, Press.out))}
           style={styles.cell}>
           {content}
         </Pressable>

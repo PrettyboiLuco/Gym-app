@@ -1,6 +1,6 @@
 import Svg, { Circle, Path } from 'react-native-svg';
 
-import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
+import { HIDDEN } from '@/components/a11y';
 
 /**
  * Tab-Symbole für die Web-Vorschau, im Stil der iPhone-Symbole (SF Symbols), die auf dem Handy erscheinen:
@@ -24,7 +24,7 @@ export function TabIcon({
 }) {
   const stroke = { stroke: color, strokeWidth: selected ? 2.3 : 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" {...HIDDEN_FROM_A11Y}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...HIDDEN}>
       {name === 'index' ? <Path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" {...stroke} fill={selected ? color : 'none'} /> : null}
       {name === 'training' ? (
         <>

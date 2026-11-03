@@ -1,161 +1,531 @@
-import { StyleSheet, View } from 'react-native';
-import Svg, { Ellipse, G, Path } from 'react-native-svg';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
+import Animated, {
+  Easing,
+  interpolateColor,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 
-import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
+import { HIDDEN } from '@/components/a11y';
+import { Segmented } from '@/components/fields';
+import { haptic } from '@/components/haptics';
+import { BODIES, BODIES_LIST, hitTest, sidesOf, toArt, type Body, type FigureView, type Region } from '@/components/muscle-figure';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { MapFade } from '@/constants/motion';
+import { BodyDetail, BodyHair, MuscleRamp, Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
+import { MAP_GROUP, muscleValue, tallyByGroup, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { muscleLevel } from '@/domain/training-stats';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { formatDay, formatNumber, t } from '@/i18n';
 
-type Regions = Partial<Record<MuscleGroup, string[]>>;
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const STOPS = [0, 1, 2, 3, 4];
+const EASE = Easing.bezier(...MapFade.easing);
+// Im Browser setzt Reanimated animierte SVG-Farben (fill/stroke) nicht um – dort steht die Farbe direkt am Ziel.
+// Auf iOS/Android gleitet sie (fill und stroke sind dort animierbare Farbeigenschaften).
+const STATIC_COLOR = Platform.OS === 'web';
 
-// Anatomische Figur (Phase 1 Scan, neu gezeichnet): linke Körperhälfte als Pfade (viewBox 0 0 100 214), die rechte
-// gespiegelt. Jeder Muskel ist eine eigene Fläche, getrennt durch schmale Fugen in der Körperfarbe.
-const SILHOUETTE =
-  'M50 22 L44.6 22.6 L44.2 28.6 C41.6 30.4 38 31.5 34 32.2 C27 32.8 21.5 35.5 20 42 C18.8 48 18.5 60 17.6 72 C16.6 84 14.6 96 13.8 106 C13 112 12.6 118 14 121 C15.6 123.5 18.4 122.5 19.2 119 C19.8 114 20 108 21 102 C22.4 92 24.6 82 25.6 72 C26.6 64 28.4 56 30.4 50 C31.4 56 32.6 64 33.4 72 C34.2 80 35.6 86 35.6 90 C34.2 96 33 104 33.2 114 C33.4 126 35 138 36.2 148 C35.2 160 34.4 172 35.6 184 C36.4 192 37.6 198 37.6 203 C35.8 205.5 33.2 207.5 33.6 209.5 C35 211.2 41.8 211.2 44.4 210 C45.4 207 44.6 203 44.6 199 C45.8 188 46.6 172 46.2 160 C46 154 46.6 150 47.2 146 C48.2 134 49 120 49.4 111 L50 110 Z';
+/** change = steht beim Öffnen, gleitet bei neuen Werten · grow = füllt sich einmal auf (nur Abschluss-Bildschirm). */
+type Mode = 'change' | 'grow';
+export const MAP_VIEWS = ['beide', 'vorne', 'hinten'] as const;
+export type MapView = (typeof MAP_VIEWS)[number];
+type Side = 'front' | 'back';
 
-const FRONT: Regions = {
-  nacken: ['M45 29 C42 30.5 38 31.5 35 32.4 C39 32.8 43 32.6 46 32 Z'],
-  schultern: ['M34.4 32.6 C27 32.6 22 36 21 43 C21 46 21.3 48 21.8 49 C23.5 45 26.5 41.5 30.5 40 C31.5 37 32.8 34.6 34.4 32.6 Z'],
-  brust: ['M49 34.2 C43 33.6 38 33.8 35.4 34.6 C32.6 38 31.4 44 32.6 50.4 C37 54.6 44 55.4 49 53 Z'],
-  arme: [
-    'M22.8 51 C21.4 56 21 63 21.8 69.6 C23.8 70.4 25.8 69.4 26.8 66 C27.8 61 28.4 56 28 51.6 C27.4 48.6 26 47.2 24.6 47.4 C23.6 48.2 23.1 49.4 22.8 51 Z',
-    'M21.2 74 C19.4 82 18.2 92 17.6 101 C18.6 102.6 20.2 102.6 21 101 C22.6 92 24.2 83 25.4 74.6 C24.2 72.6 22.4 72.4 21.2 74 Z',
-  ],
-  bauch: [
-    'M43.6 56.6 h5.4 v7.4 h-5.4 Z',
-    'M43.6 65.4 h5.4 v7.4 h-5.4 Z',
-    'M43.8 74.2 h5.2 v7.6 h-5.2 Z',
-    'M44.2 83.2 h4.8 v9.6 h-4.8 Z',
-    'M41.6 57.8 C38.4 61 36.8 70 37.4 80 C38.2 86 39.8 90 42.4 93.6 L42.4 58 Z',
-  ],
-  huefte: ['M49.2 99.6 C46.6 102.6 44.6 108 44 116 C45.6 118 47.2 115.6 48.4 112 C49 108 49.3 104 49.2 99.6 Z'],
-  beine: [
-    'M40.4 98 C36.6 105 34.8 117 35.4 130 C35.8 138 37.8 144 40.8 146.4 C42.6 147 44.4 145 44.8 140 C46 128 45.8 113 44 103 C43 99.6 41.8 98 40.4 98 Z',
-    'M47.6 112.4 C48.6 122 48.6 134 47.6 142 C46.8 146 44.8 147.4 43.8 145.8 C45.6 140 46.6 132 46.8 124 C47 120 47.2 116 47.6 112.4 Z',
-  ],
-  waden: ['M37.6 155 C35.8 161 35.6 170 36.8 178 C37.8 183 43.4 183 44.6 178 C45.8 170 45.6 161 43.6 155 C41.6 153.6 39.4 153.6 37.6 155 Z'],
-};
+/** Stufe einer Fläche als animierter Wert (0…4). Bei „Bewegung reduzieren“ springt er sofort ans Ziel. */
+function useLevel(target: number, row: number, mode: Mode): SharedValue<number> {
+  const reduced = useReducedMotion();
+  const value = useSharedValue(mode === 'grow' && !reduced ? 0 : target);
+  useEffect(() => {
+    if (reduced) {
+      value.set(target);
+      return;
+    }
+    const grow = mode === 'grow';
+    const delay = (grow ? MapFade.growDelayMs : 0) + row * MapFade.staggerMs;
+    value.set(withDelay(delay, withTiming(target, { duration: grow ? MapFade.growMs : MapFade.durationMs, easing: EASE })));
+  }, [mode, row, reduced, target, value]);
+  return value;
+}
 
-const BACK: Regions = {
-  nacken: ['M50 23.6 L46.6 25 C45.6 28 41 30.6 35 32.6 C40 35 44.6 38.4 46.8 44 C48.2 48 49.2 52 50 54 Z'],
-  schultern: ['M34.4 32.6 C27 32.6 22 36 21 43 C21 46 21.3 48 21.8 49 C24 45 27.6 41.8 32 40.6 C33 37.6 33.6 35 34.4 32.6 Z'],
-  ruecken: [
-    'M33.6 41.4 C32.4 48 33 57 35.6 65 C38.4 72 43.2 78 49.2 80.6 L49.2 60 C47.6 52 44.6 46 40 42.6 C37.6 41.2 35.4 40.8 33.6 41.4 Z',
-    'M45.2 82 C44.6 86 44.6 90 45 93.4 L49.2 93.4 L49.2 82.8 C47.8 82.2 46.4 81.8 45.2 82 Z',
-  ],
-  arme: [
-    'M22.6 50.6 C21.2 56 21 63 21.8 69.6 C23.8 70.6 26 69.4 27.2 65.6 C28.2 60.6 28.4 55.4 27.6 51 C26.6 48.2 25 47.4 24 48 C23.3 48.6 22.9 49.4 22.6 50.6 Z',
-    'M21.2 74 C19.4 82 18.2 92 17.6 101 C18.6 102.6 20.2 102.6 21 101 C22.6 92 24.2 83 25.4 74.6 C24.2 72.6 22.4 72.4 21.2 74 Z',
-  ],
-  huefte: ['M36.4 90.8 C34.8 94.4 34.4 98.6 35 102.6 C37 98.4 40.4 95.6 44 94.2 C41.4 92.8 38.8 91.6 36.4 90.8 Z'],
-  gesaess: ['M49.2 95.2 C43 94.6 37.4 97.6 35.6 104.4 C35 111 38.6 116.4 44 117.6 C46.2 117.8 48 117.2 49.2 116.2 Z'],
-  beine: [
-    'M37 120.4 C35.4 128 35.6 138 38.4 146 C40.4 148.4 42.6 148 43 145 C43.4 137 42.8 128 41.4 121.4 C40.2 119.6 38.4 119.4 37 120.4 Z',
-    'M43.4 120.6 C44.8 128 45.4 137 45.2 145 C46.4 147.4 47.6 146.6 48 143.6 C48.8 136 49 127 48.8 120.4 C47 119.4 45 119.6 43.4 120.6 Z',
-  ],
-  waden: ['M37.2 154 C35.2 160 35.2 168 37.2 175 C38.8 178.6 41.4 178.8 42.6 176 C44.4 170 44.8 162 43.6 155.6 C42 152.6 38.8 152.4 37.2 154 Z'],
-};
+/** Läuft einmal von 0 auf 1, wenn die Komponente erscheint (Markierung, Strichelung). */
+function useOnce(durationMs: number): SharedValue<number> {
+  const reduced = useReducedMotion();
+  const value = useSharedValue(reduced ? 1 : 0);
+  useEffect(() => {
+    if (!reduced) value.set(withTiming(1, { duration: durationMs, easing: EASE }));
+  }, [durationMs, reduced, value]);
+  return value;
+}
 
-const VIEWBOX = '0 0 100 214';
+function useRamp(): string[] {
+  const dark = useColorScheme() === 'dark';
+  return useMemo(() => [...(dark ? MuscleRamp.dark : MuscleRamp.light)], [dark]);
+}
 
-/** Eine Ansicht (vorne oder hinten): Silhouette, Kopf, dann die Muskeln beider Seiten in ihrer Farbe. */
-function BodyView({
-  regions,
-  base,
-  fill,
-  opacity,
+/**
+ * Eine Fläche; die Farbe folgt der Stufe ihrer Region. Ist ein anderer Muskel angetippt, tritt sie weich zurück
+ * (`focus` 0 → 1 in 200 ms), der gewählte bleibt voll sichtbar.
+ */
+function MusclePath({
+  d,
+  level,
+  target,
+  ramp,
+  dim,
+  focus,
+  chosen,
 }: {
-  regions: Regions;
-  base: string;
-  fill: (g: MuscleGroup) => string;
-  opacity?: (g: MuscleGroup) => number;
+  d: string;
+  level: SharedValue<number>;
+  target: number;
+  ramp: string[];
+  dim: boolean;
+  focus: SharedValue<number>;
+  chosen: boolean;
 }) {
-  const half = (Object.entries(regions) as [MuscleGroup, string[]][]).map(([group, paths]) =>
-    paths.map((d, i) => <Path key={`${group}-${i}`} d={d} fill={fill(group)} opacity={opacity?.(group) ?? 1} />)
-  );
+  const own = dim ? 0.5 : 1;
+  const animated = useAnimatedProps((): { opacity: number; fill?: string } => {
+    const opacity = own * (chosen ? 1 : 1 - 0.45 * focus.value);
+    return STATIC_COLOR ? { opacity } : { opacity, fill: interpolateColor(level.value, STOPS, ramp) };
+  });
+  return <AnimatedPath d={d} {...(STATIC_COLOR ? { fill: ramp[Math.round(target)] } : {})} animatedProps={animated} />;
+}
+
+function RegionPaths({
+  region,
+  target,
+  mode,
+  ramp,
+  dim,
+  focus,
+  chosen,
+}: {
+  region: Region;
+  target: number;
+  mode: Mode;
+  ramp: string[];
+  dim: boolean;
+  focus: SharedValue<number>;
+  chosen: boolean;
+}) {
+  const level = useLevel(target, region.row, mode);
   return (
     <>
-      <Path d={SILHOUETTE} fill={base} />
-      <G transform="translate(100,0) scale(-1,1)">
-        <Path d={SILHOUETTE} fill={base} />
-        {half}
-      </G>
-      {half}
-      <Ellipse cx={50} cy={12} rx={8.6} ry={10.2} fill={base} />
+      {region.paths.map((d, i) => (
+        <MusclePath key={i} d={d} level={level} target={target} ramp={ramp} dim={dim} focus={focus} chosen={chosen} />
+      ))}
+    </>
+  );
+}
+
+/** Teile ohne Daten (Kopf, Haar, Hände, Füße, Knie …) im Körperton bzw. in der Haarfarbe. */
+function BodyParts({ v }: { v: FigureView }) {
+  const dark = useColorScheme() === 'dark';
+  const skin = dark ? BodyDetail.dark : BodyDetail.light;
+  const hair = dark ? BodyHair.dark : BodyHair.light;
+  return <>{v.base.flatMap((part, i) => part.paths.map((d, j) => <Path key={`${i}-${j}`} d={d} fill={part.hair ? hair : skin} />))}</>;
+}
+
+/** Markierung des angetippten Muskels: der Rand zeichnet sich in 160 ms ein. `unit` = Zeichnungseinheiten je Pixel. */
+function Highlight({ paths, color, unit }: { paths: string[]; color: string; unit: number }) {
+  const p = useOnce(160);
+  const animated = useAnimatedProps(() => ({ strokeWidth: unit * 2 * p.value, opacity: p.value }));
+  return (
+    <>
+      {paths.map((d, i) => (
+        <AnimatedPath key={i} d={d} fill="none" stroke={color} strokeLinejoin="round" animatedProps={animated} />
+      ))}
+    </>
+  );
+}
+
+/** Geschonter Bereich: gestrichelter Rand in Warnfarbe, läuft beim Erscheinen einmal in 600 ms ein. */
+function SparedOutline({ paths, color, unit }: { paths: string[]; color: string; unit: number }) {
+  const p = useOnce(600);
+  const dash = unit * 3;
+  const animated = useAnimatedProps(() => ({ strokeDashoffset: (1 - p.value) * dash * 12, opacity: Math.min(1, p.value * 2) }));
+  return (
+    <>
+      {paths.map((d, i) => (
+        <AnimatedPath
+          key={i}
+          d={d}
+          fill="none"
+          stroke={color}
+          strokeWidth={unit * 1.4}
+          strokeDasharray={`${dash} ${dash * 0.8}`}
+          strokeLinecap="round"
+          animatedProps={animated}
+        />
+      ))}
     </>
   );
 }
 
 /**
- * Muskel-Körperkarte (A8.5): Arbeitssätze der Woche je Muskelgruppe, vorne und hinten. Zeigt nur die Menge, keine
- * „Erholung in %“. Die Zahlen stehen zusätzlich als Liste daneben (nicht nur über Farbe).
+ * Eine Ansicht der Zeichnung: Teile ohne Daten im Körperton, darüber die Muskelflächen in der Farbe ihrer Stufe, dann
+ * geschonte Bereiche und die Markierung. `ready = false` zeigt nur den Körper (Daten laden noch – keine falschen
+ * grauen Muskeln). Angetippt wird die ganze Figur; welche Fläche gemeint ist, rechnet `hitTest` aus (mit Fangradius).
  */
-export function MuscleMap({ sets }: { sets: Partial<Record<MuscleGroup, number>> }) {
+function Figure({
+  v,
+  width,
+  height,
+  level,
+  mode = 'change',
+  ready = true,
+  spared = [],
+  selected = null,
+  onSelect,
+}: {
+  v: FigureView;
+  width: number;
+  height: number;
+  level: (r: Region) => number;
+  mode?: Mode;
+  ready?: boolean;
+  spared?: readonly MuscleGroup[];
+  selected?: MapMuscle | null;
+  onSelect?: (r: Region | null) => void;
+}) {
   const theme = useTheme();
-  // Datenfarbe: dunkel Lime, hell das dunklere Grün (Lime auf Weiß ist zu blass).
-  const on = useColorScheme() === 'dark' ? theme.accent : theme.tint;
-  const level = (g: MuscleGroup) => muscleLevel(sets[g] ?? 0);
-  const fill = (g: MuscleGroup) => (level(g) === 0 ? theme.border : on);
-  const opacity = (g: MuscleGroup) => [1, 0.4, 0.6, 0.8, 1][level(g)];
-  const figure = (regions: Regions, label: string) => (
-    <View style={styles.figure}>
-      <Svg width={124} height={265} viewBox={VIEWBOX} {...HIDDEN_FROM_A11Y}>
-        <BodyView regions={regions} base={theme.backgroundSelected} fill={fill} opacity={opacity} />
-      </Svg>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-    </View>
+  const ramp = useRamp();
+  const reduced = useReducedMotion();
+  const unit = Math.max(v.box.w / width, v.box.h / height);
+  // Fokus: ist ein Muskel angetippt, treten die anderen in 200 ms zurück
+  const focus = useSharedValue(0);
+  const hasSelection = !!selected && v.regions.some((r) => r.muscles.includes(selected));
+  useEffect(() => {
+    focus.set(reduced ? Number(hasSelection) : withTiming(Number(hasSelection), { duration: 200, easing: EASE }));
+  }, [focus, hasSelection, reduced]);
+  const marked = selected ? v.regions.filter((r) => r.muscles.includes(selected)).flatMap((r) => r.paths) : [];
+  const sparedPaths = v.regions.filter((r) => spared.includes(r.group)).flatMap((r) => r.paths);
+  const svg = (
+    <Svg width={width} height={height} viewBox={v.viewBox}>
+      <BodyParts v={v} />
+      {v.regions.map((r) => (
+        <RegionPaths
+          key={r.key}
+          region={r}
+          target={ready ? level(r) : 0}
+          mode={mode}
+          ramp={ramp}
+          dim={spared.includes(r.group)}
+          focus={focus}
+          chosen={!!selected && r.muscles.includes(selected)}
+        />
+      ))}
+      {ready && sparedPaths.length ? <SparedOutline key={spared.join()} paths={sparedPaths} color={theme.danger} unit={unit} /> : null}
+      {marked.length ? <Highlight key={selected} paths={marked} color={theme.text} unit={unit} /> : null}
+    </Svg>
   );
+  if (!onSelect) return svg;
+  const press = (e: GestureResponderEvent) => {
+    let { locationX: x, locationY: y } = e.nativeEvent;
+    // Im Browser liefert der Druck nur Bildschirm-Koordinaten: Abstand zur linken oberen Ecke der Figur selbst rechnen.
+    const web = e.nativeEvent as unknown as { clientX?: number; clientY?: number };
+    const box = (e.currentTarget as unknown as { getBoundingClientRect?: () => { left: number; top: number } }).getBoundingClientRect?.();
+    if (Platform.OS === 'web' && box && web.clientX !== undefined && web.clientY !== undefined) {
+      x = web.clientX - box.left;
+      y = web.clientY - box.top;
+    }
+    const [ax, ay] = toArt(v, width, height, x, y);
+    onSelect(hitTest(v, ax, ay));
+  };
+  // Für VoiceOver ausgeblendet: dieselben Zahlen stehen in der Liste darunter (die auch antippbar ist).
   return (
-    <View>
-      <View style={styles.row}>
-        {figure(FRONT, t('stats.front'))}
-        {figure(BACK, t('stats.back'))}
-      </View>
+    <Pressable accessibilityRole="none" accessible={false} {...HIDDEN} onPress={press}>
+      {svg}
+    </Pressable>
+  );
+}
+
+const fmt = (n: number) => formatNumber(n, 1);
+const muscleLabel = (m: MapMuscle) => t(`mapMuscle.${m}`);
+
+/**
+ * Muskel-Körperkarte (A8.5, Ausbau docs/Muskelkarte_Ausbau.md): Arbeitssätze der Woche je Zielmuskel, vorne und
+ * hinten oder einzeln (größer, mit Drehung beim Wechsel). Mitbeteiligte Muskeln zählen auf Wunsch halb. Antippen der
+ * Figur oder eines Eintrags in der Liste markiert einen Muskel und zeigt seine Zahl. Geschonte Bereiche (Status
+ * „verletzt“) sind gestrichelt. Zeigt nur die Menge, keine „Erholung in %“; alle Zahlen stehen auch als Text da.
+ */
+export function MuscleMap({
+  tally,
+  ready = true,
+  halfSecondary,
+  onHalfSecondary,
+  view,
+  onView,
+  spared = [],
+  sparedSince = null,
+  body = 'm',
+  onBody,
+}: {
+  tally: MuscleTally;
+  ready?: boolean;
+  halfSecondary: boolean;
+  onHalfSecondary: (value: boolean) => void;
+  view: MapView;
+  onView: (view: MapView) => void;
+  spared?: readonly MuscleGroup[];
+  sparedSince?: string | null;
+  /** Körperform der Figur (männlich / weiblich), wählbar. */
+  body?: Body;
+  onBody?: (body: Body) => void;
+}) {
+  const theme = useTheme();
+  const ramp = useRamp();
+  const reduced = useReducedMotion();
+  const [selected, setSelected] = useState<MapMuscle | null>(null);
+  const [shown, setShown] = useState<Side>(view === 'hinten' ? 'back' : 'front');
+  const turn = useSharedValue(1);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    []
+  );
+  /** Drehung zur anderen Seite (Punkt 5.3): schmal werden, Seite wechseln, wieder breit – je 140 ms. */
+  function turnTo(side: Side) {
+    if (reduced) {
+      setShown(side);
+      return;
+    }
+    turn.set(withTiming(0, { duration: 140, easing: Easing.in(Easing.quad) }));
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setShown(side);
+      turn.set(withTiming(1, { duration: 140, easing: Easing.out(Easing.quad) }));
+    }, 140);
+  }
+
+  // Neue Ansicht: nach einem Wechsel vorne ↔ hinten dreht sich die Figur, sonst (z. B. gespeicherte Ansicht nach dem
+  // Laden, Wechsel aus „Beide“) steht die Seite sofort.
+  const animateTurn = useRef(false);
+  useEffect(() => {
+    if (view === 'beide') return;
+    const side: Side = view === 'vorne' ? 'front' : 'back';
+    if (animateTurn.current) turnTo(side);
+    else setShown(side);
+    animateTurn.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+  const turnStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: turn.value }] }));
+
+  const value = (m: MapMuscle) => muscleValue(tally, m, halfSecondary);
+  // Eine Fläche zeigt mehrere Kartenmuskeln (z. B. Brust oben/Mitte/unten): sie nimmt die höchste Stufe
+  const level = (r: Region) => Math.max(...r.muscles.map((m) => muscleLevel(value(m))));
+
+  function changeView(next: MapView) {
+    animateTurn.current = view !== 'beide' && next !== 'beide';
+    onView(next);
+  }
+
+  /** Fläche angetippt: gemeint ist ihr Muskel mit den meisten Sätzen (bei Gleichstand der erste). */
+  function selectRegion(r: Region | null) {
+    if (!r) return select(null);
+    const lead = r.muscles.reduce((best, m) => (value(m) > value(best) ? m : best), r.muscles[0]);
+    // Schon ein Muskel dieser Fläche gewählt → nochmal tippen hebt die Auswahl auf
+    select(selected && r.muscles.includes(selected) ? selected : lead);
+  }
+
+  function select(m: MapMuscle | null, fromList = false) {
+    const next = m === selected ? null : m;
+    if (next) haptic.tap();
+    setSelected(next);
+    // Aus der Liste gewählt: in der Einzelansicht zur Seite drehen, auf der der Muskel liegt (Punkt 5.5).
+    if (next && fromList && view !== 'beide') {
+      const sides = sidesOf(next);
+      if (!sides.includes(shown)) changeView(sides[0] === 'front' ? 'vorne' : 'hinten');
+    }
+  }
+
+  const set = BODIES[body];
+  const figure = (side: Side, w: number, h: number) => (
+    <Figure v={set[side]} width={w} height={h} level={level} ready={ready} spared={spared} selected={selected} onSelect={selectRegion} />
+  );
+
+  const groups = tallyByGroup(tally, halfSecondary);
+  const sec = selected ? (tally.secondary[selected] ?? 0) : 0;
+  const info = selected
+    ? t('stats.tapped', { muscle: muscleLabel(selected), group: t(`muscle.${MAP_GROUP[selected]}`), value: fmt(value(selected)), count: value(selected) }) +
+      (sec > 0 ? t(halfSecondary ? 'stats.tappedHalf' : 'stats.tappedIgnored', { secondary: fmt(sec) }) : '')
+    : t('stats.tapHint');
+
+  return (
+    <View style={styles.wrap}>
+      <Segmented label={t('stats.view')} options={MAP_VIEWS} value={view} onChange={changeView} format={(v) => t(`stats.views.${v}`)} />
+      {onBody ? <Segmented label={t('stats.body')} options={BODIES_LIST} value={body} onChange={onBody} format={(b) => t(`stats.bodies.${b}`)} /> : null}
+      {view === 'beide' ? (
+        <View style={styles.row}>
+          <View style={styles.figure}>
+            {figure('front', 124, 265)}
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('stats.front')}
+            </ThemedText>
+          </View>
+          <View style={styles.figure}>
+            {figure('back', 124, 265)}
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('stats.back')}
+            </ThemedText>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.figure}>
+          <Animated.View style={turnStyle}>{figure(shown, 174, 372)}</Animated.View>
+          <ThemedText type="small" themeColor="textSecondary">
+            {shown === 'front' ? t('stats.front') : t('stats.back')}
+          </ThemedText>
+        </View>
+      )}
+
+      <ThemedText type="small" style={styles.center} themeColor={selected ? 'text' : 'textSecondary'} accessibilityLiveRegion="polite">
+        {info}
+      </ThemedText>
+
       <View style={styles.legend}>
         {[0, 1, 2, 3, 4].map((lv) => (
           <View key={lv} style={styles.legendItem}>
-            <View style={[styles.swatch, { backgroundColor: lv === 0 ? theme.border : on, opacity: [1, 0.4, 0.6, 0.8, 1][lv] }]} />
+            <View style={[styles.swatch, { backgroundColor: ramp[lv] }]} />
             <ThemedText type="small" themeColor="textSecondary">
               {t(`stats.level.${lv}`)}
             </ThemedText>
           </View>
         ))}
       </View>
+      {tally.whole > 0 ? (
+        <ThemedText type="small" themeColor="textSecondary" style={styles.center}>
+          {t('stats.wholeBody', { count: tally.whole })}
+        </ThemedText>
+      ) : null}
+      {spared.length ? (
+        <View style={[styles.legendItem, styles.note]}>
+          <View style={[styles.swatch, styles.dashed, { borderColor: theme.danger }]} />
+          <ThemedText type="small" themeColor="textSecondary">
+            {sparedSince
+              ? t('stats.sparedSince', { list: spared.map((g) => t(`muscle.${g}`)).join(', '), date: formatDay(sparedSince) })
+              : t('stats.spared', { list: spared.map((g) => t(`muscle.${g}`)).join(', ') })}
+          </ThemedText>
+        </View>
+      ) : null}
+
+      <Segmented
+        label={t('stats.secondary')}
+        options={['halb', 'aus'] as const}
+        value={halfSecondary ? 'halb' : 'aus'}
+        onChange={(v) => onHalfSecondary(v === 'halb')}
+        format={(v) => t(`stats.secondaryOption.${v}`)}
+      />
+
+      {groups.length ? (
+        <View style={styles.list}>
+          {groups.map((g) => (
+            <View key={g.group} style={styles.groupRow}>
+              <ThemedText type="small" style={styles.groupName}>
+                {`${t(`muscle.${g.group}`)} ${fmt(g.value)}`}
+              </ThemedText>
+              <View style={styles.chips}>
+                {g.muscles.map(({ muscle, value: v }) => {
+                  const on = muscle === selected;
+                  return (
+                    <Pressable
+                      key={muscle}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                      accessibilityLabel={`${muscleLabel(muscle)}: ${fmt(v)}`}
+                      onPress={() => select(muscle, true)}
+                      style={({ pressed }) => [
+                        styles.chip,
+                        {
+                          borderColor: on ? theme.text : theme.border,
+                          backgroundColor: on ? theme.backgroundSelected : 'transparent',
+                          opacity: pressed ? 0.7 : 1,
+                        },
+                      ]}>
+                      <ThemedText type="small">{`${muscleLabel(muscle)} ${fmt(v)}`}</ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <ThemedText type="small">{t('stats.noSets')}</ThemedText>
+      )}
     </View>
   );
 }
 
 /**
- * Kleine Muskelkarte für die Karte auf „Heute“ (U4): vorne und hinten ohne Legende, die Muskeln des heutigen Plantags in
- * der Datenfarbe (dunkel Lime, hell das dunklere Grün). Die Muskeln stehen im Text für VoiceOver.
+ * Kleine Muskelkarte für die Karte auf „Heute“ (U4): vorne und hinten ohne Legende, Flächen je
+ * Muskelgruppe, die Gruppen des heutigen Plantags in der Datenfarbe, geschonte Bereiche gestrichelt. Die Muskeln
+ * stehen im Text für VoiceOver.
  */
-export function MuscleMapMini({ sets, label }: { sets: Partial<Record<MuscleGroup, number>>; label: string }) {
-  const theme = useTheme();
-  const scheme = useColorScheme();
-  const on = scheme === 'dark' ? theme.accent : theme.tint;
-  const fill = (g: MuscleGroup) => ((sets[g] ?? 0) > 0 ? on : theme.border);
+export function MuscleMapMini({
+  sets,
+  label,
+  spared = [],
+  body = 'm',
+}: {
+  sets: Partial<Record<MuscleGroup, number>>;
+  label: string;
+  spared?: readonly MuscleGroup[];
+  body?: Body;
+}) {
+  const level = (r: Region) => ((sets[r.group] ?? 0) > 0 ? 4 : 0);
+  const set = BODIES[body];
   return (
     <View accessible accessibilityLabel={label} style={styles.mini}>
-      {[FRONT, BACK].map((regions, i) => (
-        <Svg key={i} width={54} height={116} viewBox={VIEWBOX}>
-          <BodyView regions={regions} base={theme.backgroundSelected} fill={fill} />
-        </Svg>
+      {[set.front, set.back].map((v, i) => (
+        <Figure key={i} v={v} width={54} height={116} level={level} spared={spared} />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * Abschluss-Bildschirm (U5): die heute trainierten Muskeln füllen sich einmal auf – Hauptmuskeln in der vollen
+ * Datenfarbe, nur mitbeteiligte heller. Erfolgsmoment als Rückmeldung, nicht als Auftritt; bei „Bewegung reduzieren“
+ * stehen sie sofort.
+ */
+export function MuscleMapDone({ tally, label, body = 'm' }: { tally: MuscleTally; label: string; body?: Body }) {
+  const set = BODIES[body];
+  const level = (r: Region) => (r.muscles.some((m) => (tally.primary[m] ?? 0) > 0) ? 4 : r.muscles.some((m) => (tally.secondary[m] ?? 0) > 0) ? 2 : 0);
+  return (
+    <View accessible accessibilityLabel={label} style={styles.row}>
+      {[set.front, set.back].map((v, i) => (
+        <Figure key={i} v={v} width={100} height={214} level={level} mode="grow" />
       ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: { gap: Spacing.two },
   mini: { flexDirection: 'row', gap: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-around' },
   figure: { alignItems: 'center', gap: Spacing.one },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, justifyContent: 'center', marginTop: Spacing.two },
+  center: { textAlign: 'center' },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  note: { justifyContent: 'center' },
   swatch: { width: 12, height: 12, borderRadius: 3 },
+  dashed: { borderWidth: 1.5, borderStyle: 'dashed' },
+  list: { gap: Spacing.two },
+  groupRow: { gap: 4 },
+  groupName: { fontWeight: '600' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
 });

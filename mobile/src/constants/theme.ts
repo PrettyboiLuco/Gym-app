@@ -48,6 +48,21 @@ export const Colors = {
   },
 } as const;
 
+/**
+ * Stufen der Muskelkarte (0 = keine Sätze … 4 = 20+): feste Farben statt Deckkraft, damit die Stufen gleichmäßig
+ * heller werden und sich weich ineinander überblenden lassen. Stufe 0 = Rand-Grau, Stufe 4 = Datenfarbe
+ * (hell das dunklere Grün, dunkel Lime) – Lime bleibt nur auf Daten.
+ */
+export const MuscleRamp = {
+  light: ['#D1D5DB', '#C8DFA0', '#97C05A', '#6B9A22', '#4A7300'],
+  dark: ['#444444', '#4E5E22', '#77922F', '#A0C43E', '#C6F24E'],
+} as const;
+
+/** Feine Körperdetails der Muskelkarte (Kniescheibe, Schlüsselbein …): knapp vom Körperton abgesetzt. */
+export const BodyDetail = { light: '#DCDDE0', dark: '#363636' } as const;
+/** Frisur der weiblichen Figur: dunkler als der Körper (wie Haar), damit die Form auf einen Blick erkennbar ist. */
+export const BodyHair = { light: '#A9ACB2', dark: '#1B1B1B' } as const;
+
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 /**

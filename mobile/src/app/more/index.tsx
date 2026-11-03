@@ -14,7 +14,7 @@ import { setAppearance, useAppearance } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 
-type InfoKey = 'privacy' | 'sources' | 'language';
+type InfoKey = 'privacy' | 'sources' | 'licenses' | 'language';
 
 /**
  * „Mehr“: Einstellungen als ruhige Liste in Gruppen (Symbol links, Wert rechts, Pfeil), wie die
@@ -100,6 +100,7 @@ export default function MoreScreen() {
       <Card title={t('more.aboutTitle')}>
         {info('privacy', t('more.privacyTitle'), 'shield', t('more.privacy'))}
         {info('sources', t('more.sourcesTitle'), 'book', t('more.sources'))}
+        {info('licenses', t('more.licensesTitle'), 'book', t('more.licenses'))}
         {info('language', t('more.languageTitle'), 'globe', t('more.language'), t('more.languageValue'))}
         <ListRow icon="tag" title={t('more.versionTitle')} value={version} last />
       </Card>

@@ -41,6 +41,15 @@ Produktdaten: Open Food Facts, Abruf zur Laufzeit nur auf Aktion des Nutzers (Sc
 Datenbanklizenz ODbL, Namensnennung unter „Mehr → Datenquellen“. Produktbilder werden nicht verwendet
 (eigene Lizenz CC BY-SA, FOOD-005).
 
+## Übernommenes Material (kein Paket)
+
+| Material | Herkunft | Lizenz | Wo |
+|---|---|---|---|
+| Körperzeichnungen der Muskelkarte (männlich/weiblich, vorne/hinten) | react-native-body-highlighter 3.2.0, Hicham ELABBASSI | MIT | `mobile/src/components/body-art.ts` (nur Pfaddaten, Lizenztext im Dateikopf); Hinweis in der App unter Mehr → Über die App → „Zeichnungen und Lizenzen“ |
+
+Die Pfade wurden nur als Text übernommen (Mustersuche nach Namen und Pfaden), kein Code des Pakets wird ausgeführt oder
+mitgeliefert; das Paket selbst ist keine Abhängigkeit.
+
 ## `npm audit` (nur Laufzeit-Abhängigkeiten)
 
 **Stand 02.11.2026** (`npm audit --omit=dev`, nach expo-print, expo-clipboard, react-native-view-shot):

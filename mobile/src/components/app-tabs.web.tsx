@@ -1,10 +1,14 @@
+import { usePathname } from 'expo-router';
 import { Tabs, TabList, TabTrigger, TabSlot, type TabListProps, type TabTriggerSlotProps } from 'expo-router/ui';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
-import { MiniPlayer } from '@/components/mini-player';
+import { MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
 import { TabIcon, type TabIconName } from '@/components/tab-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Press } from '@/constants/motion';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
@@ -44,7 +48,9 @@ export default function AppTabs() {
 
 function TabBar(props: TabListProps) {
   const live = useLiveTraining();
-  const running = !!live.session || !!live.timedTitle;
+  const pathname = usePathname();
+  // Im Training selbst blendet sich der Mini-Player aus – dann auch kein leeres Feld über der Tab-Leiste.
+  const running = (!!live.session || !!live.timedTitle) && !TRAINING_SCREENS.some((p) => pathname.startsWith(p));
   return (
     <View {...props} style={styles.bar}>
       {running ? (
@@ -61,16 +67,33 @@ function TabBar(props: TabListProps) {
 
 function TabButton({ children, isFocused, icon, hidden, ...props }: TabTriggerSlotProps & { icon: TabIconName; hidden?: boolean }) {
   const theme = useTheme();
+  const reduced = useReducedMotion();
   const color = isFocused ? theme.text : theme.textSecondary;
+  // Gewählter Tab: Symbol hüpft einmal kurz (wie die Leiste auf dem iPhone), Knopf federt beim Drücken.
+  const pop = useSharedValue(1);
+  const press = useSharedValue(1);
+  useEffect(() => {
+    if (isFocused && !reduced) pop.set(withSequence(withSpring(1.18, Press.in), withSpring(1, Press.out)));
+  }, [isFocused, pop, reduced]);
+  const iconStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: press.value }] }));
   // TabTrigger braucht ref und onPress; die ref-Typen von expo-router/ui und Pressable weichen ab.
   return (
-    <Pressable {...(props as PressableProps)} style={({ pressed }) => [styles.button, pressed && styles.pressed, hidden && styles.hidden]}>
-      <ThemedView type={isFocused ? 'backgroundSelected' : 'backgroundElement'} style={styles.buttonInner}>
-        <TabIcon name={icon} color={color} contrastColor={theme.backgroundSelected} selected={!!isFocused} />
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'} numberOfLines={1} style={styles.label}>
-          {children}
-        </ThemedText>
-      </ThemedView>
+    <Pressable
+      {...(props as PressableProps)}
+      onPressIn={() => !reduced && press.set(withSpring(0.92, Press.in))}
+      onPressOut={() => !reduced && press.set(withSpring(1, Press.out))}
+      style={[styles.button, hidden && styles.hidden]}>
+      <Animated.View style={pressStyle}>
+        <ThemedView type={isFocused ? 'backgroundSelected' : 'backgroundElement'} style={styles.buttonInner}>
+          <Animated.View style={iconStyle}>
+            <TabIcon name={icon} color={color} contrastColor={theme.backgroundSelected} selected={!!isFocused} />
+          </Animated.View>
+          <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'} numberOfLines={1} style={styles.label}>
+            {children}
+          </ThemedText>
+        </ThemedView>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -102,5 +125,4 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   label: { fontSize: 11, lineHeight: 14 },
-  pressed: { opacity: 0.7 },
 });

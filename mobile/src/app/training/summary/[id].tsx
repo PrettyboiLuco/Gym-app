@@ -1,20 +1,23 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
 import { haptic } from '@/components/haptics';
 import { HeartLoop } from '@/components/heart-loop';
 import { Icon } from '@/components/icon';
+import { MuscleMapDone } from '@/components/muscle-map';
 import { NoteField } from '@/components/note-field';
-import { PopText } from '@/components/rise-text';
+import { PressableScale } from '@/components/pressable-scale';
+import { PopText, Rise } from '@/components/rise-text';
 import { Screen } from '@/components/screen';
 import { SessionFeedback } from '@/components/session-feedback';
 import { ShareCard } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';
 import { FigureStrip, WeekStrip, weekDays } from '@/components/today-widgets';
-import { DisplayFont, Spacing } from '@/constants/theme';
+import { CardStagger } from '@/constants/motion';
+import { Spacing } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
 import { timedSessionsForWorkout } from '@/data/routines';
@@ -29,12 +32,12 @@ import {
   type PlanHint,
   type SessionInfo,
 } from '@/data/training';
-import { loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
-import { bestOneRepMax, loadModeOf } from '@/domain/logger';
+import { loadMapPrefs, loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
+import { bestOneRepMax, countsAsWork, loadModeOf } from '@/domain/logger';
+import { EMPTY_TALLY, tallyMuscles, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { findRecords, summarize, type Record } from '@/domain/summary';
 import { todayDay } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, formatWeight, t } from '@/i18n';
@@ -56,6 +59,7 @@ async function loadSummary(db: Db, id: string) {
     planHintsForSession(db, id),
   ]);
   const cardio = (await listCardioForSession(db, id)).filter((c) => c.completedAt);
+  const { body } = await loadMapPrefs(db);
   const done = sets.filter((s) => s.completedAt);
   const byId = new Map(exercises.map((e) => [e.id, e]));
   const modeOf = (exerciseId: string) => {
@@ -72,6 +76,14 @@ async function loadSummary(db: Db, id: string) {
     );
   }
   const cooldownOffered = session?.cooldown !== 0 && !blocks.some((b) => b.kind === 'cooldown');
+  // Arbeitssätze je Muskel (nur Kraftübungen, ohne Aufwärmsätze) für die Muskelkarte „Heute trainiert“
+  const perExercise = new Map<string, number>();
+  for (const s of done) {
+    const e = byId.get(s.exerciseId);
+    if (!e || e.kind !== 'kraft' || !countsAsWork(s.setType)) continue;
+    perExercise.set(e.id, (perExercise.get(e.id) ?? 0) + 1);
+  }
+  const muscleTally = tallyMuscles([...perExercise].map(([exerciseId, sets]) => ({ exercise: byId.get(exerciseId)!, sets })));
   return {
     session,
     summary: session ? summarize(done, session.startedAt, session.finishedAt, modeOf) : null,
@@ -84,6 +96,8 @@ async function loadSummary(db: Db, id: string) {
     cooldownOffered,
     // Muskelgruppen dieses Trainings für die Rückmeldung (A6.3)
     muscleGroups: [...new Set(done.map((s) => byId.get(s.exerciseId)?.muscleGroup).filter((m): m is NonNullable<typeof m> => !!m))] as string[],
+    muscleTally,
+    body,
     loaded: true,
   };
 }
@@ -91,7 +105,6 @@ async function loadSummary(db: Db, id: string) {
 export default function SummaryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  const dark = useColorScheme() === 'dark';
   const units = useUnits();
   const { data, db } = useLoad(
     (d) => loadSummary(d, id),
@@ -113,11 +126,13 @@ export default function SummaryScreen() {
       } as TrainingWeek,
       cooldownOffered: false,
       muscleGroups: [] as string[],
+      muscleTally: EMPTY_TALLY as MuscleTally,
+      body: 'm' as 'm' | 'w',
       loaded: false,
     },
     id
   );
-  const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, loaded } = data;
+  const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, muscleTally, body, loaded } = data;
   const [showShare, setShowShare] = useState(false);
   const modules = useModules();
 
@@ -137,6 +152,12 @@ export default function SummaryScreen() {
   const doneDays = week.done.filter(Boolean).length;
   const weekSummary = week.goal ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal }) : t('today.weekSummary', { count: doneDays });
   const volume = formatWeight(summary.volumeKg, units.weight, 0);
+  // Hauptmuskeln mit Sätzen, größte zuerst; Ganzkörper-Sätze am Ende
+  const trained = (Object.entries(muscleTally.primary) as [MapMuscle, number][]).sort((a, b) => b[1] - a[1]);
+  const trainedList = [
+    ...trained.map(([m, n]) => `${t(`mapMuscle.${m}`)} ${n}`),
+    ...(muscleTally.whole > 0 ? [`${t('muscle.ganzkoerper')} ${muscleTally.whole}`] : []),
+  ].join(' · ');
   const recordText = (r: Record) =>
     r.kind === 'gewicht'
       ? t('summary.recordWeight', {
@@ -173,89 +194,105 @@ export default function SummaryScreen() {
         <HeartLoop size={72} loops={2} />
       </View>
 
-      <FigureStrip
-        figures={
-          summary.sets === 0 && cardio.length > 0
-            ? [
-                {
-                  label: t('summary.duration'),
-                  value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
-                  unit: 'min',
-                  accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
-                  onPress: () => router.push('/training/history'),
-                },
-                {
-                  label: t('cardio.title'),
-                  value: formatNumber(
-                    cardio.reduce((m, c) => m + (c.minutes ?? 0), 0),
-                    0
-                  ),
-                  unit: 'min',
-                  accessibilityLabel: `${t('cardio.title')} ${cardio.reduce((m, c) => m + (c.minutes ?? 0), 0)} min`,
-                  onPress: () => router.push('/training/history'),
-                },
-                {
-                  label: t('cardio.distance'),
-                  value: cardio.some((c) => c.distanceKm != null)
-                    ? formatNumber(
-                        cardio.reduce((m, c) => m + (c.distanceKm ?? 0), 0),
-                        1
-                      )
-                    : null,
-                  unit: 'km',
-                  accessibilityLabel: t('cardio.distance'),
-                  onPress: () => router.push('/training/history'),
-                },
-              ]
-            : [
-                {
-                  label: t('summary.duration'),
-                  value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
-                  unit: 'min',
-                  accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
-                  onPress: () => router.push('/training/history'),
-                },
-                {
-                  label: t('summary.sets'),
-                  value: String(summary.sets),
-                  sub: t('summary.exercises', { count: summary.exercises }),
-                  accessibilityLabel: `${t('summary.sets')} ${summary.sets}, ${t('summary.exercises', { count: summary.exercises })}`,
-                  onPress: () => router.push(`/training/session/${id}`),
-                },
-                {
-                  label: t('summary.volume'),
-                  value: volume.replace(/\s*\S+$/, ''),
-                  unit: units.weight,
-                  accessibilityLabel: `${t('summary.volume')} ${volume}`,
-                  onPress: () => router.push(`/training/session/${id}`),
-                },
-              ]
-        }
-      />
+      <Rise delay={CardStagger.staggerMs}>
+        <FigureStrip
+          figures={
+            summary.sets === 0 && cardio.length > 0
+              ? [
+                  {
+                    label: t('summary.duration'),
+                    value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
+                    unit: 'min',
+                    accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
+                    onPress: () => router.push('/training/history'),
+                  },
+                  {
+                    label: t('cardio.title'),
+                    value: formatNumber(
+                      cardio.reduce((m, c) => m + (c.minutes ?? 0), 0),
+                      0
+                    ),
+                    unit: 'min',
+                    accessibilityLabel: `${t('cardio.title')} ${cardio.reduce((m, c) => m + (c.minutes ?? 0), 0)} min`,
+                    onPress: () => router.push('/training/history'),
+                  },
+                  {
+                    label: t('cardio.distance'),
+                    value: cardio.some((c) => c.distanceKm != null)
+                      ? formatNumber(
+                          cardio.reduce((m, c) => m + (c.distanceKm ?? 0), 0),
+                          1
+                        )
+                      : null,
+                    unit: 'km',
+                    accessibilityLabel: t('cardio.distance'),
+                    onPress: () => router.push('/training/history'),
+                  },
+                ]
+              : [
+                  {
+                    label: t('summary.duration'),
+                    value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
+                    count: summary.minutes === null ? undefined : { to: summary.minutes, format: (v) => formatNumber(v, 0) },
+                    unit: 'min',
+                    accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
+                    onPress: () => router.push('/training/history'),
+                  },
+                  {
+                    label: t('summary.sets'),
+                    count: { to: summary.sets, format: (v) => formatNumber(v, 0) },
+                    value: String(summary.sets),
+                    sub: t('summary.exercises', { count: summary.exercises }),
+                    accessibilityLabel: `${t('summary.sets')} ${summary.sets}, ${t('summary.exercises', { count: summary.exercises })}`,
+                    onPress: () => router.push(`/training/session/${id}`),
+                  },
+                  {
+                    label: t('summary.volume'),
+                    value: volume.replace(/\s*\S+$/, ''),
+                    count: { to: summary.volumeKg, format: (v) => formatWeight(v, units.weight, 0).replace(/\s*\S+$/, '') },
+                    unit: units.weight,
+                    accessibilityLabel: `${t('summary.volume')} ${volume}`,
+                    onPress: () => router.push(`/training/session/${id}`),
+                  },
+                ]
+          }
+        />
+      </Rise>
+
+      {trained.length > 0 || muscleTally.whole > 0 ? (
+        <Rise delay={2 * CardStagger.staggerMs}>
+          <Card title={t('summary.musclesTitle')}>
+            <MuscleMapDone tally={muscleTally} body={body} label={t('summary.musclesLabel', { list: trainedList })} />
+            <ThemedText type="small" themeColor="textSecondary" style={styles.musclesList}>
+              {trainedList}
+            </ThemedText>
+          </Card>
+        </Rise>
+      ) : null}
 
       {records.length > 0 ? (
-        <Card title={t('summary.recordsTitle', { count: records.length })}>
-          {records.map((r) => (
-            <Pressable
-              key={r.exerciseId}
-              accessibilityRole="button"
-              accessibilityLabel={`${nameOf(r.exerciseId)}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
-              onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
-              style={({ pressed }) => [styles.record, { opacity: pressed ? 0.7 : 1 }]}>
-              <View style={[styles.recordMark, { backgroundColor: dark ? theme.accent : theme.tint }]}>
-                <ThemedText style={[styles.recordMarkText, { color: dark ? theme.onAccent : theme.onTint }]}>↑</ThemedText>
-              </View>
-              <View style={styles.flex}>
-                <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {recordText(r)}
-                  {e1rmText(r)}
-                </ThemedText>
-              </View>
-              <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
-            </Pressable>
-          ))}
-        </Card>
+        <Rise delay={3 * CardStagger.staggerMs}>
+          <Card title={t('summary.recordsTitle', { count: records.length })}>
+            {records.map((r, i) => (
+              <Rise key={r.exerciseId} delay={(4 + i) * CardStagger.staggerMs}>
+                <PressableScale
+                  accessibilityRole="button"
+                  accessibilityLabel={`${nameOf(r.exerciseId)}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
+                  onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
+                  style={styles.record}>
+                  <View style={styles.flex}>
+                    <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {recordText(r)}
+                      {e1rmText(r)}
+                    </ThemedText>
+                  </View>
+                  <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
+                </PressableScale>
+              </Rise>
+            ))}
+          </Card>
+        </Rise>
       ) : null}
 
       {cardio.length > 0 ? (
@@ -314,23 +351,12 @@ const styles = StyleSheet.create({
   head: { gap: Spacing.one, paddingTop: Spacing.two },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   headText: { flex: 1 },
+  musclesList: { textAlign: 'center' },
   record: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
     minHeight: 48,
-  },
-  recordMark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recordMarkText: {
-    fontFamily: DisplayFont.bold,
-    fontSize: 16,
-    lineHeight: 20,
   },
   recordName: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
   flex: { flex: 1 },

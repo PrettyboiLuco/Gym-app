@@ -3,6 +3,7 @@
 import { lateCaffeineMg } from '@/domain/caffeine';
 import { shiftDay } from '@/domain/dates';
 import { bestOneRepMax, loadModeOf, type SetType } from '@/domain/logger';
+import { SPARE_AREAS, type SpareArea } from '@/domain/muscle-map';
 import {
   autoFactors,
   BASELINE_DAYS,
@@ -140,6 +141,22 @@ export async function statusDuring(db: Db, fromDay: string, toDay: string): Prom
   );
   return row?.status ?? null;
 }
+
+/**
+ * Geschonte Bereiche beim Status „verletzt“ (Muskelkarte Punkt 6): im App-Zustand, an die laufende Statusphase
+ * gebunden. Endet der Status („Wieder fit“) oder beginnt ein anderer, gelten sie nicht mehr.
+ */
+type SparedState = { statusId: string; areas: SpareArea[] };
+
+export async function loadSpared(db: Db, today: string): Promise<{ areas: SpareArea[]; since: string; statusId: string } | null> {
+  const status = await statusToday(db, today);
+  if (!status || status.status !== 'verletzt') return null;
+  const saved = await readState<SparedState | null>(db, 'spared_areas', null);
+  const areas = saved?.statusId === status.id ? saved.areas.filter((a) => (SPARE_AREAS as readonly string[]).includes(a)) : [];
+  return { areas, since: status.fromDay, statusId: status.id };
+}
+
+export const saveSpared = (db: Db, statusId: string, areas: SpareArea[]) => writeState(db, 'spared_areas', { statusId, areas } satisfies SparedState);
 
 // ------------------------------------------------------------------------------------- Ziele
 

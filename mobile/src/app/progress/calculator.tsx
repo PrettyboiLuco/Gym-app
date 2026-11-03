@@ -110,6 +110,7 @@ export default function CalculatorScreen() {
       {result.status !== 'sensibel' ? (
         <Card title={t('calculator.goal')}>
           <Choice
+            hideLabel
             label={t('calculator.goal')}
             options={goalDirections}
             value={goal}

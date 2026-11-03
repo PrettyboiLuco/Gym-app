@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
-import { Choice, Field, ListRow, MultiChoice, Presets } from '@/components/fields';
+import { Choice, Field, ListRow, MultiChoice, Presets, Toggle } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -274,7 +274,7 @@ export default function CoachSetupScreen() {
     <Screen withHeader subtitle={t('coach.step', { step: index + 1, total: STEPS.length })}>
       {step === 'ziel' ? (
         <Card title={t('coach.goalTitle')}>
-          <Choice label={t('coach.goalTitle')} options={goals} value={goal} onChange={chooseGoal} format={(g) => t(`coach.goal.${g}`)} />
+          <Choice hideLabel label={t('coach.goalTitle')} options={goals} value={goal} onChange={chooseGoal} format={(g) => t(`coach.goal.${g}`)} />
           <ThemedText type="small" themeColor="textSecondary">
             {t(`coach.goalText.${goal}`)}
           </ThemedText>
@@ -422,18 +422,11 @@ export default function CoachSetupScreen() {
             {plan?.trainingKcal && !hideNumbers ? (
               <ThemedText type="small">{t('coach.splitText', { training: plan.trainingKcal, rest: plan.restKcal })}</ThemedText>
             ) : null}
-            {energy.status === 'ok' ? (
-              <Choice
-                label={t('coach.split')}
-                options={['an', 'aus'] as const}
-                value={split ? 'an' : 'aus'}
-                onChange={(v) => setSplit(v === 'an')}
-                format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
-              />
-            ) : null}
+            {energy.status === 'ok' ? <Toggle label={t('coach.split')} value={split} onChange={(on) => setSplit(on)} /> : null}
           </Card>
           <Card title={t('coach.planTitle')}>
             <Choice
+              hideLabel
               label={t('coach.planTitle')}
               options={(hasPlans ? ['vorhanden', 'vorlage', 'eigen', 'spaeter'] : ['vorlage', 'eigen', 'spaeter']) as PlanChoice[]}
               value={planChoice}
@@ -486,12 +479,10 @@ export default function CoachSetupScreen() {
       {step === 'anbindungen' ? (
         <>
           <Card title={t('coach.remindTitle')}>
-            <Choice
+            <Toggle
               label={t('coach.remind', { days: weekdays.map((d) => t(`reminders.dayShort.${d}`)).join(', ') || '–' })}
-              options={['an', 'aus'] as const}
-              value={reminder ? 'an' : 'aus'}
-              onChange={(v) => setReminder(v === 'an')}
-              format={(v) => (v === 'an' ? t('common.on') : t('common.off'))}
+              value={reminder}
+              onChange={(on) => setReminder(on)}
             />
             {reminder ? (
               <Field label={t('coach.remindTime')} value={reminderTime} onChangeText={setReminderTime} keyboardType="numbers-and-punctuation" />
