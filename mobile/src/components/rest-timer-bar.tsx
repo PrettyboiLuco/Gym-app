@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/card';
 import { ProgressRing } from '@/components/charts';
@@ -59,6 +59,9 @@ export function RestTimerBar({
   ask?: ReactNode;
 }) {
   const theme = useTheme();
+  // Über der Tab-Leiste bleiben: Home-Leiste des iPhones (Safe Area) + Tab-Leiste + Luft. Ohne die Safe Area rutschte
+  // die Leiste auf dem iPhone halb unter die schwebende Tab-Leiste (iOS 26).
+  const bottom = useSafeAreaInsets().bottom + BottomTabInset + Spacing.two;
   const visible = isRestVisible(timer);
   const now = useNow(visible, 250, timer && !timer.stopped ? timer.endAtMs : null);
   const remaining = restRemainingMs(timer, now);
@@ -87,7 +90,7 @@ export function RestTimerBar({
     const options: (number | null)[] = planned ? [null, ...REST_PRESETS] : [...REST_PRESETS];
     const current = restSecondsFor(choice, planned ?? 0);
     return (
-      <ThemedView type="backgroundElement" style={styles.bar}>
+      <ThemedView type="backgroundElement" style={[styles.bar, { paddingBottom: bottom }]}>
         <View style={styles.chooseHead}>
           <ThemedText type="smallBold" style={styles.text}>
             {t('session.restChoose')}
@@ -128,7 +131,7 @@ export function RestTimerBar({
   const progress = timer && timer.durationMs > 0 ? remaining / timer.durationMs : 0;
   return (
     <>
-      <ThemedView type="backgroundElement" style={[styles.bar, styles.row]} accessibilityLiveRegion="polite">
+      <ThemedView type="backgroundElement" style={[styles.bar, styles.row, { paddingBottom: bottom }]} accessibilityLiveRegion="polite">
         {done ? (
           <>
             <View style={[styles.doneDot, { backgroundColor: theme.accent }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
@@ -241,7 +244,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
-    paddingBottom: BottomTabInset + Spacing.two,
   },
   row: { flexDirection: 'row', alignItems: 'center' },
   doneDot: { width: 44, height: 44, borderRadius: 22 },

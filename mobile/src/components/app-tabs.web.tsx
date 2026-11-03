@@ -1,9 +1,10 @@
+import { usePathname } from 'expo-router';
 import { Tabs, TabList, TabTrigger, TabSlot, type TabListProps, type TabTriggerSlotProps } from 'expo-router/ui';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
-import { MiniPlayer } from '@/components/mini-player';
+import { MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
 import { TabIcon, type TabIconName } from '@/components/tab-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -47,7 +48,9 @@ export default function AppTabs() {
 
 function TabBar(props: TabListProps) {
   const live = useLiveTraining();
-  const running = !!live.session || !!live.timedTitle;
+  const pathname = usePathname();
+  // Im Training selbst blendet sich der Mini-Player aus – dann auch kein leeres Feld über der Tab-Leiste.
+  const running = (!!live.session || !!live.timedTitle) && !TRAINING_SCREENS.some((p) => pathname.startsWith(p));
   return (
     <View {...props} style={styles.bar}>
       {running ? (

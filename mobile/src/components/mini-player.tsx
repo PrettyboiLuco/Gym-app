@@ -12,6 +12,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
 import type { LiveTraining } from '@/providers/live-training';
 
+/** Bildschirme, auf denen der Mini-Player nicht erscheint (dort läuft das Training sichtbar). */
+export const TRAINING_SCREENS = ['/training/session', '/training/run', '/training/summary'] as const;
+
 /**
  * Mini-Player über der Tab-Leiste, solange ein Training oder Ablauf läuft (wie der Musik-Player in Apple Music):
  * Name, rechts Pause-Countdown oder Trainingsdauer. Tippen führt zurück ins Training.
@@ -24,7 +27,7 @@ export function MiniPlayer({ live, compact = false }: { live: LiveTraining; comp
   const resting = isRestVisible(live.timer);
   const now = useNow(!!live.session || !!live.timedTitle, 1000);
   if (!live.session && !live.timedTitle) return null;
-  if (pathname.startsWith('/training/session') || pathname.startsWith('/training/run') || pathname.startsWith('/training/summary')) return null;
+  if (TRAINING_SCREENS.some((p) => pathname.startsWith(p))) return null;
 
   const title = live.timedTitle ?? live.session?.dayName ?? t('session.free');
   // Länger als 6 Stunden offen: vermutlich vergessen – Datum statt Minutenzähler.
