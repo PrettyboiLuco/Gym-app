@@ -115,7 +115,7 @@ export async function insertRoutineVersion(db: Db, routineId: string | null, dra
       draft.kind === 'hiit' ? draft.workSeconds : item.seconds
     );
   }
-return id;
+  return id;
 }
 
 export type RoutineVersionInfo = { id: string; version: number; name: string; active: number; createdAt: string };

@@ -5,7 +5,7 @@ import { describe, expect, test } from '@jest/globals';
 
 import { EXERCISE_MEDIA } from '@/media/exercise-media';
 
-import { checkinDue, weekDays, weeklyCheckin, type CheckinInput } from '../checkin';
+import { checkinDue, weekDaysUntil as weekDays, weeklyCheckin, type CheckinInput } from '../checkin';
 import { allergensFromOff, combineFacts, dietCheck, dietFromOff, needsAttention, suggestMealAt } from '../diet';
 import { HIIT_EXERCISES, MORE_STRENGTH_EXERCISES, STARTER_EXERCISES, STRETCH_EXERCISES } from '../exercises';
 import { guessDrinkType, isPlainWater, matchScore, parseFoodText, resolveAmount } from '../food-text';

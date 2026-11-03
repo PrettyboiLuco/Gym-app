@@ -10,7 +10,7 @@ import { checkinInput, deleteSleep, listCheckins, listSleep, loadCoachSetup, sav
 import type { Db } from '@/data/db';
 import { buildReport, reportSections } from '@/data/report';
 import { ADAPTIVE_RULES_VERSION, suggestV2 } from '@/domain/adaptive';
-import { applyV2, weekDays, weeklyCheckin, type CheckinResult } from '@/domain/checkin';
+import { applyV2, weekDaysUntil, weeklyCheckin, type CheckinResult } from '@/domain/checkin';
 import { needsRecalc } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
 import type { Profile } from '@/domain/profile';
@@ -48,6 +48,7 @@ async function loadCheckin(db: Db, profile: Profile) {
             currentGoal: input.currentGoal,
             weightKg: v1.summary.weightAvg,
             heightCm: profile.heightCm,
+            floor: input.floor,
           })
         )
       : { ...v1, rulesVersion: 1 as const };
@@ -92,7 +93,7 @@ export default function CheckinScreen() {
   const { weekEnd, result } = data;
   if (!loaded || !result) return <Screen withHeader>{null}</Screen>;
   const s = result.summary;
-  const days = weekDays(weekEnd);
+  const days = weekDaysUntil(weekEnd);
   const weight = (kg: number) => formatWeight(kg, profile.units.weight);
   const suggestion = result.suggestion;
   const doneThisWeek = data.history.some((h) => h.weekEnd === weekEnd);

@@ -6,7 +6,7 @@ import { localDay, timeZone } from '@/domain/time';
 import { readState, writeState } from './app-state';
 import type { Db } from './db';
 
-export async function usageSummary(db: Db): Promise<UsageSummary> {
+export async function usageSummary(db: Db, tz: string = timeZone): Promise<UsageSummary> {
   const one = async (sql: string) => (await db.getFirstAsync<{ n: number }>(sql))?.n ?? 0;
   // Trainings tragen UTC-Zeitpunkte: erst in den lokalen Tag umrechnen (ein Training um 0:30 Uhr in Berlin wäre sonst
   // der Vortag). Tagebuch und Gewicht stehen schon als lokaler Tag in der Datenbank.
@@ -16,7 +16,7 @@ export async function usageSummary(db: Db): Promise<UsageSummary> {
   const firstDay = await db.getFirstAsync<{ day: string | null }>(
     'SELECT MIN(day) AS day FROM (SELECT MIN(diary_date) AS day FROM consumption_event UNION ALL SELECT MIN(day) FROM weight_entry)'
   );
-  const candidates = [firstStart?.at ? localDay(new Date(firstStart.at), timeZone) : null, firstDay?.day ?? null].filter((d): d is string => d !== null);
+  const candidates = [firstStart?.at ? localDay(new Date(firstStart.at), tz) : null, firstDay?.day ?? null].filter((d): d is string => d !== null);
   return {
     workouts: await one("SELECT COUNT(*) AS n FROM workout_session WHERE status <> 'aktiv'"),
     sets: await one('SELECT COUNT(*) AS n FROM set_log WHERE completed_at_utc IS NOT NULL'),

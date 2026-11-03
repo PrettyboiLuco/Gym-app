@@ -1,6 +1,6 @@
 # Prüfmappe für die Fachperson (Phase 10.1)
 
-Stand 02.11.2026 · Regelfassungen: Coach 1, Check-in 1, Steigerung 1 · Register O3, TRAIN-018, TRAIN-022,
+Stand 03.11.2026 · Regelfassungen: Coach 2, Check-in 1, Steigerung 2, Energiebedarf 2 · Register O3, TRAIN-018, TRAIN-022,
 STRETCH-008, COACH-010, TRACK-006, CALC-003–005, COACH-005, GOAL-007 · Freigabematrix Kap. 18, Risiko **R3**.
 
 **Wofür:** Die App macht Vorschläge zu Kalorien, Makros, Training, Steigerung und Dehnen nach festen Regeln, ohne KI.
@@ -31,7 +31,7 @@ Fundstellen: `mobile/src/domain/energy.ts` (Rechner), `mobile/src/domain/coach.t
 | A4 | Aktivität aus Schritten (Coach) | < 5000 → 1,4 · 5000–7499 → 1,5 · 7500–9999 → 1,6 · 10 000–12 499 → 1,7 · ab 12 500 → 1,8 | Schritt-Stufen nach Tudor-Locke; **Zuordnung zum PAL eigene Annahme** | Zuordnung Schritte → PAL vertretbar? | | |
 | A5 | Gym-Zuschlag (Coach) | +0,065 PAL je Gym-Tag pro Woche (3 Tage = +0,195) | abgeleitet aus DGE +0,3 bei 4–5× Sport | Bei kurzen Einheiten zu hoch? Anderer Wert oder Deckel? | | |
 | A6 | Tempo je Ziel | Abnehmen −500 (wählbar −250) · Halten 0 · Zunehmen +250 (wählbar +500) kcal/Tag | gängige Praxis | Vorschlag und Auswahl freigeben? Prozentual statt fest? | | |
-| A7 | Untergrenze | nie unter max(1200 kcal, Ruheenergie) | Praxiswert; Ruheenergie als zweite Grenze | 1200 kcal für Männer zu niedrig? Getrennte Grenze? | | |
+| A7 | Untergrenze | nie unter max(1200 kcal, Ruheenergie); gilt seit 03.11.2026 auch beim Neuskalieren des Ziels (Ruhetag, Coach Fassung 2), im Check-in und in der Verbrauchs-Schätzung (vorher dort nur 1200) – Ruheenergie aus Profil und Gewichtstrend | Praxiswert; Ruheenergie als zweite Grenze | 1200 kcal für Männer zu niedrig? Getrennte Grenze? | | |
 | A8 | Untergewicht | BMI < 18,5: kein Abnehmziel; Halten/Zunehmen mit Hinweis | WHO-Grenze | Schwelle und Verhalten freigeben? | | |
 | A9 | Rundung | Ziel auf 10 kcal gerundet, Rechenweg sichtbar, „Schätzung“ | keine Scheingenauigkeit | – | | |
 
@@ -63,7 +63,7 @@ Fundstelle: `mobile/src/domain/checkin.ts`.
 | C6 | Essen über Ziel | Schnitt > 150 kcal über Ziel → kein Senken, erst „Ziel einhalten“ empfehlen | Freigeben? | | |
 | C7 | Hinweise | Eiweiß bzw. Ballaststoffe < 80 % des Ziels → Hinweis; Schlaf < 6 h (≥ 3 Nächte erfasst) → Hinweis, nie Kalorienänderung | Freigeben? | | |
 | C8 | Neu berechnen | Schritte ±2000 oder Gym-Tage ±2 gegenüber Einrichtung → „Neu berechnen“ anbieten | Freigeben? | | |
-| C9 | Sperren | nie bei sensibler Situation, nie Abnehm-Vorschlag bei Untergewicht, nie unter die Untergrenze | Weitere Ausschlüsse nötig? | | |
+| C9 | Sperren | nie bei sensibler Situation, nie Abnehm-Vorschlag bei Untergewicht, nie unter die Untergrenze max(1200, Ruheenergie) (korrigiert 03.11.2026, vorher nur 1200; Fassungsnummer bleibt 1, weil „Fassung 2“ im Check-in die wählbare Verbrauchs-Regel bezeichnet) | Weitere Ausschlüsse nötig? | | |
 
 ## D. Trainingsvorlagen und Planqualität
 
@@ -84,7 +84,9 @@ Fundstellen: `mobile/src/domain/planner.ts` (`templateParams`, `SPLIT_FITS`, `TE
 
 ## E. Steigerung (Progression)
 
-Fundstelle: `mobile/src/domain/progression.ts` (Fassung 1, Entscheidungstabelle im Kopf der Datei).
+Fundstelle: `mobile/src/domain/progression.ts` (Fassung 2, Entscheidungstabelle im Kopf der Datei). Fassung 2
+(03.11.2026) ändert E1–E6 nicht; sie korrigiert Gegengewicht-Maschinen (E7), erkennt gleiches Gewicht mit Toleranz
+(z. B. 135 lb aus Import und Eingabe, für E3) und zählt die Pause in E4 in Kalendertagen statt vollen 24 Stunden.
 
 | ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
 |---|---|---|---|---|---|
@@ -94,6 +96,7 @@ Fundstelle: `mobile/src/domain/progression.ts` (Fassung 1, Entscheidungstabelle 
 | E4 | Wiedereinstieg | Pause ≥ 14 Tage → −10 %, ≥ 28 Tage → −20 %; Hinweis auf „Heute“ ab 14 Tagen | Freigeben? | | |
 | E5 | Zeit-Übung | alle Sätze geschafft → +5 s (höchstens 600 s) | Freigeben? | | |
 | E6 | Körpergewicht | mehr Wiederholungen oder schwerere Variante | Freigeben? | | |
+| E7 | Gegengewicht (Klimmzug-/Dip-Maschine) | Richtung umgekehrt: Steigern = 1 Schritt weniger Unterstützung; Stagnation/Wiedereinstieg = ca. 10 % bzw. 10/20 % mehr Unterstützung, auf den Geräteschritt gerundet, mindestens 1 Schritt (bis Fassung 1: Prozent **plus** ein Schritt) | Freigeben? | | |
 
 ## F. Dehnen, Mobilität, HIIT
 
@@ -162,7 +165,8 @@ Trainingsvorschlag, nie Befund; Angebote nur für heute und nur nach Antippen.
 
 ## J. Adaptiver Energiebedarf (Ausbauplan A7)
 
-Fundstelle: `mobile/src/domain/adaptive.ts` (Fassung 1, `ADAPTIVE_RULES_VERSION`), Check-in Fassung 2 in
+Fundstelle: `mobile/src/domain/adaptive.ts` (Fassung 2, `ADAPTIVE_RULES_VERSION`; Fassung 2 vom 03.11.2026 ändert nur
+die Untergrenze in J6), Check-in Fassung 2 in
 `mobile/src/domain/checkin.ts` (`applyV2`). Fassung 2 ist **nicht** Standard: Sie muss im Check-in bewusst gewählt
 werden, bis diese Regeln freigegeben sind.
 
@@ -173,7 +177,7 @@ werden, bis diese Regeln freigegeben sind.
 | J3 | Unsicherheit | ± (7.700 × 0,3 kg ÷ 21 + 100), auf 50 gerundet → ± 200 kcal | Angemessen? | | |
 | J4 | Unvollständige Tage | vom Nutzer markierte Tage und Tage mit unbekannten kcal zählen nicht | Freigeben? | | |
 | J5 | Vorschlag Fassung 2 | Ziel = Verbrauch + Abstand aus der Coach-Einrichtung, auf 50 gerundet, höchstens ±200 kcal je Woche, unter 100 kcal Unterschied kein Vorschlag | Grenzen freigeben? Soll Fassung 2 Standard werden? | | |
-| J6 | Schutz | nie unter 1.200 kcal, kein Senken bei Untergewicht (BMI < 18,5), keine Zahlen bei sensibler Situation, „ohne Zahlen“ oder Status krank/verletzt/Pause | Weitere Ausschlüsse? | | |
+| J6 | Schutz | nie unter max(1.200 kcal, Ruheenergie) (bis Fassung 1: nur 1.200), kein Senken bei Untergewicht (BMI < 18,5), keine Zahlen bei sensibler Situation, „ohne Zahlen“ oder Status krank/verletzt/Pause | Weitere Ausschlüsse? | | |
 
 ## K. Programme, Deload und Zeitschätzung (Ausbauplan A8)
 
@@ -188,9 +192,10 @@ Fundstellen: `mobile/src/domain/training-stats.ts` (Deload Fassung 1, `DELOAD_RU
 | K4 | Eigene Satzzeit | Median über die letzten 10 Trainings (mind. 3): Dauer − geplante Pausen − 60 s Wechsel je Übung, geteilt durch die Sätze; Grenzen 20–150 s | Freigeben? | | |
 | K5 | Programm-Vorlagen | Ganzkörper 3×, Kraft-Basis 3× (feste 5 Wdh. = lineare Steigerung über die vorhandene Steigerungsregel), Zuhause mit Kurzhanteln 3×, Ober/Unter 4×, Drücken/Ziehen/Beine 6×; Sätze, Wiederholungen, Pausen und RIR je Übung in den Dateien | Volumen und Pausen der Vorlagen freigeben? | | |
 
-## L. Logger: Steigerung Fassung 2, 1RM, Aufwärmen (Ausbauplan A1)
+## L. Logger: Steigerung mit RIR, 1RM, Aufwärmen (Ausbauplan A1)
 
-Fundstellen: `mobile/src/domain/progression.ts` (Fassung 2, `PROGRESSION_V2_ENABLED = false`),
+Fundstellen: `mobile/src/domain/progression.ts` (RIR-Variante, bisher „Fassung 2“ genannt, `PROGRESSION_V2_ENABLED = false`;
+nicht zu verwechseln mit der geltenden Steigerungs-Fassung 2 aus Abschnitt E),
 `mobile/src/domain/logger.ts` (1RM-Schätzung, Aufwärmsätze, Scheibenrechner).
 
 | ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
@@ -207,7 +212,7 @@ Fundstellen: `mobile/src/domain/progression.ts` (Fassung 2, `PROGRESSION_V2_ENAB
 | | |
 |---|---|
 | Name, Qualifikation | |
-| Geprüfte Regelfassungen | Coach 1 · Check-in 1 · Steigerung 1 (Fassung 2 vorbereitet) · Bereitschaft 1 · Energiebedarf 1 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
+| Geprüfte Regelfassungen | Coach 2 · Check-in 1 · Steigerung 2 (RIR-Variante vorbereitet) · Bereitschaft 1 · Energiebedarf 2 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
 | Geltungsbereich | gesunde Erwachsene 18+ (Kalorien 19–78 J.), Ausschlüsse siehe G2 |
 | Datum, Unterschrift | |
 

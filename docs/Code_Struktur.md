@@ -36,6 +36,9 @@ Festgeschrieben in `src/domain/__tests__/architecture.test.ts`.
 | Kalendertage | `domain/dates.ts` | `DAY_MS`, `shiftDay`, `daysBetween`, `weekStart`, `isoWeekday`, `weekDays` |
 | Uhrzeit, „heute“ | `domain/time.ts` | `timeZone`, `todayDay`, `localDay`, `nowMs` (nur in Event-Handlern), Restzeit |
 | Zahlen | `domain/math.ts` | `mean`, `roundTo`, `roundDigits` |
+| Gleiches Gewicht | `domain/logger.ts` | `sameKg` (Toleranz 0,01 kg; nie `===` auf kg-Werte, 135 lb = 61,2349… kg) |
+| Kalorien-Untergrenze | `domain/energy.ts`, `data/goals.ts` | `calorieFloor`/`calorieFloorFor` = max(1200, Ruheenergie); `calorieFloorOn(db, day)` aus Profil und Gewicht |
+| Transaktionen | `data/db.ts` | `serialTransactions`: Warteschlange, nie verschachteln; Kerne ohne Transaktion (`insertPlanVersion`, `insertRoutineVersion`) für Abläufe in einer Transaktion |
 | Text vergleichen | `domain/text.ts` | `normalize` (behält „/ , . -“ für Mengen), `foldText` (nur Buchstaben/Ziffern/%, für Namensvergleich) |
 | Einheiten | `domain/units.ts` + `i18n` | kg/lb, cm/in, ml/fl oz; Anzeige über `formatWeight`, `formatLength`, `formatVolume`, `formatHeight` |
 | Module an/aus | `domain/modules.ts` + `useModules()` | Ernährung, Coach (braucht Ernährung), Routinen, Bereitschaft |
@@ -68,7 +71,9 @@ Fachliche Regeln (Bereitschaft, Deload, Energie-Schätzung, Steigerung …) trag
   Fassungen) dürfen exportiert bleiben, weil sie Teil der Schnittstelle bzw. der Fachprüfung sind.
 - **Kopfkommentar:** Eine Zeile oben in der Datei sagt, wofür sie da ist; danach erst die Importe.
 - **Datenbank:** Änderungen nur als neue Migration in `data/migrations.ts`; jede neue Tabelle auch in die Sicherung
-  (`domain/backup.ts`) und, wenn sinnvoll, in den CSV-Export.
+  (`domain/backup.ts`) und, wenn sinnvoll, in den CSV-Export. Schreibt eine Migration eigene Daten um, gehört der
+  Schritt auch in `RESTORE_DATA_STEPS` (läuft nur bei älteren Sicherungen). Mehrere Schreibvorgänge, die zusammen
+  gehören, laufen in **einer** Transaktion; Transaktionen werden nicht verschachtelt.
 
 ## Bekannte große Dateien (Folgearbeit, kein Fehler)
 

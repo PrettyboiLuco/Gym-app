@@ -75,6 +75,8 @@ describe('Morgen-Check', () => {
     const m = JSON.parse(JSON.stringify(await exportBackup(db, null)));
     m.tables.sleep_entry = [{ id: 's1', day: TODAY, hours: 7, quality: 3, recorded_at_utc: `${TODAY}T07:00:00Z` }];
     delete m.tables.daily_check;
+    // Sicherung von vor dem Morgen-Check (Datenbank-Version 22): nur dann wird sleep_entry übernommen.
+    m.schemaVersion = 22;
     await restoreBackup(db, m);
     expect(await getCheck(db, TODAY)).toMatchObject({ sleepHours: 7, sleepQuality: 3 });
   });

@@ -76,10 +76,7 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
     }
     // Laufende Dehn-/HIIT-Einheiten aus der Sicherung laufen hier nicht weiter (der Ablauf wird nicht mitgesichert):
     // als abgebrochen ablegen, sonst blieben sie für immer „aktiv“ und ließen sich weder löschen noch exportieren.
-    await db.runAsync(
-      "UPDATE timed_session SET status = 'abgebrochen', finished_at_utc = COALESCE(finished_at_utc, ?) WHERE status = 'aktiv'",
-      nowUtc()
-    );
+    await db.runAsync("UPDATE timed_session SET status = 'abgebrochen', finished_at_utc = COALESCE(finished_at_utc, ?) WHERE status = 'aktiv'", nowUtc());
   });
   // Ältere Sicherung: Datenumwandlungen späterer Migrationen nachholen (Phase 1 Scan, F11), z. B. Schlaf aus
   // sleep_entry in den Morgen-Check (nur bei Sicherungen von vor Version 23).

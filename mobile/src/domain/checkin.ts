@@ -110,9 +110,6 @@ export function weekDaysUntil(weekEnd: string): string[] {
   return weekFrom(shiftDay(weekEnd, -6));
 }
 
-/** Alter Name von weekDaysUntil – bleibt nur, bis app/progress/checkin.tsx auf weekDaysUntil umgestellt ist. */
-export const weekDays = weekDaysUntil;
-
 /** Ist ein neuer Check-in fällig (letzter vor ≥ 7 Tagen oder noch keiner)? */
 export function checkinDue(lastWeekEnd: string | null, today: string): boolean {
   if (!lastWeekEnd) return true;

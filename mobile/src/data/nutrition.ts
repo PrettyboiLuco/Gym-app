@@ -189,65 +189,68 @@ export async function saveFood(db: Db, id: string | null, draft: FoodDraft, sour
   const foodId = id ?? newId();
   const { kcal, protein, carbs, fat, fiber } = draft.per100;
   const extra = [draft.per100.sugar ?? null, draft.per100.satFat ?? null, draft.per100.salt ?? null, draft.packageAmount ?? null];
-  if (id) {
-    // Allergene nur ändern, wenn der Entwurf sie mitbringt (z. B. aus dem Formular); sonst bleiben sie.
-    if (draft.allergens !== undefined) await db.runAsync('UPDATE food SET allergens = ? WHERE id = ?', listText(draft.allergens), id);
-    if (draft.traces !== undefined) await db.runAsync('UPDATE food SET traces = ? WHERE id = ?', listText(draft.traces), id);
-    if (draft.diet !== undefined) await db.runAsync('UPDATE food SET diet = ? WHERE id = ?', draft.diet, id);
-    await db.runAsync(
-      `UPDATE food SET name = ?, brand = ?, barcode = ?, basis = ?, prep = ?, kcal = ?, protein = ?, carbs = ?, fat = ?,
-       fiber = ?, serving_amount = ?, updated_at_utc = ? WHERE id = ?`,
-      draft.name.trim(),
-      draft.brand?.trim() || null,
-      draft.barcode,
-      draft.basis,
-      draft.prep ?? null,
-      kcal,
-      protein,
-      carbs,
-      fat,
-      fiber,
-      draft.servingAmount,
-      now,
-      id
-    );
-    await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ? WHERE id = ?', ...extra, id);
-    // Koffein hat kein Formularfeld: nur ändern, wenn der Entwurf es mitbringt (Phase 1 Scan, F5).
-    if (draft.caffeine !== undefined) await db.runAsync('UPDATE food SET caffeine = ? WHERE id = ?', draft.caffeine, id);
-    // Grundnahrungsmittel selbst geändert (A4): Verknüpfung lösen, damit Listen-Aktualisierungen nichts überschreiben.
-    await db.runAsync('UPDATE food SET catalog_id = NULL WHERE id = ?', id);
-  } else {
-    await db.runAsync(
-      `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
-       favorite, fetched_at_utc, created_at_utc, updated_at_utc, allergens, traces, diet, fiber)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)`,
-      foodId,
-      source,
-      draft.barcode,
-      draft.name.trim(),
-      draft.brand?.trim() || null,
-      draft.basis,
-      draft.prep ?? null,
-      kcal,
-      protein,
-      carbs,
-      fat,
-      draft.servingAmount,
-      source === 'off' ? now : null,
-      now,
-      now,
-      listText(draft.allergens),
-      listText(draft.traces),
-      draft.diet ?? null,
-      fiber
-    );
-    await db.runAsync(
-      'UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?',
-      ...extra,
-      draft.caffeine ?? null,
-      foodId
-    );
-  }
+  // Mehrere UPDATEs gehören zusammen: entweder alle oder keins (Review 03.11.2026).
+  await db.withTransactionAsync(async () => {
+    if (id) {
+      // Allergene nur ändern, wenn der Entwurf sie mitbringt (z. B. aus dem Formular); sonst bleiben sie.
+      if (draft.allergens !== undefined) await db.runAsync('UPDATE food SET allergens = ? WHERE id = ?', listText(draft.allergens), id);
+      if (draft.traces !== undefined) await db.runAsync('UPDATE food SET traces = ? WHERE id = ?', listText(draft.traces), id);
+      if (draft.diet !== undefined) await db.runAsync('UPDATE food SET diet = ? WHERE id = ?', draft.diet, id);
+      await db.runAsync(
+        `UPDATE food SET name = ?, brand = ?, barcode = ?, basis = ?, prep = ?, kcal = ?, protein = ?, carbs = ?, fat = ?,
+         fiber = ?, serving_amount = ?, updated_at_utc = ? WHERE id = ?`,
+        draft.name.trim(),
+        draft.brand?.trim() || null,
+        draft.barcode,
+        draft.basis,
+        draft.prep ?? null,
+        kcal,
+        protein,
+        carbs,
+        fat,
+        fiber,
+        draft.servingAmount,
+        now,
+        id
+      );
+      await db.runAsync('UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ? WHERE id = ?', ...extra, id);
+      // Koffein hat kein Formularfeld: nur ändern, wenn der Entwurf es mitbringt (Phase 1 Scan, F5).
+      if (draft.caffeine !== undefined) await db.runAsync('UPDATE food SET caffeine = ? WHERE id = ?', draft.caffeine, id);
+      // Grundnahrungsmittel selbst geändert (A4): Verknüpfung lösen, damit Listen-Aktualisierungen nichts überschreiben.
+      await db.runAsync('UPDATE food SET catalog_id = NULL WHERE id = ?', id);
+    } else {
+      await db.runAsync(
+        `INSERT INTO food (id, source, barcode, name, brand, basis, prep, kcal, protein, carbs, fat, serving_amount,
+         favorite, fetched_at_utc, created_at_utc, updated_at_utc, allergens, traces, diet, fiber)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?)`,
+        foodId,
+        source,
+        draft.barcode,
+        draft.name.trim(),
+        draft.brand?.trim() || null,
+        draft.basis,
+        draft.prep ?? null,
+        kcal,
+        protein,
+        carbs,
+        fat,
+        draft.servingAmount,
+        source === 'off' ? now : null,
+        now,
+        now,
+        listText(draft.allergens),
+        listText(draft.traces),
+        draft.diet ?? null,
+        fiber
+      );
+      await db.runAsync(
+        'UPDATE food SET sugar = ?, sat_fat = ?, salt = ?, package_amount = ?, caffeine = ? WHERE id = ?',
+        ...extra,
+        draft.caffeine ?? null,
+        foodId
+      );
+    }
+  });
   return foodId;
 }
 
@@ -620,8 +623,10 @@ export async function logTemplate(db: Db, templateId: string, meal: Meal, when: 
 }
 
 export async function deleteTemplate(db: Db, templateId: string) {
-  await db.runAsync('DELETE FROM meal_template_item WHERE template_id = ?', templateId);
-  await db.runAsync('DELETE FROM meal_template WHERE id = ?', templateId);
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM meal_template_item WHERE template_id = ?', templateId);
+    await db.runAsync('DELETE FROM meal_template WHERE id = ?', templateId);
+  });
 }
 
 // ------------------------------------------------------------------------------- Rezepte

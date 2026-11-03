@@ -13,12 +13,6 @@ export function nutrientForAmount(valuePer100: number | null, amount: number, ba
   return valuePer100 === null ? null : (valuePer100 * amount) / 100;
 }
 
-/** Portion eines Rezepts: Gesamtwert × Portionsgewicht / Endgewicht nach dem Kochen. */
-export function recipePortion(total: number, endWeight: number | null, portion: number): number {
-  if (endWeight === null || endWeight <= 0) throw new Error('end weight required');
-  return (total * portion) / endWeight;
-}
-
 // ------------------------------------------------------------------------- Nährwert-Sätze
 
 /** Ballaststoffe seit dem Coach (C4); ältere Einträge haben dafür „unbekannt“. */

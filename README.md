@@ -11,6 +11,7 @@ App in Entwicklung (Expo/React Native, Ordner `mobile/`); Stand je Phase in `doc
 - `docs/Entscheidungen.md` – getroffene und offene Entscheidungen
 - `docs/Anleitung_Development_Build.md`, `docs/Anleitung_TestFlight.md` – Schritte mit MacBook bzw. Apple-Konto
 - `docs/Geraetetest.md` – Gerätetest-Liste zum Abhaken; `docs/Pilot_Leitfaden.md` – Ablauf des Pilots
+- `docs/Review_2026-11-03.md` – Gesamt-Review 03.11.2026: behobene Fehler, 10 Optik-, 10 Animations- und 10 Wettbewerbsvorschläge
 - `docs/Wettbewerbsvergleich.md` – Vergleich mit Hevy, Strong, Fitbod, MyFitnessPal; `docs/Datenschutz_Entwurf.md` – Entwurf
 - Phase 10 (vor der Veröffentlichung): `docs/Freigabematrix.md` – was noch blockiert; `docs/Fachpruefung_Mappe.md` – für die Fachperson;
   `docs/Rechtspruefung_Mappe.md` – für die Rechtsprüfung; `website/` – Datenschutzerklärung und Impressum (Entwürfe);

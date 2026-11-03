@@ -68,7 +68,8 @@ export function findRecords(all: DoneSet[], previous: PreviousBest[], modeOf: Mo
       // Gegengewicht: weniger Unterstützung bei mindestens einer Wiederholung ist die Bestleistung.
       const minKg = Math.min(...lifted.map((s) => s.weightKg ?? 0));
       const reps = Math.max(...lifted.filter((s) => sameKg(s.weightKg ?? 0, minKg)).map((s) => s.reps ?? 0));
-      if (prev.minKg != null && minKg < prev.minKg && !sameKg(minKg, prev.minKg)) records.push({ exerciseId, kind: 'weniger', weightKg: minKg, reps, previousKg: prev.minKg });
+      if (prev.minKg != null && minKg < prev.minKg && !sameKg(minKg, prev.minKg))
+        records.push({ exerciseId, kind: 'weniger', weightKg: minKg, reps, previousKg: prev.minKg });
       continue;
     }
     const maxKg = Math.max(...lifted.map((s) => s.weightKg ?? 0));

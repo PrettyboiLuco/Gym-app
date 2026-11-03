@@ -1,12 +1,12 @@
 // Übernahme der isolierten Referenztests (reference/Referenztests*.py) als App-Tests.
 // Entfallen (03.11.2026): die Fälle zu daySummary (Kalorientracker), energyEstimate (Schätzung mit Aktivitätstabelle)
-// und isCurrentAlarm (Timer-Generation). Diese Funktionen wurden in der App nicht genutzt und sind entfernt; die
+// isCurrentAlarm (Timer-Generation) und recipePortion (Rezept-Endgewicht; die App rechnet per100FromTotal). Diese Funktionen wurden in der App nicht genutzt und sind entfernt; die
 // Tagesübersicht rechnet nutrition.ts (Tagessummen mit unbekannten Werten), der Rechner Ruheenergie × Faktor direkt.
 
 import { describe, expect, test } from '@jest/globals';
 
 import { calorieTarget, restingEnergy } from '../energy';
-import { nutrientForAmount, recipePortion } from '../nutrition';
+import { nutrientForAmount } from '../nutrition';
 import { localDay, remainingMs } from '../time';
 import { weightTrend } from '../weight';
 
@@ -17,9 +17,6 @@ describe('Nährwerte', () => {
   test('bekannte Null bleibt Null', () => expect(nutrientForAmount(0, 60)).toBe(0));
   test('negative Menge abgelehnt', () => expect(() => nutrientForAmount(40, -1)).toThrow());
   test('g und ml brauchen Dichte', () => expect(() => nutrientForAmount(40, 250, 'g', 'ml')).toThrow());
-  test('Rezept 1200/800 × 200 = 300', () => expect(recipePortion(1200, 800, 200)).toBe(300));
-  test('fehlendes Endgewicht abgelehnt', () => expect(() => recipePortion(1200, null, 200)).toThrow());
-  test('Endgewicht 0 abgelehnt', () => expect(() => recipePortion(1200, 0, 200)).toThrow());
 });
 
 describe('Kalorienrechner', () => {
