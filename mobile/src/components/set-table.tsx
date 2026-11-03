@@ -97,7 +97,8 @@ export function SetRowShell({
   const tint = dark ? SetDoneTint.dark : SetDoneTint.light;
 
   const row = (
-    <View ref={ref} style={styles.row}>
+    // Deckender Grund in Kartenfarbe: die rote Löschen-Aktion liegt dahinter und erscheint erst beim Wischen.
+    <View ref={ref} style={[styles.row, { backgroundColor: theme.backgroundElement }]}>
       <Animated.View pointerEvents="none" style={[styles.fill, { backgroundColor: tint }, fillStyle]} />
       {children}
       {WEB && deletable ? (
@@ -114,26 +115,33 @@ export function SetRowShell({
       entering={reduced ? undefined : FadeIn.duration(SetRowMotion.enterMs)}
       exiting={reduced ? undefined : FadeOut.duration(SetRowMotion.exitMs)}
       layout={reduced || WEB ? undefined : LinearTransition.springify().stiffness(Spring.stiffness).damping(Spring.damping)}>
-      {WEB || !deletable ? (
+      {WEB ? (
         row
       ) : (
+        // Die Hülle bleibt auch bei erledigten Sätzen (nur ausgeschaltet): sonst würde die Zeile neu aufgebaut und der
+        // Haken verlöre seine Erledigt-Animation.
         <ReanimatedSwipeable
           ref={swipe}
+          enabled={deletable}
+          // Erledigt (nicht löschbar): nichts abschneiden, damit der Lime-Ring des Hakens frei aufgehen kann.
+          containerStyle={deletable ? undefined : styles.visible}
           friction={SetRowMotion.swipeFriction}
           overshootFriction={SetRowMotion.overshootFriction}
           rightThreshold={SetRowMotion.actionWidth / 2}
           overshootRight
           onSwipeableWillOpen={() => haptic.tap()}
-          renderRightActions={(_progress, translation) => (
-            <DeleteAction
-              translation={translation}
-              label={deleteLabel}
-              onPress={() => {
-                swipe.current?.close();
-                onDelete();
-              }}
-            />
-          )}>
+          renderRightActions={(_progress, translation) =>
+            deletable ? (
+              <DeleteAction
+                translation={translation}
+                label={deleteLabel}
+                onPress={() => {
+                  swipe.current?.close();
+                  onDelete();
+                }}
+              />
+            ) : null
+          }>
           {row}
         </ReanimatedSwipeable>
       )}
@@ -182,6 +190,7 @@ const styles = StyleSheet.create({
   },
   /** Zeile ragt links und rechts etwas in den Kartenrand, damit die Tönung nicht am Text klebt. */
   outer: { marginHorizontal: -Spacing.two },
+  visible: { overflow: 'visible' },
   fill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12 },
   trash: { width: SetCols.trash, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   action: { width: SetRowMotion.actionWidth, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginLeft: Spacing.two },

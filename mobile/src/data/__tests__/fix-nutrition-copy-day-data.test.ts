@@ -37,11 +37,20 @@ describe('Ganzen Tag kopieren', () => {
     expect(new Date(byName['Pasta'].occurredAt).getDate()).toBe(2);
   });
 
-  test('nie in der Zukunft: dann die übergebene Zeit', async () => {
-    await logQuick(db, { name: 'Pasta', ...quick }, 'abend', { diaryDate: '2099-01-01', at: at('2099-01-01', 19), timeZone: 'Europe/Berlin' });
-    const now = new Date();
-    await copyDay(db, '2099-01-01', { diaryDate: '2099-01-02', at: now, timeZone: 'Europe/Berlin' });
-    const [e] = await listDay(db, '2099-01-02');
+  test('auf heute kopiert: nie später als jetzt, dann die übergebene Zeit', async () => {
+    await logQuick(db, { name: 'Pasta', ...quick }, 'abend', { diaryDate: '2025-03-01', at: at('2025-03-01', 19), timeZone: 'Europe/Berlin' });
+    const now = at('2025-03-02', 12);
+    await copyDay(db, '2025-03-01', { diaryDate: '2025-03-02', at: now, timeZone: 'Europe/Berlin' }, now.getTime());
+    const [e] = await listDay(db, '2025-03-02');
     expect(new Date(e.occurredAt).getTime()).toBe(now.getTime());
+  });
+
+  test('auf einen Tag nach heute (geplant): Uhrzeit wie im Original', async () => {
+    await logQuick(db, { name: 'Pasta', ...quick }, 'abend', { diaryDate: '2025-03-01', at: at('2025-03-01', 19, 30), timeZone: 'Europe/Berlin' });
+    const now = at('2025-03-02', 12);
+    await copyDay(db, '2025-03-01', { diaryDate: '2025-03-03', at: now, timeZone: 'Europe/Berlin' }, now.getTime());
+    const [e] = await listDay(db, '2025-03-03');
+    expect(clock(e.occurredAt)).toBe('19:30');
+    expect(new Date(e.occurredAt).getDate()).toBe(3);
   });
 });

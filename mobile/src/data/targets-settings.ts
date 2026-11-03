@@ -13,7 +13,7 @@ import { readState, writeState } from './app-state';
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
 import { calorieFloorOn, calorieGoalOn } from './goals';
-import { daySums, loadNutritionSettings } from './nutrition';
+import { daySums, diaryDayAt, loadNutritionSettings } from './nutrition';
 import { loadProfile } from './profile';
 import { listWeights } from './weights';
 
@@ -64,7 +64,11 @@ async function weightOn(db: Db, day: string): Promise<number | null> {
 }
 
 /** Wochenbudget der Woche, in der `day` liegt (ohne Prüfung auf „Zahlen ausblenden“). */
-export async function weekBudgetFor(db: Db, day: string, settings: BudgetSettings): Promise<WeekBudget | null> {
+/**
+ * Wochenbudget für `day`. Einträge an Tagen nach `today` sind geplant (Kopieren in die Zukunft, B1) und zählen weder als
+ * gegessen noch für den Übertrag.
+ */
+export async function weekBudgetFor(db: Db, day: string, settings: BudgetSettings, today = diaryDayAt()): Promise<WeekBudget | null> {
   const days = weekDays(weekStart(day));
   const [goals, sums, floor, setup] = await Promise.all([
     Promise.all(days.map((d) => calorieGoalOn(db, d))),
@@ -78,7 +82,7 @@ export async function weekBudgetFor(db: Db, day: string, settings: BudgetSetting
     goals: goals.map((g) => g?.kcal ?? null),
     days: days.map((d) => {
       const s = byDay.get(d);
-      if (!s || s.entries === 0) return { kcal: null, complete: false, unknown: 0 };
+      if (d > today || !s || s.entries === 0) return { kcal: null, complete: false, unknown: 0 };
       return { kcal: s.kcal ?? 0, complete: s.unknownKcal === 0 && !s.flagged, unknown: s.unknownKcal };
     }),
     index: days.indexOf(day),

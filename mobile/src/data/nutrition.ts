@@ -5,7 +5,7 @@
 
 import { fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
 import { BASIS_FOODS } from '@/domain/basis-foods-data';
-import { daysBetween } from '@/domain/dates';
+import { daysBetween, shiftDay } from '@/domain/dates';
 import { copyTargets, pushRecent, shiftToDay } from '@/domain/diary';
 import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
@@ -23,6 +23,7 @@ import {
   type Prep,
 } from '@/domain/nutrition';
 import { foldText } from '@/domain/text';
+import { localDay, timeZone } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
@@ -429,20 +430,22 @@ export async function logCaffeineDrink(
 }
 
 /** Ganzen Tag kopieren (A3): alle Einträge – Essen und Getränke – auf einen anderen Tag. */
-export async function copyDay(db: Db, fromDate: string, when: When) {
+export async function copyDay(db: Db, fromDate: string, when: When, nowMs = Date.now()) {
   const source = await db.getAllAsync<ConsumptionEvent>(
     `SELECT ${EVENT_COLUMNS} FROM consumption_event WHERE diary_date = ? ORDER BY occurred_at_utc`,
     fromDate
   );
   const days = daysBetween(fromDate, when.diaryDate);
+  const planned = when.diaryDate > diaryDayAt(nowMs);
   await db.withTransactionAsync(async () => {
     for (const e of source) {
       const target = targetOf(e);
       // Uhrzeit des Originals behalten, nur auf den neuen Tag verschoben – sonst landet der ganze Tag auf einer
-      // Uhrzeit (Journal: „spät gegessen“, Koffein). Nie in der Zukunft: dann die übergebene Zeit.
+      // Uhrzeit (Journal: „spät gegessen“, Koffein). Auf heute kopiert nie später als jetzt (dann die übergebene Zeit);
+      // auf einen Tag nach heute (geplant, B1) bleibt die Uhrzeit wie im Original.
       const at = new Date(e.occurredAt);
       at.setDate(at.getDate() + days);
-      const shifted = { ...when, at: at.getTime() > Date.now() ? when.at : at };
+      const shifted = { ...when, at: !planned && at.getTime() > nowMs ? when.at : at };
       await insertCopy(db, e, target, shifted);
     }
   });
@@ -880,6 +883,16 @@ let lastMealTimes: MealTimes = DEFAULT_MEAL_TIMES;
 export const cachedMealTimes = () => lastMealTimes;
 let lastDayEnd = 0;
 export const cachedDayEnd = () => lastDayEnd;
+
+/**
+ * Heutiger Ernährungstag (A3): Endet der Tag laut Einstellung z. B. um 4 Uhr, zählt 1 Uhr noch zum Vortag. Ohne
+ * Einstellung ist das der Kalendertag. Kern von `diaryToday` (services/nutrition-format), hier für die Datenschicht.
+ */
+export function diaryDayAt(nowMs = Date.now()): string {
+  const now = new Date(nowMs);
+  const today = localDay(now, timeZone);
+  return lastDayEnd > 0 && now.getHours() < lastDayEnd ? shiftDay(today, -1) : today;
+}
 
 export async function loadNutritionSettings(db: Db): Promise<NutritionSettings> {
   const stored = await readState<Partial<NutritionSettings> & { kcalGoal?: unknown }>(db, 'nutrition_settings', {});

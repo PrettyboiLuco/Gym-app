@@ -1,7 +1,8 @@
 import { Manrope_600SemiBold, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StyleSheet } from 'react-native';
+import { useEffect } from 'react';
+import { AppState, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
@@ -14,10 +15,32 @@ import { Colors } from '@/constants/theme';
 import { configureNotifications } from '@/data/notifications';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ProfileProvider, useProfile } from '@/providers/profile-provider';
-import { StoreProvider } from '@/providers/store-provider';
+import { StoreProvider, useDb } from '@/providers/store-provider';
+import { syncFastingAlert, syncMealReminders } from '@/services/alerts';
+import { diaryToday } from '@/services/nutrition-format';
 
 SplashScreen.preventAutoHideAsync();
 configureNotifications();
+
+/**
+ * Mahlzeit-Erinnerungen und Fasten-Ende beim Start und bei jeder Rückkehr in die App neu planen (B1): Sie werden nur
+ * für ein paar Tage im Voraus geplant und liefen sonst aus, wenn das Tagebuch länger nicht geöffnet wird.
+ */
+function AlertsSync() {
+  const db = useDb();
+  useEffect(() => {
+    const sync = () => {
+      syncMealReminders(db, diaryToday()).catch(() => undefined);
+      syncFastingAlert(db).catch(() => undefined);
+    };
+    sync();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') sync();
+    });
+    return () => sub.remove();
+  }, [db]);
+  return null;
+}
 
 /** Beim ersten Start kommt der Erststart-Ablauf, danach die App (Register UX-010). */
 function Gate() {
@@ -25,7 +48,14 @@ function Gate() {
   // Überschrift-Schrift (Manrope) abwarten; schlägt das Laden fehl, geht es mit der Systemschrift weiter.
   const [fontsLoaded, fontError] = useFonts({ Manrope_600SemiBold, Manrope_700Bold });
   if (!loaded || (!fontsLoaded && !fontError)) return null;
-  return onboardingDone ? <AppTabs /> : <Onboarding />;
+  return onboardingDone ? (
+    <>
+      <AlertsSync />
+      <AppTabs />
+    </>
+  ) : (
+    <Onboarding />
+  );
 }
 
 /** Fehler in einem Bildschirm zeigen statt einer leeren Seite. */

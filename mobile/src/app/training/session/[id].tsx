@@ -279,11 +279,9 @@ export default function SessionScreen() {
     const scroll = scrollRef.current;
     const row = rowRefs.current.get(rowId);
     const inner = scroll?.getInnerViewRef?.();
-    console.warn('DBG scroll', !!scroll, !!row, !!inner, rowId);
     if (!scroll || !row || !inner) return;
     try {
       row.measureInWindow((_x, top, _w, h) => {
-        console.warn('DBG win', top, h, windowHeight);
         if (top >= SetRowMotion.visibleTop && top + h <= windowHeight - SetRowMotion.visibleBottom) return;
         row.measureLayout(inner, (_lx, y) => scroll.scrollTo({ y: Math.max(0, y - windowHeight * 0.35), animated: !reduced }));
       });
@@ -291,10 +289,6 @@ export default function SessionScreen() {
       // Messen geht nicht (z. B. Zeile schon weg) – dann bleibt die Ansicht, wo sie ist.
     }
   }
-
-  useEffect(() => {
-    console.warn('DBG ref', !!scrollRef.current, typeof scrollRef.current?.getInnerViewRef);
-  });
 
   async function removeSet(row: SetRow) {
     if (hold !== null) return;
@@ -535,7 +529,13 @@ export default function SessionScreen() {
 
   const byIdAll = new Map(exercises.map((e) => [e.id, e]));
   const isTimed = (exerciseId: string) => byIdAll.get(exerciseId)?.measure === 'zeit';
-  if (!session) return <Screen withHeader>{null}</Screen>;
+  // Alle Fassungen des Bildschirms tragen dieselbe Scroll-Ref: Im Web übernimmt die ScrollView eine später gesetzte Ref nicht.
+  if (!session)
+    return (
+      <Screen withHeader scrollRef={scrollRef}>
+        {null}
+      </Screen>
+    );
   const active = session.status === 'aktiv';
   const byId = byIdAll;
   // Name aus dem Plan (z. B. „Cable Flys“) vor dem Katalognamen; Verlauf hängt weiter an der Übung.
@@ -612,7 +612,7 @@ export default function SessionScreen() {
 
   if (picking) {
     return (
-      <Screen withHeader>
+      <Screen withHeader scrollRef={scrollRef}>
         <Stack.Screen options={{ title: t('session.addExercise') }} />
         <ExercisePicker
           exercises={exercises.filter((e) => e.kind === 'kraft')}
@@ -630,10 +630,7 @@ export default function SessionScreen() {
   return (
     <Screen
       withHeader
-      scrollRef={(n) => {
-        console.warn("DBG cb", !!n);
-        scrollRef.current = n;
-      }}
+      scrollRef={scrollRef}
       subtitle={t('session.progress', { done: doneCount, total: sets.length })}
       footer={
         active ? (

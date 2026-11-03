@@ -30,6 +30,10 @@ mit der Fachperson statt vieler einzelner.
 | A9 | **gebaut** (01.11.2026) – Datenbank-Version 25, Wochenplan, Einkaufsliste, Rezept per Link, Meal-Prep; Test durch Luc offen (Supermarkt-Test) |
 | A10 | **gebaut** (01.11.2026) – Datenbank-Version 26; Test durch Luc offen (Gerätetest Foto-Überblendung, Teilen-Karte) |
 | A11 | **gebaut** (01.11.2026) – Module ein/aus, Barrierefreiheit im Code geprüft, Mappe A–L, Code aufgeräumt (`docs/Code_Struktur.md`), 676 Tests; Test durch Luc offen (VoiceOver am iPhone, VO1–VO10) |
+| B1 | **gebaut** (03.11.2026) – Datenbank-Version 27: Kopieren auf Tage/geplant, Zeitleiste, Hunger & Stimmung, Fasten-Timer, Mahlzeit-Erinnerungen; Test durch Luc offen |
+| B2 | **gebaut** (03.11.2026) – Wochenbudget, Mikronährstoff-Ziele, „Was fehlt mir heute?“, Ernährungsformen (Fachprüfung offen, Mappe Abschnitt M); Test durch Luc offen |
+| B3 | **gebaut** (03.11.2026) – Satztabelle, Pausen-Morph, Bestleistungs-Feier, Glas-Tab-Leiste, Scanner-Rahmen; Test durch Luc offen (nur nativ prüfbar) |
+| B4 | **gebaut** (03.11.2026) – Einblicke mit Wochen-Mustern, einklappbare Hinweise, leere Zustände, Hochzählen; Test durch Luc offen |
 
 | Phase | Inhalt | Fachprüfung |
 |---|---|---|
@@ -494,12 +498,65 @@ Code: `domain/{budget,micro-targets,nutrient-gaps,diet-profile}.ts`, `data/{targ
 `components/target-*.tsx`, `app/nutrition/{budget,diet,micros,nutrient,gaps}.tsx`; Tests `targets-domain`,
 `targets-data`.
 
+## B1 – Tagebuch-Ausbau (03.11.2026)
+
+Aus dem Review (`docs/Review_2026-11-03.md`, Abschnitt 4: W4, W5, W6, W8, W10; dazu O5, N2, N3, N10). Alles offline.
+**Datenbank-Version 27** (Migration: Tabellen `meal_feeling` und `fasting_period`; bestehende Tabellen unverändert; in
+Sicherung, „Alle Daten löschen“ und CSV-Export „Hunger & Stimmung“ / „Fasten-Timer“). Keine neuen Fachregeln.
+
+| # | Schritt | Stand |
+|---|---|---|
+| W5 | **Kopieren auf …**: Mahlzeit oder einzelner Eintrag auf mehrere Tage (eine Woche zurück bis zwei Wochen voraus), Uhrzeit und Schnappschuss bleiben, eine Transaktion. Tage nach heute sind **geplant** (Hinweis, „geplant“ an jedem Eintrag, Tagwechsler bis +14 Tage) und zählen erst am Tag selbst: Check-in, Verbrauchsschätzung, Bericht lesen nur Tage bis gestern/heute; Wochenansicht und Gewohnheit „Trinken“ enden bei heute. **Mehrfachauswahl** in der Suche (je Portion bzw. 100 g/ml) | gebaut |
+| W6 | Uhrzeit an jedem Eintrag sichtbar und im Eintrag änderbar (Tageswechsel behält die Uhrzeit); Umschalter **Mahlzeiten / Zeitleiste**; Zeile „Erste Mahlzeit … · letzte … · Essensfenster x h“ (Getränke erst ab 20 kcal), ohne Bewertung | gebaut |
+| W10 | **Hunger vorher, Sättigung danach, Stimmung** je Mahlzeit und Tag, je 5 neutrale Stufen, ein Tipp, nochmal tippen entfernt; nicht an geplanten Tagen | gebaut |
+| W8 | **Fasten-Timer** (E2): eigene Seite „Ernährung → Fasten-Timer“, Schalter dort (App-Zustand `fasting`), **standardmäßig aus**, bei „sensibler Situation“ komplett ausgeblendet (auch der Link); Vorlagen 12:12/14:10/16:8/18:6, Start (auch rückwirkend per Uhrzeit), Stopp, Ring, Verlauf mit 7-Tage-Zählung; lokale Mitteilung am Ende (nur mit Erlaubnis); Texte ohne Wirkversprechen | gebaut |
+| W4 | **Mahlzeit-Erinnerungen** unter Mehr → Mitteilungen: je Mahlzeit an/aus mit Uhrzeit. Als einzelne Mitteilungen für bis zu 7 Tage geplant, nur wenn für Tag und Mahlzeit nichts eingetragen ist; neu geplant bei jedem Laden des Tagebuchs (also nach jedem Eintragen), beim Speichern der Einstellungen sowie bei App-Start und jeder Rückkehr in die App (`AlertsSync` in `app/_layout.tsx`, auch fürs Fasten-Ende). Tage werden gekürzt, damit das iOS-Limit von 64 hält (Timer behalten mind. 20 Plätze) | gebaut |
+| O5 | Getränke: vier zuletzt genutzte Koffein-Getränke als Chips, alle übrigen in „Mehr …“ (Blatt) | gebaut |
+| N2/N3/N10 | Neuer Eintrag blendet ein und leuchtet kurz Lime; Löschen per Wischen nach links (halb = Löschfläche, ganz = löschen, VoiceOver-Aktion „Löschen“); Wasserglas mit Welle bei „+ ml“. Alles bei „Bewegung reduzieren“ ohne Bewegung | gebaut |
+
+**Fertig, wenn:** Luc eine Woche Frühstück per „Kopieren auf …“ vorplant, am Tag selbst die Werte in der Tagesübersicht
+sieht, eine Mahlzeit-Erinnerung nur an einem Tag ohne Eintrag bekommt und (optional) ein 16:8-Fenster mit Mitteilung
+am Ende läuft.
+
+Code: `domain/{diary,fasting,meal-feeling}.ts`, `domain/reminders.ts` (Mahlzeit-Plan), `data/{fasting,meal-feeling}.ts`,
+`data/nutrition.ts` (`copyEventsToDays`, `logFoods`, `loggedMeals`), `services/alerts.ts` (`syncMealReminders`,
+`syncFastingAlert`), `components/diary-*.tsx`, `app/nutrition/fasting.tsx`; Tests `diary-rules`, `diary-data`.
+
+## B3 – Training: Optik und Animationen (03.11.2026)
+
+Aus dem Review (O3, O7, O10, N3–N9). Keine Datenbank-Änderung, keine Fachregel.
+
+| # | Schritt | Stand |
+|---|---|---|
+| O3 | **Satztabelle** im Training: Spaltenkopf (Satz · Vorher · kg · Wdh · ✓, bei Zusatz-/Gegengewicht „+kg“/„−kg“), Vorwerte als graue Vorgabe, erledigte Zeile dezent Lime; Löschen per Wischen (nativ, Gummiband) bzw. Papierkorb (Web), VoiceOver-Aktion „Satz entfernen“ | gebaut |
+| O7 | Ziffern gleicher Breite (`TabularNums`, `<ThemedText numeric>`) in Satztabelle, Pausen-Timer, Bestleistungen | gebaut |
+| O10 | iOS 26: Tab-Leiste als Systemglas (`isLiquidGlassAvailable`), sonst bisheriger Hintergrund | gebaut |
+| N3/N4 | Sätze blenden ein/aus und rücken nach; abgehakter Satz füllt sich von links in Lime, nächste offene Zeile scrollt in Sicht | gebaut |
+| N5 | Pausen-Timer: Ring fliegt aus der Leiste ins Vollbild und zurück, letzte 3 s pulsiert er; bei App-Sperre sofort zu | gebaut |
+| N6 | Bestleistung: Medaille dreht sich, Partikel-Burst, Haptik `record()` | gebaut |
+| N7 | Gleitende Tab-Pille: Web; nativ übernimmt das System (NativeTabs) | gebaut (Web) |
+| N8/N9 | Atmende Platzhalter beim Laden (Barcode, Bericht, Rezept per Link); Scanner-Rahmen zieht sich auf den Code, wird zum Haken | gebaut |
+
+**Am iPhone prüfen:** Wischen ohne Scroll-Konflikt, Pausen-Morph mit App-Sperre, Glas-Tab-Leiste, Scanner-Position, „Bewegung reduzieren“, VoiceOver.
+
+## B4 – Heute, Fortschritt und Einblicke (03.11.2026)
+
+Aus dem Review (W9, O2, O6, O8, N1, N10). Keine Datenbank-Änderung (Kachel-Auswahl im App-Zustand `insight_tiles`), keine Fachregel.
+
+| # | Schritt | Stand |
+|---|---|---|
+| W9 | **Einblicke** (Fortschritt → Einblicke): 7 wählbare Kacheln mit Verlauf (Kalorien, Eiweiß, Gewichtstrend, Trainingstage, Schritte, Schlaf, Bereitschaft) und **Wochen-Muster** aus 8 Wochen als sachliche Sätze (Wochenende/Woche, Eiweißziel x/7, Trainings-/Ruhetage, Schlaf, Schritte) – nur ab Mindestzahl Tagen, ohne Wertung, ohne Serien; nur vollständig erfasste Tage; bei sensibler Situation keine kcal-/Gewichtszahlen; Module beachtet | gebaut |
+| O2 | Lime als Datenfarbe auf Heute/Fortschritt (Tagesziel-Balken, laufendes Training, erreichte Ziele); hell `theme.tint` | gebaut |
+| O6 | Lange Hinweise einklappbar (`insight-info`: „i“ + „Mehr erfahren“) auf Fortschritt, Bereitschaft, Schritte, Maße, Blutdruck, Daten, App-Sperre | gebaut |
+| O8 | Leere Zustände mit Symbol und einer Aktion (`empty-state`) bei Zielen, Gewicht, Fotos, Blutdruck, Meilensteinen, Journal, Bereitschaft, Einblicken | gebaut |
+| N1/N10 | Kalorien, Trinken und Sätze zählen auf Heute hoch; Wochenbalken wachsen gestaffelt (nach dem Intro) | gebaut |
+
 ## Offene Entscheidungen von Luc (E1–E5)
 
 | # | Frage | Bericht empfiehlt | Wirkt auf |
 |---|---|---|---|
 | E1 | Verzeihende **Wochen-Konstanz** statt „keine Serien“? | ja: Ruhetage zählen, kein Verlust, abschaltbar, bei „sensibler Situation“ aus | A10.6 |
-| E2 | **Fasten-Timer** (16:8 usw.)? | nur „Kann“; bei „sensibler Situation“ ausblenden | sonst W |
+| E2 | **Fasten-Timer** (16:8 usw.)? | nur „Kann“; bei „sensibler Situation“ ausblenden | **umgesetzt in B1** (abschaltbare Kann-Funktion, Standard aus) |
 | E3 | **GLP-1-Begleitmodus** (Eiweiß + Krafttraining zum Muskelerhalt)? | strategisch interessant, braucht Rechts- und Fachprüfung | später |
 | E4 | **Gemessenes Körperfett** von der Waage anzeigen (keine eigene Schätzung)? | ja, nur anzeigen | D3 |
 | E5 | **Englisch** als zweite Sprache wann? | erst nach dem Deutschland-Start | Phase 11 |
@@ -574,7 +631,7 @@ Kalorien-Gutschrift für Training · Supplement-Empfehlungen · Werbung · eigen
 | Ernährung | „Was ich gegessen habe“ als Text | vorhanden + A4.7 |
 | Ernährung | Mahlzeitenplan + Einkaufsliste | A9.1–A9.3, A9.5 |
 | Ernährung | Rezept-Import per Link | A9.4 |
-| Ernährung | Fasten-Timer | E2 |
+| Ernährung | Fasten-Timer | E2 → B1 |
 | Ernährung | Koffein | A3.7 |
 | Ernährung | GLP-1-Modus | E3 |
 | Ernährung | Lebensmittel-Score, Restaurant-DB | W |

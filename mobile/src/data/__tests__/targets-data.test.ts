@@ -14,7 +14,7 @@ import { migrate } from '../migrations';
 import { gapCandidates, loadGapsDay, rankFoodsBy } from '../nutrient-gaps';
 import { listDay, loadNutritionSettings, logFood, logQuick, saveNutritionSettings, setDayIncomplete, setFavorite, saveFood } from '../nutrition';
 import { loadProfile, saveProfile } from '../profile';
-import { loadDayTargets, loadTargetsSettings, saveTargetsSettings } from '../targets-settings';
+import { loadDayTargets, loadTargetsSettings, saveTargetsSettings, weekBudgetFor } from '../targets-settings';
 import { createTestDb } from '../testing/node-db';
 
 let db: Db & { close(): void };
@@ -104,6 +104,15 @@ describe('Ziele des Tages', () => {
     const monday = await loadDayTargets(db, '2026-11-02');
     expect(monday.kcal).toBe(2000);
     expect(t.macros!.carbs).toBe(monday.macros!.carbs + 25); // +100 kcal nur über Kohlenhydrate
+  });
+
+  test('geplante Einträge an Tagen nach heute zählen im Wochenbudget nicht', async () => {
+    await coachGoal();
+    await logQuick(db, { name: 'geplant', kcal: 1800, protein: null, carbs: null, fat: null }, 'mittag', at('2026-11-06'));
+    const s = await loadTargetsSettings(db);
+    const settings = { ...s.budget, enabled: true, carryover: true };
+    expect((await weekBudgetFor(db, '2026-11-06', settings, '2026-11-04'))?.eaten).toBe(0);
+    expect((await weekBudgetFor(db, '2026-11-06', settings, '2026-11-06'))?.eaten).toBe(1800);
   });
 
   test('sensible Situation: keine Zahlen, kein Wochenbudget, Keto gilt als ausgewogen', async () => {

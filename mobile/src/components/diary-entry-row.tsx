@@ -2,7 +2,7 @@
 // Lime auf (N2), Löschen per Wisch-Geste nach links mit Ausblenden (N3). Bei „Bewegung reduzieren“ ohne Bewegung.
 
 import { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, type GestureResponderEvent } from 'react-native';
+import { Platform, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
 import Animated, {
   FadeInUp,
   FadeOut,
@@ -29,6 +29,13 @@ const ACTION_WIDTH = 84;
 const FULL_SWIPE = 0.6;
 /** Nach rechts gibt die Zeile nur gedämpft nach (Gummiband). */
 const RUBBER = 0.25;
+/** Fingerposition; im Browser liefert onTouchStart das DOM-Ereignis (Position in touches[0]). */
+function point(e: GestureResponderEvent): { x: number; y: number } {
+  const n = e.nativeEvent as { pageX?: number; pageY?: number; touches?: ArrayLike<{ pageX: number; pageY: number }> };
+  const first = n.touches && n.touches.length > 0 ? n.touches[0] : null;
+  return { x: n.pageX ?? first?.pageX ?? 0, y: n.pageY ?? first?.pageY ?? 0 };
+}
+
 /** Lime-Puls nach dem Eintragen: kurz an, dann in 900 ms aus. */
 const PULSE = { inMs: 140, holdMs: 260, outMs: 900, opacity: 0.32 } as const;
 
@@ -93,10 +100,14 @@ export function DiaryEntryRow({
   // Wisch-Geste über das Antwort-System von React Native (läuft auch in Expo Go und im Web): erst bei deutlich
   // waagrechter Bewegung übernimmt die Zeile, senkrechtes Scrollen bleibt bei der Liste.
   const touch = useRef({ x: 0, y: 0, base: 0 });
-  const delta = (e: GestureResponderEvent) => ({ dx: e.nativeEvent.pageX - touch.current.x, dy: e.nativeEvent.pageY - touch.current.y });
+  const delta = (e: GestureResponderEvent) => {
+    const p = point(e);
+    return { dx: p.x - touch.current.x, dy: p.y - touch.current.y };
+  };
   const gesture = {
     onTouchStart: (e: GestureResponderEvent) => {
-      touch.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, base: open.current ? -ACTION_WIDTH : 0 };
+      const p = point(e);
+      touch.current = { x: p.x, y: p.y, base: open.current ? -ACTION_WIDTH : 0 };
     },
     onMoveShouldSetResponderCapture: (e: GestureResponderEvent) => {
       const { dx, dy } = delta(e);

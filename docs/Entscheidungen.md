@@ -84,7 +84,9 @@ Neu aus Phase 10 (30.10.2026, Vorlagen liegen bereit):
 - **Veröffentlichungsort** der Datenschutz-Seite (z. B. GitHub Pages) – `website/README.md`.
 
 Aus dem Ausbauplan (`docs/Ausbauplan.md`, „Offene Entscheidungen von Luc“; E1 ist vorläufig umgesetzt, s. o.):
-- **E2 Fasten-Timer** (16:8 usw.)? Empfehlung: nur „Kann“, bei „sensibler Situation“ ausblenden.
+- **E2 Fasten-Timer:** am 03.11.2026 als **abschaltbare Kann-Funktion** umgesetzt (Ausbauplan B1): standardmäßig aus,
+  Schalter auf der eigenen Seite „Ernährung → Fasten-Timer“, bei „sensibler Situation“ komplett ausgeblendet, nur
+  Zeitmessung ohne Empfehlung oder Wirkversprechen. Bitte bestätigen oder ändern.
 - **E3 GLP-1-Begleitmodus** (Eiweiß + Krafttraining zum Muskelerhalt)? Braucht Rechts- und Fachprüfung.
 - **E4 Gemessenes Körperfett** von der Waage nur anzeigen (keine eigene Schätzung)? Wirkt auf D3 (Apple Health).
 - **E5 Englisch** als zweite Sprache wann? Empfehlung: erst nach dem Deutschland-Start.

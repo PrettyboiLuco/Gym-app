@@ -1,11 +1,11 @@
 // Gemeinsame Anzeige- und Navigationshilfen für den Ernährungsbereich.
 
-import { cachedDayEnd, cachedMealTimes, type EventUnit, type Target, type When } from '@/data/nutrition';
+import { cachedMealTimes, diaryDayAt, type EventUnit, type Target, type When } from '@/data/nutrition';
 import { MICRO_KEYS, MICRO_UNITS, type Micros } from '@/domain/basis-foods';
 import { shiftDay } from '@/domain/dates';
 import { suggestMealAt } from '@/domain/diet';
 import { DRINK_TYPES, MEALS, NUTRIENT_KEYS, type DrinkType, type Meal, type NutrientTotals, type Nutrients } from '@/domain/nutrition';
-import { localDay, timeZone, todayDay } from '@/domain/time';
+import { timeZone, todayDay } from '@/domain/time';
 import { formatDay, formatNumber, t } from '@/i18n';
 
 /**
@@ -13,10 +13,7 @@ import { formatDay, formatNumber, t } from '@/i18n';
  * Vortag. Ohne Einstellung ist das der Kalendertag.
  */
 export function diaryToday(nowMs = Date.now()) {
-  const end = cachedDayEnd();
-  const now = new Date(nowMs);
-  const today = localDay(now, timeZone);
-  return end > 0 && now.getHours() < end ? shiftDay(today, -1) : today;
+  return diaryDayAt(nowMs);
 }
 
 /** Ab so vielen Stunden nach der üblichen Uhrzeit gilt eine Mahlzeit von heute als Nachtrag (wie bei `suggestMealAt`). */

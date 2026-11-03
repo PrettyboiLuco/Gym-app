@@ -11,7 +11,7 @@ technischen Ist-Stand der App, damit Tester wissen, was mit ihren Daten passiert
 - **Coach-Angaben** (Ziel, Schritte, Gym-Tage, Schlaf, Trainingstage) und das daraus berechnete Ziel bleiben auf dem
   Gerät; der Coach rechnet ohne Internet und ohne KI.
 - **Schlaf, Morgen-Check (Energie, Muskelkater), Status (krank/verletzt), Blutdruck und Puls, Allergien,
-  Ernährungsweise, Supplements und Check-ins** sind freiwillig und bleiben ebenfalls nur auf dem Gerät
+  Ernährungsweise, Supplements, Check-ins, Hunger/Sättigung/Stimmung zu Mahlzeiten und Fasten-Zeiten** sind freiwillig und bleiben ebenfalls nur auf dem Gerät
   (Gesundheitsdaten, kommen aber mit in deine Sicherungsdatei).
 - Der **Planassistent** rechnet vollständig auf dem Gerät, ohne KI und ohne Internet. Auch dein Wunsch in eigenen
   Worten und „Essen in eigenen Worten“ werden nur lokal gelesen und nicht übertragen.

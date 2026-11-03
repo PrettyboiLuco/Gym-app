@@ -3548,8 +3548,9 @@ export const de = {
         a:
           'Training: Pläne anlegen, aus Vorlagen übernehmen oder vorschlagen lassen, Sätze mit Pausen-Timer, Cardio, ' +
           'Dehnen, Mobilität, HIIT, Statistik und eine leichte Woche zur Erholung. Ernährung: Tagebuch mit Barcode-Scan, ' +
-          'Grundnahrungsmitteln ohne Internet, Getränken, Rezepten, Wochenplan und Einkaufsliste. Fortschritt: Gewicht, ' +
-          'Maße, Fotos, Schritte, Bereitschaft (Morgen-Check), Blutdruck-Tagebuch, Ziele, Meilensteine, Coach und Check-in. ' +
+          'Grundnahrungsmitteln ohne Internet, Getränken, Zeitleiste, Rezepten, Wochenplan und Einkaufsliste, dazu ' +
+          'Wochenbudget, Nährstoff-Ziele, „Was fehlt mir heute?“ und ein Fasten-Timer zum Einschalten. Fortschritt: Gewicht, ' +
+          'Maße, Fotos, Schritte, Bereitschaft (Morgen-Check), Blutdruck-Tagebuch, Ziele, Meilensteine, Einblicke, Coach und Check-in. ' +
           'Bereiche, die du nicht brauchst, blendest du unter Mehr → Bereiche der App aus.',
       },
       coachStart: {
