@@ -5,10 +5,10 @@ import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
 import { MeterBar } from '@/components/charts';
 import { ListRow } from '@/components/fields';
-import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
+import { CardRow, StatTile, TileGrid } from '@/components/tiles';
 import { showToast } from '@/components/toast';
 import { TrainingBlock, weekDays } from '@/components/today-widgets';
 import { Spacing } from '@/constants/theme';
@@ -188,100 +188,97 @@ export default function TrainingScreen() {
 
       <TrainingBlock label={hero.label} title={hero.title} meta={hero.meta} week={days} weekSummary={weekSummary} action={hero.action} onPress={hero.go} />
 
-      {/* Wochenvolumen: sortierte Balkenliste (taste-skill „Who ranks?“), eine Farbe, Zahl rechts. */}
-      {muscles.length > 0 ? (
-        <Card
-          title={t('training.muscleTitle')}
-          trailing={
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('training.muscleUnit')}
-            </ThemedText>
-          }>
-          {muscles.map((m) => (
-            <View
-              key={m.group}
-              style={styles.barRow}
-              accessible
-              accessibilityLabel={`${t(`muscle.${m.group}`)}: ${t('training.muscleSets', { count: m.sets })}`}>
-              <View style={styles.barHead}>
-                <ThemedText type="small">{t(`muscle.${m.group}`)}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.num}>
-                  {m.sets}
-                </ThemedText>
-              </View>
-              <MeterBar progress={m.sets / maxSets} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
+      {/* Diese Woche auf einen Blick: drei Kennzahlen, darunter die Sätze je Muskelgruppe (sortiert, eine Farbe). */}
+      <Card
+        title={t('training.weekTitle')}
+        trailing={<Button label={t('training.statsShort')} variant="quiet" size="compact" onPress={() => router.push('/training/stats')} />}>
+        <View style={styles.stats}>
+          <StatTile label={t('training.statDays')} value={week.goal ? `${doneDays}/${week.goal}` : String(doneDays)} />
+          <StatTile label={t('training.statCardio')} value={formatNumber(data.cardioMinutes, 0)} unit="min" />
+          <StatTile label={t('training.statMuscles')} value={String(muscles.length)} />
+        </View>
+        {muscles.map((m) => (
+          <View key={m.group} style={styles.barRow} accessible accessibilityLabel={`${t(`muscle.${m.group}`)}: ${t('training.muscleSets', { count: m.sets })}`}>
+            <View style={styles.barHead}>
+              <ThemedText type="small">{t(`muscle.${m.group}`)}</ThemedText>
+              <ThemedText type="smallBold" style={styles.num}>
+                {t('training.muscleSets', { count: m.sets })}
+              </ThemedText>
             </View>
-          ))}
-        </Card>
-      ) : null}
+            <MeterBar growIn progress={m.sets / maxSets} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
+          </View>
+        ))}
+      </Card>
 
+      {/* Anderen Tag starten: Plantage als wischbare Karten, der Vorschlag markiert; dazu freies Training. */}
       {!active && !timed ? (
         <Card title={t('training.otherDay')}>
-          {plans.map((p) =>
-            p.days.map((day) => (
-              <ListRow
-                key={day.id}
-                icon="play"
-                title={day.name}
-                subtitle={p.name}
-                value={suggestedDay?.id === day.id ? t('training.suggested') : undefined}
-                accessory="›"
-                onPress={() => start(day.id)}
-              />
-            ))
-          )}
-          <ListRow icon="plus" title={t('training.freeWorkout')} accessory="›" onPress={() => start(null)} last={plans.length === 0} />
+          <CardRow
+            accent={dark ? theme.accent : theme.tint}
+            cards={[
+              ...plans.flatMap((p) =>
+                p.days.map((day) => ({
+                  key: day.id,
+                  title: day.name,
+                  meta: p.name,
+                  badge: suggestedDay?.id === day.id ? t('training.suggested') : undefined,
+                  onPress: () => start(day.id),
+                }))
+              ),
+              { key: 'frei', title: t('training.freeWorkout'), meta: t('training.freeWorkoutMeta'), icon: 'plus' as const, onPress: () => start(null) },
+            ]}
+          />
           {plans.length > 0 ? (
-            <ListRow
-              icon="calendar"
-              title={t('training.rescheduleTitle')}
-              subtitle={t('training.rescheduleSubtitle')}
-              accessory="›"
-              last
+            <Button
+              label={t('training.rescheduleTitle')}
+              variant="quiet"
+              size="compact"
               onPress={() => router.push({ pathname: '/training/assistant', params: { plan: plans[0].planId, dauer: 'woche' } })}
             />
           ) : null}
-          {plans.length > 0 ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('training.dayChoiceHint')}
-            </ThemedText>
-          ) : null}
         </Card>
       ) : null}
 
-      <Card
-        title={t('training.plansTitle')}
-        trailing={
-          <Button
-            label={t('training.newPlanShort')}
-            variant="secondary"
-            size="compact"
-            icon={<Icon name="plus" color={theme.text} size={16} strokeWidth={2.2} />}
-            onPress={() => router.push('/training/plan/neu')}
-          />
-        }>
+      <Card title={t('training.plansTitle')}>
         {plans.length === 0 ? <ThemedText themeColor="textSecondary">{t('training.noPlans')}</ThemedText> : null}
-        {plans.map((p) => (
+        {plans.map((p, i) => (
           <ListRow
             key={p.planId}
             icon="list"
             title={p.name}
             value={t('training.dayCount', { count: p.days.length })}
             accessory="›"
+            last={i === plans.length - 1}
             onPress={() => router.push(`/training/plan/${p.planId}`)}
           />
         ))}
-        <ListRow icon="list" title={t('programs.title')} subtitle={t('programs.subtitle')} accessory="›" onPress={() => router.push('/training/programs')} />
-        <ListRow icon="book" title={t('planImport.open')} subtitle={t('planImport.openSub')} accessory="›" onPress={() => router.push('/training/import')} />
-        <ListRow
-          icon="sparkle"
-          title={t('training.assistantTitle')}
-          subtitle={t('training.assistantSubtitle')}
-          accessory="›"
-          last
-          onPress={() => router.push('/training/assistant')}
-        />
       </Card>
+      <TileGrid
+        tiles={[
+          {
+            key: 'neu',
+            icon: 'plus',
+            title: t('training.newPlanShortTile'),
+            subtitle: t('training.newPlanSub'),
+            onPress: () => router.push('/training/plan/neu'),
+          },
+          {
+            key: 'vorlagen',
+            icon: 'list',
+            title: t('training.programsTile'),
+            subtitle: t('training.programsShort'),
+            onPress: () => router.push('/training/programs'),
+          },
+          { key: 'import', icon: 'book', title: t('planImport.open'), subtitle: t('training.importShort'), onPress: () => router.push('/training/import') },
+          {
+            key: 'assistent',
+            icon: 'sparkle',
+            title: t('training.assistantTitle'),
+            subtitle: t('training.assistantShort'),
+            onPress: () => router.push('/training/assistant'),
+          },
+        ]}
+      />
 
       <Card
         title={t('cardio.weekTitle')}
@@ -294,48 +291,64 @@ export default function TrainingScreen() {
           <CardioRow key={c.id} entry={c} onPress={() => router.push({ pathname: '/training/cardio', params: { id: c.id } })} />
         ))}
         <ListRow icon="plus" title={t('cardio.add')} accessory="›" onPress={() => router.push('/training/cardio')} last />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('cardio.whoHint')}
-        </ThemedText>
       </Card>
 
-      {modules.routinen ? (
-        <Card title={t('training.routinesTitle')}>
-          <ListRow
-            icon="stretch"
-            title={t('training.stretchTitle')}
-            subtitle={t('training.stretchSubtitle')}
-            accessory="›"
-            onPress={() => router.push('/training/stretch')}
-          />
-          <ListRow
-            icon="bolt"
-            title={t('training.hiitTitle')}
-            subtitle={t('training.hiitSubtitle')}
-            accessory="›"
-            onPress={() => router.push('/training/hiit')}
-            last
-          />
-        </Card>
-      ) : null}
-
-      <Card>
-        <ListRow icon="clock" title={t('training.historyTitle')} accessory="›" onPress={() => router.push('/training/history')} />
-        <ListRow icon="target" title={t('stats.title')} subtitle={t('stats.subtitle')} accessory="›" onPress={() => router.push('/training/stats')} />
-        <ListRow
-          icon="dumbbell"
-          title={t('equipmentProfiles.title')}
-          value={tOptional(`equipmentProfiles.names.${data.equipmentProfile.id}`) ?? data.equipmentProfile.name}
-          accessory="›"
-          onPress={() => router.push('/training/equipment')}
-        />
-        <ListRow icon="dumbbell" title={t('training.exercisesTitle')} accessory="›" onPress={() => router.push('/training/exercises')} last />
-      </Card>
+      <TileGrid
+        tiles={[
+          {
+            key: 'verlauf',
+            icon: 'clock',
+            title: t('training.historyTitle'),
+            subtitle: t('training.historyShort'),
+            onPress: () => router.push('/training/history'),
+          },
+          {
+            key: 'statistik',
+            icon: 'chart',
+            title: t('training.statsTile'),
+            subtitle: t('training.statsTileSub'),
+            onPress: () => router.push('/training/stats'),
+          },
+          ...(modules.routinen
+            ? [
+                {
+                  key: 'dehnen',
+                  icon: 'stretch' as const,
+                  title: t('training.stretchTile'),
+                  subtitle: t('training.stretchTileSub'),
+                  onPress: () => router.push('/training/stretch'),
+                },
+                {
+                  key: 'hiit',
+                  icon: 'bolt' as const,
+                  title: t('training.hiitTitle'),
+                  subtitle: t('training.hiitTileSub'),
+                  onPress: () => router.push('/training/hiit'),
+                },
+              ]
+            : []),
+          {
+            key: 'geraete',
+            icon: 'dumbbell',
+            title: t('equipmentProfiles.title'),
+            subtitle: tOptional(`equipmentProfiles.names.${data.equipmentProfile.id}`) ?? data.equipmentProfile.name,
+            onPress: () => router.push('/training/equipment'),
+          },
+          {
+            key: 'uebungen',
+            icon: 'search',
+            title: t('training.exercisesTitle'),
+            subtitle: t('training.exercisesShort'),
+            onPress: () => router.push('/training/exercises'),
+          },
+        ]}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  stats: { flexDirection: 'row', gap: Spacing.two, marginBottom: Spacing.one },
   barRow: { gap: Spacing.one },
   barHead: { flexDirection: 'row', justifyContent: 'space-between' },
   num: { fontVariant: ['tabular-nums'] },

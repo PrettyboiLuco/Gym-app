@@ -47,7 +47,12 @@ export default function FoodScreen() {
   const params = useLocalSearchParams<TargetParams & { id: string }>();
   const { day, target: initialTarget } = readTarget(params);
   // Früher als Gramm gescannte Getränke beim Öffnen auf ml umstellen (zählen dann zur Trinkmenge).
-  const { data: food, reload, db, loaded } = useLoad(
+  const {
+    data: food,
+    reload,
+    db,
+    loaded,
+  } = useLoad(
     async (d) => {
       const found = await getFood(d, params.id);
       return found ? repairDrinkBasis(d, found) : null;
