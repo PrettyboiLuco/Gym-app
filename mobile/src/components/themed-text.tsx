@@ -1,20 +1,22 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
-import { DisplayFont, ThemeColor } from '@/constants/theme';
+import { DisplayFont, TabularNums, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle';
   themeColor?: ThemeColor;
+  /** Kennzahl (Timer, Gewicht, Sätze, Volumen): Ziffern gleicher Breite (O7). */
+  numeric?: boolean;
 };
 
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+export function ThemedText({ style, type = 'default', themeColor, numeric = false, ...rest }: ThemedTextProps) {
   const theme = useTheme();
 
   // Große Schrift (iPhone-Einstellung): Fließtext wächst frei mit, Überschriften und große Zahlen begrenzt (×1,4),
   // damit Titel und Kennzahlen nicht aus ihren Feldern laufen.
   const capped = type === 'title' || type === 'subtitle';
-  return <Text maxFontSizeMultiplier={capped ? 1.4 : undefined} style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]} {...rest} />;
+  return <Text maxFontSizeMultiplier={capped ? 1.4 : undefined} style={[{ color: theme[themeColor ?? 'text'] }, styles[type], numeric && TabularNums, style]} {...rest} />;
 }
 
 const styles = StyleSheet.create({

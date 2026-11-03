@@ -1,5 +1,6 @@
 // Einstellungen für Erinnerungen, Timer-Hinweise und App-Sperre im gespeicherten App-Zustand.
 
+import { MEALS } from '@/domain/nutrition';
 import { DEFAULT_REMINDERS, type ReminderSettings } from '@/domain/reminders';
 
 import { readState, writeState } from './app-state';
@@ -13,6 +14,8 @@ export async function loadReminders(db: Db): Promise<ReminderSettings> {
     drink: { ...DEFAULT_REMINDERS.drink, ...s.drink },
     morning: { ...DEFAULT_REMINDERS.morning, ...s.morning },
     bedtime: { ...DEFAULT_REMINDERS.bedtime, ...s.bedtime },
+    // Mahlzeit-Erinnerungen (B1): gespeicherte Werte je Mahlzeit über die Vorgaben legen (ältere Stände haben keine).
+    meals: Object.fromEntries(MEALS.map((m) => [m, { ...DEFAULT_REMINDERS.meals[m], ...s.meals?.[m] }])) as ReminderSettings['meals'],
   };
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Keyboard, Pressable, StyleSheet } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, type PressableProps } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
@@ -18,11 +18,16 @@ export function SetCheck({
   onPress,
   accessibilityLabel,
   disabled,
+  accessibilityActions,
+  onAccessibilityAction,
 }: {
   done: boolean;
   onPress: () => void;
   accessibilityLabel: string;
   disabled?: boolean;
+  /** Weitere Aktionen für VoiceOver (z. B. „Satz entfernen“, das sonst nur per Wischen geht). */
+  accessibilityActions?: PressableProps['accessibilityActions'];
+  onAccessibilityAction?: PressableProps['onAccessibilityAction'];
 }) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
@@ -57,6 +62,8 @@ export function SetCheck({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ checked: done, disabled }}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       disabled={disabled}
       hitSlop={6}
       onPressIn={() => {

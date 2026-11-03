@@ -27,10 +27,18 @@ export function whenFor(diaryDate: string, meal?: Meal | null, nowMs = Date.now(
   const now = new Date(nowMs);
   const times = cachedMealTimes() as Partial<Record<Meal, number | null>>;
   const usualHour = meal ? times[meal] : null;
-  if (diaryDate >= diaryToday(nowMs)) {
+  if (diaryDate > diaryToday(nowMs)) {
+    // Geplanter Tag (B1): die übliche Uhrzeit der Mahlzeit an jenem Tag, sonst die jetzige Uhrzeit an jenem Tag – nie
+    // ein Zeitpunkt von heute, sonst stimmt die Zeitleiste des geplanten Tages nicht.
+    const at = new Date(`${diaryDate}T00:00:00`);
+    if (usualHour != null) at.setHours(usualHour, 0, 0, 0);
+    else at.setHours(now.getHours(), now.getMinutes(), 0, 0);
+    return { diaryDate, at, timeZone };
+  }
+  if (diaryDate === diaryToday(nowMs)) {
     // Heute: die Erfassungszeit – außer die übliche Uhrzeit der Mahlzeit ist schon länger vorbei. Ein um 21 Uhr
     // nachgetragenes Frühstück zählt sonst im Journal als „spät gegessen“.
-    if (usualHour == null || diaryDate > diaryToday(nowMs)) return { diaryDate, at: now, timeZone };
+    if (usualHour == null) return { diaryDate, at: now, timeZone };
     const usual = new Date(`${diaryDate}T00:00:00`);
     usual.setHours(usualHour, 0, 0, 0);
     const late = nowMs - usual.getTime() > LATE_ENTRY_HOURS * 3_600_000;
@@ -41,6 +49,12 @@ export function whenFor(diaryDate: string, meal?: Meal | null, nowMs = Date.now(
   const at = new Date(`${diaryDate}T00:00:00`);
   at.setHours(usualHour ?? 12, 0, 0, 0);
   return { diaryDate, at, timeZone };
+}
+
+/** Uhrzeit eines Eintrags in Ortszeit, z. B. „08:15“. */
+export function formatClock(iso: string) {
+  const at = new Date(iso);
+  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
 }
 
 export function formatKcal(value: number | null) {
@@ -120,6 +134,7 @@ export function macroSumLine(totals: NutrientTotals) {
 export function dayLabel(day: string, today = todayDay()) {
   if (day === today) return t('nutrition.today');
   if (day === shiftDay(today, -1)) return t('nutrition.yesterday');
+  if (day === shiftDay(today, 1)) return t('nutrition.tomorrow');
   return formatDay(day);
 }
 

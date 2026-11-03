@@ -1,7 +1,7 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import Animated, { LinearTransition } from 'react-native-reanimated';
+import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
+import { Platform, Pressable, StyleSheet, TextInput, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
+import Animated, { LayoutAnimationConfig, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
@@ -17,8 +17,11 @@ import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { SetCheck } from '@/components/set-check';
 import { RirChoice, SetDetails } from '@/components/set-details';
+import { SetCols, SetRowShell, SetTableHead } from '@/components/set-table';
+import { mergeSetInput, nextOpenRow, type SetInput } from '@/components/set-table-logic';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { SetRowMotion } from '@/constants/motion';
+import { Spacing, TabularNums } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
 import { loadProfile } from '@/data/profile';
@@ -86,7 +89,7 @@ import { useDb } from '@/providers/store-provider';
 import { syncRestAlert } from '@/services/alerts';
 import { holdLookup, routineMinutes, startRoutineRun } from '@/services/timed';
 
-type Inputs = Record<string, { weight: string; reps: string }>;
+type Inputs = Record<string, SetInput>;
 
 // Übungen rücken weich nach, wenn eine fertige Übung zusammenklappt (nur Handy; im Web verschiebt Reanimated sonst das Layout).
 const cardLayout = Platform.OS === 'web' ? undefined : LinearTransition.springify().stiffness(180).damping(22);
@@ -250,6 +253,50 @@ export default function SessionScreen() {
     };
   }
 
+  /**
+   * Was wirklich im Feld steht (schwarz): Getipptes, sonst die eigenen Werte eines wieder geöffneten Satzes.
+   * Die Vorgabe (voriger Satz, letztes Mal) steht grau als Platzhalter darunter und zählt beim Abhaken (O3).
+   */
+  function typedOf(row: SetRow): SetInput {
+    const own = inputs[row.id];
+    if (own) return own;
+    if (row.seconds != null) return { weight: '0', reps: String(row.seconds) };
+    if (row.weightKg != null && row.reps != null) return { weight: shown(row.weightKg), reps: String(row.reps) };
+    return { weight: '', reps: '' };
+  }
+
+  /** Wert, der beim Abhaken gespeichert wird: Getipptes je Feld vor der grauen Vorgabe. */
+  function effective(row: SetRow): SetInput {
+    return mergeSetInput(typedOf(row), suggestion(row));
+  }
+
+  // N4: Nach dem Abhaken gleitet die nächste offene Zeile in Sicht (nur wenn sie nicht schon sichtbar ist).
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  const rowRefs = useRef(new Map<string, ComponentRef<typeof View>>());
+  const reduced = useReducedMotion();
+  const { height: windowHeight } = useWindowDimensions();
+  function scrollToRow(rowId: string) {
+    const scroll = scrollRef.current;
+    const row = rowRefs.current.get(rowId);
+    const inner = scroll?.getInnerViewRef?.();
+    if (!scroll || !row || !inner) return;
+    try {
+      row.measureInWindow((_x, top, _w, h) => {
+        if (top >= SetRowMotion.visibleTop && top + h <= windowHeight - SetRowMotion.visibleBottom) return;
+        row.measureLayout(inner, (_lx, y) => scroll.scrollTo({ y: Math.max(0, y - windowHeight * 0.35), animated: !reduced }));
+      });
+    } catch {
+      // Messen geht nicht (z. B. Zeile schon weg) – dann bleibt die Ansicht, wo sie ist.
+    }
+  }
+
+  async function removeSet(row: SetRow) {
+    if (hold !== null) return;
+    await deleteOpenSet(db, row.id);
+    setInputs(({ [row.id]: _gone, ...rest }) => rest);
+    await load();
+  }
+
   function startHold(row: SetRow, index: number, value: { reps: string }) {
     const seconds = parseSecondsInput(value.reps);
     if (seconds === null) {
@@ -279,7 +326,7 @@ export default function SessionScreen() {
   }
 
   async function complete(row: SetRow, indexInExercise: number, secondsOverride?: string) {
-    const value = secondsOverride ? { weight: '0', reps: secondsOverride } : (inputs[row.id] ?? suggestion(row));
+    const value = secondsOverride ? { weight: '0', reps: secondsOverride } : effective(row);
     if (isTimed(row.exerciseId)) {
       // Zeit-Satz (UX-011): im Feld stehen die Sekunden.
       const seconds = parseSecondsInput(value.reps);
@@ -319,7 +366,9 @@ export default function SessionScreen() {
       }
     }
     setInputs(({ [row.id]: _done, ...rest }) => rest);
+    const next = nextOpenRow(sets, row.id);
     await load();
+    if (next) setTimeout(() => scrollToRow(next), SetRowMotion.scrollDelayMs);
   }
   useEffect(() => {
     stopHoldRef.current = stopHold;
@@ -424,7 +473,7 @@ export default function SessionScreen() {
     sets
       .filter((s) => s.exerciseId === exerciseId && !s.completedAt && s.setType !== 'aufwaermen')
       .forEach((row) => {
-        const base = inputs[row.id] ?? suggestion(row);
+        const base = effective(row);
         next[row.id] = {
           weight: v.weightKg !== null ? shown(v.weightKg) : base.weight,
           reps: v.seconds !== null ? String(v.seconds) : v.reps !== null ? String(v.reps) : base.reps,
@@ -441,7 +490,7 @@ export default function SessionScreen() {
     if (sets.some((s) => s.exerciseId === exerciseId && (s.completedAt || s.setType === 'aufwaermen'))) return [];
     const mode = loadModeOf(exercise);
     if (mode === 'unterstuetzt' || mode === 'zusatzgewicht') return [];
-    const work = parseDecimal((inputs[firstWork.id] ?? suggestion(firstWork)).weight);
+    const work = parseDecimal(effective(firstWork).weight);
     return work === null ? [] : warmupSets(work, weightStep(exercise.equipment, units.weight), units.weight);
   }
 
@@ -524,7 +573,7 @@ export default function SessionScreen() {
   if (nextRow) {
     const rowsOfNext = sets.filter((s) => s.exerciseId === nextRow.exerciseId);
     const index = rowsOfNext.indexOf(nextRow);
-    const value = inputs[nextRow.id] ?? suggestion(nextRow);
+    const value = effective(nextRow);
     const what = isTimed(nextRow.exerciseId)
       ? value.reps
         ? t('session.setDoneSeconds', { seconds: value.reps })
@@ -575,6 +624,7 @@ export default function SessionScreen() {
   return (
     <Screen
       withHeader
+      scrollRef={scrollRef}
       subtitle={t('session.progress', { done: doneCount, total: sets.length })}
       footer={
         active ? (
@@ -653,6 +703,7 @@ export default function SessionScreen() {
         const allDone = rows.every((r) => r.completedAt);
         // Ziel aus dem ersten Arbeitssatz (Aufwärmsätze haben eigene Wiederholungen).
         const target = rows.find((r) => r.setType !== 'aufwaermen') ?? rows[0];
+        const labels = setLabels(rows.map((r) => r.setType));
         // Fertige Übungen klappen im laufenden Training zu einer Zeile zusammen; Tippen klappt sie wieder auf.
         if (active && allDone && !openDone.has(exerciseId)) {
           return (
@@ -689,268 +740,333 @@ export default function SessionScreen() {
         }
         return (
           <Animated.View key={exerciseId} layout={cardLayout}>
-            <Card title={nameOf(exerciseId)}>
-              {hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {exerciseName(exercise)}
-                </ThemedText>
-              ) : null}
-              {active && exerciseId === currentId ? (
-                <View style={styles.nowRow}>
-                  <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
-                  <ThemedText type="small">{t('session.now')}</ThemedText>
-                </View>
-              ) : null}
-              <ExerciseMedia exerciseId={exerciseId} label={nameOf(exerciseId)} />
-              <ThemedText type="small" themeColor="textSecondary">
-                {lastSets.length ? t('session.last', { sets: formatSets(lastSets, units.weight), unit: units.weight }) : t('session.lastNone')}
-              </ThemedText>
-              {advice ? (
-                <>
-                  <ThemedText type="small">{adviceText(advice)}</ThemedText>
-                  {advice.kind !== 'variante' ? (
-                    <Button label={t('session.adviceApply')} variant="secondary" onPress={() => applyAdvice(exerciseId, advice)} />
-                  ) : null}
-                </>
-              ) : null}
-              {target.plannedSeconds != null ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('session.targetSeconds', { seconds: target.plannedSeconds })}
-                </ThemedText>
-              ) : null}
-              {isTimed(exerciseId) && active ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('session.holdHint')}
-                </ThemedText>
-              ) : null}
-              {target.plannedSeconds == null && target.plannedRepsMin != null ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })}
-                  {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
-                </ThemedText>
-              ) : null}
-              {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
-              {rows[0].superset != null ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('logger.supersetWith', {
-                    letter: letters.get(rows[0].superset) ?? '',
-                    names: [
-                      ...new Set(sets.filter((s) => s.superset === rows[0].superset && s.exerciseId !== exerciseId).map((s) => nameOf(s.exerciseId))),
-                    ].join(', '),
-                  })}
-                </ThemedText>
-              ) : null}
-              {modeOf(exerciseId) !== 'normal' && !isTimed(exerciseId) ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t(`logger.load.${modeOf(exerciseId) as 'einseitig' | 'unterstuetzt' | 'zusatzgewicht'}`)}
-                </ThemedText>
-              ) : null}
-              {rows.map((row, index) => {
-                const value = inputs[row.id] ?? suggestion(row);
-                const label = setLabels(rows.map((r) => r.setType))[index];
-                return (
-                  <View key={row.id}>
-                    <View style={styles.setRow}>
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={t('logger.details', { n: label })}
-                        accessibilityState={{ expanded: detailFor === row.id }}
-                        onPress={() => setDetailFor((d) => (d === row.id ? null : row.id))}
-                        style={styles.setNumberHit}>
-                        <ThemedText type="smallBold" themeColor={row.completedAt ? 'textSecondary' : 'text'} style={styles.setNumber}>
-                          {label}
-                        </ThemedText>
-                      </Pressable>
-                      {row.completedAt ? (
-                        <>
-                          <ThemedText style={[styles.flex, styles.doneText]}>
-                            {row.seconds != null
-                              ? t('session.setDoneSeconds', { seconds: row.seconds })
-                              : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })}
-                            {row.rir != null ? ` · ${t('logger.rirShort', { rir: row.rir === 4 ? '4+' : row.rir })}` : ''}
-                          </ThemedText>
-                          {active ? (
-                            <SetCheck
-                              key="check"
-                              done
-                              accessibilityLabel={`${t('session.undo')} ${label}`}
-                              onPress={async () => {
-                                await reopenSet(db, row.id);
-                                await load();
-                              }}
-                            />
-                          ) : null}
-                        </>
-                      ) : active ? (
-                        <>
-                          {isTimed(exerciseId) ? null : (
-                            <TextInput
-                              value={value.weight}
-                              onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...value, weight } }))}
-                              placeholder={t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
-                              placeholderTextColor={theme.textSecondary}
-                              keyboardType="decimal-pad"
-                              accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
-                              style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-                            />
-                          )}
-                          <TextInput
-                            value={value.reps}
-                            onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...value, reps } }))}
-                            placeholder={isTimed(exerciseId) ? t('session.seconds') : t('session.reps')}
-                            placeholderTextColor={theme.textSecondary}
-                            keyboardType="number-pad"
-                            accessibilityLabel={`${isTimed(exerciseId) ? t('session.secondsLabel') : t('session.reps')} ${label}`}
-                            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-                          />
-                          {isTimed(exerciseId) ? (
-                            hold?.rowId === row.id ? (
-                              <Button label={`■ ${formatClock(holdLeftMs)}`} accessibilityLabel={`${t('session.holdStop')} ${label}`} onPress={stopHold} />
-                            ) : (
-                              <Button
-                                label="▶"
-                                accessibilityLabel={`${t('session.holdStart')} ${label}`}
-                                variant="secondary"
-                                disabled={hold !== null}
-                                onPress={() => startHold(row, index, value)}
-                              />
-                            )
-                          ) : null}
-                          {/* Gleicher Schlüssel wie oben: Der Haken bleibt beim Erledigen derselbe und federt nur dann auf.
-                              Läuft der Countdown dieses Satzes, beendet ✓ ihn (statt den Satz ein zweites Mal einzutragen). */}
-                          <SetCheck
-                            key="check"
-                            done={false}
-                            accessibilityLabel={`${t('session.done')} ${label}`}
-                            onPress={() => (hold?.rowId === row.id ? stopHold() : complete(row, index))}
-                          />
-                          <Button
-                            label="−"
-                            accessibilityLabel={`${t('session.removeSet')} ${label}`}
-                            variant="secondary"
-                            disabled={hold !== null}
-                            onPress={async () => {
-                              await deleteOpenSet(db, row.id);
-                              await load();
-                            }}
-                          />
-                        </>
-                      ) : (
-                        <ThemedText themeColor="textSecondary" style={styles.flex}>
-                          {t('session.notDone')}
-                        </ThemedText>
-                      )}
-                    </View>
-                    {askRirFor === row.id && !restFocus && row.completedAt ? (
-                      <View style={styles.inlineAsk}>
-                        <RirChoice
-                          label={t('logger.rirAsk')}
-                          allowEmpty={false}
-                          value={row.rir}
-                          onChange={async (rir) => {
-                            setAskRirFor(null);
-                            await changeSet(row.id, { rir });
-                          }}
-                        />
-                      </View>
-                    ) : null}
-                    {row.note && detailFor !== row.id ? (
-                      <ThemedText type="small" themeColor="textSecondary" style={styles.setNote}>
-                        {row.note}
-                      </ThemedText>
-                    ) : null}
-                    {detailFor === row.id ? (
-                      <SetDetails
-                        setType={row.setType}
-                        rir={row.rir}
-                        note={row.note}
-                        targetRir={hints[exerciseId]?.rir ?? null}
-                        onChange={(change) => changeSet(row.id, change)}
-                        plates={
-                          exercise && usesPlates(exercise.equipment) && !isTimed(exerciseId)
-                            ? {
-                                weightText: row.completedAt ? shown(row.weightKg ?? 0) : value.weight,
-                                unit: units.weight,
-                                setup: plateSetup ?? defaultPlateSetup(units.weight),
-                                onSetup: changePlates,
-                              }
-                            : null
-                        }
-                      />
-                    ) : null}
-                  </View>
-                );
-              })}
-              {invalid && rows.some((r) => r.id === invalid) ? (
-                <ThemedText style={{ color: theme.danger }}>{isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}</ThemedText>
-              ) : null}
-              {active && warmupPlan(exerciseId).length > 0 ? (
-                <>
-                  <Button label={t('logger.warmup', { count: warmupPlan(exerciseId).length })} variant="secondary" onPress={() => addWarmups(exerciseId)} />
+            {/* Beim Öffnen und Aufklappen stehen die Zeilen sofort; nur später hinzugefügte blenden ein (N3). Klappt die
+                fertige Übung zusammen, laufen keine Ausblendungen der einzelnen Zeilen. */}
+            <LayoutAnimationConfig skipEntering skipExiting>
+              <Card title={nameOf(exerciseId)}>
+                {hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? (
                   <ThemedText type="small" themeColor="textSecondary">
-                    {t('logger.warmupHint', {
-                      list: warmupPlan(exerciseId)
-                        .map((w) => `${formatNumber(w.weight, 2)} ${units.weight} × ${w.reps}`)
-                        .join(' · '),
+                    {exerciseName(exercise)}
+                  </ThemedText>
+                ) : null}
+                {active && exerciseId === currentId ? (
+                  <View style={styles.nowRow}>
+                    <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
+                    <ThemedText type="small">{t('session.now')}</ThemedText>
+                  </View>
+                ) : null}
+                <ExerciseMedia exerciseId={exerciseId} label={nameOf(exerciseId)} />
+                {lastSets.length === 0 ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('session.lastNone')}
+                  </ThemedText>
+                ) : null}
+                {advice ? (
+                  <>
+                    <ThemedText type="small">{adviceText(advice)}</ThemedText>
+                    {advice.kind !== 'variante' ? (
+                      <Button label={t('session.adviceApply')} variant="secondary" onPress={() => applyAdvice(exerciseId, advice)} />
+                    ) : null}
+                  </>
+                ) : null}
+                {target.plannedSeconds != null ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('session.targetSeconds', { seconds: target.plannedSeconds })}
+                  </ThemedText>
+                ) : null}
+                {isTimed(exerciseId) && active ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('session.holdHint')}
+                  </ThemedText>
+                ) : null}
+                {target.plannedSeconds == null && target.plannedRepsMin != null ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })}
+                    {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
+                  </ThemedText>
+                ) : null}
+                {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
+                {rows[0].superset != null ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t('logger.supersetWith', {
+                      letter: letters.get(rows[0].superset) ?? '',
+                      names: [
+                        ...new Set(sets.filter((s) => s.superset === rows[0].superset && s.exerciseId !== exerciseId).map((s) => nameOf(s.exerciseId))),
+                      ].join(', '),
                     })}
                   </ThemedText>
-                </>
-              ) : null}
-              {active ? (
-                <Button
-                  label={t('session.addSet')}
-                  variant="secondary"
-                  onPress={async () => {
-                    await addSet(db, id, exerciseId);
-                    await load();
-                  }}
-                />
-              ) : null}
-              {active && hasOpen && exercise ? (
-                busyFor === exerciseId ? (
-                  <View style={styles.busy}>
-                    <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
-                    {replacementOptions(
-                      exercise,
-                      exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
-                    ).map((alt) => (
-                      <ListRow
-                        key={alt.id}
-                        title={exerciseName(byId.get(alt.id))}
-                        subtitle={t(`equipment.${alt.equipment}`)}
-                        accessory="⇄"
-                        onPress={() => replaceWith(exerciseId, alt.id)}
-                      />
-                    ))}
-                    {replacementOptions(
-                      exercise,
-                      exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
-                    ).length === 0 ? (
-                      <ThemedText type="small">{t('session.busyNone')}</ThemedText>
-                    ) : null}
+                ) : null}
+                {modeOf(exerciseId) !== 'normal' && !isTimed(exerciseId) ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {t(`logger.load.${modeOf(exerciseId) as 'einseitig' | 'unterstuetzt' | 'zusatzgewicht'}`)}
+                  </ThemedText>
+                ) : null}
+                {rows.length > 0 ? (
+                  <SetTableHead
+                    unit={t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
+                    timed={isTimed(exerciseId)}
+                    hold={active && isTimed(exerciseId) && hasOpen}
+                    trash={Platform.OS === 'web' && active && hasOpen}
+                  />
+                ) : null}
+                {rows.map((row, index) => {
+                  const typed = typedOf(row);
+                  const hint = suggestion(row);
+                  const value = mergeSetInput(typed, hint);
+                  const label = labels[index];
+                  const timed = isTimed(exerciseId);
+                  const done = !!row.completedAt;
+                  const deletable = active && !done && hold === null;
+                  // „Vorher“: gleicher Arbeitssatz vom letzten Mal (Aufwärmsätze haben keinen Vergleich).
+                  const workIndex = rows.filter((r) => r.setType !== 'aufwaermen').indexOf(row);
+                  const prev = row.setType === 'aufwaermen' || workIndex < 0 ? undefined : lastSets[workIndex];
+                  const prevText = prev ? formatSets([prev], units.weight) : '–';
+                  const deleteAction = deletable ? [{ name: 'delete', label: `${t('session.removeSet')} ${label}` }] : undefined;
+                  const onAction = (e: { nativeEvent: { actionName: string } }) => {
+                    if (e.nativeEvent.actionName === 'delete') removeSet(row);
+                  };
+                  const meta = [row.rir != null ? t('logger.rirShort', { rir: row.rir === 4 ? '4+' : row.rir }) : null, detailFor !== row.id ? row.note : null]
+                    .filter(Boolean)
+                    .join(' · ');
+                  return (
+                    <View key={row.id}>
+                      <SetRowShell
+                        ref={(v) => {
+                          if (v) rowRefs.current.set(row.id, v);
+                          else rowRefs.current.delete(row.id);
+                        }}
+                        done={done}
+                        deletable={deletable}
+                        deleteLabel={`${t('session.removeSet')} ${label}`}
+                        onDelete={() => removeSet(row)}>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={t('logger.details', { n: label })}
+                          accessibilityState={{ expanded: detailFor === row.id }}
+                          accessibilityActions={deleteAction}
+                          onAccessibilityAction={onAction}
+                          onPress={() => setDetailFor((d) => (d === row.id ? null : row.id))}
+                          style={styles.setNumberHit}>
+                          <ThemedText type="smallBold" numeric themeColor={done ? 'textSecondary' : 'text'}>
+                            {label}
+                          </ThemedText>
+                        </Pressable>
+                        <ThemedText
+                          type="small"
+                          numeric
+                          themeColor="textSecondary"
+                          numberOfLines={1}
+                          style={styles.flex}
+                          accessibilityLabel={prev ? t('session.last', { sets: prevText, unit: units.weight }) : t('session.previousNone')}>
+                          {prevText}
+                        </ThemedText>
+                        {done ? (
+                          <>
+                            {timed ? null : (
+                              <ThemedText numeric style={[styles.cell, { width: SetCols.weight }]}>
+                                {shown(row.weightKg ?? 0)}
+                              </ThemedText>
+                            )}
+                            <ThemedText
+                              numeric
+                              style={[styles.cell, { width: timed ? SetCols.timedReps : SetCols.reps }]}
+                              accessibilityLabel={
+                                row.seconds != null
+                                  ? t('session.setDoneSeconds', { seconds: row.seconds })
+                                  : t('session.setDone', { weight: formatWeight(row.weightKg ?? 0, units.weight, 2), reps: row.reps })
+                              }>
+                              {row.seconds != null ? row.seconds : row.reps}
+                            </ThemedText>
+                            {active && timed && hasOpen ? <View style={{ width: SetCols.hold }} /> : null}
+                            {active ? (
+                              <SetCheck
+                                key="check"
+                                done
+                                accessibilityLabel={`${t('session.undo')} ${label}`}
+                                onPress={async () => {
+                                  await reopenSet(db, row.id);
+                                  await load();
+                                }}
+                              />
+                            ) : (
+                              <View style={{ width: SetCols.check }} />
+                            )}
+                            {Platform.OS === 'web' && active && hasOpen ? <View style={{ width: SetCols.trash }} /> : null}
+                          </>
+                        ) : active ? (
+                          <>
+                            {timed ? null : (
+                              <TextInput
+                                value={typed.weight}
+                                onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...typed, weight } }))}
+                                placeholder={hint.weight || t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
+                                placeholderTextColor={theme.textSecondary}
+                                keyboardType="decimal-pad"
+                                selectTextOnFocus
+                                accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
+                                style={[styles.input, { width: SetCols.weight, color: theme.text, backgroundColor: theme.backgroundSelected }]}
+                              />
+                            )}
+                            <TextInput
+                              value={typed.reps}
+                              onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...typed, reps } }))}
+                              placeholder={hint.reps || (timed ? t('session.seconds') : t('session.reps'))}
+                              placeholderTextColor={theme.textSecondary}
+                              keyboardType="number-pad"
+                              selectTextOnFocus
+                              accessibilityLabel={`${timed ? t('session.secondsLabel') : t('session.reps')} ${label}`}
+                              style={[
+                                styles.input,
+                                { width: timed ? SetCols.timedReps : SetCols.reps, color: theme.text, backgroundColor: theme.backgroundSelected },
+                              ]}
+                            />
+                            {timed ? (
+                              hold?.rowId === row.id ? (
+                                <Button
+                                  label={`■ ${formatClock(holdLeftMs)}`}
+                                  size="compact"
+                                  accessibilityLabel={`${t('session.holdStop')} ${label}`}
+                                  onPress={stopHold}
+                                />
+                              ) : (
+                                <Button
+                                  label="▶"
+                                  size="compact"
+                                  accessibilityLabel={`${t('session.holdStart')} ${label}`}
+                                  variant="secondary"
+                                  disabled={hold !== null}
+                                  onPress={() => startHold(row, index, value)}
+                                />
+                              )
+                            ) : null}
+                            {/* Gleicher Schlüssel wie oben: Der Haken bleibt beim Erledigen derselbe und federt nur dann auf.
+                              Läuft der Countdown dieses Satzes, beendet ✓ ihn (statt den Satz ein zweites Mal einzutragen). */}
+                            <SetCheck
+                              key="check"
+                              done={false}
+                              accessibilityLabel={`${t('session.done')} ${label}`}
+                              accessibilityActions={deleteAction}
+                              onAccessibilityAction={onAction}
+                              onPress={() => (hold?.rowId === row.id ? stopHold() : complete(row, index))}
+                            />
+                          </>
+                        ) : (
+                          <ThemedText themeColor="textSecondary" style={[styles.cell, styles.missed]}>
+                            {t('session.notDone')}
+                          </ThemedText>
+                        )}
+                      </SetRowShell>
+                      {askRirFor === row.id && !restFocus && row.completedAt ? (
+                        <View style={styles.inlineAsk}>
+                          <RirChoice
+                            label={t('logger.rirAsk')}
+                            allowEmpty={false}
+                            value={row.rir}
+                            onChange={async (rir) => {
+                              setAskRirFor(null);
+                              await changeSet(row.id, { rir });
+                            }}
+                          />
+                        </View>
+                      ) : null}
+                      {meta ? (
+                        <ThemedText type="small" themeColor="textSecondary" style={styles.setNote}>
+                          {meta}
+                        </ThemedText>
+                      ) : null}
+                      {detailFor === row.id ? (
+                        <SetDetails
+                          setType={row.setType}
+                          rir={row.rir}
+                          note={row.note}
+                          targetRir={hints[exerciseId]?.rir ?? null}
+                          onChange={(change) => changeSet(row.id, change)}
+                          plates={
+                            exercise && usesPlates(exercise.equipment) && !timed
+                              ? {
+                                  weightText: row.completedAt ? shown(row.weightKg ?? 0) : value.weight,
+                                  unit: units.weight,
+                                  setup: plateSetup ?? defaultPlateSetup(units.weight),
+                                  onSetup: changePlates,
+                                }
+                              : null
+                          }
+                        />
+                      ) : null}
+                    </View>
+                  );
+                })}
+                {invalid && rows.some((r) => r.id === invalid) ? (
+                  <ThemedText style={{ color: theme.danger }}>{isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}</ThemedText>
+                ) : null}
+                {active && warmupPlan(exerciseId).length > 0 ? (
+                  <>
+                    <Button label={t('logger.warmup', { count: warmupPlan(exerciseId).length })} variant="secondary" onPress={() => addWarmups(exerciseId)} />
                     <ThemedText type="small" themeColor="textSecondary">
-                      {t('session.busyHint')}
+                      {t('logger.warmupHint', {
+                        list: warmupPlan(exerciseId)
+                          .map((w) => `${formatNumber(w.weight, 2)} ${units.weight} × ${w.reps}`)
+                          .join(' · '),
+                      })}
                     </ThemedText>
-                    <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
-                  </View>
-                ) : (
-                  <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
-                )
-              ) : null}
-              {active && allDone ? (
-                <Button
-                  label={t('session.hideSets')}
-                  variant="secondary"
-                  onPress={() =>
-                    setOpenDone((o) => {
-                      const n = new Set(o);
-                      n.delete(exerciseId);
-                      return n;
-                    })
-                  }
-                />
-              ) : null}
-            </Card>
+                  </>
+                ) : null}
+                {active ? (
+                  <Button
+                    label={t('session.addSet')}
+                    variant="secondary"
+                    onPress={async () => {
+                      await addSet(db, id, exerciseId);
+                      await load();
+                    }}
+                  />
+                ) : null}
+                {active && hasOpen && exercise ? (
+                  busyFor === exerciseId ? (
+                    <View style={styles.busy}>
+                      <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
+                      {replacementOptions(
+                        exercise,
+                        exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
+                      ).map((alt) => (
+                        <ListRow
+                          key={alt.id}
+                          title={exerciseName(byId.get(alt.id))}
+                          subtitle={t(`equipment.${alt.equipment}`)}
+                          accessory="⇄"
+                          onPress={() => replaceWith(exerciseId, alt.id)}
+                        />
+                      ))}
+                      {replacementOptions(
+                        exercise,
+                        exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
+                      ).length === 0 ? (
+                        <ThemedText type="small">{t('session.busyNone')}</ThemedText>
+                      ) : null}
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {t('session.busyHint')}
+                      </ThemedText>
+                      <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
+                    </View>
+                  ) : (
+                    <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
+                  )
+                ) : null}
+                {active && allDone ? (
+                  <Button
+                    label={t('session.hideSets')}
+                    variant="secondary"
+                    onPress={() =>
+                      setOpenDone((o) => {
+                        const n = new Set(o);
+                        n.delete(exerciseId);
+                        return n;
+                      })
+                    }
+                  />
+                ) : null}
+              </Card>
+            </LayoutAnimationConfig>
           </Animated.View>
         );
       })}
@@ -1046,27 +1162,26 @@ function doneCountOf(rows: SetRow[]) {
 }
 
 const styles = StyleSheet.create({
-  setRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
-  setNumber: { minWidth: 20, fontVariant: ['tabular-nums'] },
-  setNote: { marginLeft: 44, marginTop: -Spacing.one },
-  inlineAsk: { marginLeft: 44 },
-  doneText: { fontVariant: ['tabular-nums'] },
+  setNote: { marginLeft: SetCols.set + Spacing.two, marginTop: -Spacing.one },
+  inlineAsk: { marginLeft: SetCols.set + Spacing.two },
+  cell: { textAlign: 'center', fontWeight: 600 },
+  missed: { flex: 2, textAlign: 'right', fontWeight: 500 },
   nowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: -Spacing.one },
   nowDot: { width: 8, height: 8, borderRadius: 4 },
   doneCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, borderRadius: 20, borderWidth: 1, padding: Spacing.three, minHeight: 64 },
   doneMark: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   doneTitle: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
   input: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.two,
+    minHeight: 40,
+    borderRadius: 10,
+    paddingHorizontal: Spacing.one,
     fontSize: 16,
+    fontWeight: 600,
+    textAlign: 'center',
+    ...TabularNums,
   },
   flex: { flex: 1 },
   busy: { gap: Spacing.two },
   ask: { borderRadius: 20, borderWidth: 1, padding: Spacing.three, gap: Spacing.one },
-  setNumberHit: { minWidth: 36, minHeight: 44, justifyContent: 'center' },
+  setNumberHit: { width: SetCols.set, minHeight: 44, justifyContent: 'center' },
 });

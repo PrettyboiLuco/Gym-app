@@ -1,5 +1,5 @@
 // Gestaltung: Farben für Hell/Dunkel, Abstände und Schrift – eine Quelle für die ganze App.
-import { Platform } from 'react-native';
+import { Platform, type TextStyle } from 'react-native';
 
 /**
  * Farben nach Lucs Vorlage (31.10.2026): ruhig, Schwarz/Weiß/Grau, Akzent Lime-Grün #C6F24E.
@@ -70,6 +70,17 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
  * Fließtext bleibt in der Systemschrift. Höchstens 700 (taste-skill: App-Schrift ist keine Plakatschrift). Geladen in app/_layout.tsx; bei eigenen Schriften kein fontWeight setzen.
  */
 export const DisplayFont = { semiBold: 'Manrope_600SemiBold', bold: 'Manrope_700Bold' } as const;
+
+/**
+ * Ziffern gleicher Breite für Kennzahlen (O7): Timer, Gewichte, Sätze, Volumen springen beim Zählen nicht in der Breite.
+ * Für Text auch über `<ThemedText numeric>`; Eingabefelder nehmen den Stil direkt.
+ */
+export const TabularNums: TextStyle = { fontVariant: ['tabular-nums'] };
+
+/**
+ * Erledigte Satzzeile (O3/N4): ganz leicht in der Datenfarbe getönt (Lime dunkel, Grün hell) – Lime bleibt Daten-/Erfolgsfarbe.
+ */
+export const SetDoneTint = { light: 'rgba(74, 115, 0, 0.10)', dark: 'rgba(198, 242, 78, 0.13)' } as const;
 
 export const Spacing = {
   half: 2,

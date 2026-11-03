@@ -1,21 +1,48 @@
 // Verbindet Timer und Einstellungen mit den lokalen Mitteilungen (Register HEALTH-012, UX-006/007, TIME-011).
 
 import type { Db } from '@/data/db';
-import { cancelAlerts, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
+import { currentFast, loadFastingSettings } from '@/data/fasting';
+import { cancelAlerts, notificationPermission, NOTIFICATIONS_SUPPORTED, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
+import { loggedMeals } from '@/data/nutrition';
 import { loadProfile } from '@/data/profile';
 import { loadSleepGoal, loadWakeTime, statusToday } from '@/data/readiness';
 import { loadReminders } from '@/data/reminders';
 import { supplementReminders } from '@/data/supplements';
+import { shiftDay } from '@/domain/dates';
+import { fastingStatus, fastingVisible } from '@/domain/fasting';
 import { effectiveModules } from '@/domain/modules';
 import { bedtimeFor } from '@/domain/readiness';
-import { BEDTIME_LEAD_MINUTES, drinkTimes, parseTime, timerAlertBudget, toExpoWeekday, upcomingAlerts, type ReminderSettings } from '@/domain/reminders';
+import {
+  BEDTIME_LEAD_MINUTES,
+  drinkTimes,
+  MEAL_REMINDER_MAX_DAYS,
+  mealReminderPlan,
+  parseTime,
+  timerAlertBudget,
+  toExpoWeekday,
+  upcomingAlerts,
+  type ReminderSettings,
+} from '@/domain/reminders';
 import { todayDay } from '@/domain/time';
 import { runElapsedMs, type TimedRun } from '@/domain/timeline';
 import type { IntervalConfig, RestTimer } from '@/domain/training';
 import { t } from '@/i18n';
 
+import { diaryToday } from './nutrition-format';
+
 const REST = 'timer-pause-';
 const RUN = 'timer-ablauf-';
+const MEALS_PREFIX = 'mahlzeit-';
+const FASTING_PREFIX = 'fasten-';
+/** Ein Platz bleibt immer für das Ende des Fasten-Fensters reserviert. */
+const FASTING_SLOT = 1;
+// Zuletzt geplante Mahlzeit-Erinnerungen: unverändert = nichts neu planen (das Tagebuch ruft das oft auf).
+let lastMealPlan = '';
+
+/** Weitere geplante Mitteilungen neben den Erinnerungs-Einstellungen: Supplements und Fasten-Ende. */
+async function otherReminders(db: Db) {
+  return (await supplementReminders(db)).length + FASTING_SLOT;
+}
 
 /** Pausenende als Mitteilung, damit es auch bei gesperrtem Handy ankommt. */
 export async function syncRestAlert(db: Db, timer: RestTimer) {
@@ -29,7 +56,7 @@ export async function syncRunAlerts(db: Db, run: TimedRun | null, nameOf: (id: s
   const settings = await loadReminders(db);
   if (!settings.timerAlerts || !run || run.pausedAtMs !== null) return cancelAlerts(RUN);
   const now = Date.now();
-  const budget = timerAlertBudget(settings, (await supplementReminders(db)).length);
+  const budget = timerAlertBudget(settings, await otherReminders(db));
   const alerts = upcomingAlerts(run.steps, runElapsedMs(run, now), now, budget).map((a, i) => ({
     id: String(i),
     atMs: a.atMs,
@@ -51,7 +78,7 @@ export async function syncIntervalAlerts(db: Db, config: IntervalConfig | null, 
   const settings = await loadReminders(db);
   if (!settings.timerAlerts || !config || startedAtMs === null) return cancelAlerts(RUN);
   const alerts = [];
-  const budget = timerAlertBudget(settings, (await supplementReminders(db)).length);
+  const budget = timerAlertBudget(settings, await otherReminders(db));
   let at = startedAtMs;
   for (let round = 1; round <= config.rounds && alerts.length < budget; round++) {
     at += config.workSeconds * 1000;
@@ -134,4 +161,47 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
     });
   }
   await replaceReminders(list);
+  // Mahlzeit-Erinnerungen und Fasten-Ende hängen an denselben Einstellungen, Modulen und der Sicherung.
+  lastMealPlan = '';
+  await syncMealReminders(db, diaryToday());
+  await syncFastingAlert(db);
+}
+
+/**
+ * Mahlzeit-Erinnerungen (B1, W4) für die nächsten Tage neu planen: nur, wenn für die Mahlzeit an dem Tag noch nichts
+ * eingetragen ist. Läuft beim Öffnen des Tagebuchs, nach jedem Eintragen (der Bildschirm lädt neu) und beim
+ * Speichern der Einstellungen – so fällt die heutige Mitteilung einer Mahlzeit weg, sobald etwas eingetragen ist.
+ * Ohne Erlaubnis für Mitteilungen passiert nichts.
+ */
+export async function syncMealReminders(db: Db, today: string, nowMs = Date.now()) {
+  if (!NOTIFICATIONS_SUPPORTED || (await notificationPermission(false)) !== 'granted') return;
+  const [settings, profile] = await Promise.all([loadReminders(db), loadProfile(db)]);
+  const on = effectiveModules(profile.modules).ernaehrung;
+  const logged = await loggedMeals(db, today, shiftDay(today, MEAL_REMINDER_MAX_DAYS));
+  const plan = on ? mealReminderPlan(settings, today, nowMs, logged, await otherReminders(db)) : [];
+  const key = plan.map((a) => `${a.id}@${a.atMs}`).join(',');
+  if (key === lastMealPlan) return;
+  lastMealPlan = key;
+  await replaceAlerts(
+    MEALS_PREFIX,
+    plan.map((a) => ({
+      id: a.id,
+      atMs: a.atMs,
+      title: t('alerts.mealTitle', { meal: t(`nutrition.meals.${a.meal}`) }),
+      body: t('alerts.mealBody', { meal: t(`nutrition.meals.${a.meal}`) }),
+    }))
+  );
+}
+
+/**
+ * Ende des Fasten-Fensters als Mitteilung (B1, W8): nur wenn der Fasten-Timer eingeschaltet, keine „sensible Situation“
+ * angegeben, die Mitteilung gewünscht und erlaubt ist und ein Fenster läuft. Sonst wird sie gelöscht.
+ */
+export async function syncFastingAlert(db: Db) {
+  if (!NOTIFICATIONS_SUPPORTED) return;
+  const [settings, profile, fast] = await Promise.all([loadFastingSettings(db), loadProfile(db), currentFast(db)]);
+  const wanted = fastingVisible(settings, profile.sensitive) && settings.notify && fast !== null;
+  if (!wanted || (await notificationPermission(false)) !== 'granted') return cancelAlerts(FASTING_PREFIX);
+  const status = fastingStatus(fast, Date.now());
+  await replaceAlerts(FASTING_PREFIX, [{ id: 'ende', atMs: status.endAtMs, title: t('fasting.alertTitle'), body: t('fasting.alertBody') }]);
 }

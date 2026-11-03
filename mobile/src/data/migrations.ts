@@ -732,6 +732,28 @@ export const MIGRATIONS: string[] = [
      created_at_utc TEXT NOT NULL
    );
    CREATE INDEX blood_pressure_day ON blood_pressure (day);`,
+
+  // Version 27: Tagebuch-Ausbau (B1, 03.11.2026). Hunger, Sättigung und Stimmung je Mahlzeit und Tag (W10, freiwillig,
+  // Stufen 1–5, ohne Bewertung). Fasten-Timer als Kann-Funktion (W8/E2): ein Fenster je Zeile, offen = läuft.
+  // Bestehende Tabellen bleiben unverändert.
+  `CREATE TABLE meal_feeling (
+     id TEXT PRIMARY KEY NOT NULL,
+     day TEXT NOT NULL,
+     meal TEXT NOT NULL CHECK (meal IN ('fruehstueck', 'mittag', 'abend', 'snack')),
+     hunger INTEGER CHECK (hunger IS NULL OR hunger BETWEEN 1 AND 5),
+     fullness INTEGER CHECK (fullness IS NULL OR fullness BETWEEN 1 AND 5),
+     mood INTEGER CHECK (mood IS NULL OR mood BETWEEN 1 AND 5),
+     updated_at_utc TEXT NOT NULL,
+     UNIQUE (day, meal)
+   );
+   CREATE TABLE fasting_period (
+     id TEXT PRIMARY KEY NOT NULL,
+     started_at_utc TEXT NOT NULL,
+     planned_hours REAL NOT NULL CHECK (planned_hours >= 1 AND planned_hours <= 48),
+     ended_at_utc TEXT,
+     created_at_utc TEXT NOT NULL
+   );
+   CREATE INDEX fasting_period_start ON fasting_period (started_at_utc);`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

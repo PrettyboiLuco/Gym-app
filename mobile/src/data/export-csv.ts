@@ -11,7 +11,7 @@ import type { Db } from './db';
 import { listActiveGoals } from './goals';
 import { listExercises } from './training';
 
-export const EXPORT_AREAS = ['training', 'cardio', 'ablaeufe', 'ernaehrung', 'gewicht', 'masse', 'schlaf', 'blutdruck', 'ziele'] as const;
+export const EXPORT_AREAS = ['training', 'cardio', 'ablaeufe', 'ernaehrung', 'befinden', 'fasten', 'gewicht', 'masse', 'schlaf', 'blutdruck', 'ziele'] as const;
 export type ExportArea = (typeof EXPORT_AREAS)[number];
 
 /** wie components/cardio-row (ohne UI-Abhängigkeiten, damit testbar) */
@@ -135,6 +135,36 @@ async function nutritionCsv(db: Db) {
   );
 }
 
+/** Hunger, Sättigung und Stimmung je Mahlzeit (B1, W10): Stufen 1–5, leer = keine Angabe. */
+async function feelingCsv(db: Db) {
+  const rows = await db.getAllAsync<{ day: string; meal: string; hunger: number | null; fullness: number | null; mood: number | null }>(
+    `SELECT day, meal, hunger, fullness, mood FROM meal_feeling
+     ORDER BY day, CASE meal WHEN 'fruehstueck' THEN 0 WHEN 'mittag' THEN 1 WHEN 'abend' THEN 2 ELSE 3 END`
+  );
+  return toCsv(
+    ['Datum', 'Mahlzeit', 'Hunger (1–5)', 'Sättigung (1–5)', 'Stimmung (1–5)'],
+    rows.map((r): Cell[] => [r.day, t(`nutrition.meals.${r.meal}`), r.hunger, r.fullness, r.mood])
+  );
+}
+
+/** Fasten-Fenster (B1, W8): Beginn, Ende, geplante und tatsächliche Dauer. */
+async function fastingCsv(db: Db) {
+  const rows = await db.getAllAsync<{ start: string; end: string | null; planned: number }>(
+    'SELECT started_at_utc AS start, ended_at_utc AS end, planned_hours AS planned FROM fasting_period ORDER BY started_at_utc'
+  );
+  return toCsv(
+    ['Beginn (Datum)', 'Beginn (Uhrzeit)', 'Ende (Datum)', 'Ende (Uhrzeit)', 'Geplant (h)', 'Dauer (h)'],
+    rows.map((r): Cell[] => [
+      day(r.start),
+      time(r.start),
+      day(r.end),
+      time(r.end),
+      r.planned,
+      r.end ? Math.round((Date.parse(r.end) - Date.parse(r.start)) / 360_000) / 10 : null,
+    ])
+  );
+}
+
 async function weightCsv(db: Db) {
   const rows = await db.getAllAsync<{ day: string; kg: number; at: string }>(
     'SELECT day, kg, recorded_at_utc AS at FROM weight_entry ORDER BY day, recorded_at_utc'
@@ -245,6 +275,8 @@ const BUILDERS: Record<ExportArea, (db: Db) => Promise<string>> = {
   cardio: cardioCsv,
   ablaeufe: timedCsv,
   ernaehrung: nutritionCsv,
+  befinden: feelingCsv,
+  fasten: fastingCsv,
   gewicht: weightCsv,
   masse: measurementCsv,
   schlaf: sleepCsv,

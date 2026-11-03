@@ -6,6 +6,7 @@
 import { fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
 import { BASIS_FOODS } from '@/domain/basis-foods-data';
 import { daysBetween } from '@/domain/dates';
+import { copyTargets, pushRecent, shiftToDay } from '@/domain/diary';
 import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
   barcodeVariants,
@@ -22,6 +23,7 @@ import {
   type Prep,
 } from '@/domain/nutrition';
 import { foldText } from '@/domain/text';
+import { localDay } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
@@ -436,23 +438,15 @@ export async function copyDay(db: Db, fromDate: string, when: When) {
   const days = daysBetween(fromDate, when.diaryDate);
   await db.withTransactionAsync(async () => {
     for (const e of source) {
-      const target: Target = e.kind === 'essen' ? { kind: 'essen', meal: e.meal ?? 'snack' } : { kind: 'getraenk', drinkType: e.drinkType ?? 'sonstiges' };
+      const target = targetOf(e);
       // Uhrzeit des Originals behalten, nur auf den neuen Tag verschoben – sonst landet der ganze Tag auf einer
-      // Uhrzeit (Journal: „spät gegessen“, Koffein). Nie in der Zukunft: dann die übergebene Zeit.
+      // Uhrzeit (Journal: „spät gegessen“, Koffein). Heute nie in der Zukunft: dann die übergebene Zeit. Ein geplanter
+      // Tag (nach heute, B1) behält die Uhrzeiten des Originals.
       const at = new Date(e.occurredAt);
       at.setDate(at.getDate() + days);
-      const shifted = { ...when, at: at.getTime() > Date.now() ? when.at : at };
-      await insertEvent(db, target, shifted, {
-        foodId: e.foodId,
-        recipeVersionId: e.recipeVersionId,
-        name: e.name,
-        brand: e.brand,
-        amount: e.amount,
-        unit: e.unit,
-        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
-        caffeineMg: e.caffeineMg,
-        micros: parseMicros(e.microsJson),
-      });
+      const planned = when.diaryDate > localDay(new Date(), when.timeZone);
+      const shifted = { ...when, at: !planned && at.getTime() > Date.now() ? when.at : at };
+      await insertCopy(db, e, target, shifted);
     }
   });
   return source.length;
@@ -484,17 +478,20 @@ export function getEvent(db: Db, id: string) {
  * Ändert Menge, Mahlzeit oder Tag eines Eintrags in einer Anweisung (TIME-006).
  * Nährwerte werden aus dem eigenen Schnappschuss hochgerechnet, nicht neu aus dem Katalog.
  */
-export async function updateEvent(db: Db, id: string, change: { amount: number; meal: Meal | null; diaryDate: string }) {
+export async function updateEvent(db: Db, id: string, change: { amount: number; meal: Meal | null; diaryDate: string; occurredAt?: Date }) {
   const event = await getEvent(db, id);
   if (!event) throw new Error('event not found');
   const factor = change.amount / event.amount;
   const scale = (v: number | null) => (v === null ? null : v * factor);
+  // Uhrzeit (B1, W6): neu gesetzt oder beim Tageswechsel mit gleicher Uhrzeit auf den neuen Tag verschoben.
+  const at = change.occurredAt ?? (change.diaryDate !== event.diaryDate ? shiftToDay(event.occurredAt, event.diaryDate, change.diaryDate) : null);
   await db.runAsync(
-    `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, kcal = ?, protein = ?, carbs = ?, fat = ?, fiber = ?,
-     sugar = ?, sat_fat = ?, salt = ?, caffeine_mg = ?, micros = ? WHERE id = ?`,
+    `UPDATE consumption_event SET amount = ?, meal = ?, diary_date = ?, occurred_at_utc = COALESCE(?, occurred_at_utc), kcal = ?,
+     protein = ?, carbs = ?, fat = ?, fiber = ?, sugar = ?, sat_fat = ?, salt = ?, caffeine_mg = ?, micros = ? WHERE id = ?`,
     change.amount,
     event.kind === 'essen' ? change.meal : null,
     change.diaryDate,
+    at ? at.toISOString() : null,
     scale(event.kcal),
     scale(event.protein),
     scale(event.carbs),
@@ -521,21 +518,79 @@ export async function copyMeal(db: Db, fromDate: string, meal: Meal, when: When,
     meal
   );
   await db.withTransactionAsync(async () => {
-    for (const e of source) {
-      await insertEvent(db, { kind: 'essen', meal: toMeal }, when, {
-        foodId: e.foodId,
-        recipeVersionId: e.recipeVersionId,
-        name: e.name,
-        brand: e.brand,
-        amount: e.amount,
-        unit: e.unit,
-        nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
-        caffeineMg: e.caffeineMg,
-        micros: parseMicros(e.microsJson),
-      });
-    }
+    for (const e of source) await insertCopy(db, e, { kind: 'essen', meal: toMeal }, when);
   });
   return source.length;
+}
+
+/** Ziel eines kopierten Eintrags: gleiche Mahlzeit bzw. gleiche Getränkeart. */
+const targetOf = (e: ConsumptionEvent, meal?: Meal): Target =>
+  e.kind === 'essen' ? { kind: 'essen', meal: meal ?? e.meal ?? 'snack' } : { kind: 'getraenk', drinkType: e.drinkType ?? 'sonstiges' };
+
+/** Kopie eines Eintrags mit seinem Schnappschuss (kein neues Nachschlagen im Katalog). */
+function insertCopy(db: Db, e: ConsumptionEvent, target: Target, when: When) {
+  return insertEvent(db, target, when, {
+    foodId: e.foodId,
+    recipeVersionId: e.recipeVersionId,
+    name: e.name,
+    brand: e.brand,
+    amount: e.amount,
+    unit: e.unit,
+    nutrients: { kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat, fiber: e.fiber, sugar: e.sugar, satFat: e.satFat, salt: e.salt },
+    caffeineMg: e.caffeineMg,
+    micros: parseMicros(e.microsJson),
+  });
+}
+
+/**
+ * Kopiert Einträge auf mehrere Tage (B1, W5) – auch in die Zukunft. Jede Kopie behält Mahlzeit, Menge, Schnappschuss und
+ * Uhrzeit (auf den Zieltag verschoben). Einträge an Tagen nach heute sind „geplant“ und zählen erst am Tag selbst: Alle
+ * Auswertungen (Woche, Check-in, Verbrauchsschätzung, Bericht) lesen nur Tage bis heute bzw. gestern.
+ * Alles in einer Transaktion. Gibt die Zahl der neuen Einträge zurück.
+ */
+export async function copyEventsToDays(db: Db, eventIds: readonly string[], days: readonly string[], timeZone: string) {
+  const source: ConsumptionEvent[] = [];
+  for (const id of eventIds) {
+    const e = await getEvent(db, id);
+    if (e) source.push(e);
+  }
+  if (source.length === 0) return 0;
+  let count = 0;
+  await db.withTransactionAsync(async () => {
+    for (const e of source) {
+      for (const day of copyTargets(e.diaryDate, days)) {
+        await insertCopy(db, e, targetOf(e), { diaryDate: day, at: shiftToDay(e.occurredAt, e.diaryDate, day), timeZone });
+        count++;
+      }
+    }
+  });
+  return count;
+}
+
+/** Mehrfachauswahl in der Suche (B1, W5): mehrere Lebensmittel auf einmal, in einer Transaktion. */
+export async function logFoods(db: Db, items: readonly { foodId: string; amount: number }[], target: Target, when: When) {
+  const ids: string[] = [];
+  await db.withTransactionAsync(async () => {
+    for (const item of items) ids.push(await logFood(db, item.foodId, item.amount, target, when));
+  });
+  return ids;
+}
+
+/** Tage und Mahlzeiten mit mindestens einem Eintrag („Tag|Mahlzeit“), z. B. für Mahlzeit-Erinnerungen (W4). */
+export async function loggedMeals(db: Db, fromDay: string, toDay: string): Promise<Set<string>> {
+  const rows = await db.getAllAsync<{ day: string; meal: Meal }>(
+    `SELECT DISTINCT diary_date AS day, meal FROM consumption_event WHERE kind = 'essen' AND meal IS NOT NULL AND diary_date BETWEEN ? AND ?`,
+    fromDay,
+    toDay
+  );
+  return new Set(rows.map((r) => `${r.day}|${r.meal}`));
+}
+
+/** Zuletzt genutzte Koffein-Getränke der Schnellwahl (B1, O5), neueste zuerst. */
+export const loadRecentDrinks = (db: Db) => readState<string[]>(db, 'recent_drinks', []);
+
+export async function rememberDrink(db: Db, id: string) {
+  await writeState(db, 'recent_drinks', pushRecent(await loadRecentDrinks(db), id));
 }
 
 /** Summen pro Tag für die Wochenansicht. */
