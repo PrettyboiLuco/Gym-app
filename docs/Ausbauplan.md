@@ -469,6 +469,31 @@ Einfügen der Zutaten.
 
 ---
 
+## B2 – Ziele und Nährstoffe (03.11.2026)
+
+Aus dem Wettbewerbsvergleich (`docs/Review_2026-11-03.md`, Abschnitt 4: W1, W2, W3, W7). Keine Migration: Einstellungen
+im App-Zustand (`targets_settings`, kommt mit der Sicherung mit). Neue Regeln versioniert, Fachprüfung offen
+(Mappe Abschnitt M).
+
+| # | Schritt | Stand |
+|---|---|---|
+| W1 | **Wochenbudget**: Kalorienziel als Wochensumme, Verteilung „wie Ziel“ / Wochenende höher / Trainingstage höher / eigene Anteile; wahlweise Übertrag aus vollständig erfassten Tagen (±300 kcal je Tag, nie unter max(1200, Ruheenergie)); Tagesübersicht „Wochenbudget: x von y kcal“, Ring-Ziel = Tagesziel aus dem Budget (`BUDGET_RULES_VERSION` 1) | gebaut |
+| W2 | **Vitamin-/Mineralstoff-Ziele** (DGE/EFSA, vorläufig) als Balken mit Untergrenze/Ziel/Obergrenze im Vitamin-Fenster und auf eigenem Bildschirm; bis 3 Nährstoffe anheften (Tagesübersicht); Top-Quellen heute und aus der Lebensmittel-Liste; Hinweis „nur erfasste Lebensmittel, fehlende Werte ≠ 0“ (`MICRO_TARGETS_VERSION` 1) | gebaut |
+| W3 | **„Was fehlt mir heute?“**: Lücken (Eiweiß, Ballaststoffe, angeheftete Nährstoffe), Vorschläge aus Grundnahrungsmitteln und Favoriten mit Portion, nie über die übrigen kcal, Eintragen per Tipp; **Nährstoff-Suche** je 100 g/ml oder je 100 kcal (`GAP_RULES_VERSION` 1) | gebaut |
+| W7 | **Ernährungsform**: Ausgewogen, Eiweißreich, Low-Carb, Keto, Low-Fat als Makro-Voreinstellung (Eiweiß aus dem Coach bleibt); Netto-Kohlenhydrate bei Low-Carb/Keto in der Tagesübersicht; neutraler Hinweis; bei sensibler Situation kein Low-Carb/Keto (`DIET_RULES_VERSION` 1) | gebaut |
+
+**Wichtig – Netto-Kohlenhydrate:** Die App speichert Kohlenhydrate wie EU-Etiketten, also schon ohne Ballaststoffe
+(Grundnahrungsmittel beim Einspielen umgerechnet). „KH − Ballaststoffe“ würde die Ballaststoffe doppelt abziehen; die
+Netto-Anzeige entspricht deshalb den erfassten Kohlenhydraten (Hinweis in der App). `netCarbs(…, 'gesamt')` steht für
+Gesamt-KH-Angaben bereit.
+
+**Fertig, wenn:** Luc eine Woche mit Wochenbudget „Wochenende höher“ und Übertrag führt, die Tagesziele nachvollziehbar
+findet, zwei Nährstoffe anheftet und mindestens einen Vorschlag aus „Was fehlt mir heute?“ einträgt.
+
+Code: `domain/{budget,micro-targets,nutrient-gaps,diet-profile}.ts`, `data/{targets-settings,nutrient-gaps}.ts`,
+`components/target-*.tsx`, `app/nutrition/{budget,diet,micros,nutrient,gaps}.tsx`; Tests `targets-domain`,
+`targets-data`.
+
 ## Offene Entscheidungen von Luc (E1–E5)
 
 | # | Frage | Bericht empfiehlt | Wirkt auf |

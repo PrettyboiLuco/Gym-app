@@ -1,7 +1,7 @@
 // Ziele für Vitamine und Mineralstoffe (Ausbauplan B2, W2): Untergrenze, Ziel und – wo es eine gibt – Obergrenze je
 // Nährstoff aus den Grundnahrungsmitteln (A4). Anzeige als Balken, ohne Bewertung „gut/schlecht“.
 //
-// Quellen – VORLÄUFIG, FACHPRÜFUNG OFFEN (docs/Fachpruefung_Mappe.md, Abschnitt N), Werte für Erwachsene 25 bis unter
+// Quellen – VORLÄUFIG, FACHPRÜFUNG OFFEN (docs/Fachpruefung_Mappe.md, Abschnitt M.2), Werte für Erwachsene 25 bis unter
 // 51 Jahre:
 // - Ziel: DGE-Referenzwerte für die Nährstoffzufuhr (Deutsche Gesellschaft für Ernährung, Online-Ausgabe, Stand der
 //   jeweiligen Überarbeitung: Calcium 2013, Eisen 2023, Magnesium 2021, Kalium 2017, Zink 2019 bei mittlerer

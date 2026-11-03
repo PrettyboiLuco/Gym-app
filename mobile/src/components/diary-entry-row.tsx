@@ -34,6 +34,8 @@ const PULSE = { inMs: 140, holdMs: 260, outMs: 900, opacity: 0.32 } as const;
 
 // Layout-Animationen nur nativ (im Web wie beim Training ohne).
 const NATIVE = Platform.OS !== 'web';
+// Im Browser: senkrecht scrollt die Seite, waagrecht gehört die Bewegung der Zeile (sonst bricht der Browser sie ab).
+const WEB_PAN_Y = NATIVE ? null : ({ touchAction: 'pan-y' } as object);
 
 export function DiaryEntryRow({
   title,
@@ -116,6 +118,8 @@ export function DiaryEntryRow({
 
   const slide = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   const glow = useAnimatedStyle(() => ({ opacity: pulse.value * PULSE.opacity }));
+  // Löschfläche nur beim Wischen zeigen (sonst schimmert das Rot an den Kanten durch).
+  const reveal = useAnimatedStyle(() => ({ opacity: x.value < -1 ? 1 : 0 }));
   const animate = NATIVE && !reduced;
 
   return (
@@ -126,14 +130,14 @@ export function DiaryEntryRow({
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       style={styles.clip}
       accessible={false}>
-      <View style={[styles.action, { backgroundColor: theme.danger }]}>
+      <Animated.View style={[styles.action, { backgroundColor: theme.danger }, reveal]}>
         <Pressable accessibilityRole="button" accessibilityLabel={`${t('common.delete')} ${title}`} onPress={swipeAway} style={styles.actionButton}>
           <Icon name="trash" color={theme.onDanger} size={20} />
         </Pressable>
-      </View>
+      </Animated.View>
       <Animated.View
         {...gesture}
-        style={[{ backgroundColor: theme.backgroundElement }, slide]}
+        style={[{ backgroundColor: theme.backgroundElement }, WEB_PAN_Y, slide]}
         accessibilityActions={[{ name: 'delete', label: t('common.delete') }]}
         onAccessibilityAction={(e) => {
           if (e.nativeEvent.actionName === 'delete') remove();
@@ -154,7 +158,7 @@ export function DiaryEntryRow({
 }
 
 const styles = StyleSheet.create({
-  clip: { overflow: 'hidden', borderRadius: 12 },
+  clip: { overflow: 'hidden' },
   action: { ...StyleSheet.absoluteFill, flexDirection: 'row', justifyContent: 'flex-end' },
   actionButton: { width: ACTION_WIDTH, alignItems: 'center', justifyContent: 'center' },
   glow: { borderRadius: 12 },

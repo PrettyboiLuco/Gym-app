@@ -265,7 +265,9 @@ function MicrosSheet({
             </ThemedText>
           ) : null}
           <ThemedText type="small" themeColor="textSecondary">
-            {withTargets ? t('micros.openHint', { known: micros.known, total: micros.total }) : t('micros.coverage', { known: micros.known, total: micros.total })}
+            {withTargets
+              ? t('micros.openHint', { known: micros.known, total: micros.total })
+              : t('micros.coverage', { known: micros.known, total: micros.total })}
           </ThemedText>
           {withTargets ? (
             <>

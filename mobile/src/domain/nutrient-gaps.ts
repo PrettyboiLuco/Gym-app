@@ -1,6 +1,6 @@
 // „Was fehlt mir heute?“ und Nährstoff-Suche (Ausbauplan B2, W3). Vorschläge aus Grundnahrungsmitteln und eigenen
 // Favoriten – ohne Bewertung von Lebensmitteln, nur nach Nährstoff je Menge. Vorläufig, Fachprüfung offen
-// (docs/Fachpruefung_Mappe.md, Abschnitt P).
+// (docs/Fachpruefung_Mappe.md, Abschnitt M.4).
 //
 // Regeln Fassung 1 (03.11.2026):
 // - Offene Lücke: Eiweiß ab 10 g, Ballaststoffe ab 5 g unter dem Tagesziel; angeheftete Vitamine/Mineralstoffe, wenn

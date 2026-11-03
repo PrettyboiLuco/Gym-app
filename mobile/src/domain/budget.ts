@@ -1,5 +1,5 @@
 // Wochenbudget für Kalorien (Ausbauplan B2, W1). Ohne KI: feste, prüfbare Regeln; vorläufig, Fachprüfung offen
-// (docs/Fachpruefung_Mappe.md, Abschnitt M).
+// (docs/Fachpruefung_Mappe.md, Abschnitt M.1).
 //
 // Regeln Fassung 1 (03.11.2026):
 // - Wochenbudget = Summe der Tagesziele Montag–Sonntag (Kalorienziel je Tag, mit Trainings-/Ruhetag des Coachs). Tage

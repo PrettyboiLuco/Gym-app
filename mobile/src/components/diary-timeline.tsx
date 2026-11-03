@@ -17,7 +17,7 @@ import { formatAmount, formatClock, formatKcal } from '@/services/nutrition-form
 export function windowLine(events: readonly ConsumptionEvent[]): string | null {
   const w = eatingWindow(events);
   if (!w) return null;
-  if (w.count === 1) return t('diary.timeline.single', { at: formatClock(w.firstAt) });
+  if (w.count === 1 || w.firstAt === w.lastAt) return t('diary.timeline.single', { at: formatClock(w.firstAt) });
   return t('diary.timeline.window', { first: formatClock(w.firstAt), last: formatClock(w.lastAt), hours: formatNumber(w.hours, 1) });
 }
 

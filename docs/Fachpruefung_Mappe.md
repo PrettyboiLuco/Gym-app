@@ -205,6 +205,62 @@ nicht zu verwechseln mit der geltenden Steigerungs-Fassung 2 aus Abschnitt E),
 | L3 | Geschätztes 1RM | Epley: Gewicht × (1 + Wdh./30), nur bis 12 Wiederholungen, Aufwärmsätze zählen nicht | Formel und Grenze freigeben? | | nur Anzeige |
 | L4 | Aufwärmsätze | ab 2× Stangengewicht: 50 % × 8, 70 % × 5, 85 % × 3; darunter 50 % × 8, 75 % × 4; auf den kleinsten Schritt gerundet | Freigeben? | | nur auf Wunsch eingefügt |
 
+## M. Ziele und Nährstoffe (Ausbauplan B2, 03.11.2026)
+
+Alles freiwillig (Standard aus bzw. „Ausgewogen“), offline, ohne Bewertung von Lebensmitteln. Bei sensibler Situation
+oder „Zahlen ausblenden“ keine Zahlen, kein Wochenbudget, keine Vorschläge; Low-Carb und Keto werden dann nicht
+angeboten. Hinweistexte in der App: `targets.rulesVersion`, `targets.micros.sources`.
+
+### M.1 Wochenbudget – `mobile/src/domain/budget.ts` (Fassung 1, `BUDGET_RULES_VERSION`)
+
+| ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| M1 | Wochensumme | Summe der Tagesziele Mo–So (inkl. Trainings-/Ruhetag des Coachs); Tage ohne Ziel rechnen mit dem nächsten bekannten | Freigeben? | | |
+| M2 | Verteilung | „wie Ziel“ · Sa/So je +15 % · Trainingstage +10 % · eigene Anteile 70–140 % je Tag; Summe bleibt gleich (10-kcal-Rundung) | Spannweite 70–140 % vertretbar? | | |
+| M3 | Untergrenze | kein Tag unter max(1200, Ruheenergie); fehlende kcal tragen die übrigen Tage anteilig | Freigeben? | | wie A7 |
+| M4 | Übertrag | Plan − Gegessenes der vollständig erfassten Vortage der Woche, gleichmäßig auf heute und die restlichen Tage, höchstens ±300 kcal je Tag, nie unter die Untergrenze; leere/unvollständige Tage zählen nicht | Deckel ±300 kcal passend? Übertrag nach oben (mehr essen) begrenzen? | | nur wenn eingeschaltet |
+
+### M.2 Vitamin- und Mineralstoff-Ziele – `mobile/src/domain/micro-targets.ts` (Fassung 1, `MICRO_TARGETS_VERSION`)
+
+Ziel = DGE-Referenzwert (Erwachsene 25 bis < 51 J.), Untergrenze = EFSA Average Requirement, Obergrenze = EFSA UL.
+Auswahl nach Formel-Term (+5 / −161), ohne Angabe der höhere Wert. Werte je Formel-Term (+5 / −161):
+
+| ID | Nährstoff | Untergrenze | Ziel | Obergrenze | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|---|---|
+| M5 | Calcium (mg) | 750 | 1000 | 2500 | Werte bestätigen | | |
+| M6 | Eisen (mg) | 6 / 7 | 11 / 16 | 40 („sichere Menge“ EFSA 2024) | 16 mg auch nach der Menopause (DGE dort 14)? Obergrenze 40 so nennen? | | Alter wird nicht berücksichtigt |
+| M7 | Magnesium (mg) | – | 350 / 300 | – (UL nur für Ergänzungen) | Freigeben? | | |
+| M8 | Kalium (mg) | – | 4000 | – | Freigeben? | | |
+| M9 | Zink (mg) | 9,3 / 7,6 (600 mg Phytat) | 14 / 8 (mittlere Phytatzufuhr) | 25 | Phytat-Stufe passend? | | |
+| M10 | Vitamin C (mg) | 90 / 80 | 110 / 95 | – | Freigeben? | | |
+| M11 | Vitamin D (µg) | – | 20 (ohne Eigensynthese) | 100 | Ziel aus Lebensmitteln kaum erreichbar – Hinweis nötig? | | |
+| M12 | Vitamin B12 (µg) | – | 4 | – | Freigeben? | | |
+| M13 | Folat (µg) | 250 | 300 | – (UL nur für Folsäure) | Freigeben? | | |
+| M14 | Vitamin A (µg RAE) | 570 / 490 | 850 / 700 | – (UL nur vorgeformtes Retinol, Daten trennen das nicht) | Ohne Obergrenze vertretbar? | | |
+| M15 | Vitamin E (mg) | – | 14 / 12 | 300 | Freigeben? | | |
+| M16 | Anzeige | Balken mit Marken, Text „unter der Untergrenze / unter dem Ziel / Ziel erreicht / über der Obergrenze“; nur erfasste Einträge mit Angabe, fehlende Werte ≠ 0; höchstens 3 angeheftet | Formulierungen freigeben? | | keine Bewertung |
+
+### M.3 Ernährungsformen – `mobile/src/domain/diet-profile.ts` (Fassung 1, `DIET_RULES_VERSION`)
+
+| ID | Form | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| M17 | Ausgewogen (Standard) | Makros des Coachs unverändert; anderes Tagesziel (Wochenbudget) nur über Kohlenhydrate | Freigeben? | | |
+| M18 | Eiweißreich | Eiweiß ≥ 30 % der kcal, höchstens 2,5 g/kg, nie unter Coach-Wert; Fett 30 %; Rest KH | Freigeben? | | |
+| M19 | Low-Carb | KH ≤ 20 % der kcal und ≤ 130 g (Feinman u. a. 2015: < 26 % bzw. < 130 g); Eiweiß wie Coach; Rest Fett | Grenzen freigeben? | | |
+| M20 | Keto | KH 30 g (Spanne 20–50 g); Eiweiß wie Coach; Rest Fett | Wert freigeben? Zusätzliche Hinweise nötig? | | neutraler Hinweis „Medikamente/Erkrankung → ärztlich besprechen“ |
+| M21 | Low-Fat | Fett 20 % (Untergrenze wie B4); Rest KH | Freigeben? | | |
+| M22 | Netto-Kohlenhydrate | KH ohne Ballaststoffe; die App speichert KH nach EU-Etikett (ohne Ballaststoffe), daher kein zweiter Abzug | Darstellung freigeben? | | |
+| M23 | Sensible Situation | Low-Carb und Keto nicht angeboten, gespeicherte Wahl gilt als „Ausgewogen“ | Weitere Formen sperren? | | |
+
+### M.4 „Was fehlt mir heute?“ – `mobile/src/domain/nutrient-gaps.ts` (Fassung 1, `GAP_RULES_VERSION`)
+
+| ID | Regel | Aktueller Wert | Frage an die Fachperson | Entscheidung | Anmerkung |
+|---|---|---|---|---|---|
+| M24 | Lücke | Eiweiß ≥ 10 g, Ballaststoffe ≥ 5 g unter Ziel; angeheftete Mikronährstoffe < 90 % des Ziels | Schwellen freigeben? | | |
+| M25 | Kandidaten | Grundnahrungsmittel ohne Getränke, Süßes/Snacks, Fette/Öle, Aufstriche/Saucen, Backzutaten, Würzmengen (< 10 g); alle Favoriten; Ernährungsweise/Allergien aus den Einstellungen | Ausschlüsse passend? | | |
+| M26 | Menge | kleinste Portion, die die Hauptlücke schließt (kleine Portionen bis 3 Stück, max. 400 g), sonst die übliche Portion; nie über die übrigen kcal | Freigeben? | | |
+| M27 | Reihenfolge | Anteil geschlossener Lücken (Eiweiß/Ballaststoffe ×1, Mikros ×0,5, je max. 100 %) ÷ (kcal + 100); min. 20 % einer Lücke; Favoriten ×1,2; max. 2 je Gruppe | Freigeben? | | keine Lebensmittel-Bewertung |
+
 ---
 
 ## Freigabe
@@ -212,11 +268,11 @@ nicht zu verwechseln mit der geltenden Steigerungs-Fassung 2 aus Abschnitt E),
 | | |
 |---|---|
 | Name, Qualifikation | |
-| Geprüfte Regelfassungen | Coach 2 · Check-in 1 · Steigerung 2 (RIR-Variante vorbereitet) · Bereitschaft 1 · Energiebedarf 2 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 |
+| Geprüfte Regelfassungen | Coach 2 · Check-in 1 · Steigerung 2 (RIR-Variante vorbereitet) · Bereitschaft 1 · Energiebedarf 2 / Check-in 2 · Deload 1 · Vorlagen/Dehnen/HIIT Stand 30.10.2026 · Wochenbudget 1 · Mikro-Ziele 1 · Ernährungsformen 1 · Lücken 1 |
 | Geltungsbereich | gesunde Erwachsene 18+ (Kalorien 19–78 J.), Ausschlüsse siehe G2 |
 | Datum, Unterschrift | |
 
 Nach der Freigabe: Werte im Code anpassen, Regelfassungen erhöhen, Hinweise „noch nicht fachlich geprüft“ in der
 App (`calculator.intro`, `coach.resultHint`, `checkin.rules`, `hiit.note`, `help.q.fachlichGeprueft`, `readiness.disclaimer`,
-`adaptive.hint`, `deload.hint`, `learn.articles.deload.body`) sowie `PROGRESSION_V2_ENABLED`, die Standardregel des Check-ins (Fassung 1/2) und die
+`adaptive.hint`, `deload.hint`, `learn.articles.deload.body`, `targets.rulesVersion`, `targets.micros.sources`) sowie `PROGRESSION_V2_ENABLED`, die Standardregel des Check-ins (Fassung 1/2) und die
 Prüfregel `geprueft` in `domain/claims.ts` auf den neuen Stand bringen, Register-Einträge auf „freigegeben“ setzen.

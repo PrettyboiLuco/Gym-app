@@ -292,6 +292,10 @@ export default function SessionScreen() {
     }
   }
 
+  useEffect(() => {
+    console.warn('DBG ref', !!scrollRef.current, typeof scrollRef.current?.getInnerViewRef);
+  });
+
   async function removeSet(row: SetRow) {
     if (hold !== null) return;
     await deleteOpenSet(db, row.id);
@@ -626,7 +630,10 @@ export default function SessionScreen() {
   return (
     <Screen
       withHeader
-      scrollRef={scrollRef}
+      scrollRef={(n) => {
+        console.warn("DBG cb", !!n);
+        scrollRef.current = n;
+      }}
       subtitle={t('session.progress', { done: doneCount, total: sets.length })}
       footer={
         active ? (

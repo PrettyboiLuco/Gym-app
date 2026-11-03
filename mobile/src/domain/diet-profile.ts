@@ -1,5 +1,5 @@
 // Ernährungsformen als Makro-Voreinstellung (Ausbauplan B2, W7). Vorläufig, Fachprüfung offen
-// (docs/Fachpruefung_Mappe.md, Abschnitt O). Keine Empfehlung für eine Form – die Wahl trifft die Person.
+// (docs/Fachpruefung_Mappe.md, Abschnitt M.3). Keine Empfehlung für eine Form – die Wahl trifft die Person.
 //
 // Regeln Fassung 1 (03.11.2026), immer für das Kalorienziel des Tages:
 // - Ausgewogen (Standard): Makros des Coachs unverändert (Standard, Lean oder eigene Werte); ein anderes Tagesziel
