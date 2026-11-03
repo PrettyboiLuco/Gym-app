@@ -1,17 +1,17 @@
 // Trainingswoche Mo–So für „Heute“ und den Abschluss-Bildschirm: eine Quelle für Punkte und Zusammenfassung.
 
-import { daysBetween, shiftDay, weekStart } from '@/domain/dates';
+import { daysBetween, isoWeekday, shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
 import { tallyMuscles, type MuscleTally } from '@/domain/muscle-map';
 import { plannedSetsByWeekday, trainedDays } from '@/domain/summary';
 import { localDay, timeZone } from '@/domain/time';
-import { nextDayIndex } from '@/domain/training';
+import { nextDayIndex, taggedWeekdays, todayPlan, type TodayPlan } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
-import { lastCompletedDayPosition, listActivePlans, listExercises, listSessions } from './training';
+import { lastCompletedDayPosition, listActivePlans, listExercises, listSessions, type PlanSummary } from './training';
 
 export type TrainingWeek = {
   done: boolean[];
@@ -23,8 +23,31 @@ export type TrainingWeek = {
   plannedSets: number[];
 };
 
+/** Gespeicherte Trainingstage (ISO 1 = Montag): aus dem Coach, sonst die bevorzugten Tage (Planassistent, Plan-Datei). */
+async function savedWeekdays(db: Db): Promise<number[]> {
+  const [setup, preferred] = await Promise.all([loadCoachSetup(db), readState<number[]>(db, 'preferred_weekdays', [])]);
+  return setup?.trainingWeekdays?.length ? setup.trainingWeekdays : preferred;
+}
+
+/**
+ * Was steht heute an (aktiver Plan)? Training mit Plantag oder Ruhetag mit dem nächsten Plantag – nach Wochentagen im
+ * Namen der Plantage oder den gespeicherten Trainingstagen (domain/training todayPlan). null ohne Plan mit Tagen.
+ */
+export async function loadTodayPlan(db: Db, today: string): Promise<{ plan: PlanSummary; today: TodayPlan; dayIndex: number } | null> {
+  const plan = (await listActivePlans(db)).find((p) => p.days.length > 0);
+  if (!plan) return null;
+  const rotation = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
+  const result = todayPlan(
+    plan.days.map((d) => d.name),
+    await savedWeekdays(db),
+    isoWeekday(today),
+    rotation
+  );
+  return { plan, today: result, dayIndex: result.kind === 'training' ? result.index : result.nextIndex };
+}
+
 export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingWeek> {
-  const [sessions, setup, preferred] = await Promise.all([listSessions(db, 30), loadCoachSetup(db), readState<number[]>(db, 'preferred_weekdays', [])]);
+  const [sessions, setup, saved] = await Promise.all([listSessions(db, 30), loadCoachSetup(db), savedWeekdays(db)]);
   const monday = weekStart(today);
   const cardio = await cardioMinutesByDay(db, monday);
   const days = [
@@ -32,8 +55,12 @@ export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingW
     // Cardio für sich zählt als Trainingstag (A2).
     ...cardio.map((c) => c.day),
   ];
-  // Geplante Trainingstage aus dem Coach, sonst die bevorzugten Tage aus dem Planassistenten (A8.3); ISO 1 = Montag.
-  const planned = Array.from({ length: 7 }, (_, i) => (setup?.trainingWeekdays?.length ? setup.trainingWeekdays : preferred).includes(i + 1));
+  // Geplante Trainingstage: Wochentage in den Namen der Plantage („Push (So)“), sonst aus dem Coach bzw. die bevorzugten
+  // Tage aus dem Planassistenten (A8.3); ISO 1 = Montag.
+  const plan = (await listActivePlans(db)).find((p) => p.days.length > 0);
+  const tags = plan ? taggedWeekdays(plan.days.map((d) => d.name)) : null;
+  const weekdays = tags ? tags.filter((t): t is number => t !== null) : saved;
+  const planned = Array.from({ length: 7 }, (_, i) => weekdays.includes(i + 1));
   const todayIndex = trainedDays([today], monday).indexOf(true);
   return {
     done: trainedDays(days, monday),
@@ -67,6 +94,15 @@ async function plannedSets(db: Db, planned: boolean[], todayIndex: number): Prom
   const sets = await Promise.all(
     plan.days.map(async (d) => (await db.getFirstAsync<{ n: number | null }>('SELECT SUM(sets) AS n FROM plan_item WHERE plan_day_id = ?', d.id))?.n ?? 0)
   );
+  // Plantage mit Wochentag im Namen: jeder Tag an seinem Wochentag.
+  const tags = taggedWeekdays(plan.days.map((d) => d.name));
+  if (tags) {
+    const out = Array.from({ length: 7 }, () => 0);
+    tags.forEach((wd, i) => {
+      if (wd !== null) out[wd - 1] += sets[i];
+    });
+    return out;
+  }
   const next = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
   return plannedSetsByWeekday(planned, todayIndex, sets, next);
 }

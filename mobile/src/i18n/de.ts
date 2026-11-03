@@ -130,6 +130,8 @@ export const de = {
     hiitTitle: 'HIIT',
     timedContinue: 'Fortsetzen',
     weekTitle: 'Diese Woche',
+    trainAnyway: 'Trotzdem trainieren',
+    nextUp: 'Als Nächstes',
     statsShort: 'Statistik',
     statDays: 'Tage',
     statCardio: 'Cardio',

@@ -15,15 +15,14 @@ import { loadMotivation } from '@/data/motivation';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { loadSpared, readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
-import { expireTemporaryPlans, getActiveSession, lastCompletedDayPosition, listActivePlans, type SessionInfo } from '@/data/training';
-import { loadMapPrefs, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
+import { expireTemporaryPlans, getActiveSession, listActivePlans, type SessionInfo } from '@/data/training';
+import { loadMapPrefs, loadTodayPlan, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
 import type { MuscleGroup } from '@/domain/exercises';
 import type { Milestone } from '@/domain/motivation';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
-import { nextDayIndex } from '@/domain/training';
 import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
@@ -72,12 +71,13 @@ async function loadToday(db: Db) {
   };
   let next: { plan: string; day: string } | null = null;
   let muscles: Partial<Record<MuscleGroup, number>> | null = null;
-  const plan = plans.find((p) => p.days.length > 0);
-  if (plan) {
-    const index = nextDayIndex(plan.days.length, await lastCompletedDayPosition(db, plan.planId));
-    next = { plan: plan.name, day: plan.days[index].name };
-    // Muskeln des heutigen Plantags für die kleine Karte (U4).
-    muscles = await plannedMuscles(db, plan.days[index].id);
+  // Training oder Ruhetag nach Wochentagen im Plan bzw. den gespeicherten Trainingstagen (nicht einfach „nächster Plantag“).
+  const planToday = plans.some((p) => p.days.length > 0) ? await loadTodayPlan(db, today) : null;
+  if (planToday) {
+    const { plan, dayIndex } = planToday;
+    next = { plan: plan.name, day: plan.days[dayIndex].name };
+    // Muskeln des heutigen (bzw. nächsten) Plantags für die kleine Karte (U4).
+    muscles = await plannedMuscles(db, plan.days[dayIndex].id);
   }
   const coach: CoachTodayData = {
     setUp: setup !== null,
@@ -101,7 +101,7 @@ async function loadToday(db: Db) {
     checkin,
     coach,
     openSetup,
-    restDay: goal?.trainingDay === false,
+    restDay: planToday?.today.kind === 'rest' || goal?.trainingDay === false,
     week: trainingWeek,
     ready,
     spared,

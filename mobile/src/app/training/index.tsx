@@ -26,7 +26,7 @@ import {
   type PlanSummary,
 } from '@/data/training';
 import { activeEquipment, deloadOffer, saveDeloadState, startDeload, type DeloadState } from '@/data/training-stats';
-import { loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
+import { loadTodayPlan, loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
 import { shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
 import { EQUIPMENT } from '@/domain/exercises';
@@ -53,6 +53,8 @@ async function loadOverview(db: Db) {
   ]);
   const muscles = await loadWeekSetsByMuscle(db, todayDay());
   const deload = await deloadOffer(db, todayDay());
+  // Training oder Ruhetag laut Plan (Wochentage im Namen bzw. gespeicherte Trainingstage).
+  const planToday = await loadTodayPlan(db, todayDay());
   const equipment = await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT]);
   // Cardio dieser Woche (A2): Minuten und die letzten Einträge.
   const monday = weekStart(todayDay());
@@ -82,6 +84,7 @@ async function loadOverview(db: Db) {
     cardioOpen,
     deload,
     equipmentProfile: equipment.profile,
+    planToday,
   };
 }
 
@@ -103,6 +106,7 @@ export default function TrainingScreen() {
     cardioOpen: [] as CardioEntry[],
     deload: { due: false, weeks: 0, state: { intervalWeeks: 8, lastEnd: null, snoozedUntil: null } as DeloadState },
     equipmentProfile: { id: 'studio', name: 'Studio', equipment: [] as EquipmentProfile['equipment'] },
+    planToday: null as Awaited<ReturnType<typeof loadTodayPlan>>,
   });
   const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
   const dark = useColorScheme() === 'dark';
@@ -114,8 +118,9 @@ export default function TrainingScreen() {
   }
 
   // Leitfrage: „Was trainiere ich jetzt?“ – der Vorschlag ist der größte Block, ein Tipp startet ihn.
-  const plan = plans.find((p) => p.days.length > 0);
-  const suggestedDay = plan ? plan.days[suggestions[plan.planId] ?? 0] : null;
+  const plan = data.planToday?.plan ?? plans.find((p) => p.days.length > 0);
+  const suggestedDay = data.planToday ? data.planToday.plan.days[data.planToday.dayIndex] : plan ? plan.days[suggestions[plan.planId] ?? 0] : null;
+  const restDay = data.planToday?.today.kind === 'rest';
   const days = weekDays(week);
   const doneDays = week.done.filter(Boolean).length;
   const weekSummary = week.goal ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal }) : t('today.weekSummary', { count: doneDays });
@@ -129,15 +134,24 @@ export default function TrainingScreen() {
           action: t('training.continue'),
           go: () => router.push(`/training/session/${active.id}`),
         }
-      : plan && suggestedDay
-        ? { label: t('training.suggested'), title: suggestedDay.name, meta: plan.name, action: t('training.startTitle'), go: () => start(suggestedDay.id) }
-        : {
-            label: t('today.heroNoPlanEyebrow'),
-            title: t('today.heroNoPlanTitle'),
-            meta: t('today.heroNoPlanText'),
-            action: t('training.newPlan'),
-            go: () => router.push('/training/plan/neu'),
-          };
+      : plan && suggestedDay && restDay
+        ? {
+            // Ruhetag laut Plan: kein Training vorschlagen, nur zeigen, was als Nächstes kommt – trainieren geht trotzdem.
+            label: t('today.heroRest'),
+            title: t('today.heroRestTitle'),
+            meta: t('today.heroRestNext', { day: suggestedDay.name }),
+            action: t('training.trainAnyway'),
+            go: () => start(suggestedDay.id),
+          }
+        : plan && suggestedDay
+          ? { label: t('training.suggested'), title: suggestedDay.name, meta: plan.name, action: t('training.startTitle'), go: () => start(suggestedDay.id) }
+          : {
+              label: t('today.heroNoPlanEyebrow'),
+              title: t('today.heroNoPlanTitle'),
+              meta: t('today.heroNoPlanText'),
+              action: t('training.newPlan'),
+              go: () => router.push('/training/plan/neu'),
+            };
   const subtitle =
     active || timed ? undefined : hasFinished ? (pauseDays === 0 ? t('training.lastToday') : t('training.lastDays', { count: pauseDays })) : undefined;
 
@@ -221,7 +235,7 @@ export default function TrainingScreen() {
                   key: day.id,
                   title: day.name,
                   meta: p.name,
-                  badge: suggestedDay?.id === day.id ? t('training.suggested') : undefined,
+                  badge: suggestedDay?.id === day.id ? (restDay ? t('training.nextUp') : t('training.suggested')) : undefined,
                   onPress: () => start(day.id),
                 }))
               ),

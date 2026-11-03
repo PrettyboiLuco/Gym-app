@@ -132,6 +132,55 @@ export function nextDayIndex(dayCount: number, lastCompletedIndex: number | null
 }
 
 // ---------------------------------------------------------------------------------------------
+// Was steht heute an? Training oder Ruhetag – nach Wochentagen im Namen der Plantage („Push (So)“) oder nach den
+// gespeicherten Trainingstagen. Ohne beides weiß die App nicht, wann Ruhetag ist, und schlägt den nächsten Plantag vor.
+
+const WEEKDAY_TAGS: Record<string, number> = { mo: 1, di: 2, mi: 3, do: 4, fr: 5, sa: 6, so: 7 };
+
+/** Wochentag aus dem Namen eines Plantags, z. B. „Push (So)“ → 7, „Beine – Fr“ → 5; null, wenn keiner drinsteht. */
+export function weekdayFromName(name: string): number | null {
+  const m = name.toLowerCase().match(/(?:^|[\s(\-–·,/])(mo|di|mi|do|fr|sa|so)\.?(?=$|[\s)\-–·,/:])/);
+  return m ? WEEKDAY_TAGS[m[1]] : null;
+}
+
+/** Wochentage der Plantage aus ihren Namen – nur, wenn (fast) alle einen tragen; sonst null. */
+export function taggedWeekdays(dayNames: readonly string[]): (number | null)[] | null {
+  const tags = dayNames.map(weekdayFromName);
+  return dayNames.length > 0 && tags.filter((t) => t !== null).length >= Math.ceil(dayNames.length * 0.75) ? tags : null;
+}
+
+export type TodayPlan =
+  /** Heute ist Trainingstag: dieser Plantag (Index im Plan). */
+  | { kind: 'training'; index: number }
+  /** Heute ist Ruhetag; als Nächstes dieser Plantag an diesem Wochentag (1 = Montag … 7 = Sonntag). */
+  | { kind: 'rest'; nextIndex: number; nextWeekday: number };
+
+/**
+ * Heute Training oder Ruhetag?
+ * 1. Tragen (fast) alle Plantage einen Wochentag im Namen, gilt der Kalender: der Tag mit dem heutigen Wochentag,
+ *    sonst Ruhetag bis zum nächsten Wochentag im Plan.
+ * 2. Sonst die gespeicherten Trainingstage: heute dabei → nächster Plantag der Reihe nach, sonst Ruhetag.
+ * 3. Ohne Wochentage: immer der nächste Plantag der Reihe nach (die App kennt keine Ruhetage).
+ */
+export function todayPlan(dayNames: readonly string[], trainingWeekdays: readonly number[], todayWeekday: number, rotationIndex: number): TodayPlan {
+  const tags = taggedWeekdays(dayNames);
+  const after = (from: number, wd: number) => (wd - from + 7) % 7 || 7;
+  if (tags) {
+    const todayIdx = tags.indexOf(todayWeekday);
+    if (todayIdx >= 0) return { kind: 'training', index: todayIdx };
+    let best = -1;
+    for (let i = 0; i < tags.length; i++) if (tags[i] !== null && (best < 0 || after(todayWeekday, tags[i]!) < after(todayWeekday, tags[best]!))) best = i;
+    return { kind: 'rest', nextIndex: best, nextWeekday: tags[best]! };
+  }
+  if (trainingWeekdays.length > 0) {
+    if (trainingWeekdays.includes(todayWeekday)) return { kind: 'training', index: rotationIndex };
+    const next = [...trainingWeekdays].sort((a, b) => after(todayWeekday, a) - after(todayWeekday, b))[0];
+    return { kind: 'rest', nextIndex: rotationIndex, nextWeekday: next };
+  }
+  return { kind: 'training', index: rotationIndex };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Pausentimer: Der Zustand ist die Endzeit, nicht ein laufender Zähler. So bleibt er nach dem
 // Schließen der App rekonstruierbar (HEALTH-011). Jede Änderung erhöht die Generation, damit
 // alte Signale ignoriert werden.
