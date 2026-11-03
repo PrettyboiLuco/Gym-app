@@ -81,7 +81,7 @@ export default function ShoppingScreen() {
                   accessibilityLabel={`${i.name}, ${amountText(i)}`}
                   style={styles.item}>
                   <View style={[styles.box, { borderColor: theme.textSecondary, backgroundColor: done ? theme.accent : 'transparent' }]}>
-                    {done ? <ThemedText style={styles.tick}>✓</ThemedText> : null}
+                    {done ? <ThemedText style={[styles.tick, { color: theme.onAccent }]}>✓</ThemedText> : null}
                   </View>
                   <ThemedText style={[styles.flex, done && styles.done]}>{i.name}</ThemedText>
                   <ThemedText type="small" themeColor="textSecondary" style={done ? styles.done : undefined}>
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Spacing.two },
   item: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
   box: { width: 24, height: 24, borderRadius: 6, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  tick: { color: '#000', fontSize: 14, lineHeight: 18 },
+  tick: { fontSize: 14, lineHeight: 18 },
   flex: { flex: 1 },
   done: { textDecorationLine: 'line-through', opacity: 0.55 },
 });

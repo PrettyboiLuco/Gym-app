@@ -1,8 +1,10 @@
+// Lokale Datenbank für die ganze App: öffnen, vorbereiten (Migrationen, Grundnahrungsmittel) und bereitstellen.
+
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import type { ReactNode } from 'react';
 
 import { syncBasisFoods } from '@/data/basis-foods';
-import type { Db } from '@/data/db';
+import { serialTransactions, type Db } from '@/data/db';
 import { migrate } from '@/data/migrations';
 import { loadOnlineSetting } from '@/data/online';
 
@@ -15,13 +17,13 @@ async function prepare(db: Db) {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   return (
-    <SQLiteProvider databaseName="gym-app.db" onInit={(db) => prepare(db as unknown as Db)}>
+    <SQLiteProvider databaseName="gym-app.db" onInit={(db) => prepare(serialTransactions(db as unknown as Db))}>
       {children}
     </SQLiteProvider>
   );
 }
 
-/** Zugriff auf die lokale Datenbank (in der App: expo-sqlite). */
+/** Zugriff auf die lokale Datenbank (in der App: expo-sqlite), mit Transaktionen nacheinander (data/db.ts). */
 export function useDb(): Db {
-  return useSQLiteContext() as unknown as Db;
+  return serialTransactions(useSQLiteContext() as unknown as Db);
 }

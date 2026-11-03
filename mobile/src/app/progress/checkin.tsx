@@ -15,7 +15,7 @@ import { needsRecalc } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
 import type { Profile } from '@/domain/profile';
 import { timeZone, todayDay } from '@/domain/time';
-import { parseDecimal } from '@/domain/units';
+import { parseDecimal, type WeightUnit } from '@/domain/units';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
@@ -225,7 +225,7 @@ export default function CheckinScreen() {
         ) : null}
       </Card>
 
-      {data.energy && !data.hideNumbers ? <ExpenditureCard data={data.energy} /> : null}
+      {data.energy && !data.hideNumbers ? <ExpenditureCard data={data.energy} unit={profile.units.weight} /> : null}
 
       <Card title={t('adaptive.monthTitle')}>
         {showMonth ? (
@@ -296,9 +296,10 @@ export default function CheckinScreen() {
 }
 
 /** Geschätzter Verbrauch mit Rechenweg und Wochenverlauf (A7.3). */
-function ExpenditureCard({ data }: { data: ExpenditureData }) {
+function ExpenditureCard({ data, unit }: { data: ExpenditureData; unit: WeightUnit }) {
   const e = data.estimate;
-  const kg = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${formatNumber(Math.abs(v), 2)} kg`;
+  // Gewichte in der Einheit des Profils; der Rechenweg bleibt in kg (7.700 kcal je kg).
+  const signed = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${formatWeight(Math.abs(v), unit, 2)}`;
   return (
     <Card title={t('adaptive.title')}>
       {e.kind === 'schaetzung' ? (
@@ -306,7 +307,7 @@ function ExpenditureCard({ data }: { data: ExpenditureData }) {
           <ThemedText type="subtitle">{t('adaptive.value', { kcal: formatKcal(e.kcal), pm: formatKcal(e.plusMinus) })}</ThemedText>
           <ThemedText type="small">{t('adaptive.intake', { kcal: formatKcal(Math.round(e.intakeAvg)), days: e.completeDays })}</ThemedText>
           <ThemedText type="small">
-            {t('adaptive.trend', { start: formatNumber(e.trendStart, 1), end: formatNumber(e.trendEnd, 1), change: kg(e.change), span: e.spanDays })}
+            {t('adaptive.trend', { start: formatWeight(e.trendStart, unit), end: formatWeight(e.trendEnd, unit), change: signed(e.change), span: e.spanDays })}
           </ThemedText>
           <ThemedText type="small">
             {t('adaptive.formula', {

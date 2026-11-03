@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/card';
 import { Choice, Field, MultiChoice } from '@/components/fields';
+import { NoteField } from '@/components/note-field';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import {
@@ -80,12 +81,8 @@ export function SetDetails({
         {t(`logger.typeHint.${setType}`)}
       </ThemedText>
       <RirChoice label={targetRir ? t('logger.rirWithTarget', { target: targetRir }) : t('logger.rir')} value={rir} onChange={(v) => onChange({ rir: v })} />
-      <Field
-        label={t('logger.note')}
-        defaultValue={note ?? ''}
-        placeholder={t('logger.notePlaceholder')}
-        onEndEditing={(e) => onChange({ note: e.nativeEvent.text })}
-      />
+      {/* Speichert auch, wenn der Bereich über die Satznummer zugeklappt wird, ohne dass das Feld den Fokus verliert. */}
+      <NoteField label={t('logger.note')} value={note} placeholder={t('logger.notePlaceholder')} onSave={(text) => onChange({ note: text })} />
       {plates ? <PlateLine {...plates} /> : null}
     </View>
   );

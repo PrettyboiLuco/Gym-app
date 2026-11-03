@@ -75,40 +75,47 @@ export async function loadRoutineVersion(db: Db, versionId: string): Promise<Rou
 
 /** Speichert eine Routine als neue Version (ohne routineId: neue Routine, Version 1). */
 export async function saveRoutine(db: Db, routineId: string | null, draft: RoutineDraft): Promise<string> {
-  const id = routineId ?? newId();
+  let id = '';
   await db.withTransactionAsync(async () => {
-    const now = nowUtc();
-    if (!routineId) await db.runAsync('INSERT INTO routine (id, kind, created_at_utc) VALUES (?, ?, ?)', id, draft.kind, now);
-    const last = await db.getFirstAsync<{ version: number | null }>('SELECT MAX(version) AS version FROM routine_version WHERE routine_id = ?', id);
-    await db.runAsync('UPDATE routine_version SET active = 0 WHERE routine_id = ?', id);
-    const versionId = newId();
-    await db.runAsync(
-      `INSERT INTO routine_version (id, routine_id, version, name, active, switch_seconds, transition_seconds, work_seconds,
-       rest_seconds, rounds, round_rest_seconds, created_at_utc) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)`,
-      versionId,
-      id,
-      (last?.version ?? 0) + 1,
-      draft.name.trim(),
-      draft.switchSeconds,
-      draft.transitionSeconds,
-      draft.workSeconds,
-      draft.restSeconds,
-      draft.rounds,
-      draft.roundRestSeconds,
-      now
-    );
-    for (const [position, item] of draft.items.entries()) {
-      await db.runAsync(
-        'INSERT INTO routine_item (id, routine_version_id, position, exercise_id, seconds) VALUES (?, ?, ?, ?, ?)',
-        newId(),
-        versionId,
-        position,
-        item.exerciseId,
-        draft.kind === 'hiit' ? draft.workSeconds : item.seconds
-      );
-    }
+    id = await insertRoutineVersion(db, routineId, draft);
   });
   return id;
+}
+
+/** Kern von saveRoutine ohne eigene Transaktion – nur innerhalb einer laufenden Transaktion aufrufen (Plan-Import). */
+export async function insertRoutineVersion(db: Db, routineId: string | null, draft: RoutineDraft): Promise<string> {
+  const id = routineId ?? newId();
+  const now = nowUtc();
+  if (!routineId) await db.runAsync('INSERT INTO routine (id, kind, created_at_utc) VALUES (?, ?, ?)', id, draft.kind, now);
+  const last = await db.getFirstAsync<{ version: number | null }>('SELECT MAX(version) AS version FROM routine_version WHERE routine_id = ?', id);
+  await db.runAsync('UPDATE routine_version SET active = 0 WHERE routine_id = ?', id);
+  const versionId = newId();
+  await db.runAsync(
+    `INSERT INTO routine_version (id, routine_id, version, name, active, switch_seconds, transition_seconds, work_seconds,
+     rest_seconds, rounds, round_rest_seconds, created_at_utc) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)`,
+    versionId,
+    id,
+    (last?.version ?? 0) + 1,
+    draft.name.trim(),
+    draft.switchSeconds,
+    draft.transitionSeconds,
+    draft.workSeconds,
+    draft.restSeconds,
+    draft.rounds,
+    draft.roundRestSeconds,
+    now
+  );
+  for (const [position, item] of draft.items.entries()) {
+    await db.runAsync(
+      'INSERT INTO routine_item (id, routine_version_id, position, exercise_id, seconds) VALUES (?, ?, ?, ?, ?)',
+      newId(),
+      versionId,
+      position,
+      item.exerciseId,
+      draft.kind === 'hiit' ? draft.workSeconds : item.seconds
+    );
+  }
+return id;
 }
 
 export type RoutineVersionInfo = { id: string; version: number; name: string; active: number; createdAt: string };

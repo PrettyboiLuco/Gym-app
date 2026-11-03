@@ -78,13 +78,19 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
   // Gewichtsart je Übung: Gegengewicht zählt nicht als Last, einseitige Sätze doppelt (wie in der Statistik, Phase 1 Scan).
   const modes = new Map(exercises.map((e) => [e.id, loadModeOf(e)]));
   const modeOf = (id: string) => modes.get(id) ?? 'normal';
-  const byExercise = new Map<string, { sessions: Set<string>; bestKg: number; bestReps: number; e1rm: number | null }>();
+  const byExercise = new Map<string, { sessions: Set<string>; bestKg: number; bestReps: number; e1rm: number | null; hasBest: boolean }>();
   for (const r of work) {
-    const e = byExercise.get(r.exerciseId) ?? { sessions: new Set<string>(), bestKg: 0, bestReps: 0, e1rm: null };
+    const e = byExercise.get(r.exerciseId) ?? { sessions: new Set<string>(), bestKg: 0, bestReps: 0, e1rm: null, hasBest: false };
     e.sessions.add(r.sessionId);
-    if ((r.kg ?? 0) > e.bestKg || ((r.kg ?? 0) === e.bestKg && (r.reps ?? 0) > e.bestReps)) {
-      e.bestKg = r.kg ?? 0;
-      e.bestReps = r.reps ?? 0;
+    const kg = r.kg ?? 0;
+    const reps = r.reps ?? 0;
+    // Gegengewicht: bester Satz ist der mit der wenigsten Unterstützung (mit mindestens einer Wiederholung).
+    const assisted = modeOf(r.exerciseId) === 'unterstuetzt';
+    const better = assisted ? reps > 0 && (!e.hasBest || kg < e.bestKg) : kg > e.bestKg;
+    if (better || ((e.hasBest || !assisted) && kg === e.bestKg && reps > e.bestReps)) {
+      e.bestKg = kg;
+      e.bestReps = reps;
+      e.hasBest = true;
     }
     const est = r.kg && r.reps && modeOf(r.exerciseId) !== 'unterstuetzt' ? estimateOneRepMax(r.kg, r.reps) : null;
     if (est !== null && (e.e1rm === null || est > e.e1rm)) e.e1rm = est;

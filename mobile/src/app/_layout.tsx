@@ -42,10 +42,11 @@ export default function TabLayout() {
       <StoreProvider>
         <ProfileProvider>
           <AnimatedSplashOverlay />
+          {/* Meldungen innerhalb der Sperre: Die Sperrebene deckt sie ab, gesperrt werden sie gar nicht gezeigt. */}
           <LockGate>
             <Gate />
+            <ToastHost />
           </LockGate>
-          <ToastHost />
         </ProfileProvider>
       </StoreProvider>
     </ThemeProvider>

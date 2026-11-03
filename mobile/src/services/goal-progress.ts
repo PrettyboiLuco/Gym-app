@@ -5,10 +5,11 @@ import { drinkGoalDays, liftSets, stretchDays, trainingDays, type GoalVersion } 
 import { loadNutritionSettings } from '@/data/nutrition';
 import { listFlexibilityTests } from '@/data/routines';
 import { listSteps } from '@/data/steps';
-import type { Exercise } from '@/data/training';
+import { listExercises, type Exercise } from '@/data/training';
 import { listWeights } from '@/data/weights';
 import { shiftDay, weekStart } from '@/domain/dates';
 import { flexibilityProgress, habitWeeks, strengthProgress, weightProgress } from '@/domain/goals';
+import { loadModeOf } from '@/domain/logger';
 import { stepGoalDays } from '@/domain/steps';
 import { timeZone } from '@/domain/time';
 import type { Units } from '@/domain/units';
@@ -69,8 +70,10 @@ export async function goalProgressLines(
     return { lines, reached: p.reached };
   }
   if (goal.kind === 'kraft') {
-    const sets = await liftSets(db, goal.exerciseId!, timeZone);
-    const p = strengthProgress(sets, { targetKg: goal.targetKg!, targetReps: goal.targetReps! });
+    const [sets, exercises] = await Promise.all([liftSets(db, goal.exerciseId!, timeZone), listExercises(db)]);
+    const exercise = exercises.find((e) => e.id === goal.exerciseId);
+    // Gegengewicht-Maschine: weniger Unterstützung ist das Ziel (A1).
+    const p = strengthProgress(sets, { targetKg: goal.targetKg!, targetReps: goal.targetReps! }, exercise ? loadModeOf(exercise) : 'normal');
     const setText = (s: { weightKg: number; reps: number }) => `${formatWeight(s.weightKg, units.weight, 2)} × ${s.reps}`;
     const lines = [
       p.best ? t('goals.progress.best', { reps: goal.targetReps, best: setText(p.best) }) : t('goals.progress.bestNone', { reps: goal.targetReps }),

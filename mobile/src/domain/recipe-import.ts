@@ -120,9 +120,9 @@ const UNITS: [RegExp, IngredientUnit, number][] = [
 
 const FRACTIONS: Record<string, number> = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3 };
 
-function parseAmount(token: string): number | null {
+function parseAmount(token: string, grouping = true): number | null {
   // Tausenderpunkt wie in deutschen Rezepten („1.000 g“) – nicht mit Dezimalpunkt („1.5 kg“) verwechseln.
-  const t = (/^\d{1,3}(\.\d{3})+$/.test(token) ? token.replace(/\./g, '') : token).replace(',', '.');
+  const t = (grouping && /^\d{1,3}(\.\d{3})+$/.test(token) ? token.replace(/\./g, '') : token).replace(',', '.');
   if (FRACTIONS[t] !== undefined) return FRACTIONS[t];
   let m = t.match(/^(\d+)([½¼¾⅓⅔])$/);
   if (m) return Number(m[1]) + FRACTIONS[m[2]];
@@ -147,7 +147,10 @@ export function parseIngredientLine(raw: string): IngredientLine {
   const words = rest.split(' ');
   let amount: number | null = null;
   let i = 0;
-  const first = words[0] ? parseAmount(words[0]) : null;
+  // Tausenderpunkt nur bei g/ml oder ohne Einheit: „1.250 kg“ sind 1,25 kg, nicht 1250 kg.
+  const next = words[1] ? UNITS.find(([re]) => re.test(words[1])) : undefined;
+  const grouping = !next || ((next[1] === 'g' || next[1] === 'ml') && next[2] === 1);
+  const first = words[0] ? parseAmount(words[0], grouping) : null;
   if (first !== null) {
     amount = first;
     i = 1;

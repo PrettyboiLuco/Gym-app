@@ -4,10 +4,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
-import { Field } from '@/components/fields';
 import { haptic } from '@/components/haptics';
 import { HeartLoop } from '@/components/heart-loop';
 import { Icon } from '@/components/icon';
+import { NoteField } from '@/components/note-field';
 import { PopText } from '@/components/rise-text';
 import { Screen } from '@/components/screen';
 import { SessionFeedback } from '@/components/session-feedback';
@@ -118,14 +118,16 @@ export default function SummaryScreen() {
     id
   );
   const { session, summary, records, e1rm, cardio, exercises, hints, week, cooldownOffered, loaded } = data;
-  const [note, setNote] = useState<string | null>(null);
   const [showShare, setShowShare] = useState(false);
   const modules = useModules();
 
+  // Bestleistung: eigenes, kräftigeres Muster statt des üblichen Erfolgs-Signals.
+  const hasRecord = records.length > 0;
   useEffect(() => {
     if (!loaded) return;
-    haptic.success();
-  }, [loaded]);
+    if (hasRecord) haptic.record();
+    else haptic.success();
+  }, [loaded, hasRecord]);
 
   if (!session || !summary) return <Screen withHeader>{null}</Screen>;
 
@@ -287,11 +289,10 @@ export default function SummaryScreen() {
       </Card>
 
       <Card title={t('summary.noteTitle')}>
-        <Field
+        <NoteField
           label={t('summary.noteLabel')}
-          value={note ?? session.note ?? ''}
-          onChangeText={setNote}
-          onEndEditing={() => (note !== null ? setSessionNote(db, id, note) : undefined)}
+          value={session.note}
+          onSave={(text) => setSessionNote(db, id, text)}
           placeholder={t('summary.notePlaceholder')}
           multiline
         />

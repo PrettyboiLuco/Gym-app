@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
+import { useAppLocked } from '@/components/lock-gate';
 import { ThemedText } from '@/components/themed-text';
 import { Spring } from '@/constants/motion';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
@@ -41,6 +42,7 @@ export function ToastHost() {
   const reduced = useReducedMotion();
   const y = useSharedValue(80);
   const opacity = useSharedValue(0);
+  const locked = useAppLocked();
 
   useEffect(() => {
     if (!toast) return;
@@ -55,7 +57,8 @@ export function ToastHost() {
 
   const style = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ translateY: y.value }] }));
   // Nach dem Ausblenden bleibt die letzte Meldung unsichtbar stehen (Deckkraft 0), bis die nächste kommt.
-  if (!toast) return null;
+  // Bei gesperrter App nichts zeigen oder vorlesen (Inhalte bleiben hinter der Sperre).
+  if (!toast || locked) return null;
   return (
     <View pointerEvents="none" style={[styles.wrap, { bottom: insets.bottom + BottomTabInset + Spacing.three }]}>
       <Animated.View accessibilityLiveRegion="polite" accessibilityRole="alert" style={[styles.toast, { backgroundColor: theme.primary }, style]}>

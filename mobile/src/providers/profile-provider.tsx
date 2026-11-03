@@ -1,3 +1,5 @@
+// Profil, Erststart-Status und Module als React-Kontext für alle Bildschirme.
+
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { loadAppearance } from '@/data/appearance';
@@ -28,11 +30,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([loadProfile(db), loadOnboardingDone(db), loadAppearance(db)]).then(([profile, onboardingDone, appearance]) => {
-      if (cancelled) return;
-      setAppearance(appearance);
-      setState({ loaded: true, profile, onboardingDone });
-    });
+    Promise.all([loadProfile(db), loadOnboardingDone(db), loadAppearance(db)])
+      .then(([profile, onboardingDone, appearance]) => {
+        if (cancelled) return;
+        setAppearance(appearance);
+        setState({ loaded: true, profile, onboardingDone });
+      })
+      // Lesen gescheitert: mit Standardwerten weiter, sonst bliebe die App beim Laden stehen (loaded = false).
+      .catch(() => {
+        if (!cancelled) setState({ loaded: true, profile: EMPTY_PROFILE, onboardingDone: false });
+      });
     return () => {
       cancelled = true;
     };

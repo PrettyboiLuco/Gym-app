@@ -11,20 +11,29 @@
 // 5. Dreimal hintereinander gleiches Gewicht ohne mehr Wiederholungen → Stagnation: ca. 10 % leichter
 //    und neu aufbauen oder Übung/Bereich wechseln.
 // 6. Sonst: gleiches Gewicht, eine Wiederholung mehr.
+//
+// Fassung 2 (03.11.2026, Regeln 1–6 unverändert, nur zwei Korrekturen):
+// - Gegengewicht-Maschinen (Klimmzug/Dip mit Unterstützung): Stagnation und Wiedereinstieg nehmen wie bei normalen
+//   Übungen ca. 10 % bzw. 10/20 % zurück, gerundet auf den Geräteschritt – mindestens ein Schritt mehr Unterstützung,
+//   aber nicht zusätzlich zum Prozentwert noch ein ganzer Schritt (Fassung 1 nahm beides zurück).
+// - Gleiches Gewicht wird mit Toleranz erkannt (logger.ts sameKg), z. B. 135 lb aus Import und Eingabe; Tage seit
+//   der letzten Einheit zählen als Kalendertage statt als volle 24 Stunden.
 
-import { DAY_MS } from './dates';
+import { daysBetween } from './dates';
 import type { Equipment } from './exercises';
-import type { LoadMode } from './logger';
+import { sameKg, type LoadMode } from './logger';
+import { localDay, timeZone as deviceTimeZone } from './time';
 import { kgToUnit, unitToKg, type WeightUnit } from './units';
 
-export const PROGRESSION_RULES_VERSION = 1;
+export const PROGRESSION_RULES_VERSION = 2;
 
 /**
- * Fassung 2 (A1, vorbereitet, **ausgeschaltet** bis zur fachlichen Freigabe): wie Fassung 1, zusätzlich mit
- * Wiederholungen in Reserve (RIR) je Satz:
+ * RIR-Variante (A1, bisher „Fassung 2“ genannt; vorbereitet, **ausgeschaltet** bis zur fachlichen Freigabe): wie die
+ * geltende Fassung, zusätzlich mit Wiederholungen in Reserve (RIR) je Satz. Der Parameter `version` (1 = ohne,
+ * 2 = mit RIR) wählt nur diese Variante, er ist nicht PROGRESSION_RULES_VERSION:
  * a) Alle Sätze im Bereich und jeder mit RIR ≥ 3 → mehr Gewicht, auch wenn das obere Ende noch nicht erreicht ist.
  * b) Ein Satz unter dem Bereich mit RIR 0 → Gewicht halten (Grenze erreicht, nicht steigern).
- * Ohne RIR-Angaben verhält sich Fassung 2 genau wie Fassung 1.
+ * Ohne RIR-Angaben verhält sich die RIR-Variante genau wie die geltende Fassung.
  */
 export const PROGRESSION_V2_ENABLED = false;
 
@@ -68,12 +77,23 @@ function lighter(kg: number, factor: number, step: number, unit: WeightUnit): nu
   return roundToStep(Math.max(0, unitToKg(kgToUnit(roundToStep(kg, step, unit), unit) - step, unit)), step, unit);
 }
 
+/**
+ * Gegenstück zu lighter() für Gegengewicht-Maschinen: mehr Unterstützung um den Faktor, auf den Geräteschritt
+ * gerundet – mindestens ein Schritt mehr, aber nicht Prozent und Schritt zusammen.
+ */
+function moreAssist(kg: number, factor: number, step: number, unit: WeightUnit): number {
+  const rounded = roundToStep(kg * factor, step, unit);
+  if (rounded > kg) return rounded;
+  return roundToStep(unitToKg(kgToUnit(roundToStep(kg, step, unit), unit) + step, unit), step, unit);
+}
+
 function topWeight(sets: DoneSet[]): number {
   return Math.max(0, ...sets.map((s) => s.weightKg));
 }
 
+/** Wiederholungen bei diesem Gewicht – mit Toleranz, damit 135 lb aus Import und Eingabe gleich zählen. */
 function totalReps(sets: DoneSet[], weight: number): number {
-  return sets.filter((s) => s.weightKg === weight).reduce((sum, s) => sum + (s.reps ?? 0), 0);
+  return sets.filter((s) => sameKg(s.weightKg, weight)).reduce((sum, s) => sum + (s.reps ?? 0), 0);
 }
 
 export function progressionAdvice(
@@ -100,9 +120,9 @@ function invertForAssist(advice: Advice, history: PastSession[], equipment: Equi
       if (assist <= 0) return { kind: 'variante', reps: advice.reps };
       return { ...advice, weightKg: roundToStep(Math.max(0, assist - unitToKg(step, unit)), step, unit) };
     case 'stagnation':
-      return { ...advice, weightKg: roundToStep(assist * 1.1 + unitToKg(step, unit), step, unit) };
+      return { ...advice, weightKg: moreAssist(assist, 1.1, step, unit) };
     case 'wiedereinstieg':
-      return advice.seconds !== null ? advice : { ...advice, weightKg: roundToStep(assist * (1 + advice.percent / 100) + unitToKg(step, unit), step, unit) };
+      return advice.seconds !== null ? advice : { ...advice, weightKg: moreAssist(assist, 1 + advice.percent / 100, step, unit) };
     case 'halten':
     case 'mehrWdh':
       return { ...advice, weightKg: assist };
@@ -143,7 +163,7 @@ function adviceV1(history: PastSession[], target: Target, equipment: Equipment, 
 
   if (target.repsMin === null || target.repsMax === null) return null;
   const weight = topWeight(last.sets);
-  const atWeight = last.sets.filter((s) => s.weightKg === weight);
+  const atWeight = last.sets.filter((s) => sameKg(s.weightKg, weight));
   const allTop = atWeight.length >= target.sets && atWeight.every((s) => (s.reps ?? 0) >= target.repsMax!);
   if (allTop) {
     if (weight === 0 && (equipment === 'koerpergewicht' || equipment === 'band' || equipment === 'gymnastikball'))
@@ -165,7 +185,7 @@ function adviceV1(history: PastSession[], target: Target, equipment: Equipment, 
 
   // Stagnation: die letzten drei Einheiten mit gleichem Höchstgewicht, Wiederholungen nicht gestiegen.
   const recent = history.filter((h) => h.sets.length > 0).slice(0, 3);
-  if (recent.length === 3 && recent.every((h) => topWeight(h.sets) === weight) && totalReps(recent[0].sets, weight) <= totalReps(recent[2].sets, weight)) {
+  if (recent.length === 3 && recent.every((h) => sameKg(topWeight(h.sets), weight)) && totalReps(recent[0].sets, weight) <= totalReps(recent[2].sets, weight)) {
     return { kind: 'stagnation', weightKg: lighter(weight, 0.9, step, unit), reps: target.repsMin };
   }
 
@@ -188,9 +208,12 @@ export function adviceValues(advice: Advice): { weightKg: number | null; reps: n
   }
 }
 
-/** Ganze Tage zwischen zwei Zeitpunkten (für „letzte Einheit vor … Tagen“). */
-export function daysSince(fromIso: string, toMs: number): number {
-  return Math.floor((toMs - Date.parse(fromIso)) / DAY_MS);
+/**
+ * Kalendertage zwischen zwei Zeitpunkten in der Zeitzone (für „letzte Einheit vor … Tagen“): Montagabend bis
+ * Mittwochmorgen sind 2 Tage, auch wenn keine 48 Stunden vergangen sind.
+ */
+export function daysSince(fromIso: string, toMs: number, timeZone: string = deviceTimeZone): number {
+  return daysBetween(localDay(new Date(fromIso), timeZone), localDay(new Date(toMs), timeZone));
 }
 
 /** Pause seit dem letzten Training groß genug für einen Hinweis zum Wiedereinstieg (TRAIN-015)? */

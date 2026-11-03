@@ -7,7 +7,9 @@ import type { CardioActivity } from './cardio';
 import { csvNumber, csvObjects } from './csv';
 import type { Equipment } from './exercises';
 import type { SetType } from './logger';
+import { roundDigits } from './math';
 import { foldText } from './text';
+import { unitToKg } from './units';
 
 export type ImportSource = 'strong' | 'hevy';
 export type ImportedSet = {
@@ -24,8 +26,16 @@ export type ImportedWorkout = { startedAt: string; finishedAt: string | null; ti
 export type TrainingImport = { source: ImportSource; workouts: ImportedWorkout[]; exercises: string[] };
 export type ImportError = 'leer' | 'unbekannt';
 
-const LB = 0.45359237;
 const MILE = 1.609344;
+
+/**
+ * Gewicht aus der Datei in kg. Pfund werden zuerst auf 2 Stellen gerundet und dann ungerundet umgerechnet – genau wie
+ * bei der Eingabe im Training (parseWeightIn). Sonst wäre „135 lb“ aus dem Import ein anderer kg-Wert als „135 lb“
+ * aus dem Training, und Bestleistung und Stagnation würden falsch erkannt.
+ */
+function importKg(value: number | null, unit: 'kg' | 'lb'): number | null {
+  return value === null ? null : unit === 'lb' ? unitToKg(roundDigits(value, 2), 'lb') : roundDigits(value, 2);
+}
 
 const pick = (row: Record<string, string>, ...keys: string[]) => {
   for (const k of keys) if (row[k] !== undefined && row[k] !== '') return row[k];
@@ -94,7 +104,8 @@ export function parseTrainingCsv(text: string, weightUnit: 'kg' | 'lb' = 'kg'): 
       title = pick(r, 'title') || 'Hevy';
       note = pick(r, 'description') || null;
       const lbs = csvNumber(pick(r, 'weight_lbs'));
-      const kg = csvNumber(pick(r, 'weight_kg')) ?? (lbs === null ? null : lbs * LB);
+      const kgValue = csvNumber(pick(r, 'weight_kg'));
+      const kg = kgValue !== null ? importKg(kgValue, 'kg') : importKg(lbs, 'lb');
       const miles = csvNumber(pick(r, 'distance_miles'));
       set = {
         exercise: pick(r, 'exercise_title'),
@@ -120,7 +131,7 @@ export function parseTrainingCsv(text: string, weightUnit: 'kg' | 'lb' = 'kg'): 
       set = {
         exercise: pick(r, 'exercise name'),
         setType: order.toUpperCase() === 'W' ? 'aufwaermen' : order.toUpperCase() === 'D' ? 'drop' : order.toUpperCase() === 'F' ? 'versagen' : 'arbeit',
-        weightKg: w === null ? null : unit.startsWith('lb') ? w * LB : w,
+        weightKg: importKg(w, unit.startsWith('lb') ? 'lb' : 'kg'),
         reps: csvNumber(pick(r, 'reps')),
         seconds: csvNumber(pick(r, 'seconds')),
         distanceKm: dist === null ? null : distUnit.startsWith('mi') ? dist * MILE : distUnit === 'm' ? dist / 1000 : dist,
@@ -133,7 +144,6 @@ export function parseTrainingCsv(text: string, weightUnit: 'kg' | 'lb' = 'kg'): 
     for (const k of ['reps', 'seconds', 'distanceKm'] as const) if (set[k] === 0) set[k] = null;
     // Strong schreibt für Pausen/leere Zeilen manchmal Sätze ohne Werte – die braucht niemand.
     if (!set.reps && !set.seconds && !set.distanceKm && !set.weightKg) continue;
-    if (set.weightKg !== null) set.weightKg = Math.round(set.weightKg * 100) / 100;
     const key = `${start.toISOString()}|${title}`;
     const w = byKey.get(key) ?? { startedAt: start.toISOString(), finishedAt: end ? end.toISOString() : null, title, note, sets: [] };
     w.sets.push(set);
@@ -164,7 +174,7 @@ export function parseWeightCsv(text: string): WeightRow[] | { error: ImportError
     const d = parseDateTime(r[dateKey] ?? '');
     const v = csvNumber(r[weightKey]);
     if (!d || v === null) continue;
-    const kg = Math.round((lb ? v * LB : v) * 10) / 10;
+    const kg = roundDigits(unitToKg(v, lb ? 'lb' : 'kg'), 1);
     if (kg < 20 || kg > 400) continue;
     const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     out.set(day, kg); // mehrere Werte am Tag: der letzte zählt

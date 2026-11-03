@@ -2,11 +2,12 @@
 
 import { DatabaseSync } from 'node:sqlite';
 
-import type { Db, SqlValue } from '../db';
+import { serialTransactions, type Db, type SqlValue } from '../db';
 
+/** Mit derselben Transaktions-Warteschlange wie in der App (data/db.ts serialTransactions). */
 export function createTestDb(): Db & { close(): void } {
   const sqlite = new DatabaseSync(':memory:');
-  return {
+  const raw: Db = {
     async execAsync(sql) {
       sqlite.exec(sql);
     },
@@ -29,8 +30,10 @@ export function createTestDb(): Db & { close(): void } {
         throw error;
       }
     },
+  };
+  return Object.assign(serialTransactions(raw), {
     close() {
       sqlite.close();
     },
-  };
+  });
 }

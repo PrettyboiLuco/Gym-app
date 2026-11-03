@@ -1,5 +1,5 @@
 // Minimale Datenbank-Schnittstelle. expo-sqlite erfüllt sie in der App; in den Tests steckt
-// Node's eingebautes SQLite dahinter (src/data/__tests__/node-db.ts). So prüfen die Tests
+// Node's eingebautes SQLite dahinter (src/data/testing/node-db.ts). So prüfen die Tests
 // genau dieselben SQL-Befehle, die auch auf dem iPhone laufen.
 
 export type SqlValue = string | number | null;
@@ -10,6 +10,36 @@ export interface Db {
   getAllAsync<T>(sql: string, ...params: SqlValue[]): Promise<T[]>;
   getFirstAsync<T>(sql: string, ...params: SqlValue[]): Promise<T | null>;
   withTransactionAsync(task: () => Promise<void>): Promise<void>;
+}
+
+const serialized = new WeakMap<object, Db>();
+
+/**
+ * Hülle, die Transaktionen nacheinander ausführt (Warteschlange). SQLite kann keine zweite Transaktion beginnen,
+ * solange eine läuft („cannot start a transaction within a transaction“) – etwa bei einem Doppeltipp oder wenn zwei
+ * Bildschirme gleichzeitig laden. Hier wartet die zweite, bis die erste fertig ist; einzelne Befehle laufen wie bisher.
+ * Wichtig: Transaktionen nie verschachteln, die innere würde auf die äußere warten. Abläufe, die mehrere
+ * Speicherfunktionen in einer Transaktion bündeln, nutzen deren Kern ohne Transaktion (z. B. insertPlanVersion).
+ * Für dieselbe Datenbank gibt es immer dieselbe Hülle (wichtig für React-Abhängigkeiten und die gemeinsame Warteschlange).
+ */
+export function serialTransactions(db: Db): Db {
+  const known = serialized.get(db);
+  if (known) return known;
+  let tail: Promise<unknown> = Promise.resolve();
+  const wrapped: Db = {
+    execAsync: (sql) => db.execAsync(sql),
+    runAsync: (sql, ...params) => db.runAsync(sql, ...params),
+    getAllAsync: (sql, ...params) => db.getAllAsync(sql, ...params),
+    getFirstAsync: (sql, ...params) => db.getFirstAsync(sql, ...params),
+    withTransactionAsync(task) {
+      const run = tail.then(() => db.withTransactionAsync(task));
+      tail = run.catch(() => undefined);
+      return run;
+    },
+  };
+  serialized.set(db, wrapped);
+  serialized.set(wrapped, wrapped);
+  return wrapped;
 }
 
 export function newId(): string {

@@ -4,6 +4,7 @@
 // lösbar ist, wird als Konflikt gemeldet und nie stillschweigend „passend gemacht“.
 // Regeln und Vorlagen sind Vorschläge ohne Fachprüfung (Phase 10.1).
 
+import { isoWeekday, shiftDay } from './dates';
 import {
   EXERCISE_META,
   isCompound,
@@ -786,9 +787,13 @@ export function canApply(proposal: PlanProposal): boolean {
   return proposal.conflicts.length === 0 && proposal.draft.days.length > 0 && proposal.draft.days.every((d) => d.items.length > 0);
 }
 
-/** Letzter Tag einer befristeten Änderung (TRAIN-008): „diese Woche“ = bis Sonntag, „2 Wochen“ = 14 Tage. */
+/**
+ * Letzter Tag einer befristeten Änderung (TRAIN-008): „diese Woche“ = bis zum kommenden Sonntag, „2 Wochen“ = 14 Tage.
+ * Am Sonntag begonnen gilt „diese Woche“ bis zum nächsten Sonntag (wie die leichte Woche, training-stats deloadEnd) –
+ * sonst wäre die Änderung nur einen Tag lang und am Montag schon wieder vorbei.
+ */
 export function temporaryEnd(duration: 'woche' | 'zwei_wochen', today: string): string {
-  const date = new Date(`${today}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + (duration === 'woche' ? (7 - date.getUTCDay()) % 7 : 13));
-  return date.toISOString().slice(0, 10);
+  if (duration === 'zwei_wochen') return shiftDay(today, 13);
+  const weekday = isoWeekday(today);
+  return shiftDay(today, weekday === 7 ? 7 : 7 - weekday);
 }

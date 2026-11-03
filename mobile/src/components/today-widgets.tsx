@@ -9,6 +9,7 @@ import { Spring } from '@/constants/motion';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
 import type { MuscleGroup } from '@/domain/exercises';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 
@@ -163,7 +164,8 @@ export type Figure = {
   unit?: string;
   sub?: string | null;
   accessibilityLabel: string;
-  onPress: () => void;
+  /** Ohne Handler ist die Kennzahl nur Anzeige (kein Knopf für VoiceOver). */
+  onPress?: () => void;
 };
 
 /** Kennzahlen als Schrift: ein Feld, gleich breite Spalten, 1-px-Trenner, Wert in Manrope mit Tabellenziffern. */
@@ -187,40 +189,52 @@ export function FigureStrip({ figures }: { figures: Figure[] }) {
 function FigureCell({ figure, divider }: { figure: Figure; divider: string | null }) {
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const press = useOnce(figure.onPress);
+  const content = (
+    <>
+      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+        {figure.label}
+      </ThemedText>
+      {figure.value === null ? (
+        <ThemedText themeColor="textSecondary" style={styles.missing}>
+          –
+        </ThemedText>
+      ) : (
+        <View style={styles.valueRow}>
+          <ThemedText style={styles.value} numberOfLines={1}>
+            {figure.value}
+          </ThemedText>
+          {figure.unit ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {figure.unit}
+            </ThemedText>
+          ) : null}
+        </View>
+      )}
+      {figure.sub ? (
+        <ThemedText themeColor="textSecondary" style={styles.sub} numberOfLines={2}>
+          {figure.sub}
+        </ThemedText>
+      ) : null}
+    </>
+  );
   return (
     <Animated.View style={[styles.cellWrap, divider ? { borderLeftWidth: 1, borderLeftColor: divider } : null, pressStyle]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={figure.accessibilityLabel}
-        onPress={figure.onPress}
-        onPressIn={() => scale.set(withSpring(0.96, Spring))}
-        onPressOut={() => scale.set(withSpring(1, Spring))}
-        style={styles.cell}>
-        <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-          {figure.label}
-        </ThemedText>
-        {figure.value === null ? (
-          <ThemedText themeColor="textSecondary" style={styles.missing}>
-            –
-          </ThemedText>
-        ) : (
-          <View style={styles.valueRow}>
-            <ThemedText style={styles.value} numberOfLines={1}>
-              {figure.value}
-            </ThemedText>
-            {figure.unit ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {figure.unit}
-              </ThemedText>
-            ) : null}
-          </View>
-        )}
-        {figure.sub ? (
-          <ThemedText themeColor="textSecondary" style={styles.sub} numberOfLines={2}>
-            {figure.sub}
-          </ThemedText>
-        ) : null}
-      </Pressable>
+      {figure.onPress ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={figure.accessibilityLabel}
+          onPress={press}
+          onPressIn={() => scale.set(withSpring(0.96, Spring))}
+          onPressOut={() => scale.set(withSpring(1, Spring))}
+          style={styles.cell}>
+          {content}
+        </Pressable>
+      ) : (
+        <View accessible accessibilityLabel={figure.accessibilityLabel} style={styles.cell}>
+          {content}
+        </View>
+      )}
     </Animated.View>
   );
 }

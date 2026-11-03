@@ -81,7 +81,7 @@ export default function PlanScreen() {
 
   async function eat(entry: PlanEntry) {
     try {
-      await logPlanEntry(db, entry, whenFor(entry.day));
+      await logPlanEntry(db, entry, whenFor(entry.day, entry.meal));
       showToast(t('mealPlan.logged'));
       await reload();
     } catch {

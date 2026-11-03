@@ -9,10 +9,14 @@ import { Spacing } from '@/constants/theme';
 import { addBloodPressure, deleteBloodPressure, listBloodPressure, type BloodPressure } from '@/data/blood-pressure';
 import { bpAverage, parseBloodPressure, type BpProblem } from '@/domain/blood-pressure';
 import { shiftDay } from '@/domain/dates';
+import { formatTime } from '@/domain/reminders';
 import { localDay, timeZone, todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
+
+/** Uhrzeit HH:MM wie überall in der App (ohne fest eingestellte Sprache). */
+const clockTime = (at: Date) => formatTime(at.getHours() * 60 + at.getMinutes());
 
 /** Blutdruck-Tagebuch (Ausbauplan A10.4): Werte und Verlauf, ohne Bewertung oder Grenzwerte. */
 export default function BloodPressureScreen() {
@@ -21,7 +25,7 @@ export default function BloodPressureScreen() {
   const [form, setForm] = useState({ systolic: '', diastolic: '', pulse: '', note: '' });
   const [problems, setProblems] = useState<BpProblem[]>([]);
   const week = bpAverage(list.filter((m) => m.day >= shiftDay(todayDay(), -6)));
-  const time = (iso: string) => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const time = (iso: string) => clockTime(new Date(iso));
 
   async function save() {
     const r = parseBloodPressure(form);

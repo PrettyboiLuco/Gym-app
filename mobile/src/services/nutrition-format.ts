@@ -19,14 +19,27 @@ export function diaryToday(nowMs = Date.now()) {
   return end > 0 && now.getHours() < end ? shiftDay(today, -1) : today;
 }
 
+/** Ab so vielen Stunden nach der üblichen Uhrzeit gilt eine Mahlzeit von heute als Nachtrag (wie bei `suggestMealAt`). */
+const LATE_ENTRY_HOURS = 2;
+
 /** Jetzt erfasst, aber auf den gewählten Tag gebucht (Nachtrag, TIME-001). */
-export function whenFor(diaryDate: string, meal?: Meal | null): When {
-  if (diaryDate >= diaryToday()) return { diaryDate, at: new Date(), timeZone };
+export function whenFor(diaryDate: string, meal?: Meal | null, nowMs = Date.now()): When {
+  const now = new Date(nowMs);
+  const times = cachedMealTimes() as Partial<Record<Meal, number | null>>;
+  const usualHour = meal ? times[meal] : null;
+  if (diaryDate >= diaryToday(nowMs)) {
+    // Heute: die Erfassungszeit – außer die übliche Uhrzeit der Mahlzeit ist schon länger vorbei. Ein um 21 Uhr
+    // nachgetragenes Frühstück zählt sonst im Journal als „spät gegessen“.
+    if (usualHour == null || diaryDate > diaryToday(nowMs)) return { diaryDate, at: now, timeZone };
+    const usual = new Date(`${diaryDate}T00:00:00`);
+    usual.setHours(usualHour, 0, 0, 0);
+    const late = nowMs - usual.getTime() > LATE_ENTRY_HOURS * 3_600_000;
+    return { diaryDate, at: late ? usual : now, timeZone };
+  }
   // Nachtrag für einen früheren Tag: nicht die Erfassungszeit, sondern die übliche Uhrzeit der Mahlzeit an jenem Tag,
   // sonst zählt ein nachgetragenes Mittagessen im Journal als „spät gegessen“ (Phase 1 Scan).
-  const times = cachedMealTimes() as Partial<Record<Meal, number>>;
   const at = new Date(`${diaryDate}T00:00:00`);
-  at.setHours((meal && times[meal]) ?? 12, 0, 0, 0);
+  at.setHours(usualHour ?? 12, 0, 0, 0);
   return { diaryDate, at, timeZone };
 }
 

@@ -11,6 +11,7 @@ import { Spacing } from '@/constants/theme';
 import { activateRoutineVersion, archiveRoutine, listRoutineVersions, loadRoutineDraft, saveRoutine, type RoutineVersionInfo } from '@/data/routines';
 import { listExercises, type Exercise } from '@/data/training';
 import { findTemplate, formNumber, ROUTINE_DEFAULTS, validateRoutine, type RoutineDraft, type RoutineKind, type Template } from '@/domain/routines';
+import { localDay, timeZone } from '@/domain/time';
 import { moveItem } from '@/domain/training';
 import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
@@ -376,7 +377,7 @@ export default function RoutineScreen() {
             <ListRow
               key={v.id}
               title={v.name}
-              subtitle={t('routine.version', { version: v.version, date: formatDay(v.createdAt.slice(0, 10)) })}
+              subtitle={t('routine.version', { version: v.version, date: formatDay(localDay(new Date(v.createdAt), timeZone)) })}
               accessory={v.active ? t('routine.active') : t('routine.activate')}
               onPress={v.active ? undefined : () => activate(v.id)}
             />

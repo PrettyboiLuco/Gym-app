@@ -134,13 +134,16 @@ export default function TodayScreen() {
     milestone: null as Milestone | null,
     muscles: null as Partial<Record<MuscleGroup, number>> | null,
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, restDay, week, ready, today, milestone, muscles } = data;
-  useEffect(() => {
-    if (!openSetup) return;
-    saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
-  }, [openSetup, db]);
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, week, ready, today, milestone, muscles } = data;
   const units = useUnits();
   const modules = useModules();
+  // Ruhetag und Einrichtung kommen aus dem Coach – ist er (oder die Ernährung) aus, gelten sie nicht.
+  const restDay = data.restDay && modules.coach;
+  const setupDue = openSetup && modules.coach;
+  useEffect(() => {
+    if (!setupDue) return;
+    saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
+  }, [setupDue, db]);
   const [checkOpen, setCheckOpen] = useState(false);
   const hour = new Date().getHours();
   const greeting = hour < 11 ? t('today.greetingMorning') : hour < 18 ? t('today.greetingDay') : t('today.greetingEvening');

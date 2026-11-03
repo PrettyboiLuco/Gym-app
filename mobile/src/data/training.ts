@@ -5,7 +5,7 @@
 
 import type { CardioActivity } from '@/domain/cardio';
 import type { Equipment, ExerciseKind, Measure, MovementPattern, MuscleGroup, Sides } from '@/domain/exercises';
-import { estimateOneRepMax, setOrder, type LoadMode, type PlateSetup, type SetType } from '@/domain/logger';
+import { estimateOneRepMax, sameKg, setOrder, type LoadMode, type PlateSetup, type SetType } from '@/domain/logger';
 import type { PastSession } from '@/domain/progression';
 import { daysSince } from '@/domain/progression';
 import type { PreviousBest } from '@/domain/summary';
@@ -189,70 +189,80 @@ export type VersionOptions = { note?: string | null; validUntil?: string | null;
  * alte Stand vollständig erhalten.
  */
 export async function savePlan(db: Db, planId: string | null, draft: PlanDraft, options: VersionOptions = {}): Promise<string> {
-  const id = planId ?? newId();
+  let id = '';
   await db.withTransactionAsync(async () => {
-    const now = nowUtc();
-    if (!planId) await db.runAsync('INSERT INTO plan (id, created_at_utc) VALUES (?, ?)', id, now);
-    const last = await db.getFirstAsync<{ version: number }>('SELECT MAX(version) AS version FROM plan_version WHERE plan_id = ?', id);
-    await db.runAsync('UPDATE plan_version SET active = 0 WHERE plan_id = ?', id);
-    const versionId = newId();
-    await db.runAsync(
-      `INSERT INTO plan_version (id, plan_id, version, name, active, created_at_utc, note, valid_until, return_version_id)
-       VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)`,
-      versionId,
-      id,
-      (last?.version ?? 0) + 1,
-      draft.name.trim(),
-      now,
-      options.note ?? null,
-      options.validUntil ?? null,
-      options.validUntil ? (options.returnVersionId ?? null) : null
-    );
-    for (const [dayIndex, day] of draft.days.entries()) {
-      const dayId = newId();
-      await db.runAsync(
-        'INSERT INTO plan_day (id, plan_version_id, position, name, warmup, cooldown) VALUES (?, ?, ?, ?, ?, ?)',
-        dayId,
-        versionId,
-        dayIndex,
-        day.name.trim(),
-        day.warmup === false ? 0 : 1,
-        day.cooldown === false ? 0 : 1
-      );
-      for (const [itemIndex, item] of day.items.entries()) {
-        const timed = item.targetSeconds != null;
-        await db.runAsync(
-          `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds, rir, note, label, superset)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          newId(),
-          dayId,
-          itemIndex,
-          item.exerciseId,
-          item.sets,
-          timed ? 1 : item.repsMin,
-          timed ? 1 : item.repsMax,
-          item.restSeconds,
-          item.targetSeconds ?? null,
-          item.rir?.trim() || null,
-          item.note?.trim() || null,
-          item.label?.trim() || null,
-          item.superset ?? null
-        );
-      }
-      for (const [position, c] of (day.cardio ?? []).entries()) {
-        await db.runAsync(
-          'INSERT INTO plan_cardio (id, plan_day_id, position, activity, minutes, at_end, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          newId(),
-          dayId,
-          position,
-          c.activity,
-          c.minutes,
-          c.atEnd === false ? 0 : 1,
-          c.note?.trim() || null
-        );
-      }
-    }
+    id = await insertPlanVersion(db, planId, draft, options);
   });
+  return id;
+}
+
+/**
+ * Kern von savePlan ohne eigene Transaktion – nur innerhalb einer laufenden Transaktion aufrufen (z. B. Plan-Import,
+ * leichte Woche), damit mehrere Schritte zusammen gelingen oder zusammen scheitern.
+ */
+export async function insertPlanVersion(db: Db, planId: string | null, draft: PlanDraft, options: VersionOptions = {}): Promise<string> {
+  const id = planId ?? newId();
+  const now = nowUtc();
+  if (!planId) await db.runAsync('INSERT INTO plan (id, created_at_utc) VALUES (?, ?)', id, now);
+  const last = await db.getFirstAsync<{ version: number }>('SELECT MAX(version) AS version FROM plan_version WHERE plan_id = ?', id);
+  await db.runAsync('UPDATE plan_version SET active = 0 WHERE plan_id = ?', id);
+  const versionId = newId();
+  await db.runAsync(
+    `INSERT INTO plan_version (id, plan_id, version, name, active, created_at_utc, note, valid_until, return_version_id)
+     VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)`,
+    versionId,
+    id,
+    (last?.version ?? 0) + 1,
+    draft.name.trim(),
+    now,
+    options.note ?? null,
+    options.validUntil ?? null,
+    options.validUntil ? (options.returnVersionId ?? null) : null
+  );
+  for (const [dayIndex, day] of draft.days.entries()) {
+    const dayId = newId();
+    await db.runAsync(
+      'INSERT INTO plan_day (id, plan_version_id, position, name, warmup, cooldown) VALUES (?, ?, ?, ?, ?, ?)',
+      dayId,
+      versionId,
+      dayIndex,
+      day.name.trim(),
+      day.warmup === false ? 0 : 1,
+      day.cooldown === false ? 0 : 1
+    );
+    for (const [itemIndex, item] of day.items.entries()) {
+      const timed = item.targetSeconds != null;
+      await db.runAsync(
+        `INSERT INTO plan_item (id, plan_day_id, position, exercise_id, sets, reps_min, reps_max, rest_seconds, target_seconds, rir, note, label, superset)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        newId(),
+        dayId,
+        itemIndex,
+        item.exerciseId,
+        item.sets,
+        timed ? 1 : item.repsMin,
+        timed ? 1 : item.repsMax,
+        item.restSeconds,
+        item.targetSeconds ?? null,
+        item.rir?.trim() || null,
+        item.note?.trim() || null,
+        item.label?.trim() || null,
+        item.superset ?? null
+      );
+    }
+    for (const [position, c] of (day.cardio ?? []).entries()) {
+      await db.runAsync(
+        'INSERT INTO plan_cardio (id, plan_day_id, position, activity, minutes, at_end, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        newId(),
+        dayId,
+        position,
+        c.activity,
+        c.minutes,
+        c.atEnd === false ? 0 : 1,
+        c.note?.trim() || null
+      );
+    }
+  }
   return id;
 }
 
@@ -385,15 +395,20 @@ const DOUBLE_START_MS = 10_000;
 
 /** Startet ein Training. Mit Plantag werden die geplanten Sätze als offene Einträge angelegt. */
 export async function startSession(db: Db, planDayId: string | null): Promise<string> {
-  // Doppeltipp-Schutz: Wurde dasselbe Training gerade eben (≤ 10 s) gestartet, gilt dieses (Phase 1 Scan, F2).
-  const recent = await db.getFirstAsync<{ id: string }>(
-    `SELECT id FROM workout_session WHERE status = 'aktiv' AND plan_day_id IS ? AND started_at_utc >= ? ORDER BY started_at_utc DESC LIMIT 1`,
-    planDayId,
-    new Date(Date.now() - DOUBLE_START_MS).toISOString()
-  );
-  if (recent) return recent.id;
-  const id = newId();
+  let id = newId();
   await db.withTransactionAsync(async () => {
+    // Doppeltipp-Schutz: Wurde dasselbe Training gerade eben (≤ 10 s) gestartet, gilt dieses (Phase 1 Scan, F2).
+    // Die Prüfung steht in der Transaktion: Zwei gleichzeitige Starts laufen nacheinander (data/db.ts), der zweite
+    // sieht dann das Training des ersten statt ein zweites anzulegen.
+    const recent = await db.getFirstAsync<{ id: string }>(
+      `SELECT id FROM workout_session WHERE status = 'aktiv' AND plan_day_id IS ? AND started_at_utc >= ? ORDER BY started_at_utc DESC LIMIT 1`,
+      planDayId,
+      new Date(Date.now() - DOUBLE_START_MS).toISOString()
+    );
+    if (recent) {
+      id = recent.id;
+      return;
+    }
     await db.runAsync("INSERT INTO workout_session (id, plan_day_id, status, started_at_utc) VALUES (?, ?, 'aktiv', ?)", id, planDayId, nowUtc());
     if (!planDayId) return;
     const items = await db.getAllAsync<{
@@ -692,7 +707,7 @@ export async function previousBests(db: Db, exerciseIds: string[], excludeSessio
       exerciseId,
       maxKg,
       minKg,
-      repsAtMaxKg: maxKg === null ? null : Math.max(...lifted.filter((r) => (r.weightKg ?? 0) === maxKg).map((r) => r.reps ?? 0)),
+      repsAtMaxKg: maxKg === null ? null : Math.max(...lifted.filter((r) => sameKg(r.weightKg ?? 0, maxKg)).map((r) => r.reps ?? 0)),
       maxReps: lifted.length ? Math.max(...lifted.map((r) => r.reps ?? 0)) : null,
       maxSeconds: rows.some((r) => r.seconds != null) ? Math.max(...rows.map((r) => r.seconds ?? 0)) : null,
     });

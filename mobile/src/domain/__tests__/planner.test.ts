@@ -282,7 +282,9 @@ describe('Vorlagen (8.6, TRAIN-001, -019)', () => {
 describe('Befristung (TRAIN-008)', () => {
   test('„diese Woche“ endet am Sonntag, „2 Wochen“ nach 14 Tagen', () => {
     expect(temporaryEnd('woche', '2026-10-28')).toBe('2026-11-01'); // Mittwoch → Sonntag
-    expect(temporaryEnd('woche', '2026-11-01')).toBe('2026-11-01'); // Sonntag bleibt
+    expect(temporaryEnd('woche', '2026-11-02')).toBe('2026-11-08'); // Montag → Sonntag
+    // Am Sonntag begonnen: bis zum nächsten Sonntag, nicht nur einen Tag (wie deloadEnd).
+    expect(temporaryEnd('woche', '2026-11-01')).toBe('2026-11-08');
     expect(temporaryEnd('zwei_wochen', '2026-10-28')).toBe('2026-11-10');
   });
 });

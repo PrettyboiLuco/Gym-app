@@ -79,21 +79,24 @@ export async function completeCardio(
   values: CardioValues,
   change: { activity?: CardioActivity; customName?: string | null; day?: string } = {}
 ) {
-  await db.runAsync(
-    `UPDATE cardio_log SET minutes = ?, distance_km = ?, avg_hr = ?, effort = ?, level = ?, note = ?, timer_started_at_utc = NULL,
-     completed_at_utc = COALESCE(completed_at_utc, ?) WHERE id = ?`,
-    values.minutes,
-    values.distanceKm,
-    values.avgHr,
-    values.effort,
-    values.level,
-    values.note,
-    nowUtc(),
-    id
-  );
-  if (change.activity) await db.runAsync('UPDATE cardio_log SET activity = ? WHERE id = ?', change.activity, id);
-  if (change.customName !== undefined) await db.runAsync('UPDATE cardio_log SET custom_name = ? WHERE id = ?', change.customName?.trim() || null, id);
-  if (change.day) await db.runAsync('UPDATE cardio_log SET day = ? WHERE id = ?', change.day, id);
+  // Werte und Änderungen zusammen speichern: nie „erledigt“ mit alter Aktivität oder altem Tag.
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `UPDATE cardio_log SET minutes = ?, distance_km = ?, avg_hr = ?, effort = ?, level = ?, note = ?, timer_started_at_utc = NULL,
+       completed_at_utc = COALESCE(completed_at_utc, ?) WHERE id = ?`,
+      values.minutes,
+      values.distanceKm,
+      values.avgHr,
+      values.effort,
+      values.level,
+      values.note,
+      nowUtc(),
+      id
+    );
+    if (change.activity) await db.runAsync('UPDATE cardio_log SET activity = ? WHERE id = ?', change.activity, id);
+    if (change.customName !== undefined) await db.runAsync('UPDATE cardio_log SET custom_name = ? WHERE id = ?', change.customName?.trim() || null, id);
+    if (change.day) await db.runAsync('UPDATE cardio_log SET day = ? WHERE id = ?', change.day, id);
+  });
 }
 
 /** Stoppuhr starten/stoppen; der Startzeitpunkt bleibt gespeichert, auch wenn die App geschlossen wird. */

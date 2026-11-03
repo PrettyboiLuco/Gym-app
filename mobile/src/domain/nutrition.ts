@@ -87,12 +87,20 @@ export function totalOf(items: Nutrients[]): Nutrients {
 
 // ------------------------------------------------------------------------------- Eingaben
 
-/** Menge in g/ml (Komma erlaubt, > 0, höchstens 5000). */
-export function parseAmount(input: string): number | null {
+/** Obergrenze einer Menge (g/ml) im Tagebuch und in Rezepten. */
+export const AMOUNT_MAX = 5000;
+/** Obergrenze des Packungsinhalts: Großpackungen (10-kg-Sack) sollen speicherbar sein. */
+export const PACKAGE_MAX = 100_000;
+
+/**
+ * Menge in g/ml (Komma erlaubt, > 0, höchstens `max`). Bis 3 Nachkommastellen, weil Formulare Mengen so anzeigen
+ * (1000 g / 3 Portionen = 333,333 g) und sie unverändert wieder speicherbar sein müssen.
+ */
+export function parseAmount(input: string, max = AMOUNT_MAX): number | null {
   const text = input.trim().replace(',', '.');
-  if (!/^\d{1,4}(\.\d{1,2})?$/.test(text)) return null;
+  if (!/^\d{1,6}(\.\d{1,3})?$/.test(text)) return null;
   const value = Number(text);
-  return value > 0 && value <= 5000 ? value : null;
+  return value > 0 && value <= max ? value : null;
 }
 
 /** Nährwert pro 100 (leer = unbekannt). Ungültige Eingabe ergibt 'invalid'. */
@@ -345,7 +353,7 @@ export function parseFoodForm(form: FoodForm): { draft: FoodDraft | null; proble
   if (barcode && !isValidBarcode(barcode)) problems.push('barcode');
   const [kcal, protein, carbs, fat, fiber, sugar, satFat, salt] = values as (number | null)[];
   const packageText = (form.package ?? '').trim();
-  const packageAmount = packageText === '' ? null : parseAmount(packageText);
+  const packageAmount = packageText === '' ? null : parseAmount(packageText, PACKAGE_MAX);
   if (packageText !== '' && packageAmount === null) problems.push('serving');
   if (form.basis === 'g' && !values.includes('invalid') && (protein ?? 0) + (carbs ?? 0) + (fat ?? 0) > 100) {
     problems.push('macros');

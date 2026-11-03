@@ -8,6 +8,7 @@ import { localDay, timeZone } from '@/domain/time';
 import { formatClock, isRestVisible, isStaleSession, restRemainingMs } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
+import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
 import type { LiveTraining } from '@/providers/live-training';
@@ -23,6 +24,8 @@ export function MiniPlayer({ live, compact = false }: { live: LiveTraining; comp
   const pathname = usePathname();
   const resting = isRestVisible(live.timer);
   const now = useNow(!!live.session || !!live.timedTitle, 1000);
+  // Doppeltipp öffnet das Training nur einmal.
+  const go = useOnce(() => (live.timedTitle ? router.push('/training/run') : router.push(`/training/session/${live.session!.id}`)));
   if (!live.session && !live.timedTitle) return null;
   if (pathname.startsWith('/training/session') || pathname.startsWith('/training/run') || pathname.startsWith('/training/summary')) return null;
 
@@ -38,7 +41,6 @@ export function MiniPlayer({ live, compact = false }: { live: LiveTraining; comp
         : live.session
           ? t('mini.elapsed', { minutes: Math.max(0, Math.floor((now - Date.parse(live.session.startedAt)) / 60_000)) })
           : null;
-  const go = () => (live.timedTitle ? router.push('/training/run') : router.push(`/training/session/${live.session!.id}`));
 
   return (
     <Pressable

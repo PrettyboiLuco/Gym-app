@@ -70,14 +70,15 @@ export function sessionLoad(minutes: number | null, effort: number | null): numb
   return Math.round(Math.min(minutes, MAX_SESSION_MINUTES) * effort);
 }
 
-/** Akute Last (7 Tage bis heute) gegen den Wochenschnitt der letzten 28 Tage. */
-export function loadRatio(loads: LoadDay[], today: string): LoadRatio {
+/**
+ * Akute Last (7 Tage bis heute) gegen den Wochenschnitt der letzten 28 Tage. `firstLoadDay` = erster Tag mit Last
+ * überhaupt (aus der Datenbank): Ohne ihn hinge die „Geschichte“ davon ab, wie weit `loads` zurückreicht – dann zeigte
+ * die Ampel von heute etwas anderes als derselbe Tag im Verlauf.
+ */
+export function loadRatio(loads: LoadDay[], today: string, firstLoadDay: string | null = null): LoadRatio {
   const inWindow = (from: number) => loads.filter((l) => daysBetween(l.day, today) >= 0 && daysBetween(l.day, today) < from);
   const acute = inWindow(7).reduce((s, l) => s + l.load, 0);
-  const first = loads
-    .filter((l) => l.load > 0)
-    .map((l) => l.day)
-    .sort()[0];
+  const first = [...loads.filter((l) => l.load > 0).map((l) => l.day), ...(firstLoadDay ? [firstLoadDay] : [])].filter((d) => d <= today).sort()[0];
   const historyDays = first ? daysBetween(first, today) + 1 : 0;
   // Wochen-Schnitt über den vorhandenen Verlauf (höchstens 28 Tage). Vorher wurde immer durch 4 Wochen geteilt,
   // dann wirkte die Last bei 2–4 Wochen Verlauf zu hoch (Phase 1 Scan, F7).

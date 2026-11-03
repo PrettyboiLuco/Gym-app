@@ -67,7 +67,8 @@ async function loadBase(db: Db, studio: Equipment[]) {
 /** Planassistent (Phase 8): Plan umbauen oder Vorlage, Vorschau mit Gründen, erst dann übernehmen. */
 export default function AssistantScreen() {
   // `dauer=woche`: aus „Woche ausgefallen? Neu planen“ (TRAIN-015).
-  const params = useLocalSearchParams<{ plan?: string; dauer?: string }>();
+  // from=editor: aus dem Planeditor geöffnet (nur dann führt „Plan öffnen“ zurück statt weiter).
+  const params = useLocalSearchParams<{ plan?: string; dauer?: string; from?: string }>();
   const db = useDb();
   const theme = useTheme();
   const { profile } = useProfile();
@@ -448,7 +449,9 @@ export default function AssistantScreen() {
                 label={t('assistant.openPlan')}
                 onPress={() =>
                   // Aus dem Planeditor geöffnet: zurück zu ihm (er lädt die neue Fassung), statt einen zweiten zu stapeln.
-                  params.plan === applied.planId && router.canGoBack() ? router.back() : router.replace(`/training/plan/${applied.planId}`)
+                  params.from === 'editor' && params.plan === applied.planId && router.canGoBack()
+                    ? router.back()
+                    : router.replace(`/training/plan/${applied.planId}`)
                 }
               />
               <Button label={t('assistant.undo')} variant="secondary" onPress={undo} />

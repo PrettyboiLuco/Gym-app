@@ -70,7 +70,12 @@ export default function ReportScreen() {
           label={t('report.weeks')}
           options={REPORT_WEEKS}
           value={weeks}
-          onChange={setWeeks}
+          onChange={(w) => {
+            // Alter Bericht und alte Fehlermeldung gehören zum vorigen Zeitraum.
+            setReport(null);
+            setError(false);
+            setWeeks(w);
+          }}
           format={(w) => t('report.weeksOption', { count: w })}
           chips
         />

@@ -8,9 +8,10 @@ import { CardioRow } from '@/components/cardio-row';
 import { MeterBar } from '@/components/charts';
 import { ExerciseMedia } from '@/components/exercise-media';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { Choice, ConfirmButton, Field, ListRow } from '@/components/fields';
+import { Choice, ConfirmButton, ListRow } from '@/components/fields';
 import { haptic } from '@/components/haptics';
 import { KeepAwake } from '@/components/keep-awake';
+import { NoteField, type NoteFieldHandle } from '@/components/note-field';
 import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { SetCheck } from '@/components/set-check';
@@ -66,7 +67,7 @@ import { exerciseName } from '@/format/exercise-name';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, formatWeight, t } from '@/i18n';
+import { formatLongDate, formatNumber, formatWeight, t } from '@/i18n';
 import { useUnits } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
 import { syncRestAlert } from '@/services/alerts';
@@ -128,7 +129,11 @@ export default function SessionScreen() {
   const holdNow = useNow(hold !== null);
   const holdLeftMs = hold ? Math.max(0, hold.endAtMs - holdNow) : 0;
 
+  // Schnell hintereinander (✓, dann gleich der nächste ✓): nur die letzte Anfrage darf den Zustand setzen,
+  // sonst überschreibt eine ältere, langsamere Antwort den neueren Stand (wie in hooks/use-load.ts).
+  const latestLoad = useRef(0);
   const load = useCallback(async () => {
+    const request = ++latestLoad.current;
     const [info, rows, all, savedTimer, auto, timed, progression] = await Promise.all([
       getSession(db, id),
       listSessionSets(db, id),
@@ -138,25 +143,31 @@ export default function SessionScreen() {
       timedSessionsForWorkout(db, id),
       loadProgressionOn(db),
     ]);
-    setProgressionOn(progression);
-    setPlateSetup(await loadPlateSetup(db));
-    setUsable((await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT])).equipment);
-    setCardio(await listCardioForSession(db, id));
-    setHints(await planHintsForSession(db, id));
-    setBlocks(timed);
-    setAlertsOff(NOTIFICATIONS_SUPPORTED && !(await loadReminders(db)).timerAlerts);
-    setLoadedAtMs(nowMs());
-    setSession(info);
-    setRestAuto(auto);
-    setSets(rows);
-    setExercises(all);
-    setTimer(info?.status === 'aktiv' ? savedTimer : null);
+    const plates = await loadPlateSetup(db);
+    const equipment = (await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT])).equipment;
+    const cardioRows = await listCardioForSession(db, id);
+    const planHints = await planHintsForSession(db, id);
+    const reminders = await loadReminders(db);
     const lastByExercise: Record<string, LastPerformance> = {};
     const historyByExercise: Record<string, PastSession[]> = {};
     for (const exerciseId of new Set(rows.map((r) => r.exerciseId))) {
       lastByExercise[exerciseId] = await lastPerformance(db, exerciseId, id);
       historyByExercise[exerciseId] = await exerciseHistory(db, exerciseId, id, nowMs());
     }
+    if (request !== latestLoad.current) return;
+    setProgressionOn(progression);
+    setPlateSetup(plates);
+    setUsable(equipment);
+    setCardio(cardioRows);
+    setHints(planHints);
+    setBlocks(timed);
+    setAlertsOff(NOTIFICATIONS_SUPPORTED && !reminders.timerAlerts);
+    setLoadedAtMs(nowMs());
+    setSession(info);
+    setRestAuto(auto);
+    setSets(rows);
+    setExercises(all);
+    setTimer(info?.status === 'aktiv' ? savedTimer : null);
     setLast(lastByExercise);
     setHistory(historyByExercise);
   }, [db, id]);
@@ -296,7 +307,11 @@ export default function SessionScreen() {
     stopHoldRef.current = stopHold;
   });
 
+  // Notiz zum Training: vor dem Beenden sichern, damit die Zusammenfassung sie schon zeigt.
+  const noteField = useRef<NoteFieldHandle>(null);
+
   async function finish(status: 'abgeschlossen' | 'abgebrochen') {
+    await noteField.current?.flush();
     await finishSession(db, id, status, status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined);
     await updateTimer(stopRest(timer));
     setRestFocus(false);
@@ -315,6 +330,7 @@ export default function SessionScreen() {
    * (sonst stünde eine Dauer von Stunden oder Tagen in der Zusammenfassung) oder verwerfen, wenn nichts gemacht wurde.
    */
   async function closeStale(keep: boolean) {
+    await noteField.current?.flush();
     const lastSet =
       sets
         .filter((s) => s.completedAt)
@@ -562,7 +578,7 @@ export default function SessionScreen() {
         <Card title={t('session.staleTitle')}>
           <ThemedText>
             {t('session.staleText', {
-              date: new Date(session.startedAt).toLocaleString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }),
+              date: startedText(session.startedAt),
             })}
           </ThemedText>
           {doneCount > 0 ? <Button label={t('session.staleFinish', { count: doneCount })} onPress={() => closeStale(true)} /> : null}
@@ -726,6 +742,7 @@ export default function SessionScreen() {
                           </ThemedText>
                           {active ? (
                             <SetCheck
+                              key="check"
                               done
                               accessibilityLabel={`${t('session.undo')} ${label}`}
                               onPress={async () => {
@@ -770,11 +787,19 @@ export default function SessionScreen() {
                               />
                             )
                           ) : null}
-                          <SetCheck done={false} accessibilityLabel={`${t('session.done')} ${label}`} onPress={() => complete(row, index)} />
+                          {/* Gleicher Schlüssel wie oben: Der Haken bleibt beim Erledigen derselbe und federt nur dann auf.
+                              Läuft der Countdown dieses Satzes, beendet ✓ ihn (statt den Satz ein zweites Mal einzutragen). */}
+                          <SetCheck
+                            key="check"
+                            done={false}
+                            accessibilityLabel={`${t('session.done')} ${label}`}
+                            onPress={() => (hold?.rowId === row.id ? stopHold() : complete(row, index))}
+                          />
                           <Button
                             label="−"
                             accessibilityLabel={`${t('session.removeSet')} ${label}`}
                             variant="secondary"
+                            disabled={hold !== null}
                             onPress={async () => {
                               await deleteOpenSet(db, row.id);
                               await load();
@@ -918,12 +943,17 @@ export default function SessionScreen() {
       ) : null}
 
       <Card>
-        <Field
+        <NoteField
+          ref={noteField}
           label={t('logger.sessionNote')}
-          defaultValue={session.note ?? ''}
+          value={session.note}
           placeholder={t('logger.sessionNotePlaceholder')}
           multiline
-          onEndEditing={(e) => setSessionNote(db, id, e.nativeEvent.text)}
+          onSave={(text) => {
+            // Auch im Zustand merken: Das Feld wird z. B. beim Übung-Hinzufügen neu aufgebaut und zeigt dann den neuen Text.
+            setSession((s) => (s ? { ...s, note: text } : s));
+            return setSessionNote(db, id, text);
+          }}
         />
       </Card>
 
@@ -977,6 +1007,13 @@ export default function SessionScreen() {
       ) : null}
     </Screen>
   );
+}
+
+/** Startzeit eines vergessenen Trainings, z. B. „Montag, 2. November, 14:05“. */
+function startedText(startedAt: string) {
+  const d = new Date(startedAt);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return t('session.staleWhen', { date: formatLongDate(d), hour: pad(d.getHours()), minute: pad(d.getMinutes()) });
 }
 
 function doneCountOf(rows: SetRow[]) {

@@ -242,11 +242,13 @@ export default function PhotosScreen() {
 
 /** Hilfslinien für die gleiche Pose: Mitte senkrecht, Drittel waagerecht. */
 function GuideLines() {
+  const theme = useTheme();
+  const line = [styles.guide, { backgroundColor: theme.accent }];
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[styles.guide, { left: '50%', top: 0, bottom: 0, width: 1 }]} />
-      <View style={[styles.guide, { top: '33.3%', left: 0, right: 0, height: 1 }]} />
-      <View style={[styles.guide, { top: '66.6%', left: 0, right: 0, height: 1 }]} />
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.guides]}>
+      <View style={[line, { left: '50%', top: 0, bottom: 0, width: 1 }]} />
+      <View style={[line, { top: '33.3%', left: 0, right: 0, height: 1 }]} />
+      <View style={[line, { top: '66.6%', left: 0, right: 0, height: 1 }]} />
     </View>
   );
 }
@@ -264,7 +266,8 @@ const styles = StyleSheet.create({
   image: { width: '100%', aspectRatio: 3 / 4, borderRadius: Spacing.two },
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   thumb: { width: 56 },
-  guide: { position: 'absolute', backgroundColor: 'rgba(198, 242, 78, 0.7)' },
+  guides: { opacity: 0.7 },
+  guide: { position: 'absolute' },
   blendLabels: { flexDirection: 'row', justifyContent: 'space-between' },
   flex: { flex: 1 },
 });

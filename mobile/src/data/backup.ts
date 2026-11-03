@@ -6,7 +6,7 @@ import { BACKUP_APP, BACKUP_FORMAT, BACKUP_TABLES, TRANSIENT_STATE, type BackupM
 import { syncBasisFoods } from './basis-foods';
 import { nowUtc, type Db, type SqlValue } from './db';
 import { RESTORE_DATA_STEPS } from './migrations';
-import { adoptSleepEntries } from './readiness';
+import { loadOnlineSetting } from './online';
 
 async function schemaVersion(db: Db) {
   return (await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version'))?.user_version ?? 0;
@@ -74,13 +74,20 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
       if (TRANSIENT_STATE.includes(key)) continue;
       await db.runAsync('INSERT INTO app_state (key, value) VALUES (?, ?)', key, JSON.stringify(value));
     }
+    // Laufende Dehn-/HIIT-Einheiten aus der Sicherung laufen hier nicht weiter (der Ablauf wird nicht mitgesichert):
+    // als abgebrochen ablegen, sonst blieben sie für immer „aktiv“ und ließen sich weder löschen noch exportieren.
+    await db.runAsync(
+      "UPDATE timed_session SET status = 'abgebrochen', finished_at_utc = COALESCE(finished_at_utc, ?) WHERE status = 'aktiv'",
+      nowUtc()
+    );
   });
-  // Ältere Sicherung: Datenumwandlungen späterer Migrationen nachholen (Phase 1 Scan, F11).
+  // Ältere Sicherung: Datenumwandlungen späterer Migrationen nachholen (Phase 1 Scan, F11), z. B. Schlaf aus
+  // sleep_entry in den Morgen-Check (nur bei Sicherungen von vor Version 23).
   for (const step of RESTORE_DATA_STEPS) if (manifest.schemaVersion < step.version) await db.execAsync(step.sql);
   // Sicherung von vor den Grundnahrungsmitteln (A4): Liste gleich wieder einspielen, nicht erst beim nächsten Start.
   await syncBasisFoods(db);
-  // Sicherung von vor dem Morgen-Check (A6): Schlafeinträge übernehmen.
-  await adoptSleepEntries(db);
+  // Zwischengespeicherte Einstellung „Online-Funktionen“ an die Sicherung anpassen (Datenschutz: aus bleibt aus).
+  await loadOnlineSetting(db);
 }
 
 /** Löscht alle eigenen Daten auf diesem Gerät; danach startet die App wie neu (LAW-006). */
@@ -90,4 +97,6 @@ export async function deleteAllData(db: Db) {
   });
   // Grundnahrungsmittel gehören zur App, nicht zu den eigenen Daten (A4).
   await syncBasisFoods(db);
+  // Einstellung „Online-Funktionen“ ist gelöscht: Zwischenspeicher auf den Standard zurücksetzen.
+  await loadOnlineSetting(db);
 }

@@ -98,9 +98,11 @@ export default function ImportRecipeScreen() {
     const p = portions.trim() ? parseAmount(portions) : null;
     setBusy(true);
     try {
-      const id = await saveImportedRecipe(db, name, p && p > 0 ? p : null, ingredients);
+      const id = await saveImportedRecipe(db, name.trim() || t('recipeImport.defaultName'), p && p > 0 ? p : null, ingredients);
       showToast(t('recipeImport.saved'));
       router.replace({ pathname: '/nutrition/recipe/[id]', params: { id } });
+    } catch {
+      setProblem(t('common.saveFailed'));
     } finally {
       setBusy(false);
     }
@@ -124,7 +126,7 @@ export default function ImportRecipeScreen() {
         </ThemedText>
       </Card>
       <Card title={t('recipeImport.pasteTitle')}>
-        <Field label={t('recipeImport.pasteLabel')} value={paste} onChangeText={setPaste} multiline placeholder={'200 g Haferflocken\n2 EL Honig\n1 Banane'} />
+        <Field label={t('recipeImport.pasteLabel')} value={paste} onChangeText={setPaste} multiline placeholder={t('recipeImport.pastePlaceholder')} />
         <Button label={t('recipeImport.pasteRead')} variant="secondary" onPress={loadPaste} />
       </Card>
       {problem ? <ThemedText style={{ color: theme.danger }}>{problem}</ThemedText> : null}

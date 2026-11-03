@@ -7,14 +7,26 @@ import { loadCoachSetup, saveCoachSetup } from './coach';
 import type { Db } from './db';
 import { adjustCalorieGoal } from './goals';
 import { loadNutritionSettings, saveNutritionSettings } from './nutrition';
-import { archiveRoutine, listRoutines, saveRoutine } from './routines';
-import { addCustomExercise, archivePlan, listActivePlans, savePlan } from './training';
+import { archiveRoutine, insertRoutineVersion, listRoutines } from './routines';
+import { addCustomExercise, archivePlan, insertPlanVersion, listActivePlans } from './training';
 import { savePreferredWeekdays } from './training-stats';
 
 export type ImportOptions = { replace: boolean; goals: boolean };
 export type ImportResult = { planId: string; archivedPlans: number; routines: number; customExercises: number; weekdaysSet: boolean; goalsSet: boolean };
 
+/**
+ * Alles in einer Transaktion: Scheitert ein Schritt (z. B. der neue Plan), bleiben die bisherigen Pläne aktiv und es
+ * entstehen keine halben Einträge. Innen daher nur die Kerne ohne eigene Transaktion (insertPlanVersion …).
+ */
 export async function applyPlanImport(db: Db, imp: PlanImport, options: ImportOptions, today: string): Promise<ImportResult> {
+  let result: ImportResult | null = null;
+  await db.withTransactionAsync(async () => {
+    result = await importSteps(db, imp, options, today);
+  });
+  return result!;
+}
+
+async function importSteps(db: Db, imp: PlanImport, options: ImportOptions, today: string): Promise<ImportResult> {
   // 1. Eigene Übungen: vorhandene gleichen Namens wiederverwenden (zweiter Import legt nichts doppelt an).
   const ids = new Map<string, string>();
   for (const c of imp.customExercises) {
@@ -41,7 +53,7 @@ export async function applyPlanImport(db: Db, imp: PlanImport, options: ImportOp
   }
 
   // 3. Plan
-  const planId = await savePlan(
+  const planId = await insertPlanVersion(
     db,
     null,
     { ...imp.draft, days: imp.draft.days.map((d) => ({ ...d, items: d.items.map((i) => ({ ...i, exerciseId: resolve(i.exerciseId) })) })) },
@@ -52,7 +64,7 @@ export async function applyPlanImport(db: Db, imp: PlanImport, options: ImportOp
   const existing = await listRoutines(db, 'dehnen');
   for (const r of imp.routines) {
     for (const old of existing.filter((e) => e.name.trim().toLowerCase() === r.name.trim().toLowerCase())) await archiveRoutine(db, old.routineId);
-    await saveRoutine(db, null, { ...r, items: r.items.map((i) => ({ ...i, exerciseId: resolve(i.exerciseId) })) });
+    await insertRoutineVersion(db, null, { ...r, items: r.items.map((i) => ({ ...i, exerciseId: resolve(i.exerciseId) })) });
   }
 
   // 5. Trainingstage im Coach (falls eingerichtet) – für die Wochenpunkte und Erinnerungen.

@@ -1,9 +1,9 @@
-import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Field } from '@/components/fields';
+import { haptic } from '@/components/haptics';
 import { KeepAwake } from '@/components/keep-awake';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -43,6 +43,9 @@ export default function IntervalScreen() {
     let cancelled = false;
     loadIntervalRun(db).then((run) => {
       if (cancelled || !run) return;
+      // Beim Öffnen eines schon laufenden oder fertigen Intervalls kein Signal: die aktuelle Phase gilt als bekannt.
+      const current = intervalState(run.config, nowMs() - run.startedAtMs);
+      lastSignal.current = `${current.phase}-${current.round}`;
       setRunning(run.config);
       setStartedAt(run.startedAtMs);
     });
@@ -54,13 +57,13 @@ export default function IntervalScreen() {
   const config = parseConfig(work, rest, rounds);
   const state = running && startedAt !== null ? intervalState(running, now - startedAt) : null;
 
-  // Kurzes Signal bei jedem Phasenwechsel.
+  // Kurzes Signal bei jedem echten Phasenwechsel (und beim Start).
   useEffect(() => {
     if (!state) return;
     const key = `${state.phase}-${state.round}`;
     if (key !== lastSignal.current) {
       lastSignal.current = key;
-      if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      haptic.warning();
     }
   }, [state]);
 

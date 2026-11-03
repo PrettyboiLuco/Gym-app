@@ -2,8 +2,9 @@
 // jede Änderung als neue Version mit Gültig-ab-Datum. Keine Erfolgsgarantie und kein Zieldatum:
 // angezeigt wird nur, wo man gerade steht (GOAL-006).
 
-import { weekStart } from './dates';
+import { shiftDay, weekStart } from './dates';
 import { bmi, underweightLimitKg, UNDERWEIGHT_BMI, type Goal } from './energy';
+import type { LoadMode } from './logger';
 import { parseSteps } from './steps';
 import { parseWholeNumber } from './training';
 import { BODY_WEIGHT_RANGE, LIFT_RANGE, parseLengthIn, parseWeightIn, type LengthUnit, type WeightUnit } from './units';
@@ -166,13 +167,17 @@ export type LiftSet = { weightKg: number; reps: number; day: string };
 
 /**
  * Kraftziel aus erledigten Sätzen derselben Übung (GOAL-005, wie TRAIN-014): bester Satz mit
- * mindestens den Ziel-Wiederholungen und der zuletzt erledigte Satz.
+ * mindestens den Ziel-Wiederholungen und der zuletzt erledigte Satz. Bei Gegengewicht-Maschinen (A1) ist weniger
+ * Unterstützung besser: Dort zählt das kleinste Gewicht, und das Ziel ist erreicht, wenn es höchstens so groß ist.
  */
-export function strengthProgress(sets: LiftSet[], target: { targetKg: number; targetReps: number }) {
+export function strengthProgress(sets: LiftSet[], target: { targetKg: number; targetReps: number }, loadMode: LoadMode = 'normal') {
+  const assisted = loadMode === 'unterstuetzt';
+  const better = (s: LiftSet, b: LiftSet) => (assisted ? s.weightKg < b.weightKg : s.weightKg > b.weightKg);
   const qualifying = sets.filter((s) => s.reps >= target.targetReps);
-  const best = qualifying.reduce<LiftSet | null>((b, s) => (b === null || s.weightKg > b.weightKg ? s : b), null);
+  const best = qualifying.reduce<LiftSet | null>((b, s) => (b === null || better(s, b) ? s : b), null);
   const last = sets.reduce<LiftSet | null>((l, s) => (l === null || s.day >= l.day ? s : l), null);
-  return { best, last, reached: best !== null && best.weightKg >= target.targetKg };
+  const reached = best !== null && (assisted ? best.weightKg <= target.targetKg : best.weightKg >= target.targetKg);
+  return { best, last, reached };
 }
 
 /**
@@ -195,14 +200,10 @@ export function habitWeeks(days: string[], today: string, perWeek: number, weeks
   const result: { start: string; count: number; reached: boolean }[] = [];
   let start = weekStart(today);
   for (let i = 0; i < weeks; i++) {
-    const end = new Date(`${start}T12:00:00Z`);
-    end.setUTCDate(end.getUTCDate() + 6);
-    const endDay = end.toISOString().slice(0, 10);
+    const endDay = shiftDay(start, 6);
     const count = unique.filter((d) => d >= start && d <= endDay).length;
     result.push({ start, count, reached: count >= perWeek });
-    const prev = new Date(`${start}T12:00:00Z`);
-    prev.setUTCDate(prev.getUTCDate() - 7);
-    start = prev.toISOString().slice(0, 10);
+    start = shiftDay(start, -7);
   }
   return result;
 }

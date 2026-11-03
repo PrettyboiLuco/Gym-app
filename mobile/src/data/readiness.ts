@@ -26,7 +26,8 @@ import { localDay, timeZone } from '@/domain/time';
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
 import { calorieGoalOn } from './goals';
-import { activeVersion, listActivePlans, listExercises, loadPlanDraft, savePlan } from './training';
+import { loadNutritionSettings } from './nutrition';
+import { activeVersion, insertPlanVersion, listActivePlans, listExercises, loadPlanDraft } from './training';
 
 const CHECK_COLUMNS = `day, bed_time AS bedTime, wake_time AS wakeTime, sleep_hours AS sleepHours, sleep_quality AS sleepQuality,
   energy, soreness, factors, note`;
@@ -87,17 +88,6 @@ export async function saveCheck(db: Db, day: string, change: Partial<Omit<DailyC
     factors.length ? JSON.stringify(factors) : null,
     next.note?.trim() || null,
     nowUtc()
-  );
-}
-
-/** Alte Sicherungen kennen nur sleep_entry: Einträge übernehmen, die im Morgen-Check fehlen. */
-export async function adoptSleepEntries(db: Db) {
-  await db.runAsync(
-    `INSERT INTO daily_check (id, day, sleep_hours, sleep_quality, recorded_at_utc)
-     SELECT id, day, hours, quality, recorded_at_utc FROM sleep_entry s
-     WHERE s.day NOT IN (SELECT day FROM daily_check)
-       AND s.recorded_at_utc = (SELECT MAX(recorded_at_utc) FROM sleep_entry WHERE day = s.day)
-     GROUP BY day`
   );
 }
 
@@ -190,6 +180,23 @@ export async function loadDays(db: Db, fromDay: string): Promise<LoadDay[]> {
   return [...byDay.entries()].map(([day, load]) => ({ day, load })).sort((a, b) => a.day.localeCompare(b.day));
 }
 
+/**
+ * Erster Tag mit Trainingslast überhaupt (gleiche Bedingungen wie loadDays/sessionLoad). Grundlage für die
+ * „Geschichte“ der Lastregel, unabhängig vom geladenen Zeitfenster – so zeigen Ampel und Verlauf dasselbe.
+ */
+export async function firstLoadDay(db: Db): Promise<string | null> {
+  const session = await db.getFirstAsync<{ at: string | null }>(
+    `SELECT MIN(started_at_utc) AS at FROM workout_session
+     WHERE status = 'abgeschlossen' AND effort BETWEEN 1 AND 10 AND finished_at_utc > started_at_utc`
+  );
+  const cardio = await db.getFirstAsync<{ day: string | null }>(
+    `SELECT MIN(day) AS day FROM cardio_log
+     WHERE session_id IS NULL AND completed_at_utc IS NOT NULL AND effort BETWEEN 1 AND 10 AND minutes > 0`
+  );
+  const days = [session?.at ? localDay(new Date(session.at), timeZone) : null, cardio?.day ?? null].filter((d): d is string => d !== null);
+  return days.sort()[0] ?? null;
+}
+
 export async function setSessionFeedback(db: Db, sessionId: string, effort: number | null, feedback: Record<string, Record<string, number>> | null) {
   await db.runAsync(
     'UPDATE workout_session SET effort = ?, feedback = ? WHERE id = ?',
@@ -223,11 +230,13 @@ export async function diaryFactors(db: Db, day: string): Promise<Factor[]> {
   );
   if (events.length === 0) return [];
   const meals = events.filter((e) => e.kind === 'essen');
+  // Nach Mitternacht gegessen, aber noch derselbe Ernährungstag (Einstellung „Tag endet um“) → später als 24 Uhr.
+  // Eine feste 5-Uhr-Grenze machte ein Frühstück um 4:30 zur „späten Mahlzeit“ des Vortags.
+  const { dayEndsAt } = await loadNutritionSettings(db);
   const minutes = (iso: string) => {
     const d = new Date(iso);
     const m = d.getHours() * 60 + d.getMinutes();
-    // Nach Mitternacht gebucht, aber noch derselbe Ernährungstag → später als 24 Uhr
-    return m < 5 * 60 ? m + 24 * 60 : m;
+    return m < dayEndsAt * 60 ? m + 24 * 60 : m;
   };
   const goal = await calorieGoalOn(db, day);
   const kcal = meals.some((e) => e.kcal !== null) ? events.reduce((s, e) => s + (e.kcal ?? 0), 0) : null;
@@ -290,16 +299,18 @@ async function performanceByDay(db: Db, fromDay: string, toDay: string): Promise
 export type ReadinessToday = { readiness: Readiness; check: DailyCheck | null; status: StatusPeriod | null; ratio: number | null };
 
 export async function readinessToday(db: Db, today: string): Promise<ReadinessToday> {
-  const [checks, status, loads] = await Promise.all([
+  const [checks, status, loads, first] = await Promise.all([
     listChecks(db, shiftDay(today, -BASELINE_DAYS), today),
     statusToday(db, today),
     loadDays(db, shiftDay(today, -BASELINE_DAYS - 7)),
+    firstLoadDay(db),
   ]);
   const check = checks.find((c) => c.day === today) ?? null;
   // Last bis gestern: das heutige Training soll die Ampel von heute nicht verändern.
   const { ratio } = loadRatio(
     loads.filter((l) => l.day < today),
-    shiftDay(today, -1)
+    shiftDay(today, -1),
+    first
   );
   return { readiness: readiness(check, checks, ratio, status?.status ?? null), check, status, ratio };
 }
@@ -323,8 +334,11 @@ export async function lighterPlanToday(db: Db, offer: 'wenigerSaetze' | 'leicht'
   };
   // Läuft eine befristete Fassung über heute hinaus, kehrt die leichte zu ihr zurück; endet sie heute, zu deren Ziel.
   const returnVersionId = current.validUntil && current.validUntil <= today ? current.returnVersionId : current.id;
-  await savePlan(db, plan.planId, lighter, { validUntil: today, returnVersionId, note });
-  await writeState(db, 'lighter_today', today);
+  // Planfassung und Merker zusammen, sonst könnte ein zweites Antippen noch einmal kürzen.
+  await db.withTransactionAsync(async () => {
+    await insertPlanVersion(db, plan.planId, lighter, { validUntil: today, returnVersionId, note });
+    await writeState(db, 'lighter_today', today);
+  });
   return 'angepasst';
 }
 
@@ -337,10 +351,11 @@ export type HistoryDay = { day: string; check: DailyCheck | null; readiness: Rea
 /** Bereitschaft, Schlaf und Last der letzten `days` Tage (neueste zuerst), jeweils mit dem damaligen Schnitt. */
 export async function readinessHistory(db: Db, today: string, days = 28): Promise<HistoryDay[]> {
   const from = shiftDay(today, -(days - 1));
-  const [checks, loads, periods] = await Promise.all([
+  const [checks, loads, periods, first] = await Promise.all([
     listChecks(db, shiftDay(from, -BASELINE_DAYS), today),
     loadDays(db, shiftDay(from, -BASELINE_DAYS - 7)),
     listStatus(db),
+    firstLoadDay(db),
   ]);
   const out: HistoryDay[] = [];
   for (let i = 0; i < days; i++) {
@@ -348,7 +363,8 @@ export async function readinessHistory(db: Db, today: string, days = 28): Promis
     const check = checks.find((c) => c.day === day) ?? null;
     const { ratio } = loadRatio(
       loads.filter((l) => l.day < day),
-      shiftDay(day, -1)
+      shiftDay(day, -1),
+      first
     );
     out.push({
       day,

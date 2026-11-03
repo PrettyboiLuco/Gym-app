@@ -5,6 +5,7 @@
 
 import { fuzzyBasis, parseMicros, scaleMicros, type Micros } from '@/domain/basis-foods';
 import { BASIS_FOODS } from '@/domain/basis-foods-data';
+import { daysBetween } from '@/domain/dates';
 import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, type FoodDiet, type FoodFacts, type MealTimes } from '@/domain/diet';
 import {
   barcodeVariants,
@@ -417,10 +418,16 @@ export async function copyDay(db: Db, fromDate: string, when: When) {
     `SELECT ${EVENT_COLUMNS} FROM consumption_event WHERE diary_date = ? ORDER BY occurred_at_utc`,
     fromDate
   );
+  const days = daysBetween(fromDate, when.diaryDate);
   await db.withTransactionAsync(async () => {
     for (const e of source) {
       const target: Target = e.kind === 'essen' ? { kind: 'essen', meal: e.meal ?? 'snack' } : { kind: 'getraenk', drinkType: e.drinkType ?? 'sonstiges' };
-      await insertEvent(db, target, when, {
+      // Uhrzeit des Originals behalten, nur auf den neuen Tag verschoben – sonst landet der ganze Tag auf einer
+      // Uhrzeit (Journal: „spät gegessen“, Koffein). Nie in der Zukunft: dann die übergebene Zeit.
+      const at = new Date(e.occurredAt);
+      at.setDate(at.getDate() + days);
+      const shifted = { ...when, at: at.getTime() > Date.now() ? when.at : at };
+      await insertEvent(db, target, shifted, {
         foodId: e.foodId,
         recipeVersionId: e.recipeVersionId,
         name: e.name,

@@ -2,7 +2,7 @@
 // Aufwärmsätze zählen nicht mit (A1); Gewichtsart je Übung bestimmt Volumen und Richtung der Bestleistung.
 
 import { DAY_MS } from './dates';
-import { countsAsWork, setVolume, type LoadMode, type SetType } from './logger';
+import { countsAsWork, sameKg, setVolume, type LoadMode, type SetType } from './logger';
 
 export type DoneSet = {
   exerciseId: string;
@@ -67,16 +67,17 @@ export function findRecords(all: DoneSet[], previous: PreviousBest[], modeOf: Mo
     if (modeOf(exerciseId) === 'unterstuetzt') {
       // Gegengewicht: weniger Unterstützung bei mindestens einer Wiederholung ist die Bestleistung.
       const minKg = Math.min(...lifted.map((s) => s.weightKg ?? 0));
-      const reps = Math.max(...lifted.filter((s) => (s.weightKg ?? 0) === minKg).map((s) => s.reps ?? 0));
-      if (prev.minKg != null && minKg < prev.minKg - 1e-9) records.push({ exerciseId, kind: 'weniger', weightKg: minKg, reps, previousKg: prev.minKg });
+      const reps = Math.max(...lifted.filter((s) => sameKg(s.weightKg ?? 0, minKg)).map((s) => s.reps ?? 0));
+      if (prev.minKg != null && minKg < prev.minKg && !sameKg(minKg, prev.minKg)) records.push({ exerciseId, kind: 'weniger', weightKg: minKg, reps, previousKg: prev.minKg });
       continue;
     }
     const maxKg = Math.max(...lifted.map((s) => s.weightKg ?? 0));
-    const repsAtMax = Math.max(...lifted.filter((s) => (s.weightKg ?? 0) === maxKg).map((s) => s.reps ?? 0));
+    const repsAtMax = Math.max(...lifted.filter((s) => sameKg(s.weightKg ?? 0, maxKg)).map((s) => s.reps ?? 0));
     if (maxKg > 0) {
-      if (prev.maxKg != null && maxKg > prev.maxKg + 1e-9) {
+      // Gewichte mit Toleranz vergleichen (sameKg): 135 lb aus Import und Eingabe sind dasselbe Gewicht.
+      if (prev.maxKg != null && maxKg > prev.maxKg && !sameKg(maxKg, prev.maxKg)) {
         records.push({ exerciseId, kind: 'gewicht', weightKg: maxKg, reps: repsAtMax, previousKg: prev.maxKg });
-      } else if (prev.maxKg != null && Math.abs(maxKg - prev.maxKg) < 1e-9 && prev.repsAtMaxKg != null && repsAtMax > prev.repsAtMaxKg) {
+      } else if (prev.maxKg != null && sameKg(maxKg, prev.maxKg) && prev.repsAtMaxKg != null && repsAtMax > prev.repsAtMaxKg) {
         records.push({ exerciseId, kind: 'wiederholungen', weightKg: maxKg, reps: repsAtMax, previousReps: prev.repsAtMaxKg });
       }
     } else if (prev.maxReps != null && (prev.maxKg ?? 0) === 0 && repsAtMax > prev.maxReps) {

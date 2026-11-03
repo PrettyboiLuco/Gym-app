@@ -37,7 +37,16 @@ export const RIR_OPTIONS = [0, 1, 2, 3, 4] as const;
 export const LOAD_MODES = ['normal', 'einseitig', 'unterstuetzt', 'zusatzgewicht'] as const;
 export type LoadMode = (typeof LOAD_MODES)[number];
 
-const ASSISTED_IDS = new Set(['dips_maschine', 'klimmzuege_maschine']);
+/** Startübungen mit Gegengewicht (Maschine): Klimmzug- und Dip-Maschinen. Band-Varianten tragen kein Gewicht ein. */
+const ASSISTED_IDS = new Set(['dips_maschine', 'klimmzuege_maschine', 'klimmzuege_unterstuetzt']);
+
+/**
+ * Gleiche Last? Gewichte werden in kg gespeichert; 135 lb sind 61,2349… kg. Je nach Herkunft (Eingabe, Import,
+ * Rundung auf den Geräteschritt) unterscheiden sich solche Werte in der dritten Nachkommastelle. Echte
+ * Gewichtsunterschiede sind viel größer (kleinste Scheibe 0,5 kg bzw. 1 lb).
+ */
+export const SAME_KG_TOLERANCE = 0.01;
+export const sameKg = (a: number, b: number) => Math.abs(a - b) < SAME_KG_TOLERANCE;
 
 export function loadModeOf(exercise: { id: string; equipment: Equipment; kind: ExerciseKind; sides: Sides; loadMode?: LoadMode | null }): LoadMode {
   if (exercise.loadMode) return exercise.loadMode;

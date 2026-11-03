@@ -65,11 +65,25 @@ const PROFILE_CABLE_UPGRADE = `UPDATE app_state SET value = json_insert(json_ins
        AND NOT EXISTS (SELECT 1 FROM json_each(app_state.value, '$.equipment') WHERE json_each.value = 'kabel_crossover');`;
 
 /**
+ * Version 23, Schlaf: Sicherungen von vor dem Morgen-Check kennen nur sleep_entry – Einträge übernehmen, die im
+ * Morgen-Check fehlen. Nur für solche alten Sicherungen: Bei neueren steht der Schlaf schon in daily_check, und dort
+ * gelöschte Werte dürfen nicht aus der weiter mitgesicherten Tabelle sleep_entry zurückkommen.
+ */
+const SLEEP_TO_DAILY_CHECK = `INSERT INTO daily_check (id, day, sleep_hours, sleep_quality, recorded_at_utc)
+     SELECT id, day, hours, quality, recorded_at_utc FROM sleep_entry s
+     WHERE s.day NOT IN (SELECT day FROM daily_check)
+       AND s.recorded_at_utc = (SELECT MAX(recorded_at_utc) FROM sleep_entry WHERE day = s.day)
+     GROUP BY day;`;
+
+/**
  * Datenschritte, die eine Wiederherstellung aus einer ÄLTEREN Sicherung nachholen muss (Phase 1 Scan, F11):
  * Die Tabellen kommen dann aus der Sicherung, die Umwandlungen der späteren Migrationen fehlen ihnen. Jede neue
  * Migration, die eigene Daten (nicht den Katalog) umschreibt, gehört auch hierher. Sicherungen gibt es ab Version 7.
  */
-export const RESTORE_DATA_STEPS: { version: number; sql: string }[] = [{ version: 15, sql: PROFILE_CABLE_UPGRADE }];
+export const RESTORE_DATA_STEPS: { version: number; sql: string }[] = [
+  { version: 15, sql: PROFILE_CABLE_UPGRADE },
+  { version: 23, sql: SLEEP_TO_DAILY_CHECK },
+];
 
 export const MIGRATIONS: string[] = [
   // Version 1: Körpergewicht

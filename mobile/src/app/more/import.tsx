@@ -13,6 +13,7 @@ import { localDay, timeZone } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
+import { useUnits } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
 
 type Kind = 'training' | 'gewicht';
@@ -25,7 +26,9 @@ export default function ImportScreen() {
   const db = useDb();
   const theme = useTheme();
   const [kind, setKind] = useState<Kind>('training');
-  const [unit, setUnit] = useState<'kg' | 'lb'>('kg');
+  const [unit, setUnit] = useState<'kg' | 'lb'>(useUnits().weight);
+  // Rohtext der Trainings-CSV: Wechselt die Einheit nach dem Wählen, wird neu eingelesen.
+  const [csv, setCsv] = useState<string | null>(null);
   const [training, setTraining] = useState<{ imp: TrainingImport; duplicates: number } | null>(null);
   const [weights, setWeights] = useState<WeightRow[] | null>(null);
   const [choices, setChoices] = useState<Choices>({});
@@ -39,6 +42,14 @@ export default function ImportScreen() {
     setWeights(null);
     setChoices({});
     setPicking(null);
+    setCsv(null);
+  }
+
+  function changeUnit(next: 'kg' | 'lb') {
+    setUnit(next);
+    if (!training || csv === null) return;
+    const r = parseTrainingCsv(csv, next);
+    if (!('error' in r)) setTraining({ ...training, imp: r });
   }
 
   async function choose() {
@@ -68,6 +79,7 @@ export default function ImportScreen() {
     );
     setExercises((await listExercises(db)).filter((e) => e.kind === 'kraft'));
     setChoices(await suggestChoices(db, strengthExercises(r)));
+    setCsv(text);
     setTraining({ imp: r, duplicates: r.workouts.filter((w) => existing.has(w.startedAt)).length });
   }
 
@@ -147,7 +159,7 @@ export default function ImportScreen() {
         </ThemedText>
         {kind === 'training' ? (
           <>
-            <Choice label={t('importCsv.unit')} options={['kg', 'lb'] as const} value={unit} onChange={setUnit} format={(v) => v} />
+            <Choice label={t('importCsv.unit')} options={['kg', 'lb'] as const} value={unit} onChange={changeUnit} format={(v) => v} />
             <ThemedText type="small" themeColor="textSecondary">
               {t('importCsv.unitHint')}
             </ThemedText>

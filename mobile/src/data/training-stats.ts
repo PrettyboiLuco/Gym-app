@@ -12,6 +12,7 @@ import {
   periodStats,
   personalSecondsPerSet,
   trainingWeeksInBlock,
+  usableEquipment,
   type EquipmentProfile,
   type PeriodStats,
   type StatSet,
@@ -19,7 +20,7 @@ import {
 
 import { readState, writeState } from './app-state';
 import type { Db } from './db';
-import { activeVersion, listActivePlans, listExercises, loadPlanDraft, savePlan } from './training';
+import { activeVersion, insertPlanVersion, listActivePlans, listExercises, loadPlanDraft } from './training';
 
 // --------------------------------------------------------------------------- Satzzeit
 
@@ -101,8 +102,12 @@ export async function startDeload(db: Db, today: string, sunday: string, note: s
   const [draft, current] = await Promise.all([loadPlanDraft(db, plan.planId), activeVersion(db, plan.planId)]);
   if (!draft || !current) return false;
   const returnVersionId = current.validUntil && current.validUntil <= sunday ? current.returnVersionId : current.id;
-  await savePlan(db, plan.planId, deloadDraft(draft), { validUntil: sunday, returnVersionId, note });
-  await saveDeloadState(db, { ...(await loadDeloadState(db)), lastEnd: sunday, snoozedUntil: null });
+  const state = await loadDeloadState(db);
+  // Planfassung und Deload-Stand zusammen: sonst gäbe es eine leichte Woche, die den 8-Wochen-Zähler nicht zurücksetzt.
+  await db.withTransactionAsync(async () => {
+    await insertPlanVersion(db, plan.planId, deloadDraft(draft), { validUntil: sunday, returnVersionId, note });
+    await saveDeloadState(db, { ...state, lastEnd: sunday, snoozedUntil: null });
+  });
   return true;
 }
 
@@ -121,7 +126,7 @@ export const saveActiveEquipmentProfile = (db: Db, id: string) => writeState(db,
 export async function activeEquipment(db: Db, studio: Equipment[]): Promise<{ profile: EquipmentProfile; equipment: Equipment[] }> {
   const { profiles, activeId } = await loadEquipmentProfiles(db, studio);
   const profile = profiles.find((p) => p.id === activeId)!;
-  return { profile, equipment: [...new Set<Equipment>(['koerpergewicht', ...profile.equipment])] };
+  return { profile, equipment: usableEquipment(profile) };
 }
 
 // ------------------------------------------------------------------------- Wochentage

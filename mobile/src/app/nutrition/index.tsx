@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
@@ -55,18 +55,23 @@ export default function DiaryScreen() {
   const dark = useColorScheme() === 'dark';
   const dataColor = dark ? theme.accent : theme.tint;
   const [day, setDay] = useState(diaryToday);
-  // App über Mitternacht offen: Wer „Heute“ angesehen hat, sieht nach dem Zurückkehren den neuen Tag.
+  // App über Mitternacht offen oder Tagesende geändert: Wer „Heute“ angesehen hat, sieht nach dem Zurückkehren (App im
+  // Vordergrund oder Bildschirm wieder im Fokus) den neuen Tag.
   const shownToday = useRef(diaryToday());
+  const syncToday = useCallback(() => {
+    const now = diaryToday();
+    if (now === shownToday.current) return;
+    const previous = shownToday.current;
+    shownToday.current = now;
+    setDay((d) => (d === previous ? now : d));
+  }, []);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      const now = diaryToday();
-      if (state !== 'active' || now === shownToday.current) return;
-      const previous = shownToday.current;
-      shownToday.current = now;
-      setDay((d) => (d === previous ? now : d));
+      if (state === 'active') syncToday();
     });
     return () => sub.remove();
-  }, []);
+  }, [syncToday]);
+  useFocusEffect(syncToday);
   const { data, reload, db } = useLoad(
     (d) => loadDiary(d, day),
     { events: [] as ConsumptionEvent[], settings: DEFAULT_SETTINGS, goal: null as number | null, estimated: false, incomplete: false },

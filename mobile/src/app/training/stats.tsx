@@ -35,7 +35,7 @@ function period(kind: Kind, offset: number, today: string) {
   return {
     from: d.toISOString().slice(0, 10),
     to: end.toISOString().slice(0, 10),
-    label: d.toLocaleDateString('de-DE', { month: 'long', year: 'numeric', timeZone: 'UTC' }),
+    label: t('stats.monthLabel', { month: t(`stats.month.${d.getUTCMonth() + 1}`), year: d.getUTCFullYear() }),
   };
 }
 
@@ -109,14 +109,13 @@ export default function StatsScreen() {
         <>
           <FigureStrip
             figures={[
-              { label: t('stats.sessions'), value: String(s.sessions), accessibilityLabel: `${t('stats.sessions')} ${s.sessions}`, onPress: () => {} },
-              { label: t('stats.sets'), value: formatNumber(s.sets, 0), accessibilityLabel: `${t('stats.sets')} ${s.sets}`, onPress: () => {} },
+              { label: t('stats.sessions'), value: String(s.sessions), accessibilityLabel: `${t('stats.sessions')} ${s.sessions}` },
+              { label: t('stats.sets'), value: formatNumber(s.sets, 0), accessibilityLabel: `${t('stats.sets')} ${s.sets}` },
               {
                 label: t('stats.volume'),
                 value: formatWeight(s.volumeKg, units.weight, 0).replace(/\s*\S+$/, ''),
                 unit: units.weight,
                 accessibilityLabel: `${t('stats.volume')} ${formatWeight(s.volumeKg, units.weight, 0)}`,
-                onPress: () => {},
               },
             ]}
           />

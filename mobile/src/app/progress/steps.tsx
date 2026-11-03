@@ -9,11 +9,15 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { addSteps, deleteSteps, listSteps } from '@/data/steps';
 import { shiftDay } from '@/domain/dates';
+import { formatTime } from '@/domain/reminders';
 import { parseSteps, stepsAverage, stepsForDay, type StepEntry } from '@/domain/steps';
 import { localDay, timeZone, todayDay } from '@/domain/time';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, t } from '@/i18n';
+
+/** Uhrzeit HH:MM wie überall in der App (ohne fest eingestellte Sprache). */
+const clockTime = (at: Date) => formatTime(at.getHours() * 60 + at.getMinutes());
 
 /**
  * Schritte (Register HEALTH-001–007). Jetzt als eigener Tagesstand; Apple Health folgt mit dem
@@ -53,7 +57,7 @@ export default function StepsScreen() {
           // Abgerufene Werte nicht als „live“ ausgeben: Abrufzeit sichtbar machen (HEALTH-006).
           <ThemedText type="small" themeColor="textSecondary">
             {t('steps.fetchedAt', {
-              time: new Date(current.fetchedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+              time: clockTime(new Date(current.fetchedAt)),
               day: formatDay(localDay(new Date(current.fetchedAt), timeZone)),
             })}
           </ThemedText>

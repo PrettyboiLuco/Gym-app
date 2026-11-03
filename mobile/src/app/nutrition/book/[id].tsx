@@ -57,7 +57,7 @@ export default function BookRecipeScreen() {
     if (!recipe) return;
     setBusy(true);
     try {
-      await logBookRecipe(db, recipe, Number(logAmount), meal, whenFor(diaryToday()));
+      await logBookRecipe(db, recipe, Number(logAmount), meal, whenFor(diaryToday(), meal));
       showToast(t('book.logged', { meal: t(`nutrition.meals.${meal}`) }));
       router.dismissTo('/nutrition');
     } finally {
@@ -76,7 +76,9 @@ export default function BookRecipeScreen() {
     if (!recipe) return;
     await addPlanEntries(db, mealPrep({ meal, source: 'buch', ref: recipe.id, name: recipe.name }, planTo, Number(prepDays)));
     showToast(t('mealPlan.prepAdded', { count: Number(prepDays), from: formatDay(planTo) }));
-    router.push('/nutrition/plan');
+    // Vom Wochenplan gekommen: dorthin zurück statt ihn ein zweites Mal auf den Stapel zu legen.
+    if (planDay) router.dismissTo('/nutrition/plan');
+    else router.push('/nutrition/plan');
   }
 
   async function copy() {
@@ -97,7 +99,6 @@ export default function BookRecipeScreen() {
     unit,
     sub,
     accessibilityLabel: `${label} ${value === null ? '–' : formatNumber(value, 0)} ${unit}`,
-    onPress: () => {},
   });
 
   return (

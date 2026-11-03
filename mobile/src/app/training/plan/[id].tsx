@@ -23,7 +23,7 @@ import {
 import { loadSecondsPerSet } from '@/data/training-stats';
 import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
 import { supersetLetters } from '@/domain/logger';
-import { todayDay } from '@/domain/time';
+import { localDay, timeZone, todayDay } from '@/domain/time';
 import { estimateDayMinutes, formatClock, MAX_DAYS, moveItem, parseWholeNumber, REST_PRESETS, validatePlan, type PlanDraft } from '@/domain/training';
 import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
@@ -268,7 +268,11 @@ export default function PlanEditorScreen() {
         </Card>
       ) : null}
       {!isNew ? (
-        <Button label={t('plan.assistant')} variant="secondary" onPress={() => router.push({ pathname: '/training/assistant', params: { plan: id } })} />
+        <Button
+          label={t('plan.assistant')}
+          variant="secondary"
+          onPress={() => router.push({ pathname: '/training/assistant', params: { plan: id, from: 'editor' } })}
+        />
       ) : null}
       <Card>
         <Field label={t('plan.name')} placeholder={t('plan.namePlaceholder')} value={form.name} onChangeText={(name) => setForm((f) => ({ ...f, name }))} />
@@ -503,7 +507,7 @@ export default function PlanEditorScreen() {
               key={v.id}
               title={`${v.name}`}
               subtitle={[
-                t('plan.version', { version: v.version, date: formatDay(v.createdAt.slice(0, 10)) }),
+                t('plan.version', { version: v.version, date: formatDay(localDay(new Date(v.createdAt), timeZone)) }),
                 v.note,
                 v.validUntil ? t('plan.temporaryUntil', { date: formatDay(v.validUntil) }) : null,
               ]

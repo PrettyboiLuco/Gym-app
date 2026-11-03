@@ -1,11 +1,12 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
 import { Button } from '@/components/card';
 import { ProgressRing } from '@/components/charts';
 import { haptic } from '@/components/haptics';
+import { useAppLocked } from '@/components/lock-gate';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, DisplayFont, Spacing } from '@/constants/theme';
@@ -22,7 +23,7 @@ export type NextUp = { title: string; detail: string } | null;
  * Pausenleiste unten im Trainingsbildschirm (HEALTH-008/009/011) und Pause im Vollbild.
  * - Läuft eine Pause: Restzeit aus der gespeicherten Endzeit, +30 s, Überspringen; Tippen auf den Ring = Vollbild.
  * - Vollbild: großer Ring, Restzeit groß, was als Nächstes kommt; die letzten 3 Sekunden schlagen spürbar,
- *   am Ende ein Erfolgs-Signal (einmal pro Timer-Generation).
+ *   am Ende ein Erfolgs-Signal (einmal pro Timer-Generation). Vorgelesen wird nur das Ende, nicht jede Sekunde.
  * - Sonst: Pause von Hand starten, Schnellwahl 0:30 bis 5:00.
  */
 export function RestTimerBar({
@@ -66,6 +67,7 @@ export function RestTimerBar({
     if (remaining === 0 && signalled.current !== timer.generation) {
       signalled.current = timer.generation;
       haptic.success();
+      AccessibilityInfo.announceForAccessibility(t('session.restDone'));
     }
   }, [timer, visible, remaining]);
 
@@ -98,7 +100,7 @@ export function RestTimerBar({
   const progress = timer && timer.durationMs > 0 ? remaining / timer.durationMs : 0;
   return (
     <>
-      <ThemedView type="backgroundElement" style={[styles.bar, styles.row]} accessibilityLiveRegion="polite">
+      <ThemedView type="backgroundElement" style={[styles.bar, styles.row]}>
         {done ? (
           <>
             <View style={[styles.doneDot, { backgroundColor: theme.accent }]} {...HIDDEN_FROM_A11Y} />
@@ -164,9 +166,11 @@ function RestFocus({
 }) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
+  // Ein natives Modal läge über der App-Sperre: gesperrt bleibt es zu, nach dem Entsperren erscheint es wieder.
+  const locked = useAppLocked();
   const done = remaining === 0;
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+    <Modal visible={visible && !locked} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <SafeAreaView style={[styles.focus, { backgroundColor: theme.background }]}>
         <View style={styles.focusTop}>
           <ThemedText themeColor="textSecondary">{done ? t('session.restDone') : t('session.restTitle')}</ThemedText>
@@ -174,7 +178,7 @@ function RestFocus({
             <ThemedText style={{ color: theme.textSecondary }}>{t('session.restCollapse')}</ThemedText>
           </Pressable>
         </View>
-        <View style={styles.focusCenter} accessible accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`} accessibilityLiveRegion="polite">
+        <View style={styles.focusCenter} accessible accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}>
           <ProgressRing progress={progress} size={264} stroke={12} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} follow="tick">
             <ThemedText style={styles.focusClock}>{formatClock(remaining)}</ThemedText>
           </ProgressRing>

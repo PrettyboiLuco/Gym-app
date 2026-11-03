@@ -40,6 +40,10 @@ export default function ScanScreen() {
   const [torch, setTorch] = useState(false);
   // Die Kamera meldet denselben Code viele Male pro Sekunde: nur der erste zählt.
   const busy = useRef(false);
+  // „Übernehmen“ und „Korrigieren“ sperren sich gegenseitig, sonst wird das Lebensmittel doppelt angelegt.
+  const saving = useRef(false);
+  const [savingShown, setSavingShown] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   function openFood(id: string) {
     router.replace({ pathname: '/nutrition/food/[id]', params: { id, ...passOn } });
@@ -71,8 +75,12 @@ export default function ScanScreen() {
     busy.current = true;
     // Kurze Vibration bestätigt, dass der Code erkannt wurde.
     if (!typed) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    // Fehler beim Nachschlagen (z. B. Datenbank) als Fehlerzustand zeigen, statt den Scanner hängen zu lassen (Phase 1 Scan).
-    lookUp(code, typed).catch(() => setPhase({ kind: 'error', code, error: 'unavailable' }));
+    safeLookUp(code, typed);
+  }
+
+  // Fehler beim Nachschlagen (z. B. Datenbank) als Fehlerzustand zeigen, statt den Scanner hängen zu lassen (Phase 1 Scan).
+  function safeLookUp(code: string, typed: boolean) {
+    return lookUp(code, typed).catch(() => setPhase({ kind: 'error', code, error: 'unavailable' }));
   }
 
   function submitManual() {
@@ -83,13 +91,27 @@ export default function ScanScreen() {
 
   function scanAgain() {
     busy.current = false;
+    setSaveFailed(false);
     setPhase({ kind: 'scan' });
   }
 
   async function accept(draft: FoodDraft, correct: boolean) {
+    if (saving.current) return;
+    saving.current = true;
+    setSavingShown(true);
+    setSaveFailed(false);
     // Ohne Namen darf nichts gespeichert werden; vorläufig Marke bzw. Barcode, dann korrigieren.
     const named = draft.name ? draft : { ...draft, name: draft.brand ?? draft.barcode ?? '?' };
-    const id = await saveFood(db, null, named, 'off');
+    let id: string;
+    try {
+      id = await saveFood(db, null, named, 'off');
+    } catch {
+      saving.current = false;
+      setSavingShown(false);
+      setSaveFailed(true);
+      return;
+    }
+    // Gespeichert: Sperre bleibt, der Bildschirm wird ersetzt.
     if (correct || !draft.name) {
       router.replace({ pathname: '/nutrition/food-edit/[id]', params: { id, ...passOn } });
     } else openFood(id);
@@ -158,10 +180,16 @@ export default function ScanScreen() {
           </ThemedText>
           {!phase.draft.name ? <ThemedText style={{ color: theme.danger }}>{t('nutrition.scan.noName')}</ThemedText> : null}
           <View style={styles.row}>
-            {phase.draft.name ? <Button label={t('nutrition.scan.accept')} onPress={() => accept(phase.draft, false)} /> : null}
-            <Button label={t('nutrition.scan.correct')} variant={phase.draft.name ? 'danger' : 'primary'} onPress={() => accept(phase.draft, true)} />
-            <Button label={t('nutrition.scan.again')} variant="secondary" onPress={scanAgain} />
+            {phase.draft.name ? <Button label={t('nutrition.scan.accept')} disabled={savingShown} onPress={() => accept(phase.draft, false)} /> : null}
+            <Button
+              label={t('nutrition.scan.correct')}
+              variant={phase.draft.name ? 'danger' : 'primary'}
+              disabled={savingShown}
+              onPress={() => accept(phase.draft, true)}
+            />
+            <Button label={t('nutrition.scan.again')} variant="secondary" disabled={savingShown} onPress={scanAgain} />
           </View>
+          {saveFailed ? <ThemedText style={{ color: theme.danger }}>{t('common.saveFailed')}</ThemedText> : null}
         </Card>
       ) : null}
 
@@ -181,7 +209,7 @@ export default function ScanScreen() {
               />
             ) : null}
             {phase.error === 'offline' || phase.error === 'unavailable' || phase.error === 'rateLimited' ? (
-              <Button label={t('nutrition.scan.retry')} variant="secondary" onPress={() => lookUp(phase.code, false)} />
+              <Button label={t('nutrition.scan.retry')} variant="secondary" onPress={() => safeLookUp(phase.code, false)} />
             ) : null}
             <Button label={t('nutrition.scan.again')} variant="secondary" onPress={scanAgain} />
           </View>

@@ -19,7 +19,7 @@ import { todayDay } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { t } from '@/i18n';
+import { formatNumber, t } from '@/i18n';
 
 const WEEKDAY_KEYS = ['', 'mo', 'di', 'mi', 'do', 'fr', 'sa', 'so'] as const;
 type YesNo = 'ja' | 'nein';
@@ -176,8 +176,8 @@ export default function ImportPlanScreen() {
                 <Choice
                   label={t('planImport.goals', {
                     list: [
-                      result.goals.kcal !== null ? t('planImport.goalKcal', { kcal: result.goals.kcal.toLocaleString('de-DE') }) : null,
-                      result.goals.drinkMl !== null ? t('planImport.goalDrink', { liters: (result.goals.drinkMl / 1000).toLocaleString('de-DE') }) : null,
+                      result.goals.kcal !== null ? t('planImport.goalKcal', { kcal: formatNumber(result.goals.kcal, 0) }) : null,
+                      result.goals.drinkMl !== null ? t('planImport.goalDrink', { liters: formatNumber(result.goals.drinkMl / 1000, 2) }) : null,
                     ]
                       .filter(Boolean)
                       .join(', '),

@@ -51,7 +51,7 @@ type Scale = (typeof SCALE)[number];
 
 async function load(db: Db) {
   const today = todayDay();
-  const [check, status, goal, checks, history, journal, yesterdayDiary] = await Promise.all([
+  const [check, status, goal, checks, history, journal, todayJournal] = await Promise.all([
     getCheck(db, today),
     statusToday(db, today),
     loadSleepGoal(db),
@@ -69,7 +69,7 @@ async function load(db: Db) {
     history,
     findings: journalFindings(journal),
     journalDays: journal.length,
-    diaryToday: yesterdayDiary[0]?.diary ?? [],
+    diaryToday: todayJournal[0]?.diary ?? [],
   };
 }
 

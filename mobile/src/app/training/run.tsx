@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { router, Stack } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -6,6 +5,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ConfirmButton } from '@/components/fields';
+import { haptic } from '@/components/haptics';
 import { KeepAwake } from '@/components/keep-awake';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -106,9 +106,18 @@ export default function RunScreen() {
   useEffect(() => {
     if (state?.done && !outcome && !askDone) {
       if (voice && Platform.OS !== 'web') Speech.speak(t('run.speak.done'), { language: 'de-DE' });
-      finish('abgeschlossen');
+      // Fehler meldet finish selbst (Hinweis, erneut möglich); hier nur nicht unbehandelt lassen.
+      finish('abgeschlossen').catch(() => undefined);
     }
   }, [state?.done, outcome, finish, voice, askDone]);
+
+  // Beim Verlassen des Bildschirms keine Ansage weiterlaufen lassen.
+  useEffect(
+    () => () => {
+      Speech.stop().catch(() => undefined);
+    },
+    []
+  );
 
   // Letzte drei Sekunden vor einem Wechsel: kurzes Tippen als Vorwarnung (3-2-1).
   const lastTick = useRef('');
@@ -119,7 +128,7 @@ export default function RunScreen() {
     const key = `${state.index}-${secondsLeft}`;
     if (key === lastTick.current) return;
     lastTick.current = key;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    haptic.tick();
   }, [state, secondsLeft, run?.pausedAtMs, outcome]);
 
   // Ansage und kurzes Signal bei jedem neuen Schritt.
@@ -128,7 +137,7 @@ export default function RunScreen() {
     if (state.index === lastAnnounced.current) return;
     lastAnnounced.current = state.index;
     if (Platform.OS === 'web') return;
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    haptic.warning();
     if (voice) {
       Speech.stop();
       Speech.speak(announcement(state.step, nameOf), { language: 'de-DE' });

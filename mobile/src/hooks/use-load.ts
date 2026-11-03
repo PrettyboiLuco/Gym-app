@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import { showToast } from '@/components/toast';
 import type { Db } from '@/data/db';
@@ -16,12 +16,19 @@ export function useLoad<T>(load: (db: Db) => Promise<T>, initial: T, key = '') {
   const [loaded, setLoaded] = useState(false);
   // Schnelles Umschalten (Tag vor/zurück): nur das Ergebnis der letzten Anfrage zählt.
   const latest = useRef(0);
+  // Immer die aktuelle `load` aufrufen: Sie schließt oft über Profil/Einstellungen ein, die sich ohne neuen key ändern
+  // (z. B. Check-in „Neu berechnen“ nach Profiländerung).
+  // Layout-Effekt: läuft nach jedem Rendern vor den Fokus-Effekten, also vor jedem Laden.
+  const loadRef = useRef(load);
+  useLayoutEffect(() => {
+    loadRef.current = load;
+  });
 
   // `load` darf bei jedem Rendern neu sein; geladen wird nur bei Fokus, bei neuem key und auf reload().
   const reload = useCallback(async () => {
     const request = ++latest.current;
     try {
-      const result = await load(db);
+      const result = await loadRef.current(db);
       if (request === latest.current) {
         setData(result);
         setLoaded(true);
@@ -33,6 +40,7 @@ export function useLoad<T>(load: (db: Db) => Promise<T>, initial: T, key = '') {
         showToast(t('common.loadFailed'));
       }
     }
+    // key löst bewusst neues Laden aus, auch wenn reload ihn selbst nicht liest.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db, key]);
 

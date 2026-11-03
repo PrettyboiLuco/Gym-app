@@ -111,7 +111,7 @@ function amountFor(item: FoodTextItem, c: Candidate | undefined): string {
   }
   if (c.recipe?.portions) {
     const fromText = item.amount !== null && (item.unit === null || item.unit === 'portion' || item.unit === 'stueck');
-    return formatNumber(fromText ? (item.amount as number) : 1);
+    return formatNumber(fromText ? (item.amount as number) : 1, 2);
   }
   if (c.recipe) return item.unit === 'g' && item.amount ? formatNumber(item.amount) : '';
   if (c.water) return item.unit === 'ml' && item.amount ? formatNumber(item.amount) : '';
@@ -165,7 +165,7 @@ export default function FoodTextScreen() {
         return;
       }
     }
-    const when = whenFor(day);
+    const when = whenFor(day, meal);
     for (const row of chosen) {
       const c = candidateOf(row);
       const amount = parseAmount(row.amount) ?? 0;

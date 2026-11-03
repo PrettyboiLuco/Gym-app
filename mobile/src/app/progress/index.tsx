@@ -26,6 +26,7 @@ import { todayDay } from '@/domain/time';
 import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
 import { dailyMeans, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
+import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatNumber, formatWeight, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
@@ -98,6 +99,8 @@ export default function ProgressScreen() {
     showToast(t('common.saved'));
     await reload();
   }
+  // Enter auf der Tastatur und der Knopf teilen sich eine Sperre gegen Doppeltipp.
+  const saveOnce = useOnce(save);
 
   async function remove(id: string) {
     await deleteWeight(db, id);
@@ -153,13 +156,13 @@ export default function ProgressScreen() {
             label={t('progress.weightLabel', { unit: units.weight })}
             value={input}
             onChangeText={setInput}
-            onSubmitEditing={save}
+            onSubmitEditing={saveOnce}
             placeholder={t('progress.weightPlaceholder')}
             keyboardType="decimal-pad"
             returnKeyType="done"
             style={styles.flex}
           />
-          <Button label={t('common.save')} onPress={save} />
+          <Button label={t('common.save')} onPress={saveOnce} />
         </View>
         {error ? (
           <ThemedText style={{ color: theme.danger }}>
@@ -223,22 +226,24 @@ export default function ProgressScreen() {
             onPress={() => router.push('/progress/checkin')}
           />
         ) : null}
-        <ListRow
-          icon="flame"
-          title={t('progress.calorieTitle')}
-          subtitle={
-            calorie
-              ? calorie.source === 'coach'
-                ? t('progress.calorieFromCoach')
-                : calorie.source === 'rechner'
-                  ? t('progress.calorieFromCalc')
-                  : t('progress.calorieOwn')
-              : t('progress.calorieNone')
-          }
-          value={calorie ? formatKcal(calorie.baseKcal) : undefined}
-          accessory="›"
-          onPress={() => router.push('/progress/calculator')}
-        />
+        {modules.ernaehrung ? (
+          <ListRow
+            icon="flame"
+            title={t('progress.calorieTitle')}
+            subtitle={
+              calorie
+                ? calorie.source === 'coach'
+                  ? t('progress.calorieFromCoach')
+                  : calorie.source === 'rechner'
+                    ? t('progress.calorieFromCalc')
+                    : t('progress.calorieOwn')
+                : t('progress.calorieNone')
+            }
+            value={calorie ? formatKcal(calorie.baseKcal) : undefined}
+            accessory="›"
+            onPress={() => router.push('/progress/calculator')}
+          />
+        ) : null}
         <ListRow
           icon="ruler"
           title={t('progress.measureTitle')}

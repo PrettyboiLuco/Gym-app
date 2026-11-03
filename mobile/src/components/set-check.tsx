@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
@@ -33,9 +33,13 @@ export function SetCheck({
   const mark = dark ? theme.onAccent : theme.onTint;
 
   // U5: Beim Abhaken ein Lime-Ring, der sich einmal ausdehnt und verblasst – Rückmeldung, kein Glühen.
+  // Nur beim Wechsel offen → erledigt; schon erledigte Sätze (Training wieder öffnen, Übung aufklappen) bleiben ruhig.
   const ring = useSharedValue(0);
+  const wasDone = useRef(done);
   useEffect(() => {
-    if (done && !reduced) {
+    const justDone = done && !wasDone.current;
+    wasDone.current = done;
+    if (justDone && !reduced) {
       scale.set(withSequence(withSpring(1.18, { ...Spring, stiffness: 420 }), withSpring(1, Spring)));
       ring.set(0);
       ring.set(withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) }));

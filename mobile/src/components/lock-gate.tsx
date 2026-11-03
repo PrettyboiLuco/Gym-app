@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { HIDDEN_FROM_A11Y } from '@/components/a11y-hidden';
@@ -13,6 +13,13 @@ import { useDb } from '@/providers/store-provider';
 
 /** Nach so langer Zeit im Hintergrund wird wieder gesperrt. */
 const RELOCK_MS = 60_000;
+
+/** Ist die App gerade gesperrt? Für Ebenen, die über allem liegen (Vollbild-Modal, Meldungen) und sonst die Sperre überdecken. */
+const LockedContext = createContext(false);
+
+export function useAppLocked() {
+  return useContext(LockedContext);
+}
 
 /** Zeigt die App erst nach Face ID bzw. Gerätecode, wenn die App-Sperre an ist. */
 export function LockGate({ children }: { children: ReactNode }) {
@@ -51,10 +58,11 @@ export function LockGate({ children }: { children: ReactNode }) {
   // Gesperrt wird mit einer deckenden Ebene ÜBER der App, nicht durch Aushängen: Ein laufendes Training,
   // getippte Satzwerte und Timer bleiben erhalten (Phase 1 Scan, F1). Dahinter ist nichts sicht- oder bedienbar.
   const locked = state !== 'offen';
+  // Native Modals liegen über jeder View-Ebene; sie lesen den Sperrzustand und bleiben dann zu.
   return (
     <View style={styles.fill}>
       <View style={styles.fill} {...(locked ? HIDDEN_FROM_A11Y : null)} pointerEvents={locked ? 'none' : 'auto'}>
-        {children}
+        <LockedContext value={locked}>{children}</LockedContext>
       </View>
       {locked ? (
         <ThemedView style={[StyleSheet.absoluteFill, styles.root]}>

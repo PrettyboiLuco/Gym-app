@@ -137,7 +137,7 @@ export async function fetchPage(url: string, timeoutMs = 15_000): Promise<string
   }
 }
 
-/** Übernommenes Rezept als eigenes Rezept speichern. */
+/** Übernommenes Rezept als eigenes Rezept speichern. Den Ersatznamen für ein leeres Feld gibt der Bildschirm mit (Texte in i18n). */
 export async function saveImportedRecipe(db: Db, name: string, portions: number | null, ingredients: { foodId: string; amount: number }[]) {
-  return saveRecipe(db, null, { name: name.trim() || 'Rezept', endWeightG: null, portions, ingredients });
+  return saveRecipe(db, null, { name: name.trim(), endWeightG: null, portions, ingredients });
 }
