@@ -26,6 +26,9 @@ const FIELDS = [
   'generic_name_de',
   'brands',
   'product_quantity_unit',
+  'product_quantity',
+  'quantity',
+  'categories_tags',
   'serving_quantity',
   'nutriments',
   // Allergene, Spuren und vegan/vegetarisch (COACH-009); fehlen sie, bleibt es „unbekannt“.

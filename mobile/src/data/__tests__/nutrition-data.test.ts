@@ -25,6 +25,7 @@ import {
   logTemplate,
   logWater,
   recentFoods,
+  repairDrinkBasis,
   saveFood,
   saveNutritionSettings,
   saveRecipe,
@@ -297,5 +298,37 @@ describe('Einstellungen', () => {
   test('eigene Vorgabe bleibt erhalten (TIME-010)', async () => {
     await saveNutritionSettings(db, { ...(await loadNutritionSettings(db)), drinkGoalMl: 2000, glassSizes: [300], hideNumbers: true });
     expect((await loadNutritionSettings(db)).drinkGoalMl).toBe(2000);
+  });
+});
+
+describe('gescannte Getränke', () => {
+  test('früher als Gramm gespeicherte Getränke werden auf ml umgestellt und zählen dann als Getränk', async () => {
+    const id = await saveFood(
+      db,
+      null,
+      {
+        name: 'Coca-Cola Zero',
+        brand: null,
+        barcode: '5449000131805',
+        basis: 'g',
+        per100: { kcal: 0.3, protein: 0, carbs: 0, fat: 0, fiber: null },
+        servingAmount: null,
+      },
+      'off'
+    );
+    const food = await repairDrinkBasis(db, (await getFood(db, id))!);
+    expect(food.basis).toBe('ml');
+    expect((await getFood(db, id))!.basis).toBe('ml');
+    await logFood(db, id, 330, { kind: 'getraenk', drinkType: 'softdrink' }, when());
+    const [event] = await listDay(db, '2026-10-29');
+    expect(event.kind).toBe('getraenk');
+    expect(event.unit).toBe('ml');
+    expect(event.amount).toBe(330);
+  });
+  test('Essen und eigene Lebensmittel bleiben unverändert', async () => {
+    const own = await saveFood(db, null, { ...bread, name: 'Orangensaft selbst gepresst' }, 'eigen');
+    expect((await repairDrinkBasis(db, (await getFood(db, own))!)).basis).toBe('g');
+    const oats = await saveFood(db, null, { ...bread, name: 'Haferflocken' }, 'off');
+    expect((await repairDrinkBasis(db, (await getFood(db, oats))!)).basis).toBe('g');
   });
 });

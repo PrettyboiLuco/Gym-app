@@ -9,6 +9,7 @@ import { ALLERGENS, combineFacts, DEFAULT_MEAL_TIMES, type Allergen, type Diet, 
 import {
   barcodeVariants,
   fractionOf,
+  guessDrinkType,
   nutrientsForAmount,
   per100FromTotal,
   totalOf,
@@ -183,6 +184,17 @@ export function findFoodByBarcode(db: Db, barcode: string) {
  * Speichert ein Lebensmittel. Änderungen bleiben privat auf dem Gerät und werden nicht an
  * Open Food Facts gesendet (FOOD-010). Alte Tagebucheinträge ändern sich nicht (Schnappschuss).
  */
+/**
+ * Früher gescannte Getränke kamen oft als Gramm an (fehlende Packungseinheit bei Open Food Facts). Ist ein gescanntes
+ * Produkt eindeutig ein Getränk, wird es auf ml umgestellt – die Nährwerte bleiben (bei Getränken je 100 ml angegeben).
+ * Gibt das (ggf. korrigierte) Lebensmittel zurück.
+ */
+export async function repairDrinkBasis<T extends { id: string; source: Food['source']; basis: NutrientBasis; name: string }>(db: Db, food: T): Promise<T> {
+  if (food.source !== 'off' || food.basis !== 'g' || guessDrinkType(food.name) === null) return food;
+  await db.runAsync("UPDATE food SET basis = 'ml', updated_at_utc = ? WHERE id = ?", nowUtc(), food.id);
+  return { ...food, basis: 'ml' };
+}
+
 export async function saveFood(db: Db, id: string | null, draft: FoodDraft, source: Food['source'] = 'eigen') {
   const now = nowUtc();
   const foodId = id ?? newId();

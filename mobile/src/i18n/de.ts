@@ -1314,6 +1314,8 @@ export const de = {
       halfPackage: '½ Packung ({{value}})',
       forAmount: 'Für diese Menge',
       log: 'Eintragen',
+      logAs: 'Eintragen als',
+      logAsOption: { essen: 'Essen', getraenk: 'Getränk' },
       favorite: 'Als Favorit merken',
       unfavorite: 'Kein Favorit mehr',
       edit: 'Werte bearbeiten',
@@ -2965,9 +2967,6 @@ export const de = {
     monthShow: 'Monatsbericht anzeigen',
     monthPdf: 'Als PDF teilen',
     monthExpenditure: 'Geschätzter Verbrauch: {{kcal}} (± {{pm}})',
-    dayComplete: 'Tag vollständig erfasst?',
-    dayCompleteOption: { ja: 'Ja', nein: 'Nein, fehlt etwas' },
-    dayIncompleteHint: 'Dieser Tag zählt nicht für Wochenschnitt, Check-in und geschätzten Verbrauch.',
   },
   exportCsv: {
     title: 'Tabellen exportieren (CSV)',

@@ -6,7 +6,7 @@ import { Button, Card } from '@/components/card';
 import { MeterBar } from '@/components/charts';
 import { DaySummary } from '@/components/day-summary';
 import { DaySwitcher } from '@/components/day-switcher';
-import { Choice, Field, ListRow, Presets } from '@/components/fields';
+import { Field, ListRow, Presets } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -16,8 +16,6 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import {
   copyDay,
-  isDayIncomplete,
-  setDayIncomplete,
   copyMeal,
   DEFAULT_SETTINGS,
   listDay,
@@ -42,13 +40,8 @@ import { useUnits } from '@/providers/profile-provider';
 import { diaryToday, formatAmount, formatKcal, formatKcalSum, whenFor } from '@/services/nutrition-format';
 
 async function loadDiary(db: Db, day: string) {
-  const [events, settings, goal, incomplete] = await Promise.all([
-    listDay(db, day),
-    loadNutritionSettings(db),
-    calorieGoalOn(db, day),
-    isDayIncomplete(db, day),
-  ]);
-  return { events, settings, goal: goal?.kcal ?? null, macros: goal?.macros ?? null, estimated: goal?.source === 'rechner', incomplete };
+  const [events, settings, goal] = await Promise.all([listDay(db, day), loadNutritionSettings(db), calorieGoalOn(db, day)]);
+  return { events, settings, goal: goal?.kcal ?? null, macros: goal?.macros ?? null, estimated: goal?.source === 'rechner' };
 }
 
 export default function DiaryScreen() {
@@ -77,7 +70,6 @@ export default function DiaryScreen() {
       goal: null as number | null,
       macros: null as Macros | null,
       estimated: false,
-      incomplete: false,
     },
     day
   );
@@ -181,23 +173,6 @@ export default function DiaryScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {estimated ? `${t('nutrition.summary.estimated')} ` : ''}
             {t('nutrition.summary.training')}
-          </ThemedText>
-        ) : null}
-        {events.length > 0 ? (
-          <Choice
-            label={t('adaptive.dayComplete')}
-            options={['ja', 'nein'] as const}
-            value={data.incomplete ? 'nein' : 'ja'}
-            onChange={async (v) => {
-              await setDayIncomplete(db, day, v === 'nein');
-              await reload();
-            }}
-            format={(v) => t(`adaptive.dayCompleteOption.${v}`)}
-          />
-        ) : null}
-        {data.incomplete ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('adaptive.dayIncompleteHint')}
           </ThemedText>
         ) : null}
       </Card>
