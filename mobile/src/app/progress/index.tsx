@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
@@ -76,6 +76,8 @@ export default function ProgressScreen() {
   const [day, setDay] = useState(todayDay);
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
+  // Läuft gerade ein Speichern? Verhindert doppelte Einträge, wenn „Fertig“ und „Speichern“ kurz nacheinander kommen.
+  const saving = useRef(false);
   const [showAll, setShowAll] = useState(false);
 
   const today = todayDay();
@@ -87,16 +89,23 @@ export default function ProgressScreen() {
   const latest = latestBySite(measurements);
 
   async function save() {
+    // Leeres Feld = nichts zu tun (z. B. „Fertig“ auf der Tastatur hat schon gespeichert und das Feld geleert) – keine Fehlermeldung.
+    if (!input.trim() || saving.current) return;
     const kg = parseWeightIn(input, units.weight, BODY_WEIGHT_RANGE);
     if (kg === null) {
       setError(true);
       return;
     }
     setError(false);
-    await addWeight(db, day, kg);
-    setInput('');
-    showToast(t('common.saved'));
-    await reload();
+    saving.current = true;
+    try {
+      await addWeight(db, day, kg);
+      setInput('');
+      showToast(t('common.saved'));
+      await reload();
+    } finally {
+      saving.current = false;
+    }
   }
 
   async function remove(id: string) {
@@ -152,7 +161,10 @@ export default function ProgressScreen() {
           <Field
             label={t('progress.weightLabel', { unit: units.weight })}
             value={input}
-            onChangeText={setInput}
+            onChangeText={(v) => {
+              setInput(v);
+              setError(false);
+            }}
             onSubmitEditing={save}
             placeholder={t('progress.weightPlaceholder')}
             keyboardType="decimal-pad"

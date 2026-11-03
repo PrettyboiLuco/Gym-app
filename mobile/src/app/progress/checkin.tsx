@@ -105,6 +105,8 @@ export default function CheckinScreen() {
   }
 
   async function addSleep() {
+    // Leeres Feld = nichts zu tun (z. B. „Fertig“ auf der Tastatur hat schon gespeichert und das Feld geleert) – keine Fehlermeldung.
+    if (!hours.trim()) return;
     const value = parseDecimal(hours, 1);
     if (value === null || value < 1 || value > 16) {
       setSleepError(true);

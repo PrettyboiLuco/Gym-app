@@ -46,6 +46,8 @@ export default function StretchScreen() {
   const [error, setError] = useState(false);
 
   async function saveTest() {
+    // Leeres Feld = nichts zu tun (z. B. „Fertig“ auf der Tastatur hat schon gespeichert und das Feld geleert) – keine Fehlermeldung.
+    if (!input.trim()) return;
     const cm = parseLengthIn(input, units.length, FLEX_RANGE);
     if (cm === null) {
       setError(true);

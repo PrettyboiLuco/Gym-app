@@ -32,6 +32,8 @@ export default function StepsScreen() {
   const current = stepsForDay(entries, day);
 
   async function save() {
+    // Leeres Feld = nichts zu tun (z. B. „Fertig“ auf der Tastatur hat schon gespeichert und das Feld geleert) – keine Fehlermeldung.
+    if (!input.trim()) return;
     const steps = parseSteps(input);
     if (steps === null) {
       setError(true);
