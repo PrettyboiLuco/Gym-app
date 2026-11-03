@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type GestureResponderEvent, type PressableProps } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { haptic } from '@/components/haptics';
 import { ThemedText } from '@/components/themed-text';
-import { Spring } from '@/constants/motion';
+import { Press } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
 import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
@@ -37,7 +37,8 @@ export function Card({ title, trailing, children }: { title?: string; trailing?:
  * - disabled: ruhige graue Fläche mit lesbarer grauer Schrift (statt eines blassen, unlesbaren Knopfs)
  * - size: regular (48 px) · compact (40 px, für Zeilen)
  * - icon: kleines Symbol vor der Beschriftung · loading: Drehkreis statt Beschriftung, nicht drückbar
- * Beim Drücken federt die Pille ein und gibt eine leichte spürbare Rückmeldung.
+ * Beim Drücken federt die Pille fest ein und springt beim Loslassen mit leichtem Überschwingen zurück (Press) – dazu
+ * eine leichte spürbare Rückmeldung.
  */
 export function Button({
   label,
@@ -64,16 +65,17 @@ export function Button({
   };
   const look =
     off && variant !== 'quiet' ? { background: theme.backgroundSelected, border: theme.backgroundSelected, color: theme.textSecondary } : looks[variant];
+  const reduced = useReducedMotion();
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const disabled = props.disabled || loading;
   const press = useOnce(props.onPress ?? undefined);
   const pressIn = (e: GestureResponderEvent) => {
-    scale.set(withSpring(0.96, Spring));
+    if (!reduced) scale.set(withSpring(Press.button, Press.in));
     props.onPressIn?.(e);
   };
   const pressOut = (e: GestureResponderEvent) => {
-    scale.set(withSpring(1, Spring));
+    if (!reduced) scale.set(withSpring(1, Press.out));
     props.onPressOut?.(e);
   };
   return (

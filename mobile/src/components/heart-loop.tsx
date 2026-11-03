@@ -1,6 +1,7 @@
 import { Image, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useFrameCallback, useReducedMotion, useSharedValue } from 'react-native-reanimated';
 
+import { HIDDEN } from '@/components/a11y';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const FRAMES = 36;
@@ -13,10 +14,21 @@ const sprites = {
 
 /**
  * Das 3D-Herz (getlayers.ai „SVG to 3D“, vorgerendert in design/logo/sprite.js) pendelt sanft – Bild für Bild
- * aus einem Raster. Nur im Erststart (einmaliger Auftritt). Bei „Bewegung reduzieren“ steht das erste Bild.
+ * aus einem Raster. Im Start-Intro, im Erststart und auf dem Abschluss-Bildschirm. Bei „Bewegung reduzieren“ steht das erste Bild.
  */
-export function HeartLoop({ size = 140, loops }: { size?: number; /** Nach so vielen Schwüngen still stehen (Abschluss-Bildschirm). */ loops?: number }) {
-  const scheme = useColorScheme();
+export function HeartLoop({
+  size = 140,
+  loops,
+  scheme: fixed,
+}: {
+  size?: number;
+  /** Nach so vielen Schwüngen still stehen (Abschluss-Bildschirm). */
+  loops?: number;
+  /** Fester Grund statt Erscheinungsbild (Start-Intro: immer schwarz wie der Startbildschirm). */
+  scheme?: 'light' | 'dark';
+}) {
+  const current = useColorScheme();
+  const scheme = fixed ?? current;
   const reduced = useReducedMotion();
   const frame = useSharedValue(0);
   const elapsed = useSharedValue(0);
@@ -37,7 +49,7 @@ export function HeartLoop({ size = 140, loops }: { size?: number; /** Nach so vi
   }));
 
   return (
-    <View style={[styles.clip, { width: size, height: size }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={[styles.clip, { width: size, height: size }]} {...HIDDEN}>
       <Animated.View style={style}>
         <Image source={sprites[scheme]} style={{ width: size * COLS, height: size * COLS }} />
       </Animated.View>

@@ -1,12 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, TextInput, View, type TextInputProps } from 'react-native';
+import { StyleSheet, Switch, TextInput, View, type TextInputProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
 import { haptic } from '@/components/haptics';
 import { Icon, type IconName } from '@/components/icon';
+import { PressableScale } from '@/components/pressable-scale';
 import { ThemedText } from '@/components/themed-text';
-import { Spring } from '@/constants/motion';
+import { Press, Spring } from '@/constants/motion';
 import { Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useOnce } from '@/hooks/use-once';
@@ -63,27 +64,22 @@ function Chip({
   accessibilityLabel?: string;
 }) {
   const theme = useTheme();
-  const scale = useSharedValue(1);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   return (
-    <Animated.View style={style}>
-      <Pressable
-        accessibilityRole={role}
-        accessibilityState={role === 'checkbox' ? { checked: selected } : { selected }}
-        accessibilityLabel={accessibilityLabel ?? label}
-        onPressIn={() => scale.set(withSpring(0.94, Spring))}
-        onPressOut={() => scale.set(withSpring(1, Spring))}
-        onPress={() => {
-          haptic.tap();
-          onPress();
-        }}
-        style={[small ? styles.smallChip : styles.chip, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
-        {check && selected ? <Icon name="check" color={theme.onPrimary} size={14} strokeWidth={2.4} /> : null}
-        <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text, fontWeight: selected ? 600 : 500 }}>
-          {label}
-        </ThemedText>
-      </Pressable>
-    </Animated.View>
+    <PressableScale
+      scaleTo={Press.button}
+      accessibilityRole={role}
+      accessibilityState={role === 'checkbox' ? { checked: selected } : { selected }}
+      accessibilityLabel={accessibilityLabel ?? label}
+      onPress={() => {
+        haptic.tap();
+        onPress();
+      }}
+      style={[small ? styles.smallChip : styles.chip, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+      {check && selected ? <Icon name="check" color={theme.onPrimary} size={14} strokeWidth={2.4} /> : null}
+      <ThemedText type="small" style={{ color: selected ? theme.onPrimary : theme.text, fontWeight: selected ? 600 : 500 }}>
+        {label}
+      </ThemedText>
+    </PressableScale>
   );
 }
 
@@ -157,7 +153,7 @@ export function Toggle({
     onChange(!value);
   };
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="switch"
       accessibilityLabel={label}
       accessibilityHint={hint}
@@ -182,7 +178,7 @@ export function Toggle({
         ios_backgroundColor={theme.backgroundSelected}
         {...({ activeThumbColor: dark ? theme.onAccent : theme.backgroundElement } as object)}
       />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -224,8 +220,9 @@ export function Segmented<T extends string>({
       {options.map((option, i) => {
         const selected = i === index;
         return (
-          <Pressable
+          <PressableScale
             key={option}
+            wrapStyle={styles.flex}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
             accessibilityLabel={format(option)}
@@ -237,7 +234,7 @@ export function Segmented<T extends string>({
             <ThemedText type="small" numberOfLines={1} style={{ color: selected ? theme.onPrimary : theme.text, fontWeight: selected ? 600 : 500 }}>
               {format(option)}
             </ThemedText>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>
@@ -307,7 +304,7 @@ export function RadioList<T extends string>({
       {options.map((option) => {
         const selected = option === value;
         return (
-          <Pressable
+          <PressableScale
             key={option}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
@@ -331,7 +328,7 @@ export function RadioList<T extends string>({
                 </ThemedText>
               ) : null}
             </View>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>
@@ -399,14 +396,15 @@ export function ConfirmButton({
   };
   if (!asking)
     return size === 'compact' ? (
-      <Pressable
+      <PressableScale
+        scaleTo={Press.button}
         accessibilityRole="button"
         accessibilityLabel={label}
         hitSlop={4}
         onPress={ask}
         style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: theme.backgroundSelected }]}>
         <Icon name="trash" color={theme.textSecondary} size={20} />
-      </Pressable>
+      </PressableScale>
     ) : (
       <Button label={label} variant="danger" size={size} onPress={ask} />
     );
@@ -500,7 +498,8 @@ export function ItemTools({
   const theme = useTheme();
   const tool = (label: string, onPress: (() => void) | undefined, icon: ReactNode) =>
     onPress ? (
-      <Pressable
+      <PressableScale
+        scaleTo={Press.button}
         accessibilityRole="button"
         accessibilityLabel={`${label} ${name}`}
         hitSlop={2}
@@ -510,7 +509,7 @@ export function ItemTools({
         }}
         style={({ pressed }) => [styles.iconButton, { backgroundColor: pressed ? theme.border : theme.backgroundSelected }]}>
         {icon}
-      </Pressable>
+      </PressableScale>
     ) : (
       <View style={styles.iconButton} />
     );
@@ -569,7 +568,7 @@ export function ListRow({
   const theme = useTheme();
   const press = useOnce(onPress);
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={[title, value, subtitle].filter(Boolean).join(', ')}
       onPress={press}
@@ -605,7 +604,7 @@ export function ListRow({
           <ThemedText style={{ color: theme.textSecondary }}>{accessory}</ThemedText>
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 

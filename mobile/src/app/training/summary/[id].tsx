@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
@@ -9,12 +9,14 @@ import { haptic } from '@/components/haptics';
 import { HeartLoop } from '@/components/heart-loop';
 import { Icon } from '@/components/icon';
 import { MuscleMapDone } from '@/components/muscle-map';
-import { PopText } from '@/components/rise-text';
+import { PressableScale } from '@/components/pressable-scale';
+import { PopText, Rise } from '@/components/rise-text';
 import { Screen } from '@/components/screen';
 import { SessionFeedback } from '@/components/session-feedback';
 import { ShareCard } from '@/components/share-card';
 import { ThemedText } from '@/components/themed-text';
 import { FigureStrip, WeekStrip, weekDays } from '@/components/today-widgets';
+import { CardStagger } from '@/constants/motion';
 import { Spacing } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
@@ -190,95 +192,105 @@ export default function SummaryScreen() {
         <HeartLoop size={72} loops={2} />
       </View>
 
-      <FigureStrip
-        figures={
-          summary.sets === 0 && cardio.length > 0
-            ? [
-                {
-                  label: t('summary.duration'),
-                  value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
-                  unit: 'min',
-                  accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
-                  onPress: () => router.push('/training/history'),
-                },
-                {
-                  label: t('cardio.title'),
-                  value: formatNumber(
-                    cardio.reduce((m, c) => m + (c.minutes ?? 0), 0),
-                    0
-                  ),
-                  unit: 'min',
-                  accessibilityLabel: `${t('cardio.title')} ${cardio.reduce((m, c) => m + (c.minutes ?? 0), 0)} min`,
-                  onPress: () => router.push('/training/history'),
-                },
-                {
-                  label: t('cardio.distance'),
-                  value: cardio.some((c) => c.distanceKm != null)
-                    ? formatNumber(
-                        cardio.reduce((m, c) => m + (c.distanceKm ?? 0), 0),
-                        1
-                      )
-                    : null,
-                  unit: 'km',
-                  accessibilityLabel: t('cardio.distance'),
-                  onPress: () => router.push('/training/history'),
-                },
-              ]
-            : [
-                {
-                  label: t('summary.duration'),
-                  value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
-                  unit: 'min',
-                  accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
-                  onPress: () => router.push('/training/history'),
-                },
-                {
-                  label: t('summary.sets'),
-                  value: String(summary.sets),
-                  sub: t('summary.exercises', { count: summary.exercises }),
-                  accessibilityLabel: `${t('summary.sets')} ${summary.sets}, ${t('summary.exercises', { count: summary.exercises })}`,
-                  onPress: () => router.push(`/training/session/${id}`),
-                },
-                {
-                  label: t('summary.volume'),
-                  value: volume.replace(/\s*\S+$/, ''),
-                  unit: units.weight,
-                  accessibilityLabel: `${t('summary.volume')} ${volume}`,
-                  onPress: () => router.push(`/training/session/${id}`),
-                },
-              ]
-        }
-      />
+      <Rise delay={CardStagger.staggerMs}>
+        <FigureStrip
+          figures={
+            summary.sets === 0 && cardio.length > 0
+              ? [
+                  {
+                    label: t('summary.duration'),
+                    value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
+                    unit: 'min',
+                    accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
+                    onPress: () => router.push('/training/history'),
+                  },
+                  {
+                    label: t('cardio.title'),
+                    value: formatNumber(
+                      cardio.reduce((m, c) => m + (c.minutes ?? 0), 0),
+                      0
+                    ),
+                    unit: 'min',
+                    accessibilityLabel: `${t('cardio.title')} ${cardio.reduce((m, c) => m + (c.minutes ?? 0), 0)} min`,
+                    onPress: () => router.push('/training/history'),
+                  },
+                  {
+                    label: t('cardio.distance'),
+                    value: cardio.some((c) => c.distanceKm != null)
+                      ? formatNumber(
+                          cardio.reduce((m, c) => m + (c.distanceKm ?? 0), 0),
+                          1
+                        )
+                      : null,
+                    unit: 'km',
+                    accessibilityLabel: t('cardio.distance'),
+                    onPress: () => router.push('/training/history'),
+                  },
+                ]
+              : [
+                  {
+                    label: t('summary.duration'),
+                    value: summary.minutes === null ? null : formatNumber(summary.minutes, 0),
+                    count: summary.minutes === null ? undefined : { to: summary.minutes, format: (v) => formatNumber(v, 0) },
+                    unit: 'min',
+                    accessibilityLabel: `${t('summary.duration')} ${summary.minutes ?? '–'} min`,
+                    onPress: () => router.push('/training/history'),
+                  },
+                  {
+                    label: t('summary.sets'),
+                    count: { to: summary.sets, format: (v) => formatNumber(v, 0) },
+                    value: String(summary.sets),
+                    sub: t('summary.exercises', { count: summary.exercises }),
+                    accessibilityLabel: `${t('summary.sets')} ${summary.sets}, ${t('summary.exercises', { count: summary.exercises })}`,
+                    onPress: () => router.push(`/training/session/${id}`),
+                  },
+                  {
+                    label: t('summary.volume'),
+                    value: volume.replace(/\s*\S+$/, ''),
+                    count: { to: summary.volumeKg, format: (v) => formatWeight(v, units.weight, 0).replace(/\s*\S+$/, '') },
+                    unit: units.weight,
+                    accessibilityLabel: `${t('summary.volume')} ${volume}`,
+                    onPress: () => router.push(`/training/session/${id}`),
+                  },
+                ]
+          }
+        />
+      </Rise>
 
       {trained.length > 0 || muscleTally.whole > 0 ? (
-        <Card title={t('summary.musclesTitle')}>
-          <MuscleMapDone tally={muscleTally} body={body} label={t('summary.musclesLabel', { list: trainedList })} />
-          <ThemedText type="small" themeColor="textSecondary" style={styles.musclesList}>
-            {trainedList}
-          </ThemedText>
-        </Card>
+        <Rise delay={2 * CardStagger.staggerMs}>
+          <Card title={t('summary.musclesTitle')}>
+            <MuscleMapDone tally={muscleTally} body={body} label={t('summary.musclesLabel', { list: trainedList })} />
+            <ThemedText type="small" themeColor="textSecondary" style={styles.musclesList}>
+              {trainedList}
+            </ThemedText>
+          </Card>
+        </Rise>
       ) : null}
 
       {records.length > 0 ? (
-        <Card title={t('summary.recordsTitle', { count: records.length })}>
-          {records.map((r) => (
-            <Pressable
-              key={r.exerciseId}
-              accessibilityRole="button"
-              accessibilityLabel={`${nameOf(r.exerciseId)}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
-              onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
-              style={({ pressed }) => [styles.record, { opacity: pressed ? 0.7 : 1 }]}>
-              <View style={styles.flex}>
-                <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {recordText(r)}
-                  {e1rmText(r)}
-                </ThemedText>
-              </View>
-              <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
-            </Pressable>
-          ))}
-        </Card>
+        <Rise delay={3 * CardStagger.staggerMs}>
+          <Card title={t('summary.recordsTitle', { count: records.length })}>
+            {records.map((r, i) => (
+              <Rise key={r.exerciseId} delay={(4 + i) * CardStagger.staggerMs}>
+                <PressableScale
+                  accessibilityRole="button"
+                  accessibilityLabel={`${nameOf(r.exerciseId)}: ${recordText(r)}. ${t('exerciseProgress.open')}`}
+                  onPress={() => router.push(`/training/exercise/${r.exerciseId}`)}
+                  style={styles.record}>
+                  <View style={styles.flex}>
+                    <ThemedText style={styles.recordName}>{nameOf(r.exerciseId)}</ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {recordText(r)}
+                      {e1rmText(r)}
+                    </ThemedText>
+                  </View>
+                  <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
+                </PressableScale>
+              </Rise>
+            ))}
+          </Card>
+        </Rise>
       ) : null}
 
       {cardio.length > 0 ? (

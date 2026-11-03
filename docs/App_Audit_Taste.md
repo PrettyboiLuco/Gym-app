@@ -52,3 +52,20 @@ Bildschirme erneut fotografiert.
 
 Prüfung: `npx tsc --noEmit`, `npx expo lint --max-warnings 0`, `npx prettier --check src`, `npx jest` (61 Suiten,
 714 Tests) grün; `node .claude/skills/taste-skill/scripts/lint.mjs mobile/src --app` meldet nur noch Testdaten.
+
+## Bewegung (Nachtrag, 3. November 2026)
+
+Auf Wunsch mehr Leben in der App – alles kurz, unterbrechbar und bei „Bewegung reduzieren“ abgeschaltet. Werte in
+`mobile/src/constants/motion.ts`.
+
+- **Start-Intro (rund 1,7 s):** Das Startbild wird zum sich drehenden 3D-Herz, das einmal schlägt; „Myhealth“ steigt
+  Buchstabe für Buchstabe auf (getlayers Text Animations „Rise & Settle“: 24 px, Feder 220/22, 30 ms Versatz). Beim
+  Abgang des schwarzen Vorhangs gleitet der erste Bildschirm schon herein (getlayers „Reveal choreography“: Inhalt kommt
+  durch den verschwindenden Vorhang). Im Web ist der Grund schon vor dem ersten Skript schwarz (`public/index.html`).
+- **Seitenwechsel:** Unterseiten gleiten 44 px von rechts herein, zurück von links; ein Tab-Wechsel lässt den Inhalt
+  14 px aufsteigen. Auf dem iPhone schiebt der native Stapel die Unterseiten selbst, dort gilt nur der Tab-Wechsel.
+- **Drücken:** Knöpfe federn fest auf 95 % ein und springen beim Loslassen mit leichtem Überschwingen zurück;
+  Listenzeilen, Chips, Segmente, Symbol-Knöpfe und Schalter-Zeilen federn mit (`PressableScale`). Im Web hüpft das Symbol
+  des gewählten Tabs kurz.
+- **Training abgeschlossen:** Dauer, Sätze und bewegtes Gewicht zählen in 0,9 s hoch, die Karten (Kennzahlen,
+  Muskelkarte, Bestleistungen) erscheinen 60 ms versetzt; dazu wie bisher Pop-Scale-Überschrift und Herz.

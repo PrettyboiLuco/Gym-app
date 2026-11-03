@@ -36,7 +36,7 @@ function Word({ word, delay, type }: { word: string; delay: number; type: Themed
   );
 }
 
-/** Ein Block, der nach `delay` weich aufsteigt (gleiche Feder) – für die Karten im Erststart. */
+/** Ein Block, der nach `delay` weich aufsteigt (gleiche Feder) – für die Karten im Erststart und auf dem Abschluss-Bildschirm. */
 export function Rise({ delay = 0, children }: { delay?: number; children: React.ReactNode }) {
   const reduced = useReducedMotion();
   const p = useSharedValue(reduced ? 1 : 0);
