@@ -106,3 +106,27 @@ mobile/src/providers/** , mobile/src/hooks/** , mobile/src/app/_layout.tsx , mob
 screen,card,fields,app-tabs,app-tabs.web,a11y}.* . Schwerpunkt: Datenverlust bei Migration/Sicherung/Wiederherstellung,
 Transaktions-Warteschlange (`serialTransactions` in db.ts), App-Sperre, Mitteilungen (iOS-Limit 64), Start-Ablauf.
 ```
+
+## Zusatz: So sieht und testet ChatGPT die Oberfläche (an jeden Prompt anhängen)
+
+```text
+## Oberfläche ansehen und testen
+Die App läuft auch als Web-Vorschau (React Native Web) – gleiche Bildschirme, Texte, Zahlen und Fenster wie auf dem
+iPhone. Nur Haptik, Mitteilungen, Kamera/Barcode, Face ID, Wischgesten, Glas-Tab-Leiste und Federgefühl gibt es
+ausschließlich auf dem Gerät – dazu nur Code-Befunde, keine Screenshot-Befunde.
+
+Wenn du Befehle ausführen kannst (Codex mit Internetzugang in der Umgebung):
+1. cd mobile && npm ci
+2. Web-Vorschau im Hintergrund starten: CI=1 npx expo start --web --port 8081   (warten bis http://localhost:8081 antwortet)
+3. npm i --no-save playwright && npx playwright install chromium
+4. node scripts/ui-tour.mjs ui-tour
+   → legt Testdaten an (Erststart, Beispielplan „Lucs Training“, Kalorienziel 2600, vier Mahlzeiten, Wasser, Kaffee,
+   Gewicht 82,4 kg, ein Training mit einem Satz) und speichert ~95 Screenshots (iPhone-13-Größe, dunkel und hell) in
+   ui-tour/: alle Tabs, Statistik, Verlauf, Woche, Budget, Lücken, Fasten, Einblicke, Bereitschaft, Mehr, die Fenster
+   „Nährwerte“ und „…“ einer Mahlzeit, Pause, Satztabelle und Abschluss. Am Ende steht, ob Konsolenfehler auftraten.
+5. Sieh dir die Screenshots an und nenne bei UI-Befunden immer die Bilddatei (z. B. ui-tour/dark-ernaehrung-1.png).
+   Für weitere Abläufe kannst du das Skript erweitern (Playwright; RN Web scrollt in einem inneren Container →
+   page.mouse.wheel; Knöpfe über getByRole('button', { name })).
+
+Wenn du nichts ausführen kannst: Der Nutzer lädt dir die Screenshots als ZIP hoch (gleiche Dateinamen) – nutze diese.
+```
