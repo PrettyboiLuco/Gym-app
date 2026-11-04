@@ -94,7 +94,7 @@ mobile/src/services/nutrition-format.ts
 BEREICH: Heute, Fortschritt, Mehr. Dateien: mobile/src/app/index.tsx , mobile/src/app/progress/** , mobile/src/app/more/** ,
 mobile/src/components/{today-widgets,weight-overview,smooth-chart,coach-today,readiness,insight-*,empty-state,onboarding,
 share-card}.* , mobile/src/domain/{readiness,adaptive,checkin,coach,energy,goals,weight,insights,steps,blood-pressure,
-milestones,motivation}.ts , mobile/src/data/{readiness,goals,coach,insights,weights,report}.ts
+motivation}.ts , mobile/src/data/{readiness,goals,coach,insights,weights,report}.ts
 ```
 
 ## Bereich 4 – Daten, Sicherung, Mitteilungen, Grundgerüst
