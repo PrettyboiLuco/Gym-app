@@ -1326,6 +1326,11 @@ export const de = {
     settingsLinkSub: 'Kalorienziel, Trinkziel, Zahlen ausblenden',
     settingsLink: 'Einstellungen',
     recipesLink: 'Rezepte',
+    recipesLinkSub: 'Eigene Gerichte anlegen',
+    nutrients: {
+      title: 'Nährwerte',
+      sub: 'Ballaststoffe, Zucker, Fett, Salz, Vitamine',
+    },
     meals: {
       fruehstueck: 'Frühstück',
       mittag: 'Mittagessen',
@@ -1363,15 +1368,16 @@ export const de = {
     salt: 'Salz',
     caffeine: 'Koffein',
     summary: {
-      title: 'Tagesübersicht',
       eaten: 'Gegessen',
-      goal: 'Ziel',
+      goalLine: 'Ziel {{value}} kcal',
       left: 'Übrig',
-      ofGoal: 'von {{goal}} kcal',
-      percent: '{{value}} % vom Ziel',
+      ofGoal: 'vom Ziel',
+      percent: '{{value}} %',
       ofGrams: 'von {{value}} g',
       share: '{{value}} % kcal',
-      over: 'Über dem Ziel',
+      over: 'Drüber',
+      noGoalShort: 'Noch kein Ziel',
+      howCounted: 'Wie wird gezählt?',
       noGoal: 'Noch kein Kalorienziel. Lass es unter „Fortschritt → Kalorienrechner“ schätzen oder trag es unter „Einstellungen“ ein.',
       estimated: 'Das Ziel stammt aus dem Kalorienrechner und ist eine Schätzung.',
       incomplete: {
@@ -1404,11 +1410,11 @@ export const de = {
       title: 'Getränke',
       progress: '{{all}} von {{goal}} getrunken',
       progressNoGoal: '{{all}} getrunken',
+      sum: '{{all}} von {{goal}}',
       water: 'davon Wasser: {{water}}',
       reached: 'Trinkziel erreicht.',
       basis:
         'Gezählt werden nur Getränke, nicht das Wasser im Essen. Rund 1,5 Liter am Tag sind eine allgemeine Orientierung der DGE, kein Mindestwert – bei Hitze, Sport, Krankheit, in Schwangerschaft und Stillzeit kann der Bedarf anders sein.',
-      quick: 'Wasser schnell eintragen',
       addGlass: '+{{ml}} Wasser',
       other: 'Anderes Getränk',
     },
@@ -3387,7 +3393,7 @@ export const de = {
     },
     timeline: {
       single: 'Gegessen um {{at}}',
-      window: 'Erste Mahlzeit {{first}} · letzte {{last}} · Essensfenster {{hours}} h',
+      window: 'Erste Mahlzeit {{first}} · letzte {{last}} · Essensfenster {{hours}}\u00a0h',
       empty: 'Für diesen Tag ist noch nichts eingetragen.',
     },
     copy: {
@@ -3408,8 +3414,6 @@ export const de = {
       fullness: 'Sättigung danach',
       mood: 'Stimmung',
       add: 'Hunger, Sättigung, Stimmung',
-      edit: 'Ändern',
-      done: 'Fertig',
       hint: 'Freiwillig und nur für dich – es gibt keine richtige oder falsche Stufe. Nochmal tippen entfernt die Angabe.',
       levels: {
         hunger: { 1: 'kaum', 2: 'leicht', 3: 'mittel', 4: 'deutlich', 5: 'stark' },
@@ -3417,9 +3421,14 @@ export const de = {
         mood: { 1: 'gedrückt', 2: 'eher gedrückt', 3: 'neutral', 4: 'eher gut', 5: 'gut' },
       },
     },
+    options: {
+      label: 'Optionen für {{meal}}',
+      yesterdaySub: 'Einträge dieser Mahlzeit von gestern übernehmen',
+    },
     drinks: {
       more: 'Mehr …',
       moreTitle: 'Getränke',
+      infoLabel: 'Trinkmenge und Koffein',
       detail: '{{ml}} · etwa {{mg}} mg Koffein',
     },
     multi: {
@@ -3476,6 +3485,7 @@ export const de = {
   supplements: {
     title: 'Supplements',
     link: 'Supplements',
+    linkSub: 'Festhalten, was du nimmst',
     notice:
       'Hier hältst du fest, was du nimmst – mit Menge und Einheit so, wie du sie einträgst. Die App gibt keine ' +
       'Empfehlungen und schlägt keine Mengen vor. Fragen zu Einnahme, Menge oder Wechselwirkungen mit Medikamenten ' +

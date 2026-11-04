@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 import { MeterBar } from '@/components/charts';
 import { TargetMicroBar } from '@/components/target-micro-bar';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import type { DayTargets } from '@/data/targets-settings';
 import { MICRO_UNITS, type Micros } from '@/domain/basis-foods';
 import { netCarbs } from '@/domain/diet-profile';
@@ -27,7 +27,7 @@ export function TargetDayExtras({ targets, totals, micros, day }: { targets: Day
   if (!budget && net === null && targets.pinned.length === 0) return null;
 
   return (
-    <View style={[styles.box, { borderColor: theme.backgroundSelected }]}>
+    <View style={[styles.box, { borderColor: dark ? 'rgba(255,255,255,0.12)' : theme.backgroundSelected }]}>
       {budget ? (
         <View style={styles.block} accessible>
           <ThemedText type="smallBold" style={styles.num}>
@@ -82,13 +82,8 @@ export function TargetDayExtras({ targets, totals, micros, day }: { targets: Day
 }
 
 const styles = StyleSheet.create({
-  box: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: Radius.field + 4,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    gap: Spacing.two,
-  },
+  // Unter der Makro-Leiste der Lichtbühne: durch eine Haarlinie abgesetzt, ohne eigenen Kasten.
+  box: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spacing.two, gap: Spacing.two },
   block: { gap: Spacing.one + 2, paddingVertical: Spacing.one },
   head: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   flex: { flex: 1, minWidth: 0 },

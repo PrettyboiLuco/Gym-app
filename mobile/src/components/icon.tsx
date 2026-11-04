@@ -46,7 +46,11 @@ export type IconName =
   | 'chart'
   | 'trash'
   | 'info'
-  | 'star';
+  | 'star'
+  | 'more'
+  | 'week'
+  | 'planner'
+  | 'recipe';
 
 export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: IconName; color: string; size?: number; strokeWidth?: number }) {
   const p = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -186,6 +190,21 @@ export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: Icon
       </>
     ),
     star: <Path d="m12 4 2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z" {...p} />,
+    more: (
+      <>
+        <Circle cx={5.5} cy={12} r={1.7} fill={color} />
+        <Circle cx={12} cy={12} r={1.7} fill={color} />
+        <Circle cx={18.5} cy={12} r={1.7} fill={color} />
+      </>
+    ),
+    week: <Path d="M4 20h16M6 16.5V13M9.5 16.5V9M13 16.5v-5M16.5 16.5V6" {...p} />,
+    planner: (
+      <>
+        <Rect x={3.5} y={5} width={17} height={15.5} rx={3} {...p} />
+        <Path d="M3.5 10h17M8 3v4M16 3v4M9 15l2 2 4-4.2" {...p} />
+      </>
+    ),
+    recipe: <Path d="M4 11.5h16a8 8 0 0 1-16 0zM8.5 20.5h7M9 4.5c-.9 1 .9 2 0 3.2M12 4c-.9 1 .9 2 0 3.2M15 4.5c-.9 1 .9 2 0 3.2" {...p} />,
     trash: <Path d="M4.5 7h15M10 7V4.5h4V7M6.5 7l1 12.5h9l1-12.5M10.5 11v5M13.5 11v5" {...p} />,
   };
   return (

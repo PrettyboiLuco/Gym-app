@@ -104,3 +104,42 @@ Bedarf zwei, drei Symbole ergänzen: z. B. `week`, `planner`, `recipe`, `cart`).
 tsc, Lint (0 Warnungen), Prettier, alle Tests grün; neue reine Logik (Verlaufs-Stopps, Zeilen-Verzögerungen) getestet.
 Browser (Web-Vorschau, iPhone-Größe, hell + dunkel) mit Einträgen: Seite, jedes Fenster offen. Screenshots ablegen unter
 dem Scratchpad (siehe Auftrag).
+
+## Umgesetzt (04.11.2026)
+
+**Neu:** `components/sheet.tsx` (`Sheet`, `SheetRow`, `Rise`, `useSheetClose`), `components/sheet-motion.ts` (Zeilen-Leiter,
+Wischgrenze), `components/firmament.ts` (Rampe `ramp4`, Stopps, Lichtpunkt, Atem-Periode), `components/firmament-glow.tsx`,
+`components/day-hero.tsx` (`HeroCard`, `DayHero`), `components/meal-head.tsx` (Kopfzeile Index/Name/Summe/„+“/„…“),
+`components/diary-meal-options.tsx` (Mahlzeiten-Optionen), Test `components/__tests__/firmament-sheet.test.ts`.
+Bewegungswerte in `constants/motion.ts` → `SheetMotion`. Symbole `more`, `week`, `planner`, `recipe` in `icon.tsx`.
+
+**Umgebaut:** `app/nutrition/index.tsx`, `day-summary.tsx` (Fenster „Nährwerte“ statt Vitamin-Fenster und Extras-Raster),
+`diary-copy-sheet.tsx`, `diary-drinks.tsx`, `diary-meal-feeling.tsx` (nur noch die Stufen, im Fenster), `diary-entry-row.tsx`
+(`last`), `target-day-extras.tsx` (Haarlinie statt Kasten), `tiles.tsx` (Titel bis zwei Zeilen), `hooks/use-count-up.ts`
+(`fromPrevious`). `diary-sheet.tsx` entfällt (ersetzt durch `Sheet`). Texte in `i18n/de.ts` ergänzt bzw. ungenutzte entfernt
+(`summary.title`, `summary.goal`, `drinks.quick`, `feeling.edit`, `feeling.done`).
+
+**Abweichungen (mit Grund):**
+- Wischen: react-native-gesture-handler 3.3 ist installiert, dort ist `Gesture.Pan` die Altform – genutzt wird
+  `usePanGesture` + `GestureDetector` (gleiche Physik). Gewischt wird an Griffleiste und Kopf, damit das Scrollen im Inhalt
+  nicht mit dem Schließen streitet. Funktioniert auch im Web.
+- Schließen: „die Platte folgt“ hat im Bauplan keine Zahl – sie startet 80 ms nach dem Inhalt (`SheetMotion.exitLagMs`).
+- Lichtschein: liegt auf der **Bühne** (Ring bis zur Haarlinie), nicht unter der ganzen Karte; die Haarlinie ist der
+  Horizont, rx/ry beziehen sich auf die Bühne. So stehen Zahlen, Makros und Zeilen darunter auf ruhigem Grund (Lesbarkeit).
+  Ellipse über `viewBox 100×120` + `preserveAspectRatio="none"` (rx/ry des RadialGradient gibt es im Web nicht).
+- Atmen: Deckkraft 0,88–1,0 (Mitte 0,94) statt um 1,0 – der Schein wird nie heller als die CONFIG-Werte.
+- Hell (firmament-018): `colorA` ist nicht festgelegt → gleich `colorB`.
+- Leerer Tag ohne Ziel zeigt „0 kcal“ im Ring (ohne Ziel gibt es keine Prozent).
+- Hinweis „Einträge ohne Kalorienangabe“ bleibt sichtbar (rot), weil er die Summe betrifft; eingeklappt sind „Wie wird
+  gezählt?“ (Training/geschätzt) und „Noch kein Ziel“.
+- Getränke: eigene Karte mit gleichem Kopf wie die Mahlzeiten (statt Block in der Mahlzeiten-Karte); „Mehr …“ ist der
+  letzte Chip der Koffein-Reihe; „Koffein heute“ steht neben dem Glas, DGE-/EFSA-Text hinter „Trinkmenge und Koffein“.
+- Befinden: Eingabe im Optionen-Fenster, die Kurzzeile („Hunger: mittel · …“) bleibt unter den Einträgen sichtbar.
+  Mahlzeit nur mit Rezepten: statt „Als Vorlage speichern“ der vorhandene Hinweis `templateNoFoods`.
+- Sensible Situation: Verhalten wie bisher (Ziele/Wochenbudget/Vitamin-Ziele aus, Fasten-Kachel aus); ohne Zahlen nur bei
+  „Zahlen ausblenden“ – dann zeigt die Bühne nur „N Einträge. Zahlen sind ausgeblendet“.
+
+**Geprüft:** tsc, Lint (0 Warnungen), Prettier, Jest (78 Suiten, 906 Tests). Browser iPhone-13-Größe dunkel/hell, alle
+Fenster offen, „Bewegung reduzieren“ (Fenster sofort voll da), Wischen nach unten. Nur am iPhone prüfbar: Federgefühl der
+Platte, Wischen im nativen Modal, Tastatur über dem Vorlagen-Namen, VoiceOver-Reihenfolge im Fenster, App-Sperre bei offenem
+Fenster.

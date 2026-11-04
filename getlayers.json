@@ -1,11 +1,22 @@
 {
   "version": 1,
   "brief": {
-    "dimensionality": ["depth"],
-    "mood": ["calm", "technical"],
-    "tone": ["dark"],
-    "motionEnergy": ["subtle"],
-    "density": ["balanced"]
+    "dimensionality": [
+      "depth"
+    ],
+    "mood": [
+      "calm",
+      "technical"
+    ],
+    "tone": [
+      "dark"
+    ],
+    "motionEnergy": [
+      "subtle"
+    ],
+    "density": [
+      "balanced"
+    ]
   },
   "styleId": "app-true-black-flat",
   "tokens": {
@@ -38,27 +49,73 @@
         "vignette": 0.45,
         "breathe": 0.06,
         "speed": 0.33
+      },
+      "components": [
+        "mobile/src/components/day-hero.tsx",
+        "mobile/src/components/firmament-glow.tsx",
+        "mobile/src/components/firmament.ts"
+      ],
+      "glowArea": "stage (ring bis Haarlinie = Horizont)",
+      "lightVariant": {
+        "gradientVariant": "firmament-018",
+        "colorA": "#8fa96b",
+        "colorB": "#8fa96b",
+        "colorC": "#c9d6a8",
+        "colorD": "#f5f3e4",
+        "glow": 0.35,
+        "vignette": 0
       }
     },
     {
       "screen": "mobile/src/app/nutrition/index.tsx",
       "sectionId": "nutrition-meals",
-      "composition": "lumora-services"
+      "composition": "lumora-services",
+      "components": [
+        "mobile/src/components/meal-head.tsx",
+        "mobile/src/components/diary-meal-options.tsx"
+      ]
     },
     {
       "screen": "mobile/src/components/sheet.tsx",
       "sectionId": "loader-lumora",
       "role": "window motion (sheet)",
       "motion": {
-        "slabSpring": { "tension": 220, "friction": 30, "mass": 1 },
-        "contentSpring": { "tension": 260, "friction": 26 },
+        "slabSpring": {
+          "tension": 220,
+          "friction": 30,
+          "mass": 1
+        },
+        "contentSpring": {
+          "tension": 260,
+          "friction": 26
+        },
         "contentDriftPx": 12,
-        "rowSpring": { "tension": 170, "friction": 26 },
-        "rowLadderMs": [150, 200, 250, 300, 400, 550, 650, 750, 900]
+        "rowSpring": {
+          "tension": 170,
+          "friction": 26
+        },
+        "rowLadderMs": [
+          150,
+          200,
+          250,
+          300,
+          400,
+          550,
+          650,
+          750,
+          900
+        ],
+        "exitLagMs": 80,
+        "rowStepMs": 100,
+        "rowMaxMs": 1200,
+        "dismiss": {
+          "px": 120,
+          "velocity": 800
+        }
       }
     },
     {
-      "screen": "vitamin window, drinks window",
+      "screen": "Nährwerte (day-summary.tsx), Mahlzeiten-Optionen, Kopieren auf …, Mehr Getränke",
       "sectionId": "vesper-faq",
       "composition": "vesper-faq"
     }

@@ -31,7 +31,7 @@ export function TileGrid({ tiles }: { tiles: Tile[] }) {
           ]}>
           <Icon name={tile.icon} color={theme.text} size={22} />
           <View style={styles.text}>
-            <ThemedText style={styles.title} numberOfLines={1}>
+            <ThemedText style={styles.title} numberOfLines={2}>
               {tile.title}
             </ThemedText>
             {tile.subtitle ? (

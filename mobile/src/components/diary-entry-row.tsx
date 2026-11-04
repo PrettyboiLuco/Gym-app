@@ -48,6 +48,7 @@ export function DiaryEntryRow({
   title,
   subtitle,
   fresh = false,
+  last = false,
   onPress,
   onDelete,
 }: {
@@ -55,6 +56,8 @@ export function DiaryEntryRow({
   subtitle: string;
   /** Gerade eingetragen: einblenden und kurz aufleuchten. */
   fresh?: boolean;
+  /** Letzte Zeile eines Blocks: ohne eigene Trennlinie (die Linie des nächsten Blocks folgt). */
+  last?: boolean;
   onPress: () => void;
   onDelete: () => void;
 }) {
@@ -158,6 +161,7 @@ export function DiaryEntryRow({
           title={title}
           subtitle={subtitle}
           accessory="›"
+          last={last}
           onPress={() => {
             if (open.current) settle(0);
             else onPress();

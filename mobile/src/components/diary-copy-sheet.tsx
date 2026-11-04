@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/card';
-import { DiarySheet } from '@/components/diary-sheet';
 import { MultiChoice } from '@/components/fields';
+import { Sheet, SheetRow } from '@/components/sheet';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
@@ -42,7 +42,7 @@ export function DiaryCopySheet({
 }) {
   const db = useDb();
   const today = diaryToday();
-  // Auswahl beginnt leer: das Blatt wird zum Öffnen jeweils neu eingehängt.
+  // Auswahl beginnt leer: das Tagebuch hängt das Fenster zu jedem Öffnen neu ein (key).
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -66,7 +66,7 @@ export function DiaryCopySheet({
   }
 
   return (
-    <DiarySheet
+    <Sheet
       visible={visible}
       title={t('diary.copy.title', { what: title })}
       onClose={onClose}
@@ -78,19 +78,26 @@ export function DiaryCopySheet({
           onPress={copy}
         />
       }>
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('diary.copy.hint')}
-      </ThemedText>
-      <MultiChoice label={t('diary.copy.future')} options={future} value={selected} onChange={setSelected} format={(d) => shortDay(d, today)} />
-      <View style={styles.row}>
-        <Button label={t('diary.copy.nextWeek')} variant="secondary" size="compact" onPress={() => setSelected((s) => [...new Set([...s, ...nextWeek])])} />
-        {selected.length > 0 ? <Button label={t('diary.copy.clear')} variant="quiet" size="compact" onPress={() => setSelected([])} /> : null}
-      </View>
-      <MultiChoice label={t('diary.copy.past')} options={past} value={selected} onChange={setSelected} format={(d) => shortDay(d, today)} />
-    </DiarySheet>
+      <SheetRow index={0}>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t('diary.copy.hint')}
+        </ThemedText>
+      </SheetRow>
+      <SheetRow index={1} divider style={styles.group}>
+        <MultiChoice label={t('diary.copy.future')} options={future} value={selected} onChange={setSelected} format={(d) => shortDay(d, today)} />
+        <View style={styles.row}>
+          <Button label={t('diary.copy.nextWeek')} variant="secondary" size="compact" onPress={() => setSelected((s) => [...new Set([...s, ...nextWeek])])} />
+          {selected.length > 0 ? <Button label={t('diary.copy.clear')} variant="quiet" size="compact" onPress={() => setSelected([])} /> : null}
+        </View>
+      </SheetRow>
+      <SheetRow index={2} divider>
+        <MultiChoice label={t('diary.copy.past')} options={past} value={selected} onChange={setSelected} format={(d) => shortDay(d, today)} />
+      </SheetRow>
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  group: { gap: Spacing.three },
 });

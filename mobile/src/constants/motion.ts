@@ -155,3 +155,25 @@ export const ScanLock = {
 
 /** Tab-Leiste (N7, Web): die helle Pille des gewählten Tabs gleitet zum neuen Tab – Feder ohne Überschwingen. */
 export const TabPill = { spring: { stiffness: 320, damping: 32, mass: 1 } } as const;
+
+/**
+ * Fenster „Platte federt auf“ (getlayers Section `loader-lumora`, Bewegung 1:1 übernommen; tension = stiffness,
+ * friction = damping, Masse 1). Die Platte federt von ihrer Höhe auf 0; der Inhalt steigt Zeile für Zeile durch die
+ * Bewegung herein (getlayers „Reveal choreography“: Gate beim START der Bewegung). Schließen: Inhalt zuerst (12 px nach
+ * unten, Deckkraft 0), die Platte folgt `exitLagMs` später. Wischen nach unten schließt ab `dismissPx` oder `dismissVelocity`.
+ */
+export const SheetMotion = {
+  slab: { stiffness: 220, damping: 30, mass: 1 },
+  content: { stiffness: 260, damping: 26, mass: 1 },
+  contentDrift: 12,
+  row: { stiffness: 170, damping: 26, mass: 1 },
+  rowFromY: 10,
+  rowLadderMs: [150, 200, 250, 300, 400, 550, 650, 750, 900],
+  rowStepMs: 100,
+  rowMaxMs: 1200,
+  /** Die Platte folgt dem Inhalt so viel später (die Vorlage lässt den Inhalt zuerst gehen). */
+  exitLagMs: 80,
+  backdropMs: 220,
+  dismissPx: 120,
+  dismissVelocity: 800,
+} as const;
