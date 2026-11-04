@@ -3,6 +3,7 @@ import { Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Icon } from '@/components/icon';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -94,9 +95,7 @@ export default function ShoppingScreen() {
           </Card>
         );
       })}
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('shopping.hint')}
-      </ThemedText>
+      <InsightInfo text={t('shopping.hint')} />
     </Screen>
   );
 }

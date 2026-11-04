@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { Card } from '@/components/card';
 import { EntryRow, MultiChoice } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { TargetMicroBar } from '@/components/target-micro-bar';
 import { ThemedText } from '@/components/themed-text';
@@ -42,9 +43,7 @@ export default function MicrosScreen() {
   return (
     <Screen withHeader>
       <Card>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('targets.micros.onlyLogged')}
-        </ThemedText>
+        <InsightInfo label={t('nutrition.summary.howCounted')} text={t('targets.micros.onlyLogged')} />
         <ThemedText type="small" themeColor="textSecondary">
           {t('micros.openHint', { known: sums.known, total: sums.total })}
         </ThemedText>

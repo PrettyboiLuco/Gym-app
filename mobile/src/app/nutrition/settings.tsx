@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, ListRow, MultiChoice, Presets, Toggle } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -157,8 +158,9 @@ export default function NutritionSettingsScreen() {
           keyboardType="number-pad"
         />
         <ThemedText type="small" themeColor="textSecondary">
-          {t('nutrition.settings.drinkGoalHint')} {t('nutrition.drinks.basis')}
+          {t('nutrition.settings.drinkGoalHint')}
         </ThemedText>
+        <InsightInfo text={t('nutrition.drinks.basis')} />
       </Card>
       <Card title={t('nutrition.settings.glasses')}>
         <Presets

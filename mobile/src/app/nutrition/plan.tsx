@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ItemTools, ListRow } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -205,9 +206,7 @@ export default function PlanScreen() {
           format={(v) => t(`mealPlan.snacksOption.${v}`)}
         />
         <Button label={t('mealPlan.suggest')} onPress={suggest} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('mealPlan.suggestHint')}
-        </ThemedText>
+        <InsightInfo text={t('mealPlan.suggestHint')} />
         <ListRow
           icon="list"
           title={t('mealPlan.shopping')}
@@ -241,9 +240,7 @@ export default function PlanScreen() {
           ))}
         </Card>
       ) : null}
-      <ThemedText type="small" themeColor="textSecondary">
-        {t('mealPlan.hint')}
-      </ThemedText>
+      <InsightInfo text={t('mealPlan.hint')} />
     </Screen>
   );
 }

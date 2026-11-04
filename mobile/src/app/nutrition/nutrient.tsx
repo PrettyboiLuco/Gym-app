@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { Card } from '@/components/card';
 import { Choice, EntryRow, ListRow } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { TargetMicroBar } from '@/components/target-micro-bar';
 import { ThemedText } from '@/components/themed-text';
@@ -104,9 +105,7 @@ export default function NutrientScreen() {
             />
           ))
         )}
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('targets.nutrient.note')}
-        </ThemedText>
+        <InsightInfo text={t('targets.nutrient.note')} />
       </Card>
     </Screen>
   );

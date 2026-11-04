@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { Choice, EntryRow, Toggle } from '@/components/fields';
 import { Icon } from '@/components/icon';
+import { InsightInfo } from '@/components/insight-info';
 import { PressableScale } from '@/components/pressable-scale';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -125,9 +126,7 @@ export default function BudgetScreen() {
           value={current.carryover}
           onChange={(carryover) => change({ carryover })}
         />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('targets.budget.rules')}
-        </ThemedText>
+        <InsightInfo text={t('targets.budget.rules')} />
       </Card>
 
       {preview ? (

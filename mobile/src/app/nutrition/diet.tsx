@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { RadioList } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { dietPreview, loadDayTargets, saveTargetsSettings, type DayTargets } from '@/data/targets-settings';
@@ -70,9 +71,7 @@ export default function DietScreen() {
       {showsNetCarbs(current) && !data.sensitive ? (
         <Card>
           <ThemedText>{t('targets.diet.notice')}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('targets.diet.netCarbsHint')}
-          </ThemedText>
+          <InsightInfo text={t('targets.diet.netCarbsHint')} />
         </Card>
       ) : null}
 

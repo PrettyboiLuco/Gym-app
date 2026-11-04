@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { EntryRow, ListRow } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -119,8 +120,9 @@ export default function GapsScreen() {
               </View>
             ))
           )}
+          <InsightInfo text={t('targets.gaps.note')} />
           <ThemedText type="small" themeColor="textSecondary">
-            {t('targets.gaps.note')} {t('targets.rulesVersion', { version: GAP_RULES_VERSION })}
+            {t('targets.rulesVersion', { version: GAP_RULES_VERSION })}
           </ThemedText>
         </Card>
       ) : null}
