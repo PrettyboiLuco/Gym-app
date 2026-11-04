@@ -51,6 +51,12 @@ export function nudgeRest(timer: RestTimer, seconds: number, nowMs: number): Res
   return { endAtMs: timer.endAtMs - cut, durationMs: Math.max(timer.durationMs - cut, left - cut), generation: timer.generation + 1 };
 }
 
+/** Bisher gehaltene Sekunden eines Zeit-Satz-Countdowns (vorzeitig gestoppt oder Training beendet): 1 bis Ziel. */
+export function heldSeconds(hold: { seconds: number; endAtMs: number }, nowMs: number): number {
+  const left = Math.max(0, hold.endAtMs - nowMs) / 1000;
+  return Math.min(hold.seconds, Math.max(1, Math.round(hold.seconds - left)));
+}
+
 export type Particle = { dx: number; dy: number; size: number; delayMs: number; lime: boolean };
 
 /**

@@ -72,6 +72,11 @@ export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingW
   };
 }
 
+/** Woche eines Trainings (Zusammenfassung): die seines lokalen Starttags, auch wenn es nach Mitternacht endet. */
+export function loadTrainingWeekOf(db: Db, startedAtUtc: string): Promise<TrainingWeek> {
+  return loadTrainingWeek(db, localDay(new Date(startedAtUtc), timeZone));
+}
+
 /** Erledigte Arbeitssätze (ohne Aufwärmen) je Tag dieser Woche, nach Ortszeit. */
 async function doneSetsByDay(db: Db, monday: string): Promise<number[]> {
   const rows = await db.getAllAsync<{ startedAt: string }>(

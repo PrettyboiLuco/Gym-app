@@ -13,6 +13,7 @@ import { localDay, timeZone } from '@/domain/time';
 import type { IntervalConfig, PlanDraft, RestTimer } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
+import { closeRunningCardio } from './cardio';
 import { newId, nowUtc, type Db } from './db';
 
 // ------------------------------------------------------------------------------------ Übungen
@@ -443,19 +444,21 @@ export async function startSession(db: Db, planDayId: string | null): Promise<st
       );
     }
     // Geplantes Cardio als offene Einträge (A2).
-    const cardio = await db.getAllAsync<{ activity: string; minutes: number; atEnd: number }>(
-      'SELECT activity, minutes, at_end AS atEnd FROM plan_cardio WHERE plan_day_id = ? ORDER BY position',
+    // Die Notiz des Plans (z. B. „Steigung 8 %“) wandert mit in den offenen Eintrag.
+    const cardio = await db.getAllAsync<{ activity: string; minutes: number; atEnd: number; note: string | null }>(
+      'SELECT activity, minutes, at_end AS atEnd, note FROM plan_cardio WHERE plan_day_id = ? ORDER BY position',
       planDayId
     );
     for (const c of cardio) {
       await db.runAsync(
-        `INSERT INTO cardio_log (id, session_id, activity, day, planned_minutes, at_end, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO cardio_log (id, session_id, activity, day, planned_minutes, at_end, note, created_at_utc) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         newId(),
         id,
         c.activity,
         localDay(new Date(), timeZone),
         c.minutes,
         c.atEnd,
+        c.note,
         nowUtc()
       );
     }
@@ -592,7 +595,7 @@ export async function addSet(db: Db, sessionId: string, exerciseId: string) {
   );
 }
 
-/** Beendet ein Training. Nicht erledigte geplante Sätze bleiben als „nicht gemacht“ stehen. */
+/** Beendet ein Training. Nicht erledigte geplante Sätze und nicht gestartetes Cardio bleiben als „nicht gemacht“ stehen. */
 export async function finishSession(
   db: Db,
   sessionId: string,
@@ -601,13 +604,12 @@ export async function finishSession(
   /** Ende zu einem früheren Zeitpunkt (vergessenes Training: Zeit des letzten Satzes). */
   finishedAtUtc?: string
 ) {
-  await db.runAsync(
-    'UPDATE workout_session SET status = ?, abort_reason = ?, finished_at_utc = ? WHERE id = ?',
-    status,
-    reason ?? null,
-    finishedAtUtc ?? nowUtc(),
-    sessionId
-  );
+  const end = finishedAtUtc ?? nowUtc();
+  // Ende und laufende Cardio-Stoppuhren zusammen: nie ein beendetes Training mit noch tickender Uhr.
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('UPDATE workout_session SET status = ?, abort_reason = ?, finished_at_utc = ? WHERE id = ?', status, reason ?? null, end, sessionId);
+    await closeRunningCardio(db, sessionId, end);
+  });
 }
 
 export type LastPerformance = { weightKg: number; reps: number | null; seconds: number | null }[];

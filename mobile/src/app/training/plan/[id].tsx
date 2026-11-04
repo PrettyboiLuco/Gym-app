@@ -6,6 +6,18 @@ import { useReducedMotion } from 'react-native-reanimated';
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ItemTools, ListRow, Presets, Toggle } from '@/components/fields';
+import {
+  EMPTY_FORM,
+  NEW_DAY,
+  NEW_ITEM,
+  planDraftToForm,
+  planFormToDraft,
+  supersetGroups,
+  type CardioForm,
+  type DayForm,
+  type ItemForm,
+  type PlanForm,
+} from '@/components/plan-form-logic';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -23,102 +35,16 @@ import {
   type PlanVersionInfo,
 } from '@/data/training';
 import { loadSecondsPerSet } from '@/data/training-stats';
-import { CARDIO_ACTIVITIES, type CardioActivity } from '@/domain/cardio';
+import { CARDIO_ACTIVITIES } from '@/domain/cardio';
 import { supersetLetters } from '@/domain/logger';
 import { localDay, timeZone, todayDay } from '@/domain/time';
-import { estimateDayMinutes, formatClock, MAX_DAYS, moveItem, parseWholeNumber, REST_PRESETS, validatePlan, type PlanDraft } from '@/domain/training';
+import { estimateDayMinutes, formatClock, MAX_DAYS, moveItem, parseWholeNumber, REST_PRESETS, validatePlan } from '@/domain/training';
 import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 import { blockSeconds as blockSecondsOf } from '@/services/planner-helpers';
-
-// Im Formular stehen Zahlen als Text, damit man sie frei tippen kann.
-type ItemForm = {
-  exerciseId: string;
-  sets: string;
-  repsMin: string;
-  repsMax: string;
-  rest: string;
-  seconds: string;
-  rir?: string;
-  note?: string;
-  label?: string;
-  /** Supersatz mit der nächsten Übung (A1); daraus werden beim Speichern Gruppen-Nummern. */
-  linkNext?: boolean;
-};
-type CardioForm = { activity: CardioActivity; minutes: string; atEnd: boolean };
-type DayForm = { name: string; items: ItemForm[]; warmup: boolean; cooldown: boolean; cardio?: CardioForm[] };
-type PlanForm = { name: string; days: DayForm[] };
-
-const NEW_ITEM = { sets: '3', repsMin: '8', repsMax: '12', rest: '90', seconds: '' };
-const NEW_DAY: DayForm = { name: '', items: [], warmup: true, cooldown: true };
-const EMPTY_FORM: PlanForm = { name: '', days: [NEW_DAY] };
-
-function toForm(draft: PlanDraft): PlanForm {
-  return {
-    name: draft.name,
-    days: draft.days.map((day) => ({
-      name: day.name,
-      warmup: day.warmup !== false,
-      cooldown: day.cooldown !== false,
-      cardio: (day.cardio ?? []).map((c) => ({ activity: c.activity, minutes: String(c.minutes), atEnd: c.atEnd !== false })),
-      items: day.items.map((i, index) => ({
-        exerciseId: i.exerciseId,
-        sets: String(i.sets),
-        repsMin: String(i.repsMin),
-        repsMax: String(i.repsMax),
-        rest: String(i.restSeconds),
-        seconds: i.targetSeconds == null ? '' : String(i.targetSeconds),
-        rir: i.rir ?? '',
-        note: i.note ?? '',
-        label: i.label ?? '',
-        linkNext: i.superset != null && day.items[index + 1]?.superset === i.superset,
-      })),
-    })),
-  };
-}
-
-function toDraft(form: PlanForm, timed: (exerciseId: string) => boolean): PlanDraft {
-  // Ungültige Zahlen werden zu -1 und von validatePlan gemeldet.
-  const num = (text: string) => parseWholeNumber(text) ?? -1;
-  return {
-    name: form.name,
-    days: form.days.map((day) => ({
-      name: day.name,
-      warmup: day.warmup,
-      cooldown: day.cooldown,
-      ...(day.cardio?.length ? { cardio: day.cardio.map((c) => ({ activity: c.activity, minutes: num(c.minutes), atEnd: c.atEnd })) } : {}),
-      items: day.items.map((i, index) => ({
-        exerciseId: i.exerciseId,
-        sets: num(i.sets),
-        // Zeit-Übungen (UX-011): Sekunden statt Wiederholungen.
-        repsMin: timed(i.exerciseId) ? 1 : num(i.repsMin),
-        repsMax: timed(i.exerciseId) ? 1 : num(i.repsMax),
-        restSeconds: num(i.rest),
-        targetSeconds: timed(i.exerciseId) ? num(i.seconds) : null,
-        rir: i.rir?.trim() || null,
-        note: i.note?.trim() || null,
-        label: i.label?.trim() || null,
-        superset: supersetGroups(day.items)[index],
-      })),
-    })),
-  };
-}
-
-/** Gruppen-Nummern aus „mit nächster verbunden“: aufeinanderfolgende verbundene Übungen bilden einen Supersatz. */
-function supersetGroups(items: ItemForm[]): (number | null)[] {
-  const groups: (number | null)[] = items.map(() => null);
-  let next = 1;
-  for (let i = 0; i < items.length - 1; i++) {
-    if (!items[i].linkNext) continue;
-    const group = groups[i] ?? next++;
-    groups[i] = group;
-    groups[i + 1] = group;
-  }
-  return groups;
-}
 
 async function fetchEditor(db: Db, id: string, isNew: boolean) {
   const exercises = await listExercises(db);
@@ -154,7 +80,7 @@ export default function PlanEditorScreen() {
   function apply(data: Awaited<ReturnType<typeof fetchEditor>>) {
     setExercises(data.exercises);
     if (data.draft) {
-      const loaded = toForm(data.draft);
+      const loaded = planDraftToForm(data.draft);
       setForm(loaded);
       setBaseline(JSON.stringify(loaded));
     }
@@ -203,7 +129,7 @@ export default function PlanEditorScreen() {
 
   const byId = new Map(exercises.map((e) => [e.id, e]));
   const isTimed = (exerciseId: string) => byId.get(exerciseId)?.measure === 'zeit';
-  const draft = toDraft(form, isTimed);
+  const draft = planFormToDraft(form, isTimed);
   const problems = validatePlan(draft);
   /** Dauer des vorgeschlagenen Aufwärmens/Cool-downs in Sekunden (STRETCH-001: in der Zeitschätzung). */
   const blockSeconds = (day: DayForm, kind: 'aufwaermen' | 'cooldown') => blockSecondsOf(day.items, exercises, kind);
@@ -402,6 +328,13 @@ export default function PlanEditorScreen() {
                     keyboardType="number-pad"
                     style={styles.numberField}
                     onChangeText={(minutes) => updateCardio(dayIndex, cardioIndex, { minutes })}
+                  />
+                  <Field
+                    label={t('plan.note')}
+                    value={c.note ?? ''}
+                    placeholder={t('cardio.notePlaceholder')}
+                    style={styles.noteField}
+                    onChangeText={(note) => updateCardio(dayIndex, cardioIndex, { note })}
                   />
                 </View>
                 <Choice

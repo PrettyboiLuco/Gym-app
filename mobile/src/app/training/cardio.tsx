@@ -13,6 +13,7 @@ import { addCardio, completeCardio, deleteCardio, getCardio, setCardioTimer, typ
 import {
   CARDIO_ACTIVITIES,
   CARDIO_INFO,
+  defaultCardioMinutes,
   elapsedMinutes,
   pace,
   parseCardioForm,
@@ -20,7 +21,7 @@ import {
   type CardioForm,
   type CardioProblem,
 } from '@/domain/cardio';
-import { todayDay } from '@/domain/time';
+import { nowMs, todayDay } from '@/domain/time';
 import { formatClock } from '@/domain/training';
 import { useLoad } from '@/hooks/use-load';
 import { useNow } from '@/hooks/use-now';
@@ -49,23 +50,30 @@ export default function CardioScreen() {
   const activity: CardioActivity = activityChoice ?? entry?.activity ?? ((params.activity as CardioActivity) || 'laufband');
   const info = CARDIO_INFO[activity];
   const day = dayChoice ?? entry?.day ?? todayDay();
+  // Im Training gibt es keine Tageswahl: der Eintrag zählt am Starttag des Trainings (data/cardio.ts), auch nach Mitternacht.
+  const inSession = entry?.sessionId != null || !!params.session;
+  const running = entry?.timerStartedAt ?? null;
+  const now = useNow(running !== null, 1000);
   const value = (key: keyof CardioForm, fallback: string) => (form[key] as string | undefined) ?? fallback;
+  // Nichts getippt: laufende Stoppuhr, sonst gespeicherte, sonst geplante Minuten. Getipptes hat immer Vorrang.
+  const minutesAt = (atMs: number) => {
+    const minutes = defaultCardioMinutes(entry, atMs);
+    return value('minutes', minutes === null ? '' : formatNumber(minutes, 1));
+  };
   const current: CardioForm = {
-    minutes: value('minutes', entry?.minutes != null ? formatNumber(entry.minutes, 1) : entry?.plannedMinutes != null ? String(entry.plannedMinutes) : ''),
+    minutes: minutesAt(now),
     distance: value('distance', entry?.distanceKm != null ? formatNumber(entry.distanceKm, 2) : ''),
     avgHr: value('avgHr', entry?.avgHr != null ? String(entry.avgHr) : ''),
     effort: form.effort !== undefined ? form.effort : (entry?.effort ?? null),
     level: value('level', entry?.level ?? ''),
     note: value('note', entry?.note ?? ''),
   };
-  const running = entry?.timerStartedAt ?? null;
-  const now = useNow(running !== null, 1000);
   const parsed = parseCardioForm(current);
   const speed = parsed.values ? pace(parsed.values.minutes, parsed.values.distanceKm) : null;
 
   async function ensureEntry() {
     if (entryId) return entryId;
-    const id = await addCardio(db, { activity, customName, day, sessionId: params.session ?? null });
+    const id = await addCardio(db, { activity, customName, day: inSession ? undefined : day, sessionId: params.session ?? null });
     setEntryId(id);
     return id;
   }
@@ -84,13 +92,18 @@ export default function CardioScreen() {
   }
 
   async function save() {
-    const result = parseCardioForm(current);
+    // Läuft die Stoppuhr, zählt die gemessene Zeit bis jetzt (nicht die vom letzten Sekundentakt).
+    const result = parseCardioForm({ ...current, minutes: minutesAt(nowMs()) });
     setProblems(result.problems);
     if (!result.values) return;
     setBusy(true);
     try {
       const id = await ensureEntry();
-      await completeCardio(db, id, result.values, { activity, customName: activity === 'sonstiges' ? (customName ?? entry?.customName ?? '') : null, day });
+      await completeCardio(db, id, result.values, {
+        activity,
+        customName: activity === 'sonstiges' ? (customName ?? entry?.customName ?? '') : null,
+        ...(inSession ? {} : { day }),
+      });
       showToast(t('cardio.saved'));
       router.back();
     } finally {
@@ -104,7 +117,6 @@ export default function CardioScreen() {
   }
 
   const set = (key: keyof CardioForm) => (text: string) => setForm((f) => ({ ...f, [key]: text }));
-  const inSession = entry?.sessionId != null || !!params.session;
 
   return (
     <Screen withHeader>

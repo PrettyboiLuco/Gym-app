@@ -33,7 +33,7 @@ import {
   type PlanHint,
   type SessionInfo,
 } from '@/data/training';
-import { loadMapPrefs, loadTrainingWeek, type TrainingWeek } from '@/data/training-week';
+import { loadMapPrefs, loadTrainingWeek, loadTrainingWeekOf, type TrainingWeek } from '@/data/training-week';
 import { bestOneRepMax, countsAsWork, loadModeOf } from '@/domain/logger';
 import { EMPTY_TALLY, tallyMuscles, type MapMuscle, type MuscleTally } from '@/domain/muscle-map';
 import { findRecords, summarize, type Record } from '@/domain/summary';
@@ -51,14 +51,15 @@ import { useModules, useUnits } from '@/providers/profile-provider';
  * Einmal beim Öffnen ein Erfolgs-Signal (bei Bestleistung deutlicher).
  */
 async function loadSummary(db: Db, id: string) {
-  const [session, sets, exercises, week, blocks, hints] = await Promise.all([
+  const [session, sets, exercises, blocks, hints] = await Promise.all([
     getSession(db, id),
     listSessionSets(db, id),
     listExercises(db),
-    loadTrainingWeek(db, todayDay()),
     timedSessionsForWorkout(db, id),
     planHintsForSession(db, id),
   ]);
+  // Woche des Trainingsstarts (nach Mitternacht beendet: zählt am Starttag, wie in der Wochenübersicht).
+  const week = session ? await loadTrainingWeekOf(db, session.startedAt) : await loadTrainingWeek(db, todayDay());
   const cardio = (await listCardioForSession(db, id)).filter((c) => c.completedAt);
   const { body } = await loadMapPrefs(db);
   const done = sets.filter((s) => s.completedAt);

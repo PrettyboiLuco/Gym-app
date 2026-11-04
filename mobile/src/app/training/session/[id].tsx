@@ -19,7 +19,7 @@ import { Screen } from '@/components/screen';
 import { SetCheck } from '@/components/set-check';
 import { RirChoice, SetDetails } from '@/components/set-details';
 import { SetCols, SetRowShell, SetTableHead } from '@/components/set-table';
-import { mergeSetInput, nextOpenRow, nudgeRest, type SetInput } from '@/components/set-table-logic';
+import { heldSeconds, mergeSetInput, nextOpenRow, nudgeRest, type SetInput } from '@/components/set-table-logic';
 import { ThemedText } from '@/components/themed-text';
 import { Press, SetRowMotion } from '@/constants/motion';
 import { Radius, Spacing, TabularNums } from '@/constants/theme';
@@ -35,7 +35,6 @@ import {
   addWarmupSets,
   deleteOpenSet,
   exerciseHistory,
-  finishSession,
   getSession,
   lastPerformance,
   listExercises,
@@ -79,6 +78,7 @@ import { useUnits } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
 import { syncRestAlert } from '@/services/alerts';
 import { holdLookup, routineMinutes, startRoutineRun } from '@/services/timed';
+import { endWorkout } from '@/services/workout-end';
 
 type Inputs = Record<string, SetInput>;
 
@@ -337,15 +337,31 @@ export default function SessionScreen() {
     }, seconds * 1000);
   }
 
+  // Training wird gerade beendet: ein noch laufendes Abhaken startet keine neue Pause mehr.
+  const ending = useRef(false);
+
   /** Countdown vorzeitig beenden: die tatsächlich gehaltenen Sekunden werden eingetragen. */
   function stopHold() {
     if (!hold) return;
-    const held = Math.max(1, Math.round(hold.seconds - holdLeftMs / 1000));
+    const held = heldSeconds(hold, nowMs());
     const row = sets.find((r) => r.id === hold.rowId);
     if (holdTimeout.current) clearTimeout(holdTimeout.current);
     holdTimeout.current = null;
     setHold(null);
     if (row) complete(row, hold.index, String(held));
+  }
+
+  /**
+   * Beim Beenden: laufenden Countdown abräumen (der Aufräum-Code beim Verlassen trägt dann nichts mehr nach und startet
+   * keine Pause) und die bis jetzt gehaltenen Sekunden zurückgeben – sie werden vor dem Ende gespeichert.
+   */
+  function takeHold() {
+    ending.current = true;
+    if (!hold) return null;
+    if (holdTimeout.current) clearTimeout(holdTimeout.current);
+    holdTimeout.current = null;
+    setHold(null);
+    return { setId: hold.rowId, seconds: heldSeconds(hold, nowMs()) };
   }
 
   async function complete(row: SetRow, indexInExercise: number, secondsOverride?: string) {
@@ -379,7 +395,7 @@ export default function SessionScreen() {
     setAskRirFor(!isTimed(row.exerciseId) && row.setType !== 'aufwaermen' ? row.id : null);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
     const restSeconds = restSecondsFor(restChoice, row.restSeconds, row.superset != null);
-    if (restAuto && restSeconds > 0 && !beforeDrop) {
+    if (restAuto && restSeconds > 0 && !beforeDrop && !ending.current) {
       try {
         await updateTimer(startRest(timer, restSeconds, nowMs()));
         // Pause im Vollbild, solange noch etwas zu tun ist.
@@ -401,9 +417,10 @@ export default function SessionScreen() {
   const noteField = useRef<NoteFieldHandle>(null);
 
   async function finish(status: 'abgeschlossen' | 'abgebrochen') {
+    const held = takeHold();
     await noteField.current?.flush();
-    await finishSession(db, id, status, status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined);
-    await updateTimer(stopRest(timer));
+    // Laufender Zeit-Satz zuerst, dann Ende samt Cardio-Stoppuhr; Pause und Mitteilung „Pause vorbei“ enden mit.
+    setTimer(await endWorkout(db, id, { status, reason: status === 'abgebrochen' ? 'schmerz_oder_abbruch' : undefined, held }));
     setRestFocus(false);
     // Nach einem normalen Ende: Abschluss-Bildschirm (Zusammenfassung, Bestleistungen, Woche).
     // Ein vorgeschlagenes Cool-down startet von dort aus (STRETCH-002).
@@ -420,15 +437,9 @@ export default function SessionScreen() {
    * (sonst stünde eine Dauer von Stunden oder Tagen in der Zusammenfassung) oder verwerfen, wenn nichts gemacht wurde.
    */
   async function closeStale(keep: boolean) {
+    const held = takeHold();
     await noteField.current?.flush();
-    const lastSet =
-      sets
-        .filter((s) => s.completedAt)
-        .map((s) => s.completedAt!)
-        .sort()
-        .at(-1) ?? session?.startedAt;
-    await finishSession(db, id, keep ? 'abgeschlossen' : 'abgebrochen', keep ? undefined : 'vergessen', lastSet);
-    await updateTimer(stopRest(timer));
+    setTimer(await endWorkout(db, id, { status: keep ? 'abgeschlossen' : 'abgebrochen', reason: keep ? undefined : 'vergessen', stale: true, held }));
     setRestFocus(false);
     if (keep) router.replace(`/training/summary/${id}`);
     else router.dismissTo('/training');

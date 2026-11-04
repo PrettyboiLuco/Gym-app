@@ -1,8 +1,8 @@
 // Cardio-Einträge (Ausbauplan A2): im Training (geplant oder hinzugefügt) oder für sich. Gespeichert wird in der
 // lokalen Zeit des Tages, damit Wochensummen zum Kalender passen.
 
-import type { CardioActivity, CardioValues } from '@/domain/cardio';
-import { todayDay } from '@/domain/time';
+import { CARDIO_MAX_MINUTES, elapsedMinutes, type CardioActivity, type CardioValues } from '@/domain/cardio';
+import { localDay, timeZone, todayDay } from '@/domain/time';
 
 import { newId, nowUtc, type Db } from './db';
 
@@ -51,12 +51,19 @@ export function listOpenCardio(db: Db) {
   return db.getAllAsync<CardioEntry>(`SELECT ${COLUMNS} FROM cardio_log WHERE session_id IS NULL AND completed_at_utc IS NULL ORDER BY created_at_utc DESC`);
 }
 
-/** Neuer, noch offener Eintrag (z. B. „Cardio hinzufügen“ im Training). */
+/** Lokaler Starttag eines Trainings: Cardio darin zählt am selben Tag wie die Sätze, auch nach Mitternacht. */
+async function sessionDay(db: Db, sessionId: string): Promise<string | null> {
+  const row = await db.getFirstAsync<{ startedAt: string }>('SELECT started_at_utc AS startedAt FROM workout_session WHERE id = ?', sessionId);
+  return row ? localDay(new Date(row.startedAt), timeZone) : null;
+}
+
+/** Neuer, noch offener Eintrag (z. B. „Cardio hinzufügen“ im Training). Ohne Tag: Starttag des Trainings, sonst heute. */
 export async function addCardio(
   db: Db,
   entry: { activity: CardioActivity; customName?: string | null; sessionId?: string | null; plannedMinutes?: number | null; atEnd?: boolean; day?: string }
 ) {
   const id = newId();
+  const day = entry.day ?? (entry.sessionId ? await sessionDay(db, entry.sessionId) : null) ?? todayDay();
   await db.runAsync(
     `INSERT INTO cardio_log (id, session_id, activity, custom_name, day, planned_minutes, at_end, created_at_utc)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -64,7 +71,7 @@ export async function addCardio(
     entry.sessionId ?? null,
     entry.activity,
     entry.customName?.trim() || null,
-    entry.day ?? todayDay(),
+    day,
     entry.plannedMinutes ?? null,
     entry.atEnd === false ? 0 : 1,
     nowUtc()
@@ -102,6 +109,29 @@ export async function completeCardio(
 /** Stoppuhr starten/stoppen; der Startzeitpunkt bleibt gespeichert, auch wenn die App geschlossen wird. */
 export async function setCardioTimer(db: Db, id: string, running: boolean) {
   await db.runAsync('UPDATE cardio_log SET timer_started_at_utc = ? WHERE id = ?', running ? nowUtc() : null, id);
+}
+
+/**
+ * Beim Trainingsende (ohne eigene Transaktion, läuft in der von finishSession): Läuft in diesem Training noch eine
+ * Cardio-Stoppuhr, wird der Eintrag mit der bis zum Ende gemessenen Zeit erledigt. Wurde die Uhr erst nach dem Ende
+ * gestartet (vergessenes Training, Ende = letzter Satz), stoppt sie nur; der Eintrag bleibt wie nicht gestartete
+ * geplante Blöcke „nicht gemacht“.
+ */
+export async function closeRunningCardio(db: Db, sessionId: string, endUtc: string) {
+  const running = await db.getAllAsync<{ id: string; startedAt: string }>(
+    `SELECT id, timer_started_at_utc AS startedAt FROM cardio_log
+     WHERE session_id = ? AND completed_at_utc IS NULL AND timer_started_at_utc IS NOT NULL`,
+    sessionId
+  );
+  const endMs = Date.parse(endUtc);
+  for (const c of running) {
+    if (Date.parse(c.startedAt) >= endMs) {
+      await db.runAsync('UPDATE cardio_log SET timer_started_at_utc = NULL WHERE id = ?', c.id);
+      continue;
+    }
+    const minutes = Math.min(CARDIO_MAX_MINUTES, elapsedMinutes(c.startedAt, endMs));
+    await db.runAsync('UPDATE cardio_log SET minutes = ?, timer_started_at_utc = NULL, completed_at_utc = ? WHERE id = ?', minutes, endUtc, c.id);
+  }
 }
 
 export async function deleteCardio(db: Db, id: string) {

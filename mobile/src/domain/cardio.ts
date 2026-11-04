@@ -92,3 +92,15 @@ export function pace(minutes: number, distanceKm: number | null): { minPerKm: nu
 export function elapsedMinutes(startedAtIso: string, nowMs: number): number {
   return Math.max(0.1, Math.round(((nowMs - Date.parse(startedAtIso)) / 60_000) * 10) / 10);
 }
+
+/**
+ * Minuten, wenn nichts getippt wurde: eine laufende Stoppuhr zählt vor gespeicherten und geplanten Minuten
+ * (sonst gingen beim Speichern die gemessene Zeit verloren oder es fehlten Minuten).
+ */
+export function defaultCardioMinutes(
+  entry: { minutes: number | null; plannedMinutes: number | null; timerStartedAt: string | null } | null,
+  nowMs: number
+): number | null {
+  if (entry?.timerStartedAt) return elapsedMinutes(entry.timerStartedAt, nowMs);
+  return entry?.minutes ?? entry?.plannedMinutes ?? null;
+}
