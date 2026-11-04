@@ -611,6 +611,91 @@ export async function logFoods(db: Db, items: readonly { foodId: string; amount:
   return ids;
 }
 
+/** Zuletzt Eingetragenes (Hinzufügen-Bildschirm): ein Eintrag je Lebensmittel, Rezept bzw. Schnelleintrag (gleicher Name). */
+export type RecentEntry = {
+  eventId: string;
+  foodId: string | null;
+  recipeVersionId: string | null;
+  name: string;
+  brand: string | null;
+  prep: Prep | null;
+  amount: number;
+  unit: EventUnit;
+  kcal: number | null;
+};
+
+/**
+ * Die zuletzt eingetragenen verschiedenen Dinge, neueste zuerst – mit der Menge vom letzten Mal (TRACK-005). Anders als
+ * `recentFoods` auch Schnelleinträge und Rezepte. Archivierte Lebensmittel fehlen. Getränke nur mit Lebensmittel (Wasser
+ * und Koffein-Getränke haben ihre eigene Schnellwahl).
+ */
+export function recentEntries(db: Db, kind: EventKind = 'essen', limit = 10) {
+  return db.getAllAsync<RecentEntry>(
+    `SELECT id AS eventId, food_id AS foodId, recipe_version_id AS recipeVersionId, name, brand, amount, unit, kcal,
+       (SELECT prep FROM food WHERE food.id = e.food_id) AS prep
+     FROM (
+       SELECT *, rowid AS rid, ROW_NUMBER() OVER (
+         PARTITION BY COALESCE('f:' || food_id, 'r:' || recipe_version_id, 'q:' || lower(trim(name)))
+         ORDER BY recorded_at_utc DESC, rowid DESC
+       ) AS n
+       FROM consumption_event WHERE kind = ? AND (kind = 'essen' OR food_id IS NOT NULL)
+     ) e
+     WHERE n = 1 AND (food_id IS NULL OR EXISTS (SELECT 1 FROM food f WHERE f.id = e.food_id AND f.archived = 0))
+     ORDER BY recorded_at_utc DESC, rid DESC LIMIT ?`,
+    kind,
+    limit
+  );
+}
+
+/** Etwas zum Eintragen: Lebensmittel mit Menge, oder ein früherer Eintrag „noch einmal“ (Menge vom letzten Mal). */
+export type LogItem = { foodId: string; amount: number } | { eventId: string };
+
+/**
+ * Trägt mehrere Dinge in einer Transaktion ein. Ein früherer Eintrag mit Lebensmittel nimmt dessen aktuelle Nährwerte
+ * (wie `logFood`), Schnelleinträge und Rezepte ihren Schnappschuss (wie „Wie gestern“). Gibt die neuen IDs zurück.
+ */
+export async function logItems(db: Db, items: readonly LogItem[], target: Target, when: When) {
+  const ids: string[] = [];
+  await db.withTransactionAsync(async () => {
+    for (const item of items) {
+      if ('foodId' in item) {
+        ids.push(await logFood(db, item.foodId, item.amount, target, when));
+        continue;
+      }
+      const e = await getEvent(db, item.eventId);
+      if (!e) continue;
+      const live = e.foodId ? await db.getFirstAsync<{ id: string }>('SELECT id FROM food WHERE id = ? AND archived = 0', e.foodId) : null;
+      ids.push(live ? await logFood(db, live.id, e.amount, target, when) : await insertCopy(db, e, target, when));
+    }
+  });
+  return ids;
+}
+
+/** „Wie gestern“ mit „Rückgängig“: wie `copyMeal`, gibt aber die IDs der neuen Einträge zurück. */
+export async function copyMealEntries(db: Db, fromDate: string, meal: Meal, when: When) {
+  const source = await db.getAllAsync<ConsumptionEvent>(
+    `SELECT ${EVENT_COLUMNS} FROM consumption_event WHERE diary_date = ? AND kind = 'essen' AND meal = ? ORDER BY occurred_at_utc`,
+    fromDate,
+    meal
+  );
+  const ids: string[] = [];
+  await db.withTransactionAsync(async () => {
+    for (const e of source) ids.push(await insertCopy(db, e, { kind: 'essen', meal }, when));
+  });
+  return ids;
+}
+
+/** Nimmt frisch angelegte Einträge zurück („Rückgängig“), samt Gegessen-Vermerk im Wochenplan – in einer Transaktion. */
+export async function removeEvents(db: Db, ids: readonly string[]) {
+  if (ids.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const id of ids) {
+      await db.runAsync('UPDATE meal_plan SET eaten_event_id = NULL WHERE eaten_event_id = ?', id);
+      await db.runAsync('DELETE FROM consumption_event WHERE id = ?', id);
+    }
+  });
+}
+
 /** Tage und Mahlzeiten mit mindestens einem Eintrag („Tag|Mahlzeit“), z. B. für Mahlzeit-Erinnerungen (W4). */
 export async function loggedMeals(db: Db, fromDay: string, toDay: string): Promise<Set<string>> {
   const rows = await db.getAllAsync<{ day: string; meal: Meal }>(

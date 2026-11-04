@@ -167,7 +167,7 @@ export function DayHero({
               <View style={styles.macroHead}>
                 <View style={[styles.macroDot, { backgroundColor: colors.macro[k] }]} />
                 <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-                  {t(`nutrition.macroShort.${k}`)}
+                  {t(`nutrition.${k}`)}
                 </ThemedText>
               </View>
               <ThemedText style={styles.macroValue} numberOfLines={1} adjustsFontSizeToFit>

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { AccessibilityInfo, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
+  FadeIn,
   interpolate,
   useAnimatedStyle,
   useReducedMotion,
@@ -18,13 +19,14 @@ import { HIDDEN } from '@/components/a11y';
 import { Button } from '@/components/card';
 import { ProgressRing } from '@/components/charts';
 import { haptic } from '@/components/haptics';
+import { Icon } from '@/components/icon';
 import { useAppLocked } from '@/components/lock-gate';
 import { PressableScale } from '@/components/pressable-scale';
 import { restPulseSecond } from '@/components/set-table-logic';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Press, RestMorph } from '@/constants/motion';
-import { BottomTabInset, DisplayFont, Spacing } from '@/constants/theme';
+import { Press, RestBar, RestMorph } from '@/constants/motion';
+import { DisplayFont, Radius, Spacing } from '@/constants/theme';
 import { formatClock, isRestVisible, REST_PRESETS, restRemainingMs, restSecondsFor, type RestTimer } from '@/domain/training';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNow } from '@/hooks/use-now';
@@ -34,18 +36,23 @@ import { t } from '@/i18n';
 /** Was nach der Pause kommt (Übung und Satz mit Vorschlag). */
 export type NextUp = { title: string; detail: string } | null;
 
+/** Schritt für −/+ in Leiste und Vollbild. */
+const NUDGE_SECONDS = 15;
+
 /**
- * Pausenleiste unten im Trainingsbildschirm (HEALTH-008/009/011) und Pause im Vollbild.
- * - Läuft eine Pause: Restzeit aus der gespeicherten Endzeit, +30 s, Überspringen; Tippen auf den Ring = Vollbild.
+ * Kompakte Pausenleiste unten im Trainingsbildschirm (HEALTH-008/009/011, ~52 px) und Pause im Vollbild.
+ * - Läuft eine Pause: große Restzeit in gleich breiten Ziffern, darüber ein feiner Fortschritt (Datenfarbe), −15 / +15 und
+ *   Überspringen in derselben Zeile. Tippen auf die Zeit öffnet das Vollbild.
  * - Vollbild: großer Ring, Restzeit groß, was als Nächstes kommt; die letzten 3 Sekunden schlagen spürbar,
  *   am Ende ein Erfolgs-Signal (einmal pro Timer-Generation). Vorgelesen wird nur das Ende, nicht jede Sekunde.
- * - Sonst: Pausenlänge einmal wählen (wie im Plan oder 0:30 bis 5:00) – sie startet dann nach jedem abgehakten Satz
- *   von selbst; „Jetzt starten“ für eine Pause von Hand.
+ * - Sonst eine Zeile „Pause: Wie im Plan 4:00 ▾“ – Tippen klappt die Auswahl (wie im Plan oder 0:30 bis 5:00) auf; sie
+ *   startet dann nach jedem abgehakten Satz von selbst. Daneben „Jetzt starten“ für eine Pause von Hand.
+ * Die Tab-Leiste ist im laufenden Training ausgeblendet (app-tabs), deshalb nur der sichere Rand unten.
  */
 export function RestTimerBar({
   timer,
   onStart,
-  onExtend,
+  onAdjust,
   onSkip,
   next = null,
   focus = false,
@@ -65,7 +72,8 @@ export function RestTimerBar({
   auto: boolean;
   onChoose: (seconds: number | null) => void;
   onStart: (seconds: number) => void;
-  onExtend: () => void;
+  /** Laufende Pause um so viele Sekunden ändern (negativ = kürzer). */
+  onAdjust: (seconds: number) => void;
   onSkip: () => void;
   next?: NextUp;
   focus?: boolean;
@@ -74,32 +82,33 @@ export function RestTimerBar({
   ask?: ReactNode;
 }) {
   const theme = useTheme();
-  // Über der Tab-Leiste bleiben: Home-Leiste des iPhones (Safe Area) + Tab-Leiste + Luft. Ohne die Safe Area rutschte
-  // die Leiste auf dem iPhone halb unter die schwebende Tab-Leiste (iOS 26).
-  const bottom = useSafeAreaInsets().bottom + BottomTabInset + Spacing.two;
+  const dark = useColorScheme() === 'dark';
+  const bottom = useSafeAreaInsets().bottom + Spacing.one;
   const visible = isRestVisible(timer);
   const now = useNow(visible, 250, timer && !timer.stopped ? timer.endAtMs : null);
   const remaining = restRemainingMs(timer, now);
   const signalled = useRef<number | null>(null);
   const lastTick = useRef<string | null>(null);
-  // N5: Puls des Rings in den letzten Sekunden (Leiste und Vollbild teilen ihn) und Ausgangspunkt des Morphs.
+  // N5: Puls der Zeit in den letzten Sekunden (Leiste und Vollbild teilen ihn) und Ausgangspunkt des Morphs.
   const reduced = useReducedMotion();
   const pulse = useSharedValue(1);
   const pulseSecond = restPulseSecond(remaining, RestMorph.pulseSeconds);
-  const ringRef = useRef<ComponentRef<typeof View>>(null);
+  const clockRef = useRef<ComponentRef<typeof View>>(null);
   const [origin, setOrigin] = useState<Origin | null>(null);
+  // Auswahl der Pausenlänge aufgeklappt?
+  const [choosing, setChoosing] = useState(false);
   useEffect(() => {
     if (pulseSecond === null || reduced) return;
     pulse.set(withSequence(withTiming(RestMorph.pulseScale, { duration: RestMorph.pulseUpMs, easing: Easing.out(Easing.quad) }), withSpring(1, Press.out)));
   }, [pulseSecond, reduced, pulse]);
   const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
 
-  /** Ring der Leiste vermessen, dann Vollbild öffnen – es wächst aus genau dieser Stelle. */
+  /** Zeit der Leiste vermessen, dann Vollbild öffnen – der Ring wächst aus genau dieser Stelle. */
   function expand() {
-    const ring = ringRef.current;
-    if (!ring) return onFocusChange?.(true);
-    ring.measureInWindow((x, y, width, height) => {
-      setOrigin(width > 0 ? { x: x + width / 2, y: y + height / 2, size: width } : null);
+    const clock = clockRef.current;
+    if (!clock) return onFocusChange?.(true);
+    clock.measureInWindow((x, y, width, height) => {
+      setOrigin(width > 0 ? { x: x + width / 2, y: y + height / 2, size: Math.max(width, height) } : null);
       onFocusChange?.(true);
     });
   }
@@ -126,40 +135,63 @@ export function RestTimerBar({
     // Einmal wählen, dann läuft die Pause nach jedem abgehakten Satz von selbst (gilt auch fürs nächste Training).
     const options: (number | null)[] = planned ? [null, ...REST_PRESETS] : [...REST_PRESETS];
     const current = restSecondsFor(choice, planned ?? 0);
+    const labelOf = (seconds: number | null) =>
+      seconds === null ? `${t('session.restPlan')} ${formatClock((planned ?? 0) * 1000)}` : formatClock(seconds * 1000);
+    const value = !auto ? t('session.restOff') : choice === null && !planned ? t('session.restNone') : labelOf(choice);
     return (
       <ThemedView type="backgroundElement" style={[styles.bar, { paddingBottom: bottom }]}>
-        <View style={styles.chooseHead}>
-          <ThemedText type="smallBold" style={styles.text}>
-            {t('session.restChoose')}
-          </ThemedText>
-          {current > 0 ? <Button label={t('session.restNow')} variant="quiet" size="compact" onPress={() => onStart(current)} /> : null}
+        {choosing ? (
+          <Animated.View entering={reduced ? undefined : FadeIn.duration(RestBar.chooserMs)} style={styles.chooser}>
+            <View style={styles.presets} accessibilityRole="radiogroup">
+              {options.map((seconds) => {
+                const selected = auto && (seconds === null ? choice === null : choice === seconds);
+                const label = labelOf(seconds);
+                return (
+                  <PressableScale
+                    key={seconds ?? 'plan'}
+                    scaleTo={Press.button}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={t('session.restValue', { value: label })}
+                    onPress={() => {
+                      haptic.tap();
+                      onChoose(seconds);
+                      setChoosing(false);
+                    }}
+                    style={[styles.preset, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
+                    <ThemedText type="smallBold" numeric style={{ color: selected ? theme.onPrimary : theme.text }}>
+                      {label}
+                    </ThemedText>
+                  </PressableScale>
+                );
+              })}
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
+              {auto ? t('session.restAutoHint') : t('session.restAutoOff')}
+            </ThemedText>
+          </Animated.View>
+        ) : null}
+        <View style={styles.row}>
+          <PressableScale
+            scaleTo={Press.row}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: choosing }}
+            accessibilityLabel={t('session.restValue', { value })}
+            accessibilityHint={t('session.restChange')}
+            onPress={() => setChoosing((c) => !c)}
+            style={styles.choose}>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('session.restTitle')}
+            </ThemedText>
+            <ThemedText type="smallBold" numeric numberOfLines={1} style={styles.shrink}>
+              {value}
+            </ThemedText>
+            <View style={choosing ? styles.chevronUp : styles.chevronDown}>
+              <Icon name="chevron" color={theme.textSecondary} size={16} strokeWidth={2.2} />
+            </View>
+          </PressableScale>
+          {current > 0 ? <Button label={t('session.restNow')} variant="secondary" size="compact" onPress={() => onStart(current)} /> : null}
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presets}>
-          {options.map((seconds) => {
-            const selected = seconds === null ? choice === null : choice === seconds;
-            const label = seconds === null ? `${t('session.restPlan')} ${formatClock((planned ?? 0) * 1000)}` : formatClock(seconds * 1000);
-            return (
-              <PressableScale
-                key={seconds ?? 'plan'}
-                scaleTo={Press.button}
-                accessibilityRole="radio"
-                accessibilityState={{ selected }}
-                accessibilityLabel={`${t('session.restChoose')}: ${label}`}
-                onPress={() => {
-                  haptic.tap();
-                  onChoose(seconds);
-                }}
-                style={[styles.preset, { backgroundColor: selected ? theme.primary : theme.backgroundSelected }]}>
-                <ThemedText type="smallBold" style={{ color: selected ? theme.onPrimary : theme.text }}>
-                  {label}
-                </ThemedText>
-              </PressableScale>
-            );
-          })}
-        </ScrollView>
-        <ThemedText type="small" themeColor="textSecondary">
-          {auto ? t('session.restAutoHint') : t('session.restAutoOff')}
-        </ThemedText>
       </ThemedView>
     );
   }
@@ -168,35 +200,43 @@ export function RestTimerBar({
   const progress = timer && timer.durationMs > 0 ? remaining / timer.durationMs : 0;
   return (
     <>
-      <ThemedView type="backgroundElement" style={[styles.bar, styles.row, { paddingBottom: bottom }]}>
-        {done ? (
-          <>
-            <View style={[styles.doneDot, { backgroundColor: theme.accent }]} {...HIDDEN} />
-            <ThemedText type="smallBold" style={styles.text}>
-              {t('session.restDone')}
-            </ThemedText>
-          </>
-        ) : (
-          <>
-            {/* Restzeit mitten im Ring; Tippen öffnet die Pause im Vollbild. */}
-            <Pressable
-              ref={ringRef}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}. ${t('session.restExpand')}`}
-              onPress={expand}>
-              <Animated.View style={pulseStyle}>
-                <ProgressRing progress={progress} size={BAR_RING} stroke={5} color={theme.tint} trackColor={theme.backgroundSelected} follow="tick">
-                  <ThemedText type="subtitle" numeric style={styles.clock}>
+      <ThemedView type="backgroundElement" style={[styles.bar, { paddingBottom: bottom }]}>
+        {/* Fortschritt der Pause als feine Linie oben an der Leiste (Datenfarbe). */}
+        <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]} {...HIDDEN}>
+          <View style={[styles.trackFill, { width: `${progress * 100}%`, backgroundColor: dark ? theme.accent : theme.tint }]} />
+        </View>
+        <View style={styles.row}>
+          {done ? (
+            <>
+              <View style={[styles.doneDot, { backgroundColor: dark ? theme.accent : theme.tint }]} {...HIDDEN} />
+              <ThemedText type="smallBold" style={styles.text}>
+                {t('session.restDone')}
+              </ThemedText>
+              <Button label={t('common.ok')} size="compact" onPress={onSkip} />
+            </>
+          ) : (
+            <>
+              {/* Restzeit groß; Tippen öffnet die Pause im Vollbild. */}
+              <Pressable
+                ref={clockRef}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}
+                accessibilityHint={t('session.restExpand')}
+                onPress={expand}
+                hitSlop={8}
+                style={styles.text}>
+                <Animated.View style={[styles.clockBox, pulseStyle]}>
+                  <ThemedText numeric style={styles.clock}>
                     {formatClock(remaining)}
                   </ThemedText>
-                </ProgressRing>
-              </Animated.View>
-            </Pressable>
-            <View style={styles.text} />
-          </>
-        )}
-        {!done ? <Button label={t('session.restPlus')} variant="secondary" onPress={onExtend} /> : null}
-        <Button label={done ? t('common.ok') : t('session.restSkip')} variant={done ? 'primary' : 'secondary'} onPress={onSkip} />
+                </Animated.View>
+              </Pressable>
+              <NudgeButton seconds={-NUDGE_SECONDS} onPress={() => onAdjust(-NUDGE_SECONDS)} />
+              <NudgeButton seconds={NUDGE_SECONDS} onPress={() => onAdjust(NUDGE_SECONDS)} />
+              <Button label={t('session.restSkip')} variant="secondary" size="compact" onPress={onSkip} />
+            </>
+          )}
+        </View>
       </ThemedView>
       <RestFocus
         visible={focus}
@@ -206,7 +246,7 @@ export function RestTimerBar({
         progress={progress}
         next={next}
         ask={ask}
-        onExtend={onExtend}
+        onAdjust={onAdjust}
         onSkip={() => {
           onFocusChange?.(false);
           onSkip();
@@ -218,14 +258,38 @@ export function RestTimerBar({
   );
 }
 
+/** Kleine graue Pille „−15“ / „+15“; vorgelesen als ganze Aussage („15 Sekunden kürzer“). */
+function NudgeButton({ seconds, onPress, wide = false }: { seconds: number; onPress: () => void; wide?: boolean }) {
+  const theme = useTheme();
+  const less = seconds < 0;
+  const amount = Math.abs(seconds);
+  const label = wide
+    ? t(less ? 'session.restMinus' : 'session.restPlus', { seconds: amount })
+    : t(less ? 'session.restMinusShort' : 'session.restPlusShort', { seconds: amount });
+  return (
+    <PressableScale
+      scaleTo={Press.button}
+      accessibilityRole="button"
+      accessibilityLabel={t(less ? 'session.restMinusLabel' : 'session.restPlusLabel', { seconds: amount })}
+      onPress={() => {
+        haptic.tap();
+        onPress();
+      }}
+      style={[styles.nudge, wide && styles.nudgeWide, { backgroundColor: theme.backgroundSelected }]}>
+      <ThemedText type="smallBold" numeric>
+        {label}
+      </ThemedText>
+    </PressableScale>
+  );
+}
+
 /** Mitte und Größe des kleinen Rings in Fensterkoordinaten. */
 type Origin = { x: number; y: number; size: number };
-const BAR_RING = 64;
 const FOCUS_RING = 264;
 
 /**
  * Pause im Vollbild: ein großer Ring, die Zeit, was als Nächstes kommt. Lime nur auf dem Ring (Daten).
- * N5: Statt von unten hereinzuschieben, wächst der Ring aus dem kleinen Ring der Leiste an seinen Platz (Feder), Grund,
+ * N5: Statt von unten hereinzuschieben, wächst der Ring aus der Restzeit der Leiste an seinen Platz (Feder), Grund,
  * Text und Knöpfe blenden mit; Verkleinern läuft den Weg zurück. Öffnet sich das Vollbild nach einem Satz von selbst
  * (kein Ausgangspunkt), steigt es verkleinert von unten auf. Bei „Bewegung reduzieren“ steht es sofort da.
  * Weiter ein natives Modal (über Kopf- und Tab-Leiste) – aber durchsichtig und ohne eigene Animation.
@@ -238,7 +302,7 @@ function RestFocus({
   progress,
   next,
   ask,
-  onExtend,
+  onAdjust,
   onSkip,
   onClose,
   onClosed,
@@ -250,7 +314,7 @@ function RestFocus({
   progress: number;
   next: NextUp;
   ask: ReactNode;
-  onExtend: () => void;
+  onAdjust: (seconds: number) => void;
   onSkip: () => void;
   onClose: () => void;
   onClosed: () => void;
@@ -383,16 +447,17 @@ function RestFocus({
               </ThemedText>
             </View>
           ) : null}
-          <View style={styles.focusActions}>
-            {!done ? (
+          {!done ? (
+            <View style={styles.focusActions}>
               <View style={styles.flex}>
-                <Button label={t('session.restPlus')} variant="secondary" onPress={onExtend} />
+                <NudgeButton wide seconds={-NUDGE_SECONDS} onPress={() => onAdjust(-NUDGE_SECONDS)} />
               </View>
-            ) : null}
-            <View style={styles.flex}>
-              <Button label={done ? t('session.restGo') : t('session.restSkip')} onPress={onSkip} />
+              <View style={styles.flex}>
+                <NudgeButton wide seconds={NUDGE_SECONDS} onPress={() => onAdjust(NUDGE_SECONDS)} />
+              </View>
             </View>
-          </View>
+          ) : null}
+          <Button label={done ? t('session.restGo') : t('session.restSkip')} onPress={onSkip} />
         </Animated.View>
       </SafeAreaView>
     </Modal>
@@ -403,15 +468,24 @@ const styles = StyleSheet.create({
   bar: {
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
+    paddingTop: Spacing.one,
   },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  doneDot: { width: 44, height: 44, borderRadius: 22 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 48 },
+  doneDot: { width: 10, height: 10, borderRadius: 5 },
   text: { flex: 1 },
-  clock: { fontSize: 17, lineHeight: 22, letterSpacing: -0.3 },
-  presets: { gap: Spacing.two },
-  chooseHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  preset: { minHeight: 40, minWidth: 56, paddingHorizontal: Spacing.three, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  shrink: { flexShrink: 1 },
+  track: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
+  trackFill: { height: 3 },
+  clockBox: { alignSelf: 'flex-start' },
+  clock: { fontFamily: DisplayFont.bold, fontSize: 30, lineHeight: 36, letterSpacing: -0.5 },
+  choose: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
+  chevronDown: { transform: [{ rotate: '90deg' }] },
+  chevronUp: { transform: [{ rotate: '-90deg' }] },
+  chooser: { gap: Spacing.two, paddingTop: Spacing.two },
+  presets: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  preset: { minHeight: 40, minWidth: 64, paddingHorizontal: Spacing.three, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+  nudge: { minHeight: 40, minWidth: 48, paddingHorizontal: Spacing.two + 2, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+  nudgeWide: { minHeight: 48 },
   focus: { flex: 1, paddingHorizontal: Spacing.four, paddingBottom: Spacing.four, gap: Spacing.four },
   focusTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.three, minHeight: 44 },
   focusCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -419,6 +493,6 @@ const styles = StyleSheet.create({
   focusBottom: { gap: Spacing.four },
   next: { borderRadius: 20, borderWidth: 1, padding: Spacing.four - 4, gap: Spacing.one },
   nextTitle: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.3 },
-  focusActions: { flexDirection: 'row', gap: Spacing.three },
+  focusActions: { flexDirection: 'row', gap: Spacing.three, marginBottom: -Spacing.two },
   flex: { flex: 1 },
 });

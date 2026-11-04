@@ -26,6 +26,8 @@ export const SPARK_DAYS = 14;
 export const WEIGHT_SPARK_DAYS = 28;
 export const TRAINING_SPARK_WEEKS = 8;
 export const TILE_MIN_DAYS = 3;
+/** Gewichtstrend: Messungen an so vielen Tagen in 7 Tagen (wie weightTrend). */
+export const WEIGHT_TREND_DAYS = 4;
 
 /** Muster: Fenster und Mindestzahl Tage je Gruppe. */
 export const PATTERN_WEEKS = 8;
@@ -91,6 +93,8 @@ export type TileSummary = {
   of: number | null;
   /** Tage mit Wert im Fenster (für „an x Tagen erfasst“). */
   days: number;
+  /** Tage mit Wert, ab denen es einen Hauptwert gibt (für „2 von 3 Tagen erfasst“); null = keine feste Zahl. */
+  need: number | null;
   /** Nur Gewicht: Veränderung des Trends zur Vorwoche. */
   change: number | null;
   /** Verlauf, ältester zuerst; null = kein Wert an diesem Tag bzw. in dieser Woche. */
@@ -111,7 +115,18 @@ function byDay(days: readonly InsightDay[]) {
 
 const meanIfEnough = (values: number[], min = TILE_MIN_DAYS) => (values.length >= min ? mean(values) : null);
 
-const base = (tile: InsightTile): TileSummary => ({ tile, kind: 'mean', value: null, of: null, days: 0, change: null, spark: [], bars: false, levels: [] });
+const base = (tile: InsightTile): TileSummary => ({
+  tile,
+  kind: 'mean',
+  value: null,
+  of: null,
+  days: 0,
+  need: null,
+  change: null,
+  spark: [],
+  bars: false,
+  levels: [],
+});
 
 /**
  * Kurzwerte aller Kacheln.
@@ -132,7 +147,7 @@ export function tileSummaries(
 
   // Kalorien: Schnitt über vollständig erfasste Tage.
   const kcal = foodWindow.flatMap((d) => (d?.food ? [d.food.kcal] : []));
-  const kalorien = { ...base('kalorien'), value: meanIfEnough(kcal), days: kcal.length, spark: foodSpark.map((d) => d?.food?.kcal ?? null) };
+  const kalorien = { ...base('kalorien'), value: meanIfEnough(kcal), days: kcal.length, need: TILE_MIN_DAYS, spark: foodSpark.map((d) => d?.food?.kcal ?? null) };
 
   // Eiweiß: mit Ziel „an x von y Tagen erreicht“, ohne Ziel der Schnitt in g.
   const withGoal = foodWindow.filter((d): d is InsightDay => !!d?.food && d.food.protein !== null && d.proteinGoal !== null && d.proteinGoal > 0);
@@ -146,10 +161,10 @@ export function tileSummaries(
         days: withGoal.length,
         spark: foodSpark.map((d) => d?.food?.protein ?? null),
       }
-    : { ...base('eiweiss'), value: meanIfEnough(proteinValues), days: proteinValues.length, spark: foodSpark.map((d) => d?.food?.protein ?? null) };
+    : { ...base('eiweiss'), value: meanIfEnough(proteinValues), days: proteinValues.length, need: TILE_MIN_DAYS, spark: foodSpark.map((d) => d?.food?.protein ?? null) };
 
   // Gewicht: Trend (Ø 7 Tage) und Veränderung zur Vorwoche; Verlauf = Trend je Tag.
-  const trend = weightTrend(weights, today);
+  const trend = weightTrend(weights, today, TILE_DAYS, WEIGHT_TREND_DAYS);
   const before = weightTrend(weights, shiftDay(today, -7));
   const weighDays = new Set(weights.filter((w) => w.day <= today && w.day > shiftDay(today, -TILE_DAYS)).map((w) => w.day)).size;
   const gewicht = {
@@ -157,6 +172,7 @@ export function tileSummaries(
     value: trend,
     change: trend !== null && before !== null ? trend - before : null,
     days: weighDays,
+    need: WEIGHT_TREND_DAYS,
     spark: lastDays(today, WEIGHT_SPARK_DAYS).map((d) => weightTrend(weights, d)),
   };
 
@@ -173,10 +189,10 @@ export function tileSummaries(
   };
 
   const steps = window.flatMap((d) => (d?.steps != null ? [d.steps] : []));
-  const schritte = { ...base('schritte'), value: meanIfEnough(steps), days: steps.length, spark: spark.map((d) => d?.steps ?? null) };
+  const schritte = { ...base('schritte'), value: meanIfEnough(steps), days: steps.length, need: TILE_MIN_DAYS, spark: spark.map((d) => d?.steps ?? null) };
 
   const sleep = window.flatMap((d) => (d?.sleepHours != null ? [d.sleepHours] : []));
-  const schlaf = { ...base('schlaf'), value: meanIfEnough(sleep), days: sleep.length, spark: spark.map((d) => d?.sleepHours ?? null) };
+  const schlaf = { ...base('schlaf'), value: meanIfEnough(sleep), days: sleep.length, need: TILE_MIN_DAYS, spark: spark.map((d) => d?.sleepHours ?? null) };
 
   // Bereitschaft: wie oft die Ampel grün war – unter den Tagen mit Ampel. Verlauf als Ampel-Punkte.
   const levels = window.flatMap((d) => (d?.readiness ? [d.readiness] : []));

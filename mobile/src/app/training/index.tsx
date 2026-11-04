@@ -5,12 +5,15 @@ import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
 import { MeterBar } from '@/components/charts';
 import { ListRow } from '@/components/fields';
+import { Icon } from '@/components/icon';
+import { PressableScale } from '@/components/pressable-scale';
 import { Screen } from '@/components/screen';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { CardRow, StatTile, TileGrid } from '@/components/tiles';
 import { showToast } from '@/components/toast';
 import { TrainingBlock, weekDays } from '@/components/today-widgets';
+import { Press } from '@/constants/motion';
 import { Spacing } from '@/constants/theme';
 import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
@@ -110,7 +113,8 @@ export default function TrainingScreen() {
   });
   const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
   const dark = useColorScheme() === 'dark';
-  const maxSets = Math.max(1, ...muscles.map((m) => m.sets));
+  // Balken relativ zu einem Wochenziel je Muskel (mindestens 10 Sätze), damit „1 Satz“ nicht als voller Balken erscheint.
+  const muscleScale = Math.max(MUSCLE_WEEK_SETS, ...muscles.map((m) => m.sets));
 
   async function start(planDayId: string | null) {
     const id = await startSession(db, planDayId);
@@ -219,9 +223,14 @@ export default function TrainingScreen() {
                 {t('training.muscleSets', { count: m.sets })}
               </ThemedText>
             </View>
-            <MeterBar growIn progress={m.sets / maxSets} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
+            <MeterBar growIn progress={m.sets / muscleScale} color={dark ? theme.accent : theme.tint} trackColor={theme.backgroundSelected} height={6} />
           </View>
         ))}
+        {muscles.length > 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('training.muscleScale', { count: muscleScale })}
+          </ThemedText>
+        ) : null}
       </Card>
 
       {/* Anderen Tag starten: Plantage als wischbare Karten, der Vorschlag markiert; dazu freies Training. */}
@@ -243,12 +252,19 @@ export default function TrainingScreen() {
             ]}
           />
           {plans.length > 0 ? (
-            <Button
-              label={t('training.rescheduleTitle')}
-              variant="quiet"
-              size="compact"
+            // Ruhiger Link statt fetter Beschriftung: Nebenaktion, keine Überschrift.
+            <PressableScale
+              scaleTo={Press.row}
+              accessibilityRole="link"
+              accessibilityLabel={t('training.rescheduleTitle')}
+              hitSlop={8}
               onPress={() => router.push({ pathname: '/training/assistant', params: { plan: plans[0].planId, dauer: 'woche' } })}
-            />
+              style={styles.link}>
+              <ThemedText type="small" themeColor="textSecondary" style={styles.flex}>
+                {t('training.rescheduleTitle')}
+              </ThemedText>
+              <Icon name="chevron" color={theme.textSecondary} size={14} strokeWidth={2} />
+            </PressableScale>
           ) : null}
         </Card>
       ) : null}
@@ -361,7 +377,12 @@ export default function TrainingScreen() {
   );
 }
 
+/** Wochenziel je Muskel für den Maßstab der Balken (übliche Empfehlung: etwa 10 Arbeitssätze pro Woche). */
+const MUSCLE_WEEK_SETS = 10;
+
 const styles = StyleSheet.create({
+  link: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, minHeight: 32 },
+  flex: { flex: 1 },
   stats: { flexDirection: 'row', gap: Spacing.two, marginBottom: Spacing.one },
   barRow: { gap: Spacing.one },
   barHead: { flexDirection: 'row', justifyContent: 'space-between' },

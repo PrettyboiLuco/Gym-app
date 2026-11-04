@@ -6,17 +6,46 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/card';
 import { DiaryMealFeeling } from '@/components/diary-meal-feeling';
 import { Field, ListRow } from '@/components/fields';
+import { Icon } from '@/components/icon';
 import { Sheet, SheetRow, useSheetClose } from '@/components/sheet';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
-import { copyMeal, saveTemplateFromMeal, type ConsumptionEvent } from '@/data/nutrition';
+import type { Db } from '@/data/db';
+import { copyMealEntries, removeEvents, saveTemplateFromMeal, type ConsumptionEvent } from '@/data/nutrition';
 import { shiftDay } from '@/domain/dates';
 import type { MealFeeling } from '@/domain/meal-feeling';
 import type { Meal } from '@/domain/nutrition';
+import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 import { whenFor } from '@/services/nutrition-format';
+
+/**
+ * „Wie am Vortag“ (Kopf einer leeren Mahlzeit und Optionen-Fenster): kopiert die Mahlzeit vom Vortag, meldet es als
+ * Toast mit „Rückgängig“ – das nimmt genau die kopierten Einträge wieder heraus.
+ */
+export async function copyPreviousMeal(db: Db, day: string, meal: Meal, onChanged: () => void) {
+  const ids = await copyMealEntries(db, shiftDay(day, -1), meal, whenFor(day, meal));
+  if (ids.length === 0) {
+    showToast(t('nutrition.copyNone'));
+    return;
+  }
+  showToast(t('nutrition.copied', { count: ids.length }), {
+    label: t('diary.undo'),
+    hint: t('diary.options.undoCopy'),
+    onPress: async () => {
+      try {
+        await removeEvents(db, ids);
+        showToast(t('diary.options.copyUndone'));
+      } catch {
+        showToast(t('common.saveFailed'));
+      }
+      onChanged();
+    },
+  });
+  onChanged();
+}
 
 /** Was nach dem Schließen kommt: das Fenster „Kopieren auf …“ (zwei Fenster nie gleichzeitig). */
 export type MealOptionsNext = 'copy' | null;
@@ -44,7 +73,7 @@ export function MealOptionsSheet(props: Props) {
   return (
     <Sheet
       visible={props.visible}
-      title={t(`nutrition.meals.${props.meal}`)}
+      title={t('diary.options.title', { meal: t(`nutrition.meals.${props.meal}`) })}
       onClose={() => {
         const after = next.current;
         next.current = null;
@@ -57,6 +86,7 @@ export function MealOptionsSheet(props: Props) {
 
 function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, setNext }: Props & { setNext: (next: MealOptionsNext) => void }) {
   const db = useDb();
+  const theme = useTheme();
   const close = useSheetClose();
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState('');
@@ -64,9 +94,7 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
   let i = 0;
 
   async function copyFromPreviousDay() {
-    const count = await copyMeal(db, shiftDay(day, -1), meal, whenFor(day, meal));
-    showToast(count > 0 ? t('nutrition.copied', { count }) : t('nutrition.copyNone'));
-    onChanged();
+    await copyPreviousMeal(db, day, meal, onChanged);
     close();
   }
 
@@ -101,7 +129,6 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
               setNext('copy');
               close();
             }}
-            last={!hasFoods && planned}
           />
           {hasFoods ? (
             <ListRow
@@ -112,9 +139,18 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
               last={planned && !naming}
             />
           ) : (
-            <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-              {t('nutrition.templateNoFoods')}
-            </ThemedText>
+            // Ausgegraut mit kurzer Begründung: Vorlagen speichern nur Lebensmittel aus der Liste.
+            <View style={styles.off} accessible accessibilityState={{ disabled: true }} accessibilityLabel={`${t('nutrition.saveTemplate')}. ${t('nutrition.templateNoFoods')}`}>
+              <View style={styles.offIcon}>
+                <Icon name="star" color={theme.textSecondary} size={20} />
+              </View>
+              <View style={styles.offText}>
+                <ThemedText themeColor="textSecondary">{t('nutrition.saveTemplate')}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('nutrition.templateNoFoods')}
+                </ThemedText>
+              </View>
+            </View>
           )}
         </SheetRow>
       )}
@@ -140,7 +176,9 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
 }
 
 const styles = StyleSheet.create({
-  note: { paddingVertical: Spacing.two },
+  off: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 56, paddingVertical: Spacing.two + 2, opacity: 0.6 },
+  offIcon: { width: 24, alignItems: 'center' },
+  offText: { flex: 1, gap: Spacing.half },
   template: { gap: Spacing.three },
   buttons: { flexDirection: 'row', gap: Spacing.two },
   feeling: { gap: Spacing.three },

@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { Card } from '@/components/card';
-import { CoachToday, type CoachTodayData } from '@/components/coach-today';
+import { CoachToday, SetupSteps, type CoachTodayData } from '@/components/coach-today';
 import { ListRow } from '@/components/fields';
 import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { Screen } from '@/components/screen';
@@ -17,17 +17,19 @@ import { loadSpared, readinessToday, type ReadinessToday } from '@/data/readines
 import { loadTimedRun } from '@/data/routines';
 import { expireTemporaryPlans, getActiveSession, listActivePlans, type SessionInfo } from '@/data/training';
 import { loadMapPrefs, loadTodayPlan, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
+import { loadSetupHidden, saveSetupHidden } from '@/data/profile';
 import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
 import type { MuscleGroup } from '@/domain/exercises';
 import type { Milestone } from '@/domain/motivation';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
+import { taggedWeekdays } from '@/domain/training';
 import { todayDay } from '@/domain/time';
 import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatLongDate, formatNumber, formatVolume, formatWeight, t } from '@/i18n';
-import { useModules, useUnits } from '@/providers/profile-provider';
+import { useModules, useProfile, useUnits } from '@/providers/profile-provider';
 import { diaryToday } from '@/services/nutrition-format';
 
 async function loadToday(db: Db) {
@@ -52,7 +54,7 @@ async function loadToday(db: Db) {
     loadTrainingWeek(db, today),
     readinessToday(db, today),
   ]);
-  const motivation = await loadMotivation(db, today);
+  const [motivation, setupHidden] = await Promise.all([loadMotivation(db, today), loadSetupHidden(db)]);
   // Geschonte Bereiche beim Status „verletzt“ (Muskelkarte Punkt 6.4)
   const spared = (await loadSpared(db, today))?.areas ?? [];
   const { body } = await loadMapPrefs(db);
@@ -70,6 +72,8 @@ async function loadToday(db: Db) {
     hide: settings.hideNumbers,
   };
   let next: { plan: string; day: string } | null = null;
+  // Plantag je Wochentag (Mo = 0) zum Antippen in der Satz-Woche – nur bei Plantagen mit Wochentag im Namen eindeutig.
+  let weekPlan: { planId: string; dayIds: (string | null)[] } | null = null;
   let muscles: Partial<Record<MuscleGroup, number>> | null = null;
   // Training oder Ruhetag nach Wochentagen im Plan bzw. den gespeicherten Trainingstagen (nicht einfach „nächster Plantag“).
   const planToday = plans.some((p) => p.days.length > 0) ? await loadTodayPlan(db, today) : null;
@@ -78,6 +82,8 @@ async function loadToday(db: Db) {
     next = { plan: plan.name, day: plan.days[dayIndex].name };
     // Muskeln des heutigen (bzw. nächsten) Plantags für die kleine Karte (U4).
     muscles = await plannedMuscles(db, plan.days[dayIndex].id);
+    const tags = taggedWeekdays(plan.days.map((d) => d.name));
+    weekPlan = { planId: plan.planId, dayIds: [1, 2, 3, 4, 5, 6, 7].map((wd) => (tags ? (plan.days[tags.indexOf(wd)]?.id ?? null) : null)) };
   }
   const coach: CoachTodayData = {
     setUp: setup !== null,
@@ -112,23 +118,27 @@ async function loadToday(db: Db) {
     // Nur der neueste noch nicht angesehene Meilenstein (A10.5); ältere stehen in der Liste.
     milestone: motivation.fresh.at(-1) ?? null,
     muscles,
+    weekPlan,
+    // Einrichten in 3 Schritten (Coach): Gewicht, Ziel, erster Plan.
+    setup: { weight: weights.length > 0, goal: goal !== null, plan: plans.some((p) => p.days.length > 0), hidden: setupHidden },
   };
 }
 
 const EMPTY_WEEK = Array.from({ length: 7 }, () => false);
 
 /**
- * Zahl und Einheit für die Kachel „Trinken“ (ml unter 1 l, sonst l; oder fl oz). `format` zeigt Zwischenwerte beim
- * Hochzählen in derselben Einheit wie der Endwert (N1).
+ * Zahl und Einheit für die Kachel „Trinken“: in derselben Einheit wie das Ziel darunter („0,95 von 2,5 l“), ohne Ziel
+ * ml unter 1 l, sonst l; oder fl oz. `format` zeigt Zwischenwerte beim Hochzählen in derselben Einheit wie der Endwert (N1).
  */
-function volumeFigure(ml: number, unit: VolumeUnit) {
+function volumeFigure(ml: number, unit: VolumeUnit, goalMl: number | null) {
+  const liters = unit !== 'oz' && Math.max(ml, goalMl ?? 0) >= 1000;
   const format =
     unit === 'oz'
       ? (v: number) => formatNumber(mlToUnit(v, 'oz'), 0)
-      : ml >= 1000
-        ? (v: number) => formatNumber(v / 1000, 1)
+      : liters
+        ? (v: number) => formatNumber(v / 1000, 2)
         : (v: number) => formatNumber(Math.round(v), 0);
-  return { value: format(ml), unit: unit === 'oz' ? 'fl oz' : ml >= 1000 ? 'l' : 'ml', count: { to: ml, format } };
+  return { value: format(ml), unit: unit === 'oz' ? 'fl oz' : liters ? 'l' : 'ml', count: { to: ml, format } };
 }
 
 export default function TodayScreen() {
@@ -151,10 +161,18 @@ export default function TodayScreen() {
     today: '',
     milestone: null as Milestone | null,
     muscles: null as Partial<Record<MuscleGroup, number>> | null,
+    weekPlan: null as { planId: string; dayIds: (string | null)[] } | null,
+    setup: { weight: true, goal: true, plan: true, hidden: true },
   });
-  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, week, ready, today, milestone, muscles, spared, body } = data;
+  const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, week, ready, today, milestone, muscles, spared, body, weekPlan, setup } =
+    data;
   const units = useUnits();
   const modules = useModules();
+  const { profile } = useProfile();
+  // Sensible Situation bzw. „Zahlen ausblenden“: keine kcal- und Gewichtszahlen auf „Heute“.
+  const hideNumbers = food.hide || profile.sensitive;
+  // Einrichten in 3 Schritten: nur mit Coach, solange Ziel oder Gewicht fehlen, und nicht auf „Später“ gestellt.
+  const showSetup = modules.coach && !setup.hidden && (!setup.goal || !setup.weight);
   // Ruhetag aus dem Coach-Ziel und die Einrichtung gelten nur mit Coach; der Ruhetag laut Plan immer.
   const restDay = data.planRest || (data.coachRest && modules.coach);
   const setupDue = openSetup && modules.coach;
@@ -168,10 +186,10 @@ export default function TodayScreen() {
 
   // Die Frage des Bildschirms: Was steht heute an? Der Trainingsblock beantwortet sie, sein Knopf führt direkt hin.
   const training = timed
-    ? { label: t('today.heroRunning'), title: timed, meta: null, action: t('today.heroContinue'), go: () => router.push('/training/run') }
+    ? { label: null, title: timed, meta: null, action: t('today.heroContinue'), go: () => router.push('/training/run') }
     : active
       ? {
-          label: t('today.heroRunning'),
+          label: null,
           title: active.dayName ?? t('today.heroFree'),
           meta: active.planName,
           action: t('today.heroContinue'),
@@ -196,10 +214,9 @@ export default function TodayScreen() {
               go: () => router.push('/training'),
             };
 
-  // Die Zeile unter der Begrüßung: Datum und das Wichtigste von heute.
-  // T4: Der Plantag steht schon groß in der Karte – oben nur, was dort nicht steht (läuft gerade / Ruhetag).
-  const finding = timed || active ? t('today.findingRunning') : next && restDay ? t('today.heroRest') : null;
-  const subtitle = [formatLongDate(new Date()), finding].filter(Boolean).join(' · ');
+  // Die Zeile unter der Begrüßung: nur das Datum. Laufendes Training und Ruhetag stehen in der Karte (und in der
+  // Leiste unten) – nicht ein drittes Mal hier.
+  const subtitle = formatLongDate(new Date());
 
   // Trainingswoche: eine Variable für Punkte und Zusammenfassung (gezählt werden Tage mit Training).
   const days = weekDays(week);
@@ -218,7 +235,7 @@ export default function TodayScreen() {
   const sleepHours = ready?.check?.sleepHours ?? coach?.sleepHours ?? null;
   const kcal = food.sums.values.kcal;
   const volume = (ml: number) => formatVolume(ml, units.volume);
-  const kcalFigure = food.hide
+  const kcalFigure = hideNumbers
     ? { value: String(food.entries), unit: undefined, sub: t('today.tileEntries', { count: food.entries }) }
     : {
         value: formatNumber(kcal, 0),
@@ -235,9 +252,9 @@ export default function TodayScreen() {
                 ? t('today.tileKcalLeft', { left: formatNumber(food.goal - kcal, 0) })
                 : t('today.tileKcalOver', { over: formatNumber(kcal - food.goal, 0) }),
       };
-  const weightValue = lastWeight ? formatWeight(lastWeight.kg, units.weight).replace(/\s*\S+$/, '') : null;
+  const weightValue = lastWeight && !hideNumbers ? formatWeight(lastWeight.kg, units.weight).replace(/\s*\S+$/, '') : null;
   const weightSub =
-    trend !== null
+    trend !== null && !hideNumbers
       ? t('today.tileWeightTrend', { kg: formatWeight(trend, units.weight) })
       : lastWeight
         ? lastWeight.day === todayDay()

@@ -13,12 +13,17 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
 import { formatAmount, formatClock, formatKcal } from '@/services/nutrition-format';
 
-/** „Erste Mahlzeit 08:10 · letzte 19:40 · Essensfenster 11,5 h“ – null ohne Essen. */
+/**
+ * „Erste Mahlzeit 08:10 · letzte 19:40 · Essensfenster 11,5 h“ – nur bei mindestens zwei verschiedenen Uhrzeiten
+ * (sonst sagt die Zeile nichts: „07:39 · letzte 07:39 · 0 h“). Null ohne Essen.
+ */
 export function windowLine(events: readonly ConsumptionEvent[]): string | null {
   const w = eatingWindow(events);
   if (!w) return null;
-  if (w.count === 1 || w.firstAt === w.lastAt) return t('diary.timeline.single', { at: formatClock(w.firstAt) });
-  return t('diary.timeline.window', { first: formatClock(w.firstAt), last: formatClock(w.lastAt), hours: formatNumber(w.hours, 1) });
+  const first = formatClock(w.firstAt);
+  const last = formatClock(w.lastAt);
+  if (w.count < 2 || first === last) return null;
+  return t('diary.timeline.window', { first, last, hours: formatNumber(w.hours, 1) });
 }
 
 /** Zusatzzeile eines Eintrags: Uhrzeit, Menge, kcal (ohne kcal bei ausgeblendeten Zahlen). */

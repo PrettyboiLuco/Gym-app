@@ -2,8 +2,9 @@ import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/native-tabs';
 import { Platform } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 
-import { MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
+import { hidesTabBar, MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { t } from '@/i18n';
@@ -26,9 +27,13 @@ export default function AppTabs() {
   const inTraining = TRAINING_SCREENS.some((p) => pathname.startsWith(p));
   const running = (!!live.session || !!live.timedTitle) && !inTraining;
   const modules = useModules();
+  const reduced = useReducedMotion();
 
   return (
     <NativeTabs
+      // Im Satz-Logger ausgeblendet (mehr Platz für Sätze und Pausenleiste); bei „Bewegung reduzieren“ ohne Animation.
+      hidden={hidesTabBar(pathname)}
+      disableHiddenAnimation={reduced}
       // iOS 26: Leiste schrumpft beim Scrollen nach unten und kommt beim Zurückscrollen wieder.
       minimizeBehavior="onScrollDown"
       backgroundColor={LIQUID_GLASS ? undefined : colors.background}

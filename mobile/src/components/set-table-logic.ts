@@ -1,5 +1,7 @@
 // Reine Regeln der Satztabelle und der Trainings-Animationen (ohne React): Eingabe/Vorgabe, Zeilenstatus, nächste Zeile,
-// Puls der Pause, Partikel der Bestleistung, Zielrahmen des Scanners. Getestet in __tests__/ui-training-set-table.test.ts.
+// Puls der Pause, Pause verlängern/kürzen, Partikel der Bestleistung, Zielrahmen des Scanners. Getestet in
+// __tests__/ui-training-set-table.test.ts und __tests__/ui3-training-logger.test.ts.
+import { extendRest, type RestTimer } from '@/domain/training';
 
 /** Eingabe einer Satzzeile, so wie sie in den Feldern steht (Text, noch nicht geprüft). */
 export type SetInput = { weight: string; reps: string };
@@ -34,6 +36,19 @@ export function restPulseSecond(remainingMs: number, lastSeconds: number): numbe
   if (!(remainingMs > 0)) return null;
   const s = Math.ceil(remainingMs / 1000);
   return s <= lastSeconds ? s : null;
+}
+
+/**
+ * Pause in der Leiste um ±15 s ändern. Verlängern wie bisher (extendRest); Kürzen nie unter „jetzt“ – wer mehr kürzt,
+ * als übrig ist, beendet die Pause genau jetzt. Die Gesamtdauer schrumpft mit, damit der Fortschritt stimmt.
+ */
+export function nudgeRest(timer: RestTimer, seconds: number, nowMs: number): RestTimer {
+  if (seconds >= 0) return extendRest(timer, seconds, nowMs);
+  if (!timer || timer.stopped) return timer;
+  const left = Math.max(0, timer.endAtMs - nowMs);
+  if (left === 0) return timer;
+  const cut = Math.min(left, -seconds * 1000);
+  return { endAtMs: timer.endAtMs - cut, durationMs: Math.max(timer.durationMs - cut, left - cut), generation: timer.generation + 1 };
 }
 
 export type Particle = { dx: number; dy: number; size: number; delayMs: number; lime: boolean };

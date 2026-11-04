@@ -58,8 +58,9 @@ export function formatKcal(value: number | null) {
   return value === null ? t('nutrition.kcalUnknown') : t('nutrition.kcal', { value: formatNumber(value, 0) });
 }
 
+/** „40 g“, „250 ml“, „1 Portion“ / „2 Portionen“ (Einzahl/Mehrzahl über `count`). */
 export function formatAmount(amount: number, unit: EventUnit) {
-  return t(`nutrition.units.${unit}`, { value: formatNumber(amount) });
+  return t(`nutrition.units.${unit}`, { value: formatNumber(amount), count: amount });
 }
 
 function formatGram(value: number | null) {

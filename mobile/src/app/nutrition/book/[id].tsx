@@ -184,7 +184,7 @@ export default function BookRecipeScreen() {
           chips
         />
         <ThemedText type="small" themeColor="textSecondary">
-          {t('mealPlan.planUses', { meal: t(`nutrition.meals.${meal}`), portions: formatNumber(Number(logAmount), 1) })}
+          {t('mealPlan.planUses', { meal: t(`nutrition.meals.${meal}`), portions: formatNumber(Number(logAmount), 1), count: Number(logAmount) })}
         </ThemedText>
         <Button label={t('mealPlan.planAdd')} variant="secondary" onPress={plan} />
         <Choice

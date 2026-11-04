@@ -3,7 +3,7 @@
 
 import { isoWeekday, shiftDay, weekStart } from './dates';
 import type { Equipment } from './exercises';
-import { setVolume, type LoadMode, type SetType } from './logger';
+import { estimateOneRepMax, sameKg, setVolume, type LoadMode, type SetType } from './logger';
 import type { PlanDraft } from './training';
 
 // --------------------------------------------------------------------------- Eigene Satzzeit
@@ -133,6 +133,133 @@ export function periodStats(
       .map(([exerciseId, v]) => ({ exerciseId, sets: v.sets, volumeKg: Math.round(v.volumeKg) }))
       .sort((a, b) => b.volumeKg - a.volumeKg || b.sets - a.sets),
   };
+}
+
+// ------------------------------------------------------------------- Bestleistungen & Verlauf
+
+/** Verlauf der häufigsten Übungen: so viele Wochen (Mo–So, die laufende zuletzt) und so viele Übungen. */
+export const TREND_WEEKS = 8;
+export const TREND_TOP = 5;
+
+/**
+ * Was der Verlauf einer Übung zeigt:
+ * - e1rm: bestes geschätztes 1RM je Woche (Epley, bis 12 Wdh.) – Kraftübungen mit Gewicht
+ * - gegengewicht: geringstes Gegengewicht je Woche (Maschine mit Unterstützung) – weniger heißt mehr eigene Last
+ * - zeit: längste Haltezeit je Woche
+ * - volumen: Volumen je Woche (kg × Wdh.), wenn kein 1RM schätzbar ist (z. B. nur über 12 Wdh.)
+ * - wdh: meiste Wiederholungen in einem Satz (Körpergewicht ohne Zusatzgewicht)
+ */
+export type TrendMetric = 'e1rm' | 'gegengewicht' | 'zeit' | 'volumen' | 'wdh';
+
+export type TrendRecord = { day: string; value: number; weightKg: number | null; reps: number | null; seconds: number | null };
+
+export type ExerciseTrend = {
+  exerciseId: string;
+  metric: TrendMetric;
+  /** Arbeitssätze im Fenster (danach richtet sich die Reihenfolge). */
+  sets: number;
+  /** Wert je Woche, älteste zuerst; null = in dieser Woche nicht trainiert. */
+  weeks: (number | null)[];
+  /** Letzter Wochenwert (die jüngste Woche mit Training). */
+  latest: number | null;
+  /** Letzte Bestleistung über die ganze Zeit (das erste Training einer Übung zählt nicht); null = noch keine. */
+  record: TrendRecord | null;
+};
+
+/** Gegengewicht: weniger ist besser; alles andere: mehr ist besser. Kleine Unterschiede (Rundung) zählen nicht. */
+export function betterTrend(metric: TrendMetric, value: number, than: number): boolean {
+  if (metric === 'gegengewicht') return value < than && !sameKg(value, than);
+  return value - than > (metric === 'e1rm' || metric === 'volumen' ? 0.05 : 0);
+}
+
+type Best = { value: number; weightKg: number | null; reps: number | null; seconds: number | null };
+
+/** Bester Satz bzw. Wert einer Gruppe von Arbeitssätzen nach der Kennzahl; null = kein passender Satz. */
+function bestOf(metric: TrendMetric, sets: StatSet[], mode: LoadMode): Best | null {
+  let best: Best | null = null;
+  const take = (b: Best) => {
+    if (!best || betterTrend(metric, b.value, best.value)) best = b;
+  };
+  if (metric === 'volumen') {
+    const value = sets.reduce((sum, s) => sum + setVolume(s.weightKg, s.reps, mode), 0);
+    return value > 0 ? { value, weightKg: null, reps: null, seconds: null } : null;
+  }
+  for (const s of sets) {
+    if (metric === 'e1rm') {
+      const e = s.weightKg != null && s.reps != null ? estimateOneRepMax(s.weightKg, s.reps) : null;
+      if (e !== null) take({ value: e, weightKg: s.weightKg, reps: s.reps, seconds: null });
+    } else if (metric === 'gegengewicht') {
+      if ((s.reps ?? 0) > 0 && s.weightKg != null) take({ value: s.weightKg, weightKg: s.weightKg, reps: s.reps, seconds: null });
+    } else if (metric === 'zeit') {
+      if ((s.seconds ?? 0) > 0) take({ value: s.seconds!, weightKg: s.weightKg, reps: null, seconds: s.seconds });
+    } else if ((s.reps ?? 0) > 0) take({ value: s.reps!, weightKg: s.weightKg, reps: s.reps, seconds: null });
+  }
+  return best;
+}
+
+/** Passende Kennzahl einer Übung aus ihren Arbeitssätzen. */
+function metricFor(sets: StatSet[], mode: LoadMode): TrendMetric {
+  if (mode === 'unterstuetzt') return 'gegengewicht';
+  if (sets.some((s) => (s.seconds ?? 0) > 0 && !(s.reps ?? 0))) return 'zeit';
+  if (bestOf('e1rm', sets, mode)) return 'e1rm';
+  if (bestOf('volumen', sets, mode)) return 'volumen';
+  return 'wdh';
+}
+
+/**
+ * „Bestleistungen & Verlauf“: die häufigsten Übungen der letzten Wochen (nach Arbeitssätzen) mit einem Wert je Woche
+ * und der letzten Bestleistung. `all` = alle Sätze abgeschlossener Trainings, älteste zuerst – die Bestleistung braucht
+ * auch die Zeit vor dem Fenster. Beschreibt nur, was war: keine Wertung, keine Serien.
+ */
+export function exerciseTrends(
+  all: StatSet[],
+  today: string,
+  modeOf: (exerciseId: string) => LoadMode = () => 'normal',
+  weeks = TREND_WEEKS,
+  top = TREND_TOP
+): ExerciseTrend[] {
+  const work = all.filter((s) => isWork(s.setType) && s.day <= today);
+  const first = shiftDay(weekStart(today), -7 * (weeks - 1));
+  const inWindow = work.filter((s) => s.day >= first);
+  const counts = new Map<string, { sets: number; last: string }>();
+  for (const s of inWindow) {
+    const c = counts.get(s.exerciseId);
+    counts.set(s.exerciseId, { sets: (c?.sets ?? 0) + 1, last: c && c.last > s.day ? c.last : s.day });
+  }
+  const chosen = [...counts.entries()]
+    .sort((a, b) => b[1].sets - a[1].sets || b[1].last.localeCompare(a[1].last) || a[0].localeCompare(b[0]))
+    .slice(0, top);
+
+  return chosen.map(([exerciseId, { sets }]) => {
+    const mode = modeOf(exerciseId);
+    const mine = work.filter((s) => s.exerciseId === exerciseId);
+    const metric = metricFor(
+      inWindow.filter((s) => s.exerciseId === exerciseId),
+      mode
+    );
+    const values = Array.from({ length: weeks }, (_, i) => {
+      const from = shiftDay(first, 7 * i);
+      const to = shiftDay(from, 6);
+      return bestOf(
+        metric,
+        mine.filter((s) => s.day >= from && s.day <= to),
+        mode
+      )?.value ?? null;
+    });
+    // Bestleistung: Training für Training mit dem Stand davor vergleichen (wie nach dem Training).
+    const bySession = new Map<string, StatSet[]>();
+    for (const s of mine) bySession.set(s.sessionId, [...(bySession.get(s.sessionId) ?? []), s]);
+    let best: number | null = null;
+    let record: TrendRecord | null = null;
+    for (const list of bySession.values()) {
+      const b = bestOf(metric, list, mode);
+      if (!b) continue;
+      if (best !== null && betterTrend(metric, b.value, best)) record = { day: list[0].day, ...b };
+      if (best === null || betterTrend(metric, b.value, best)) best = b.value;
+    }
+    const present = values.filter((v): v is number => v !== null);
+    return { exerciseId, metric, sets, weeks: values, latest: present.at(-1) ?? null, record };
+  });
 }
 
 /** Stufe für die Karte: 0 = keine Sätze, 1 = 1–5, 2 = 6–11, 3 = 12–19, 4 = ab 20 Sätzen pro Woche. */

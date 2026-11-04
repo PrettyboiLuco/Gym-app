@@ -17,6 +17,14 @@ import type { LiveTraining } from '@/providers/live-training';
 export const TRAINING_SCREENS = ['/training/session', '/training/run', '/training/summary'] as const;
 
 /**
+ * Satz-Logger: Dort ist die Tab-Leiste ausgeblendet, damit Sätze und Pausenleiste den Platz haben (nur der Zurück-Pfeil
+ * oben führt hinaus, wie bei Strong/Hevy).
+ */
+export function hidesTabBar(pathname: string): boolean {
+  return pathname.startsWith('/training/session/');
+}
+
+/**
  * Mini-Player über der Tab-Leiste, solange ein Training oder Ablauf läuft (wie der Musik-Player in Apple Music):
  * Name, rechts Pause-Countdown oder Trainingsdauer. Tippen führt zurück ins Training.
  * Auf dem Trainingsbildschirm selbst ausgeblendet. `compact` = eingeklappte Tab-Leiste (iOS 26).

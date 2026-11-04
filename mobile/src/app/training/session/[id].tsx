@@ -13,15 +13,16 @@ import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
 import { KeepAwake } from '@/components/keep-awake';
 import { NoteField, type NoteFieldHandle } from '@/components/note-field';
+import { PressableScale } from '@/components/pressable-scale';
 import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
 import { SetCheck } from '@/components/set-check';
 import { RirChoice, SetDetails } from '@/components/set-details';
 import { SetCols, SetRowShell, SetTableHead } from '@/components/set-table';
-import { mergeSetInput, nextOpenRow, type SetInput } from '@/components/set-table-logic';
+import { mergeSetInput, nextOpenRow, nudgeRest, type SetInput } from '@/components/set-table-logic';
 import { ThemedText } from '@/components/themed-text';
-import { SetRowMotion } from '@/constants/motion';
-import { Spacing, TabularNums } from '@/constants/theme';
+import { Press, SetRowMotion } from '@/constants/motion';
+import { Radius, Spacing, TabularNums } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
 import { loadProfile } from '@/data/profile';
@@ -68,7 +69,6 @@ import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep,
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import { nowMs } from '@/domain/time';
 import {
-  extendRest,
   formatClock,
   isStaleSession,
   parseSecondsInput,
@@ -222,7 +222,8 @@ export default function SessionScreen() {
 
   /**
    * Vorschlag fürs Eingabefeld: eigene Werte (wieder geöffneter Satz), sonst voriger Satz in diesem
-   * Training, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg.
+   * Training, sonst der Steigerungsvorschlag, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg.
+   * Die Vorgabe steht grau im Feld; ✓ in einer leeren Zeile übernimmt sie (ein Tipp pro Satz, wie bei Strong).
    */
   function suggestion(row: SetRow) {
     // Aufwärmsätze: nur eigene Werte bzw. die geplanten Wiederholungen; das Gewicht kommt aus dem Vorschlag.
@@ -234,10 +235,11 @@ export default function SessionScreen() {
     }
     const work = sets.filter((s) => s.exerciseId === row.exerciseId && s.setType !== 'aufwaermen');
     const indexInExercise = Math.max(0, work.indexOf(row));
+    const advised = advisedValues(row.exerciseId);
     if (isTimed(row.exerciseId)) {
       const own = work.filter((s) => s.completedAt && s.position < row.position);
       const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
-      const seconds = row.seconds ?? own.at(-1)?.seconds ?? row.plannedSeconds ?? lastTime?.seconds ?? null;
+      const seconds = row.seconds ?? own.at(-1)?.seconds ?? advised?.seconds ?? row.plannedSeconds ?? lastTime?.seconds ?? null;
       return { weight: '0', reps: seconds === null ? '' : String(seconds) };
     }
     if (row.weightKg != null && row.reps != null) {
@@ -248,9 +250,28 @@ export default function SessionScreen() {
     const previous = own[own.length - 1];
     const lastTime = last[row.exerciseId]?.[indexInExercise] ?? last[row.exerciseId]?.at(-1);
     return {
-      weight: previous?.weightKg != null ? shown(previous.weightKg) : lastTime ? shown(lastTime.weightKg) : bodyweight ? '0' : '',
-      reps: previous?.reps != null ? String(previous.reps) : lastTime?.reps != null ? String(lastTime.reps) : '',
+      weight:
+        previous?.weightKg != null
+          ? shown(previous.weightKg)
+          : advised?.weightKg != null
+            ? shown(advised.weightKg)
+            : lastTime
+              ? shown(lastTime.weightKg)
+              : bodyweight
+                ? '0'
+                : '',
+      reps: previous?.reps != null ? String(previous.reps) : advised?.reps != null ? String(advised.reps) : lastTime?.reps != null ? String(lastTime.reps) : '',
     };
+  }
+
+  /** Werte des Steigerungsvorschlags (ohne „Variante“, die keine Zahl vorgibt), einmal je Übung und Anzeige berechnet. */
+  const adviceCache = new Map<string, ReturnType<typeof adviceValues> | null>();
+  function advisedValues(exerciseId: string) {
+    if (!adviceCache.has(exerciseId)) {
+      const advice = session?.status === 'aktiv' ? adviceFor(exerciseId) : null;
+      adviceCache.set(exerciseId, advice && advice.kind !== 'variante' ? adviceValues(advice) : null);
+    }
+    return adviceCache.get(exerciseId) ?? null;
   }
 
   /**
@@ -466,22 +487,6 @@ export default function SessionScreen() {
     });
   }
 
-  /** Vorschlag in die offenen Sätze eintragen; gespeichert wird erst mit ✓. */
-  function applyAdvice(exerciseId: string, advice: Advice) {
-    const v = adviceValues(advice);
-    const next: Inputs = {};
-    sets
-      .filter((s) => s.exerciseId === exerciseId && !s.completedAt && s.setType !== 'aufwaermen')
-      .forEach((row) => {
-        const base = effective(row);
-        next[row.id] = {
-          weight: v.weightKg !== null ? shown(v.weightKg) : base.weight,
-          reps: v.seconds !== null ? String(v.seconds) : v.reps !== null ? String(v.reps) : base.reps,
-        };
-      });
-    setInputs((i) => ({ ...i, ...next }));
-  }
-
   /** Aufwärmsätze aus dem Arbeitsgewicht vorschlagen und vor dem ersten Satz einfügen (A1). */
   function warmupPlan(exerciseId: string) {
     const exercise = byIdAll.get(exerciseId);
@@ -631,7 +636,7 @@ export default function SessionScreen() {
     <Screen
       withHeader
       scrollRef={scrollRef}
-      subtitle={t('session.progress', { done: doneCount, total: sets.length })}
+      subtitle={t('session.progress', { done: doneCount, count: sets.length })}
       footer={
         active ? (
           <RestTimerBar
@@ -649,7 +654,7 @@ export default function SessionScreen() {
                 await saveRestAuto(db, true);
               }
             }}
-            onExtend={() => updateTimer(extendRest(timer, 30, nowMs()))}
+            onAdjust={(seconds) => updateTimer(nudgeRest(timer, seconds, nowMs()))}
             onSkip={() => updateTimer(stopRest(timer))}
             next={nextUp}
             focus={restFocus}
@@ -767,14 +772,7 @@ export default function SessionScreen() {
                     {t('session.lastNone')}
                   </ThemedText>
                 ) : null}
-                {advice ? (
-                  <>
-                    <ThemedText type="small">{adviceText(advice)}</ThemedText>
-                    {advice.kind !== 'variante' ? (
-                      <Button label={t('session.adviceApply')} variant="secondary" onPress={() => applyAdvice(exerciseId, advice)} />
-                    ) : null}
-                  </>
-                ) : null}
+                {advice ? <ThemedText type="small">{adviceText(advice)}</ThemedText> : null}
                 {target.plannedSeconds != null ? (
                   <ThemedText type="small" themeColor="textSecondary">
                     {t('session.targetSeconds', { seconds: target.plannedSeconds })}
@@ -905,7 +903,7 @@ export default function SessionScreen() {
                               <TextInput
                                 value={typed.weight}
                                 onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...typed, weight } }))}
-                                placeholder={hint.weight || t(`logger.placeholder.${modeOf(exerciseId)}`, { unit: units.weight })}
+                                placeholder={hint.weight || t('session.empty')}
                                 placeholderTextColor={theme.textSecondary}
                                 keyboardType="decimal-pad"
                                 selectTextOnFocus
@@ -916,7 +914,7 @@ export default function SessionScreen() {
                             <TextInput
                               value={typed.reps}
                               onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...typed, reps } }))}
-                              placeholder={hint.reps || (timed ? t('session.seconds') : t('session.reps'))}
+                              placeholder={hint.reps || t('session.empty')}
                               placeholderTextColor={theme.textSecondary}
                               keyboardType="number-pad"
                               selectTextOnFocus
@@ -1006,8 +1004,13 @@ export default function SessionScreen() {
                   <ThemedText style={{ color: theme.danger }}>{isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}</ThemedText>
                 ) : null}
                 {active && warmupPlan(exerciseId).length > 0 ? (
-                  <>
-                    <Button label={t('logger.warmup', { count: warmupPlan(exerciseId).length })} variant="secondary" onPress={() => addWarmups(exerciseId)} />
+                  <View style={styles.warmup}>
+                    <Button
+                      label={t('logger.warmup', { count: warmupPlan(exerciseId).length })}
+                      variant="quiet"
+                      size="compact"
+                      onPress={() => addWarmups(exerciseId)}
+                    />
                     <ThemedText type="small" themeColor="textSecondary">
                       {t('logger.warmupHint', {
                         list: warmupPlan(exerciseId)
@@ -1015,61 +1018,67 @@ export default function SessionScreen() {
                           .join(' · '),
                       })}
                     </ThemedText>
-                  </>
+                  </View>
                 ) : null}
+                {active && busyFor === exerciseId && exercise ? (
+                  <View style={styles.busy}>
+                    <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
+                    {replacementOptions(
+                      exercise,
+                      exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
+                    ).map((alt) => (
+                      <ListRow
+                        key={alt.id}
+                        title={exerciseName(byId.get(alt.id))}
+                        subtitle={t(`equipment.${alt.equipment}`)}
+                        accessory="⇄"
+                        onPress={() => replaceWith(exerciseId, alt.id)}
+                      />
+                    ))}
+                    {replacementOptions(
+                      exercise,
+                      exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
+                    ).length === 0 ? (
+                      <ThemedText type="small">{t('session.busyNone')}</ThemedText>
+                    ) : null}
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {t('session.busyHint')}
+                    </ThemedText>
+                    <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
+                  </View>
+                ) : null}
+                {/* Eine ruhige Zeile statt zweier voller Knöpfe: „+ Satz“ links, Ersatz bzw. Zuklappen rechts. */}
                 {active ? (
-                  <Button
-                    label={t('session.addSet')}
-                    variant="secondary"
-                    onPress={async () => {
-                      await addSet(db, id, exerciseId);
-                      await load();
-                    }}
-                  />
-                ) : null}
-                {active && hasOpen && exercise ? (
-                  busyFor === exerciseId ? (
-                    <View style={styles.busy}>
-                      <ThemedText type="smallBold">{t('session.busyTitle', { name: nameOf(exerciseId) })}</ThemedText>
-                      {replacementOptions(
-                        exercise,
-                        exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
-                      ).map((alt) => (
-                        <ListRow
-                          key={alt.id}
-                          title={exerciseName(byId.get(alt.id))}
-                          subtitle={t(`equipment.${alt.equipment}`)}
-                          accessory="⇄"
-                          onPress={() => replaceWith(exerciseId, alt.id)}
-                        />
-                      ))}
-                      {replacementOptions(
-                        exercise,
-                        exercises.filter((e) => e.kind === 'kraft' && (!usable || usable.includes(e.equipment)))
-                      ).length === 0 ? (
-                        <ThemedText type="small">{t('session.busyNone')}</ThemedText>
-                      ) : null}
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {t('session.busyHint')}
-                      </ThemedText>
-                      <Button label={t('common.cancel')} variant="secondary" onPress={() => setBusyFor(null)} />
-                    </View>
-                  ) : (
-                    <Button label={t('session.busy')} variant="secondary" onPress={() => setBusyFor(exerciseId)} />
-                  )
-                ) : null}
-                {active && allDone ? (
-                  <Button
-                    label={t('session.hideSets')}
-                    variant="secondary"
-                    onPress={() =>
-                      setOpenDone((o) => {
-                        const n = new Set(o);
-                        n.delete(exerciseId);
-                        return n;
-                      })
-                    }
-                  />
+                  <View style={styles.actions}>
+                    <AddSetPill
+                      onPress={async () => {
+                        await addSet(db, id, exerciseId);
+                        await load();
+                      }}
+                    />
+                    {allDone ? (
+                      <Button
+                        label={t('session.hideSets')}
+                        variant="quiet"
+                        size="compact"
+                        onPress={() =>
+                          setOpenDone((o) => {
+                            const n = new Set(o);
+                            n.delete(exerciseId);
+                            return n;
+                          })
+                        }
+                      />
+                    ) : hasOpen && exercise && busyFor !== exerciseId ? (
+                      <Button
+                        label={t('session.busyShort')}
+                        accessibilityLabel={t('session.busy')}
+                        variant="quiet"
+                        size="compact"
+                        onPress={() => setBusyFor(exerciseId)}
+                      />
+                    ) : null}
+                  </View>
                 ) : null}
               </Card>
             </LayoutAnimationConfig>
@@ -1084,7 +1093,7 @@ export default function SessionScreen() {
           <ThemedText type="small" themeColor="textSecondary">
             {t('session.cooldownText', { count: blockFor('cooldown').items.length, minutes: routineMinutes(blockFor('cooldown'), exercises) })}
           </ThemedText>
-          <Button label={t('session.cooldownStart')} variant={active ? 'danger' : 'primary'} onPress={() => startBlock('cooldown')} />
+          <Button label={t('session.cooldownStart')} variant={active ? 'secondary' : 'primary'} onPress={() => startBlock('cooldown')} />
         </Card>
       ) : null}
       {cooldownDone ? (
@@ -1118,7 +1127,7 @@ export default function SessionScreen() {
       ) : null}
       {active ? (
         <>
-          <Button label={t('session.addExercise')} onPress={() => setPicking(true)} />
+          <Button label={t('session.addExercise')} variant="secondary" onPress={() => setPicking(true)} />
           <Button label={t('cardio.addInSession')} variant="secondary" onPress={() => router.push({ pathname: '/training/cardio', params: { session: id } })} />
           <Card>
             <Toggle
@@ -1143,7 +1152,7 @@ export default function SessionScreen() {
               </ThemedText>
             ) : null}
           </Card>
-          <ConfirmButton label={t('session.finish')} confirmLabel={t('session.finish')} onConfirm={() => finish('abgeschlossen')} />
+          <FinishButton openSets={sets.length - doneCount} onConfirm={() => finish('abgeschlossen')} />
           <Card>
             <ConfirmButton label={t('session.pain')} confirmLabel={t('session.painConfirm')} onConfirm={() => finish('abgebrochen')} />
             <ThemedText type="small" themeColor="textSecondary">
@@ -1153,6 +1162,52 @@ export default function SessionScreen() {
         </>
       ) : null}
     </Screen>
+  );
+}
+
+/** „Training beenden“ als weiße Hauptpille; erst die Rückfrage beendet (nennt offene Sätze, die als nicht gemacht zählen). */
+function FinishButton({ openSets, onConfirm }: { openSets: number; onConfirm: () => void }) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) return <Button label={t('session.finish')} onPress={() => setAsking(true)} />;
+  return (
+    <View style={styles.finishAsk}>
+      <ThemedText type="small" themeColor="textSecondary" accessibilityLiveRegion="polite">
+        {openSets > 0 ? t('session.finishOpen', { count: openSets }) : t('session.finishAsk')}
+      </ThemedText>
+      <View style={styles.finishRow}>
+        <View style={styles.flex}>
+          <Button label={t('common.cancel')} variant="secondary" onPress={() => setAsking(false)} />
+        </View>
+        <View style={styles.flex}>
+          <Button
+            label={t('session.finishConfirm')}
+            onPress={() => {
+              setAsking(false);
+              onConfirm();
+            }}
+          />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/** Kleine Pille „+ Satz“ unter der Satztabelle. */
+function AddSetPill({ onPress }: { onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <PressableScale
+      scaleTo={Press.button}
+      accessibilityRole="button"
+      accessibilityLabel={t('session.addSet')}
+      onPress={() => {
+        haptic.tap();
+        onPress();
+      }}
+      style={[styles.addSet, { backgroundColor: theme.backgroundSelected }]}>
+      <Icon name="plus" color={theme.text} size={16} strokeWidth={2.2} />
+      <ThemedText type="smallBold">{t('session.addSetShort')}</ThemedText>
+    </PressableScale>
   );
 }
 
@@ -1188,6 +1243,11 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1 },
   busy: { gap: Spacing.two },
+  warmup: { gap: Spacing.half },
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two, marginTop: Spacing.one },
+  addSet: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, minHeight: 36, paddingHorizontal: Spacing.three - 2, borderRadius: Radius.pill },
+  finishAsk: { gap: Spacing.two },
+  finishRow: { flexDirection: 'row', gap: Spacing.three },
   ask: { borderRadius: 20, borderWidth: 1, padding: Spacing.three, gap: Spacing.one },
   setNumberHit: { width: SetCols.set, minHeight: 44, justifyContent: 'center' },
 });

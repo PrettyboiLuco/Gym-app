@@ -9,11 +9,13 @@ import {
   DELOAD_WEEKS_DEFAULT,
   deloadDraft,
   deloadDue,
+  exerciseTrends,
   periodStats,
   personalSecondsPerSet,
   trainingWeeksInBlock,
   usableEquipment,
   type EquipmentProfile,
+  type ExerciseTrend,
   type PeriodStats,
   type StatSet,
 } from '@/domain/training-stats';
@@ -54,17 +56,40 @@ export async function allSets(db: Db): Promise<StatSet[]> {
   return rows.map(({ at, ...r }) => ({ ...r, day: localDay(new Date(at), timeZone) }));
 }
 
-export async function loadPeriodStats(db: Db, from: string, to: string): Promise<PeriodStats> {
-  const [sets, cardio, exercises] = await Promise.all([
-    allSets(db),
-    db.getAllAsync<{ day: string; minutes: number | null }>('SELECT day, minutes FROM cardio_log WHERE completed_at_utc IS NOT NULL'),
-    listExercises(db),
-  ]);
-  const byId = new Map(exercises.map((e) => [e.id, e]));
-  return periodStats(sets, cardio, from, to, (id) => {
+/** Belastungsart je Übung (Gegengewicht, einseitig …) für Volumen und Bestleistungen. */
+async function modeLookup(db: Db) {
+  const byId = new Map((await listExercises(db)).map((e) => [e.id, e]));
+  return (id: string) => {
     const e = byId.get(id);
     return e ? loadModeOf(e) : 'normal';
-  });
+  };
+}
+
+const listCardio = (db: Db) =>
+  db.getAllAsync<{ day: string; minutes: number | null }>('SELECT day, minutes FROM cardio_log WHERE completed_at_utc IS NOT NULL');
+
+export async function loadPeriodStats(db: Db, from: string, to: string): Promise<PeriodStats> {
+  const [sets, cardio, modeOf] = await Promise.all([allSets(db), listCardio(db), modeLookup(db)]);
+  return periodStats(sets, cardio, from, to, modeOf);
+}
+
+/** Zeitraum und Vergleichszeitraum mit einmal gelesenen Sätzen (Kennzahlen mit „ggü. Vormonat“). */
+export async function loadPeriodComparison(
+  db: Db,
+  current: { from: string; to: string },
+  previous: { from: string; to: string }
+): Promise<{ current: PeriodStats; previous: PeriodStats }> {
+  const [sets, cardio, modeOf] = await Promise.all([allSets(db), listCardio(db), modeLookup(db)]);
+  return {
+    current: periodStats(sets, cardio, current.from, current.to, modeOf),
+    previous: periodStats(sets, cardio, previous.from, previous.to, modeOf),
+  };
+}
+
+/** „Bestleistungen & Verlauf“: häufigste Übungen der letzten 8 Wochen mit Wochenwerten und letzter Bestleistung. */
+export async function loadExerciseTrends(db: Db, today: string): Promise<ExerciseTrend[]> {
+  const [sets, modeOf] = await Promise.all([allSets(db), modeLookup(db)]);
+  return exerciseTrends(sets, today, modeOf);
 }
 
 // ------------------------------------------------------------------------------------ Deload

@@ -6,6 +6,7 @@ import { Button } from '@/components/card';
 import { MeterBar } from '@/components/charts';
 import { introRunning, onIntroExit } from '@/components/intro-state';
 import { MuscleMapMini } from '@/components/muscle-map';
+import { PressableScale } from '@/components/pressable-scale';
 import { ThemedText } from '@/components/themed-text';
 import { CardStagger, Press, Spring } from '@/constants/motion';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
@@ -41,8 +42,10 @@ export function TrainingBlock({
   live = false,
   growIn = false,
   countUp = false,
+  onDayPress,
 }: {
-  label: string;
+  /** Kleine Zeile über dem Titel; ohne = keine (z. B. wenn das Training läuft – Titel und Knopf sagen genug). */
+  label?: string | null;
   title: string;
   meta?: string | null;
   week: WeekDay[];
@@ -60,33 +63,41 @@ export function TrainingBlock({
   /** Wochenbalken wachsen beim Öffnen gestaffelt (N10), die Sätze zählen hoch (N1) – auf „Heute“. */
   growIn?: boolean;
   countUp?: boolean;
+  /** Tag der Satz-Woche mit Plan angetippt (Index Mo = 0); ohne = Woche nur Anzeige. */
+  onDayPress?: (index: number) => void;
 }) {
   const theme = useTheme();
   const groups = muscles ? (Object.keys(muscles) as MuscleGroup[]).filter((g) => (muscles[g] ?? 0) > 0) : [];
   const overlap = groups.filter((g) => spared.includes(g));
   const dataColor = useColorScheme() === 'dark' ? theme.accent : theme.tint;
+  const muscleList = t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') });
   return (
     <View style={[styles.block, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
-      <View style={styles.headRow}>
-        <View style={[styles.head, styles.flex]}>
+      <View style={styles.head}>
+        {label ? (
           <View style={styles.labelRow}>
             {live ? <View style={[styles.liveDot, { backgroundColor: dataColor }]} /> : null}
             <ThemedText themeColor={live ? undefined : 'textSecondary'} style={[styles.label, live && { color: dataColor }]}>
               {label}
             </ThemedText>
           </View>
-          <ThemedText type="title" style={styles.answer} numberOfLines={2} accessibilityRole="header">
-            {title}
-          </ThemedText>
-          {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
-        </View>
+        ) : null}
+        {/* Titel über die volle Breite in einer Zeile; die kleine Muskelkarte steht darunter neben Plan und Muskeln. */}
+        <ThemedText type="title" style={styles.answer} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} accessibilityRole="header">
+          {title}
+        </ThemedText>
         {groups.length ? (
-          <MuscleMapMini
-            sets={muscles!}
-            spared={spared}
-            body={body}
-            label={t('today.musclesToday', { list: groups.map((g) => t(`muscle.${g}`)).join(', ') })}
-          />
+          <View style={styles.detailRow}>
+            <View style={[styles.flex, styles.head]}>
+              {meta ? <ThemedText themeColor="textSecondary">{meta}</ThemedText> : null}
+              <ThemedText type="small" themeColor="textSecondary">
+                {muscleList}
+              </ThemedText>
+            </View>
+            <MuscleMapMini sets={muscles!} spared={spared} body={body} label={muscleList} />
+          </View>
+        ) : meta ? (
+          <ThemedText themeColor="textSecondary">{meta}</ThemedText>
         ) : null}
       </View>
       {overlap.length ? (
@@ -94,7 +105,7 @@ export function TrainingBlock({
           {t('today.sparedHint', { list: overlap.map((g) => t(`muscle.${g}`)).join(', ') })}
         </ThemedText>
       ) : null}
-      <WeekStrip days={week} summary={weekSummary} growIn={growIn} countUp={countUp} />
+      <WeekStrip days={week} summary={weekSummary} growIn={growIn} countUp={countUp} onDayPress={onDayPress} />
       <View style={styles.action}>
         <Button label={action} onPress={onPress} />
       </View>
@@ -128,6 +139,7 @@ export function WeekStrip({
   celebrateToday = false,
   growIn = false,
   countUp = false,
+  onDayPress,
 }: {
   days: WeekDay[];
   summary: string;
@@ -136,6 +148,8 @@ export function WeekStrip({
   growIn?: boolean;
   /** Erledigte Sätze in der Überschrift zählen hoch (N1). */
   countUp?: boolean;
+  /** Antippen eines Tages mit Plan (Index Mo = 0), z. B. um den Plantag zu öffnen; Tage ohne Plan bleiben Anzeige. */
+  onDayPress?: (index: number) => void;
 }) {
   const theme = useTheme();
   // Beim App-Start erst wachsen, wenn der Vorhang des Intros abgeht – sonst passiert es unsichtbar dahinter.
@@ -149,17 +163,21 @@ export function WeekStrip({
   const headline = planned > 0 ? t('today.weekSets', { done, planned }) : t('today.weekSetsDone', { count: done });
   const counted = Math.round(useCountUp(done, countUp));
   const shownHeadline = planned > 0 ? t('today.weekSets', { done: counted, planned }) : t('today.weekSetsDone', { count: counted });
-  const description = days
-    .map((d) =>
-      (d.plannedSets ?? 0) > 0 || (d.doneSets ?? 0) > 0
-        ? t('today.weekDaySets', { day: d.label, done: d.doneSets ?? 0, planned: d.plannedSets ?? 0 })
-        : d.done
-          ? t('today.weekDayDone', { day: d.label })
-          : t('today.weekDayRest', { day: d.label })
-    )
-    .join(', ');
+  const dayText = (d: WeekDay) =>
+    (d.plannedSets ?? 0) > 0 || (d.doneSets ?? 0) > 0
+      ? t('today.weekDaySets', { day: d.label, done: d.doneSets ?? 0, planned: d.plannedSets ?? 0 })
+      : d.done
+        ? t('today.weekDayDone', { day: d.label })
+        : t('today.weekDayRest', { day: d.label });
+  const description = days.map(dayText).join(', ');
+  // Mit antippbaren Tagen liest der Bildschirmleser jeden Tag einzeln (sonst verschluckt die Gruppe die Knöpfe).
+  const tappable = (d: WeekDay) => !!onDayPress && ((d.plannedSets ?? 0) > 0 || d.planned);
+  const grouped = !days.some(tappable);
   return (
-    <View accessible accessibilityLabel={`${headline}. ${summary}. ${description}`} style={styles.weekWrap}>
+    <View
+      accessible={grouped}
+      accessibilityLabel={grouped ? `${headline}. ${summary}. ${description}` : undefined}
+      style={styles.weekWrap}>
       <ThemedText type="smallBold" style={styles.weekHeadline}>
         {shownHeadline}
       </ThemedText>
@@ -171,8 +189,8 @@ export function WeekStrip({
           const doneHeight = did > 0 ? Math.max(6, (BAR_AREA * did) / max) : d.done ? 6 : 0;
           const planHeight = plan > 0 ? Math.max(8, (BAR_AREA * plan) / max) : d.planned ? BAR_AREA / 2 : 0;
           const figure = did > 0 ? String(did) : plan > 0 ? String(plan) : '';
-          return (
-            <View key={i} style={styles.day}>
+          const content = (
+            <>
               <ThemedText type="small" themeColor={d.today ? 'text' : 'textSecondary'} style={[styles.dayLabel, d.today && styles.dayLabelToday]}>
                 {d.label}
               </ThemedText>
@@ -199,6 +217,21 @@ export function WeekStrip({
                 {figure}
               </ThemedText>
               <View style={[styles.todayMark, { backgroundColor: d.today ? doneColor : 'transparent' }]} />
+            </>
+          );
+          return tappable(d) ? (
+            <PressableScale
+              key={i}
+              accessibilityRole="button"
+              accessibilityLabel={dayText(d)}
+              accessibilityHint={t('today.weekDayHint')}
+              onPress={() => onDayPress?.(i)}
+              style={styles.day}>
+              {content}
+            </PressableScale>
+          ) : (
+            <View key={i} style={styles.day} accessible={!grouped} accessibilityLabel={grouped ? undefined : dayText(d)}>
+              {content}
             </View>
           );
         })}
@@ -348,7 +381,7 @@ function FigureCell({ figure, divider }: { figure: Figure; divider: string | nul
 const styles = StyleSheet.create({
   block: { borderRadius: Radius.card, borderWidth: 1, padding: Spacing.four - 2, gap: Spacing.four },
   head: { gap: Spacing.one },
-  headRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, marginTop: Spacing.one },
   flex: { flex: 1 },
   label: { fontSize: 14, lineHeight: 20 },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 2 },

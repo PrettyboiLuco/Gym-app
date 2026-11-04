@@ -90,7 +90,7 @@ export function DaySummary({
     );
   }
 
-  const subtitle = micros.known > 0 ? t('micros.openHint', { known: micros.known, total: micros.total }) : t('nutrition.nutrients.sub');
+  const subtitle = t('nutrition.nutrients.sub');
   return (
     <DayHero totals={totals} goal={goal} macroGoals={macroGoals}>
       {targets && day ? <TargetDayExtras targets={targets} totals={totals} micros={micros.values} day={day} /> : null}
@@ -116,7 +116,9 @@ export function DaySummary({
 /**
  * Fenster „Nährwerte“ (getlayers vesper-faq): zuerst Ballaststoffe, Zucker, gesättigte Fettsäuren und Salz als Zeilen
  * mit Haarlinie (Wert rechtsbündig, gleich breite Ziffern), darunter Vitamine und Mineralstoffe – mit Zielen (B2) als
- * Balken, ohne Ziele (sensible Situation) nur die Summen. Jede Zeile steigt nach der Leiter herein.
+ * Balken, ohne Ziele (sensible Situation) nur die Summen. Fehlen alle Angaben, steht statt leerer Zeilen ein Satz.
+ * Wie gezählt wird (nur Einträge mit Angaben, Quellen der Ziele, Fassung) liegt hinter „Wie wird gezählt?“.
+ * Jede Zeile steigt nach der Leiter herein.
  */
 function NutrientsSheet({
   visible,
@@ -147,29 +149,36 @@ function NutrientsSheet({
   };
   const keys = MICRO_KEYS.filter((k) => micros.values[k] != null && micros.values[k]! > 0);
   const missing = MICRO_KEYS.filter((k) => !keys.includes(k));
+  // Kein Eintrag hat einen der vier Werte: ein Satz statt vier Zeilen mit „–“.
+  const extrasNone = EXTRAS.every((k) => totals.values[k] === 0 && totals.unknown[k] > 0);
+  const info = [withTargets ? null : t('micros.sumOnly'), t('targets.micros.onlyLogged'), withTargets ? t('targets.micros.sources', { version: MICRO_TARGETS_VERSION }) : null]
+    .filter(Boolean)
+    .join('\n\n');
   let i = 0;
   return (
     <Sheet visible={visible} title={t('nutrition.nutrients.title')} onClose={onClose} onClosed={navigateAfterClose}>
-      {EXTRAS.map((k, n) => {
-        const value = totals.values[k] > 0 || totals.unknown[k] === 0 ? `${atLeast(totals, k)}${grams(totals.values[k])}` : '–';
-        return (
-          <SheetRow key={k} index={i++} divider={n > 0}>
-            <View style={styles.extra} accessible accessibilityLabel={`${t(`nutrition.${k}`)} ${value}`}>
-              <ThemedText style={styles.flex}>{t(`nutrition.${k}`)}</ThemedText>
-              <ThemedText style={styles.extraValue}>{value}</ThemedText>
-            </View>
-          </SheetRow>
-        );
-      })}
+      {extrasNone ? (
+        <SheetRow index={i++}>
+          <ThemedText themeColor="textSecondary">{t('nutrition.nutrients.extrasNone')}</ThemedText>
+        </SheetRow>
+      ) : (
+        EXTRAS.map((k, n) => {
+          const value = totals.values[k] > 0 || totals.unknown[k] === 0 ? `${atLeast(totals, k)}${grams(totals.values[k])}` : '–';
+          return (
+            <SheetRow key={k} index={i++} divider={n > 0}>
+              <View style={styles.extra} accessible accessibilityLabel={`${t(`nutrition.${k}`)} ${value === '–' ? t('nutrition.unknown') : value}`}>
+                <ThemedText style={styles.flex}>{t(`nutrition.${k}`)}</ThemedText>
+                <ThemedText style={styles.extraValue}>{value}</ThemedText>
+              </View>
+            </SheetRow>
+          );
+        })
+      )}
       <SheetRow index={i++} divider style={styles.section}>
         <ThemedText style={styles.rowTitle} accessibilityRole="header">
           {t('micros.title')}
         </ThemedText>
-        {withTargets && keys.length > 0 ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('targets.micros.onlyLogged')}
-          </ThemedText>
-        ) : null}
+        {keys.length === 0 ? <ThemedText themeColor="textSecondary">{t('micros.none')}</ThemedText> : null}
       </SheetRow>
       {withTargets
         ? keys.map((k) => (
@@ -193,21 +202,17 @@ function NutrientsSheet({
             </SheetRow>
           ))}
       <SheetRow index={i++} style={styles.notes}>
-        {missing.length ? (
+        {keys.length > 0 && missing.length ? (
           <ThemedText type="small" themeColor="textSecondary">
             {t('micros.missing', { list: missing.map((k) => t(`micros.${k}`)).join(', ') })}
           </ThemedText>
         ) : null}
-        <ThemedText type="small" themeColor="textSecondary">
-          {withTargets
-            ? t('micros.openHint', { known: micros.known, total: micros.total })
-            : t('micros.coverage', { known: micros.known, total: micros.total })}
-        </ThemedText>
-        {withTargets ? (
+        {keys.length > 0 && micros.known < micros.total ? (
           <ThemedText type="small" themeColor="textSecondary">
-            {t('targets.micros.sources', { version: MICRO_TARGETS_VERSION })}
+            {t('micros.openHint', { known: micros.known, total: micros.total })}
           </ThemedText>
         ) : null}
+        <InsightInfo label={t('nutrition.summary.howCounted')} text={info} />
       </SheetRow>
       <SheetRow index={i++} style={styles.notes}>
         {withTargets ? <Button label={t('targets.micros.open')} variant="secondary" onPress={() => openDetails({}, '/nutrition/micros')} /> : null}

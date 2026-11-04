@@ -9,9 +9,13 @@ import { Press } from '@/constants/motion';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/** Kleine Pille links vom „+“, z. B. „Wie gestern“ bei einer leeren Mahlzeit (ein Tipp). */
+type QuickAction = { label: string; accessibilityLabel?: string; onPress: () => void };
+
 /**
  * Eine Zeile: kleine Index-Zahl („01“), Name (Manrope 18), rechts die Summe in gleich breiten Ziffern, dann der runde
  * weiße „+“-Knopf (wie der Hauptknopf) und optional der runde „…“-Knopf für die Optionen. Knöpfe 40 px, federn beim Drücken.
+ * `quick`: optionale kleine Pille vor dem „+“ (statt der Summe – sie steht nur bei leeren Mahlzeiten).
  */
 export function MealHead({
   index,
@@ -22,6 +26,7 @@ export function MealHead({
   onAdd,
   moreLabel,
   onMore,
+  quick,
 }: {
   index?: number;
   title: string;
@@ -32,6 +37,7 @@ export function MealHead({
   onAdd: () => void;
   moreLabel?: string;
   onMore?: () => void;
+  quick?: QuickAction | null;
 }) {
   const theme = useTheme();
   return (
@@ -52,6 +58,19 @@ export function MealHead({
           </ThemedText>
         ) : null}
       </View>
+      {quick ? (
+        <PressableScale
+          scaleTo={Press.button}
+          accessibilityRole="button"
+          accessibilityLabel={quick.accessibilityLabel ?? quick.label}
+          hitSlop={6}
+          onPress={quick.onPress}
+          style={({ pressed }) => [styles.pill, { backgroundColor: pressed ? theme.border : theme.backgroundSelected }]}>
+          <ThemedText type="small" style={styles.pillText} numberOfLines={1}>
+            {quick.label}
+          </ThemedText>
+        </PressableScale>
+      ) : null}
       <PressableScale
         scaleTo={Press.button}
         accessibilityRole="button"
@@ -83,5 +102,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: DisplayFont.bold, fontSize: 18, lineHeight: 24, letterSpacing: -0.3, flexShrink: 1 },
   flex: { flex: 1 },
   value: { fontVariant: ['tabular-nums'], fontSize: 15 },
+  pill: { height: 34, borderRadius: 17, paddingHorizontal: Spacing.three, alignItems: 'center', justifyContent: 'center' },
+  pillText: { fontWeight: 600 },
   round: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });

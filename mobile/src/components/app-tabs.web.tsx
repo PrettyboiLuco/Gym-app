@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, type LayoutChangeEvent, type PressableProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, type SharedValue } from 'react-native-reanimated';
 
-import { MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
+import { hidesTabBar, MiniPlayer, TRAINING_SCREENS } from '@/components/mini-player';
 import { TabIcon, type TabIconName } from '@/components/tab-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -62,8 +62,9 @@ function TabBar(props: TabListProps) {
   const pathname = usePathname();
   // Im Training selbst blendet sich der Mini-Player aus – dann auch kein leeres Feld über der Tab-Leiste.
   const running = (!!live.session || !!live.timedTitle) && !TRAINING_SCREENS.some((p) => pathname.startsWith(p));
+  // Im Satz-Logger ausgeblendet; die Tabs bleiben im Baum, damit die Routen bekannt sind.
   return (
-    <View {...props} style={styles.bar}>
+    <View {...props} style={[styles.bar, hidesTabBar(pathname) && styles.hidden]}>
       {running ? (
         <ThemedView type="backgroundElement" style={styles.player}>
           <MiniPlayer live={live} />

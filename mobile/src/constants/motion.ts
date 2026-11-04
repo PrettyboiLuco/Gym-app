@@ -177,3 +177,6 @@ export const SheetMotion = {
   dismissPx: 120,
   dismissVelocity: 800,
 } as const;
+
+/** Kompakte Pausenleiste im Training: Die Auswahl der Pausenlänge blendet beim Aufklappen kurz ein. */
+export const RestBar = { chooserMs: 160 } as const;
