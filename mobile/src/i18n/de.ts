@@ -897,6 +897,7 @@ export const de = {
       hidden: 'Bei einer sensiblen Situation oder „Zahlen ausblenden“ zeigt die App keine Kalorienzahlen. Das Wochenbudget ist deshalb aus.',
       rules: 'Leere, unvollständige oder als „nicht vollständig“ markierte Tage zählen nicht für den Übertrag – fehlende Werte sind nicht 0.',
       floorNote: 'Kein Tag liegt unter {{floor}} kcal (der größere Wert aus 1200 kcal und geschätzter Ruheenergie).',
+      raisedToFloor: 'Tagesziel auf die Untergrenze angehoben (1200 kcal bzw. geschätzte Ruheenergie)',
     },
     diet: {
       title: 'Ernährungsform',
@@ -3384,6 +3385,9 @@ export const de = {
     planned: 'geplant',
     plannedDay: 'Geplanter Tag – die Einträge zählen erst am Tag selbst, nicht in Auswertungen davor.',
     deleted: 'Eintrag gelöscht',
+    undo: 'Rückgängig',
+    undoHint: 'Stellt den gelöschten Eintrag wieder her',
+    restored: 'Eintrag wiederhergestellt',
     time: 'Uhrzeit',
     timeInvalid: 'Uhrzeit bitte als HH:MM, z. B. 08:30.',
     view: {

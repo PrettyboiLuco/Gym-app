@@ -1,5 +1,6 @@
 // Zeile eines Tagebucheintrags (Ausbauplan B1): Uhrzeit sichtbar, neuer Eintrag blendet sich ein und leuchtet kurz in
 // Lime auf (N2), Löschen per Wisch-Geste nach links mit Ausblenden (N3). Bei „Bewegung reduzieren“ ohne Bewegung.
+// Bildschirmleser: „Löschen“ ist eine Aktion an der Zeile selbst; die rote Fläche ist nur aufgedeckt erreichbar.
 
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, type GestureResponderEvent } from 'react-native';
@@ -17,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { HIDDEN } from '@/components/a11y';
 import { ListRow } from '@/components/fields';
 import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
@@ -67,6 +69,8 @@ export function DiaryEntryRow({
   const x = useSharedValue(0);
   const pulse = useSharedValue(0);
   const open = useRef(false);
+  // Löschfläche aufgedeckt: nur dann für Bildschirmleser vorhanden (sonst läse TalkBack den unsichtbaren Knopf).
+  const [revealed, setRevealed] = useState(false);
   const removing = useRef(false);
 
   useEffect(() => {
@@ -83,6 +87,7 @@ export function DiaryEntryRow({
 
   const settle = (to: number) => {
     open.current = to !== 0;
+    setRevealed(to !== 0);
     x.set(reduced ? to : withSpring(to, Spring));
   };
 
@@ -144,24 +149,22 @@ export function DiaryEntryRow({
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       style={styles.clip}
       accessible={false}>
-      <Animated.View style={[styles.action, { backgroundColor: theme.danger }, reveal]}>
+      <Animated.View style={[styles.action, { backgroundColor: theme.danger }, reveal]} {...(revealed ? null : HIDDEN)}>
         <Pressable accessibilityRole="button" accessibilityLabel={`${t('common.delete')} ${title}`} onPress={swipeAway} style={styles.actionButton}>
           <Icon name="trash" color={theme.onDanger} size={20} />
         </Pressable>
       </Animated.View>
-      <Animated.View
-        {...gesture}
-        style={[{ backgroundColor: theme.backgroundElement }, WEB_PAN_Y, slide]}
-        accessibilityActions={[{ name: 'delete', label: t('common.delete') }]}
-        onAccessibilityAction={(e) => {
-          if (e.nativeEvent.actionName === 'delete') remove();
-        }}>
+      <Animated.View {...gesture} style={[{ backgroundColor: theme.backgroundElement }, WEB_PAN_Y, slide]}>
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.glow, { backgroundColor: theme.accent }, glow]} />
         <ListRow
           title={title}
           subtitle={subtitle}
           accessory="›"
           last={last}
+          accessibilityActions={[{ name: 'delete', label: t('common.delete') }]}
+          onAccessibilityAction={(e) => {
+            if (e.nativeEvent.actionName === 'delete') remove();
+          }}
           onPress={() => {
             if (open.current) settle(0);
             else onPress();

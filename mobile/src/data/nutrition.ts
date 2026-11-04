@@ -26,7 +26,7 @@ import { foldText } from '@/domain/text';
 import { localDay, timeZone } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
-import { newId, nowUtc, type Db } from './db';
+import { newId, nowUtc, type Db, type SqlValue } from './db';
 
 // -------------------------------------------------------------------------------- Lebensmittel
 
@@ -506,8 +506,43 @@ export async function updateEvent(db: Db, id: string, change: { amount: number; 
   );
 }
 
-export async function deleteEvent(db: Db, id: string) {
-  await db.runAsync('DELETE FROM consumption_event WHERE id = ?', id);
+/** Gelöschter Tagebucheintrag mit allen Spalten (auch Erfassungszeit, Zeitzone) und den Wochenplan-Einträgen, die auf ihn zeigten. */
+export type DeletedEvent = { row: Record<string, SqlValue>; plannedIds: string[] };
+
+/**
+ * Löscht einen Eintrag und löst den Gegessen-Vermerk im Wochenplan (A9) in derselben Transaktion. Gibt den Datensatz
+ * zurück, damit „Rückgängig“ ihn mit `restoreEvent` unverändert wieder einsetzen kann (null = gab es nicht).
+ */
+export async function deleteEvent(db: Db, id: string): Promise<DeletedEvent | null> {
+  let deleted: DeletedEvent | null = null;
+  await db.withTransactionAsync(async () => {
+    const row = await db.getFirstAsync<Record<string, SqlValue>>('SELECT * FROM consumption_event WHERE id = ?', id);
+    if (!row) return;
+    const planned = await db.getAllAsync<{ id: string }>('SELECT id FROM meal_plan WHERE eaten_event_id = ?', id);
+    await db.runAsync('UPDATE meal_plan SET eaten_event_id = NULL WHERE eaten_event_id = ?', id);
+    await db.runAsync('DELETE FROM consumption_event WHERE id = ?', id);
+    deleted = { row, plannedIds: planned.map((p) => p.id) };
+  });
+  return deleted;
+}
+
+/**
+ * „Rückgängig“ nach dem Löschen: setzt den Eintrag mit gleicher ID und allen Spalten wieder ein und stellt den
+ * Gegessen-Vermerk im Wochenplan wieder her (nur, wo inzwischen nichts anderes vermerkt wurde).
+ */
+export async function restoreEvent(db: Db, deleted: DeletedEvent) {
+  const columns = Object.keys(deleted.row);
+  // Spaltennamen stammen aus der eigenen Tabelle (SELECT *); zur Sicherheit nur einfache Namen zulassen.
+  if (columns.length === 0 || !columns.every((c) => /^[a-z_]+$/.test(c))) throw new Error('invalid event row');
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `INSERT INTO consumption_event (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
+      ...columns.map((c) => deleted.row[c])
+    );
+    for (const planId of deleted.plannedIds) {
+      await db.runAsync('UPDATE meal_plan SET eaten_event_id = ? WHERE id = ? AND eaten_event_id IS NULL', deleted.row.id, planId);
+    }
+  });
 }
 
 /** „Wie gestern“: kopiert die Einträge einer Mahlzeit auf einen anderen Tag (TRACK-005). */

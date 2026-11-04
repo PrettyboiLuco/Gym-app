@@ -29,18 +29,28 @@ import type { Db } from '@/data/db';
 import { currentFast, loadFastingSettings } from '@/data/fasting';
 import { calorieGoalOn } from '@/data/goals';
 import { loadDayFeelings, saveMealFeeling } from '@/data/meal-feeling';
-import { copyDay, DEFAULT_SETTINGS, deleteEvent, listDay, loadNutritionSettings, type ConsumptionEvent } from '@/data/nutrition';
+import {
+  copyDay,
+  DEFAULT_SETTINGS,
+  deleteEvent,
+  listDay,
+  loadNutritionSettings,
+  restoreEvent,
+  type ConsumptionEvent,
+  type DeletedEvent,
+} from '@/data/nutrition';
 import { loadDayTargets, type DayTargets } from '@/data/targets-settings';
 import { parseMicros, sumMicros } from '@/domain/basis-foods';
 import type { Macros } from '@/domain/coach';
 import { shiftDay } from '@/domain/dates';
 import { isPlannedDay, PLAN_AHEAD_DAYS } from '@/domain/diary';
-import { DEFAULT_FASTING, fastingStatus, fastingVisible, splitDuration, type FastingStatus } from '@/domain/fasting';
+import { DEFAULT_FASTING, fastingStatus, fastingVisible, splitDuration, type FastingPeriod } from '@/domain/fasting';
 import { EMPTY_FEELING, feelingEmpty, type DayFeelings, type MealFeeling } from '@/domain/meal-feeling';
 import { drinkTotals, MEALS, sumNutrients, type Meal } from '@/domain/nutrition';
 import { ALL_BOOK_RECIPES } from '@/domain/recipe-book';
 import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
+import { useNow } from '@/hooks/use-now';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useProfile, useUnits } from '@/providers/profile-provider';
@@ -54,7 +64,6 @@ async function loadDiary(db: Db, day: string) {
   const [feelings, fasting, fast] = await Promise.all([loadDayFeelings(db, day), loadFastingSettings(db), currentFast(db)]);
   // Ziele und Nährstoffe (B2): Tagesziel aus dem Wochenbudget, Makros nach Ernährungsform, angeheftete Nährstoffe.
   const targets = await loadDayTargets(db, day);
-  const fastStatus = fast ? fastingStatus(fast, Date.now()) : null;
   syncMealReminders(db, diaryToday()).catch(() => undefined);
   return {
     day,
@@ -65,7 +74,7 @@ async function loadDiary(db: Db, day: string) {
     estimated: goal?.source === 'rechner',
     feelings,
     fasting,
-    fastStatus,
+    fast,
     targets,
   };
 }
@@ -111,7 +120,7 @@ export default function DiaryScreen() {
       day: '',
       feelings: {} as DayFeelings,
       fasting: DEFAULT_FASTING,
-      fastStatus: null as FastingStatus | null,
+      fast: null as FastingPeriod | null,
       targets: null as DayTargets | null,
     },
     day
@@ -152,10 +161,21 @@ export default function DiaryScreen() {
     await reload();
   }
 
-  // Löschen per Wisch-Geste (B1, N3): die Zeile gleitet hinaus, danach wird neu geladen.
+  // Löschen per Wisch-Geste (B1, N3): die Zeile gleitet hinaus, danach wird neu geladen. „Rückgängig“ in der Meldung
+  // setzt den Eintrag unverändert (gleiche ID, alle Werte) wieder ein.
   async function removeEntry(id: string) {
-    await deleteEvent(db, id);
-    showToast(t('diary.deleted'));
+    const deleted = await deleteEvent(db, id);
+    showToast(t('diary.deleted'), deleted ? { label: t('diary.undo'), hint: t('diary.undoHint'), onPress: () => undoRemove(deleted) } : undefined);
+    await reload();
+  }
+
+  async function undoRemove(deleted: DeletedEvent) {
+    try {
+      await restoreEvent(db, deleted);
+      showToast(t('diary.restored'));
+    } catch {
+      showToast(t('common.saveFailed'));
+    }
     await reload();
   }
 
@@ -188,7 +208,11 @@ export default function DiaryScreen() {
   );
 
   const showFasting = !profile.sensitive;
-  const fastStatus = fastingVisible(data.fasting, profile.sensitive) ? data.fastStatus : null;
+  // Restzeit in der Kachel läuft mit: minütlich neu, nur solange ein Fenster läuft (endet am geplanten Ende).
+  const fast = fastingVisible(data.fasting, profile.sensitive) ? data.fast : null;
+  const fastEnd = fast ? fastingStatus(fast, 0).endAtMs : null;
+  const now = useNow(fast !== null, 60_000, fastEnd);
+  const fastStatus = fast ? fastingStatus(fast, now) : null;
 
   // Leerer Tag: Hinweis und „Ganzen Vortag übernehmen“ (A3) – nur dann, damit nichts doppelt wird.
   const emptyDay =

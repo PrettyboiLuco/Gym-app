@@ -159,6 +159,8 @@ export type WeekBudget = {
   eaten: number;
   /** Mindestens ein Eintrag ohne kcal-Angabe bis zum gewählten Tag: Summe ist „mindestens“. */
   unknown: boolean;
+  /** Eigenes Tagesziel liegt unter der Untergrenze und wurde auf sie angehoben (Hinweis im Tagebuch). */
+  raisedToFloor: boolean;
 };
 
 /**
@@ -191,5 +193,6 @@ export function planWeek(input: {
     carriedToday: targets[input.index] - planned[input.index],
     eaten: Math.round(upTo.reduce((s, d) => s + (d.kcal ?? 0), 0)),
     unknown: upTo.some((d) => d.unknown > 0),
+    raisedToFloor: goals[input.index] < input.floor,
   };
 }

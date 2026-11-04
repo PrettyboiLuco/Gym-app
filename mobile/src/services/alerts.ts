@@ -2,7 +2,15 @@
 
 import type { Db } from '@/data/db';
 import { currentFast, loadFastingSettings } from '@/data/fasting';
-import { cancelAlerts, notificationPermission, NOTIFICATIONS_SUPPORTED, replaceAlerts, replaceReminders, type Repeating } from '@/data/notifications';
+import {
+  cancelAlerts,
+  cancelEverything,
+  notificationPermission,
+  NOTIFICATIONS_SUPPORTED,
+  replaceAlerts,
+  replaceReminders,
+  type Repeating,
+} from '@/data/notifications';
 import { loggedMeals } from '@/data/nutrition';
 import { loadProfile } from '@/data/profile';
 import { loadSleepGoal, loadWakeTime, statusToday } from '@/data/readiness';
@@ -37,7 +45,8 @@ const FASTING_PREFIX = 'fasten-';
 /** Ein Platz bleibt immer für das Ende des Fasten-Fensters reserviert. */
 const FASTING_SLOT = 1;
 // Zuletzt geplante Mahlzeit-Erinnerungen: unverändert = nichts neu planen (das Tagebuch ruft das oft auf).
-let lastMealPlan = '';
+// null = unbekannt (App-Start, nach applyReminders oder nach dem Löschen aller Mitteilungen) – dann immer neu planen.
+let lastMealPlan: string | null = null;
 
 /** Weitere geplante Mitteilungen neben den Erinnerungs-Einstellungen: Supplements und Fasten-Ende. */
 async function otherReminders(db: Db) {
@@ -94,6 +103,12 @@ export async function syncIntervalAlerts(db: Db, config: IntervalConfig | null, 
 
 export async function cancelRunAlerts() {
   await cancelAlerts(RUN);
+}
+
+/** Alle geplanten Mitteilungen löschen (Sicherung einspielen, alles löschen); der Plan-Zwischenspeicher gilt dann nicht mehr. */
+export async function cancelAllAlerts() {
+  lastMealPlan = null;
+  await cancelEverything();
 }
 
 /**
@@ -162,7 +177,7 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
   }
   await replaceReminders(list);
   // Mahlzeit-Erinnerungen und Fasten-Ende hängen an denselben Einstellungen, Modulen und der Sicherung.
-  lastMealPlan = '';
+  lastMealPlan = null;
   await syncMealReminders(db, diaryToday());
   await syncFastingAlert(db);
 }
@@ -174,13 +189,19 @@ export async function applyReminders(db: Db, settings: ReminderSettings) {
  * Ohne Erlaubnis für Mitteilungen passiert nichts.
  */
 export async function syncMealReminders(db: Db, today: string, nowMs = Date.now()) {
-  if (!NOTIFICATIONS_SUPPORTED || (await notificationPermission(false)) !== 'granted') return;
+  if (!NOTIFICATIONS_SUPPORTED) return;
+  if ((await notificationPermission(false)) !== 'granted') {
+    // Erlaubnis entzogen: nichts mehr geplant lassen und beim nächsten Mal sicher neu planen.
+    lastMealPlan = null;
+    return cancelAlerts(MEALS_PREFIX);
+  }
   const [settings, profile] = await Promise.all([loadReminders(db), loadProfile(db)]);
   const on = effectiveModules(profile.modules).ernaehrung;
   const logged = await loggedMeals(db, today, shiftDay(today, MEAL_REMINDER_MAX_DAYS));
   const plan = on ? mealReminderPlan(settings, today, nowMs, logged, await otherReminders(db)) : [];
   const key = plan.map((a) => `${a.id}@${a.atMs}`).join(',');
-  if (key === lastMealPlan) return;
+  // Ein leerer Plan (alles aus, Ernährung aus) löscht immer – sonst kämen schon geplante Mitteilungen noch Tage weiter.
+  if (plan.length > 0 && key === lastMealPlan) return;
   lastMealPlan = key;
   await replaceAlerts(
     MEALS_PREFIX,

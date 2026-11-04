@@ -6,6 +6,7 @@ import { BACKUP_APP, BACKUP_FORMAT, BACKUP_TABLES, TRANSIENT_STATE, type BackupM
 import { syncBasisFoods } from './basis-foods';
 import { nowUtc, type Db, type SqlValue } from './db';
 import { RESTORE_DATA_STEPS } from './migrations';
+import { loadNutritionSettings } from './nutrition';
 import { loadOnlineSetting } from './online';
 
 async function schemaVersion(db: Db) {
@@ -85,6 +86,8 @@ export async function restoreBackup(db: Db, manifest: BackupManifest) {
   await syncBasisFoods(db);
   // Zwischengespeicherte Einstellung „Online-Funktionen“ an die Sicherung anpassen (Datenschutz: aus bleibt aus).
   await loadOnlineSetting(db);
+  // Zwischengespeichertes Tagesende und Essenszeiten (Ernährungstag, Mahlzeit-Vorschlag) aus der Sicherung übernehmen.
+  await loadNutritionSettings(db);
 }
 
 /** Löscht alle eigenen Daten auf diesem Gerät; danach startet die App wie neu (LAW-006). */
@@ -96,4 +99,6 @@ export async function deleteAllData(db: Db) {
   await syncBasisFoods(db);
   // Einstellung „Online-Funktionen“ ist gelöscht: Zwischenspeicher auf den Standard zurücksetzen.
   await loadOnlineSetting(db);
+  // Ebenso Tagesende und Essenszeiten der Ernährung.
+  await loadNutritionSettings(db);
 }

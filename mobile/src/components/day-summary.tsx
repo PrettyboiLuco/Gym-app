@@ -1,7 +1,7 @@
 // Tagesübersicht der Ernährung: Lichtbühne (DayHero), Zusätze aus den Zielen, Zeile „Nährwerte“ mit eigenem Fenster.
 
 import { router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/card';
@@ -134,15 +134,22 @@ function NutrientsSheet({
   day?: string;
 }) {
   const withTargets = targets !== null && !targets.hidden;
+  // Erst navigieren, wenn das Fenster zu ist (onClosed) – sonst öffnet sich der neue Bildschirm hinter dem noch offenen Fenster.
+  const afterClose = useRef<{ pathname: '/nutrition/micros' | '/nutrition/nutrient'; params: Record<string, string> } | null>(null);
   const openDetails = (params: Record<string, string>, pathname: '/nutrition/micros' | '/nutrition/nutrient') => {
+    afterClose.current = { pathname, params: day ? { ...params, day } : params };
     onClose();
-    router.push({ pathname, params: day ? { ...params, day } : params });
+  };
+  const navigateAfterClose = () => {
+    const next = afterClose.current;
+    afterClose.current = null;
+    if (next) router.push(next);
   };
   const keys = MICRO_KEYS.filter((k) => micros.values[k] != null && micros.values[k]! > 0);
   const missing = MICRO_KEYS.filter((k) => !keys.includes(k));
   let i = 0;
   return (
-    <Sheet visible={visible} title={t('nutrition.nutrients.title')} onClose={onClose}>
+    <Sheet visible={visible} title={t('nutrition.nutrients.title')} onClose={onClose} onClosed={navigateAfterClose}>
       {EXTRAS.map((k, n) => {
         const value = totals.values[k] > 0 || totals.unknown[k] === 0 ? `${atLeast(totals, k)}${grams(totals.values[k])}` : '–';
         return (

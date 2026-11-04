@@ -10,7 +10,7 @@ import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from
 import { pickBackup, readPhotoBase64, shareBackup, writePhotoBase64 } from '@/data/backup-files';
 import { shareCsv } from '@/data/export';
 import { EXPORT_AREAS, type ExportArea } from '@/data/export-csv';
-import { cancelEverything, notificationPermission } from '@/data/notifications';
+import { notificationPermission } from '@/data/notifications';
 import { photoExists, PHOTOS_SUPPORTED, removeAllPhotoFiles } from '@/data/photo-files';
 import { deletePhoto, listPhotos } from '@/data/photos';
 import { loadReminders } from '@/data/reminders';
@@ -20,7 +20,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
 import { useDb } from '@/providers/store-provider';
-import { applyReminders } from '@/services/alerts';
+import { applyReminders, cancelAllAlerts } from '@/services/alerts';
 
 /**
  * Deine Daten (Register TECH-013/014, LAW-006): Sicherung als Datei, Wiederherstellen, alles löschen.
@@ -93,7 +93,7 @@ export default function DataScreen() {
     if (!pending) return;
     setBusy(true);
     try {
-      await cancelEverything();
+      await cancelAllAlerts();
       await restoreBackup(db, pending);
       if (pending.photos && PHOTOS_SUPPORTED) {
         // Nur einfache Dateinamen wie „<id>.jpg“: eine manipulierte Sicherung darf nicht außerhalb des Foto-Ordners schreiben.
@@ -120,7 +120,7 @@ export default function DataScreen() {
   async function deleteEverything() {
     setBusy(true);
     try {
-      await cancelEverything();
+      await cancelAllAlerts();
       await deleteAllData(db);
       removeAllPhotoFiles();
       // Danach startet die App mit dem Erststart wie nach der Installation.

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { StyleSheet, Switch, TextInput, View, type TextInputProps } from 'react-native';
+import { StyleSheet, Switch, TextInput, View, type PressableProps, type TextInputProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
@@ -554,6 +554,8 @@ export function ListRow({
   value,
   last = false,
   trailing,
+  accessibilityActions,
+  onAccessibilityAction,
 }: {
   title: string;
   subtitle?: string;
@@ -564,6 +566,9 @@ export function ListRow({
   /** Letzte Zeile einer Gruppe: ohne Trennlinie. */
   last?: boolean;
   trailing?: ReactNode;
+  /** Weitere Aktionen für Bildschirmleser (z. B. „Löschen“ bei Wisch-Zeilen) am fokussierbaren Element selbst. */
+  accessibilityActions?: PressableProps['accessibilityActions'];
+  onAccessibilityAction?: PressableProps['onAccessibilityAction'];
 }) {
   const theme = useTheme();
   const press = useOnce(onPress);
@@ -571,6 +576,8 @@ export function ListRow({
     <PressableScale
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={[title, value, subtitle].filter(Boolean).join(', ')}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       onPress={press}
       disabled={!onPress}
       style={({ pressed }) => [styles.rowOuter, pressed && { backgroundColor: theme.backgroundSelected }]}>

@@ -44,6 +44,12 @@ export function TargetDayExtras({ targets, totals, micros, day }: { targets: Day
               })}
             </ThemedText>
           ) : null}
+          {/* Eigenes Ziel unter der Untergrenze: nicht still anheben, sondern kurz sagen, warum das Tagesziel höher ist. */}
+          {budget.raisedToFloor ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('targets.budget.raisedToFloor')}
+            </ThemedText>
+          ) : null}
         </View>
       ) : null}
 

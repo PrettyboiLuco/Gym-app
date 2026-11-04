@@ -13,6 +13,7 @@ import { Onboarding } from '@/components/onboarding';
 import { ToastHost } from '@/components/toast';
 import { Colors } from '@/constants/theme';
 import { configureNotifications } from '@/data/notifications';
+import { loadNutritionSettings } from '@/data/nutrition';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ProfileProvider, useProfile } from '@/providers/profile-provider';
 import { StoreProvider, useDb } from '@/providers/store-provider';
@@ -30,7 +31,11 @@ function AlertsSync() {
   const db = useDb();
   useEffect(() => {
     const sync = () => {
-      syncMealReminders(db, diaryToday()).catch(() => undefined);
+      // Tagesende und Essenszeiten einmal laden: „heute“ (diaryToday) hängt am Zwischenspeicher der Ernährung.
+      loadNutritionSettings(db)
+        .catch(() => undefined)
+        .then(() => syncMealReminders(db, diaryToday()))
+        .catch(() => undefined);
       syncFastingAlert(db).catch(() => undefined);
     };
     sync();
