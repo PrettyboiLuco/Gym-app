@@ -1,77 +1,108 @@
-# Prompt für ChatGPT: kompletter Scan der App (Zweitmeinung)
+# Prompt für ChatGPT: Scan der App in 4 Teilen (Zweitmeinung)
 
-Zum Einfügen in ChatGPT. Am besten mit **GitHub-Verbindung** (ChatGPT → Einstellungen → Apps/Connectors → GitHub,
-Zugriff auf `prettyboiluco/gym-app`) im Modus **Deep Research** oder in **Codex**, damit ChatGPT den echten Code liest.
-Die Antwort danach komplett in die Claude-Sitzung einfügen – das Ausgabeformat ist so gebaut, dass Claude jeden Punkt
-prüfen und einbauen kann.
+**Warum 4 Teile:** Die App hat rund 60.000 Zeilen Code (ohne Tests). In einem einzigen Durchlauf liest ChatGPT nur
+Stichproben und behauptet trotzdem „alles geprüft“. Vier Durchläufe mit festem Dateibereich sind gründlicher, und man
+sieht am Ende, welche Dateien wirklich gelesen wurden.
+
+**Wo:** Am besten **Codex** (chatgpt.com/codex, Repository `prettyboiluco/gym-app` verbinden) – Codex kann den Code
+klonen und die Tests ausführen. Sonst **Deep Research** mit GitHub-Verbindung (Einstellungen → Apps/Connectors →
+GitHub). Ohne GitHub-Zugriff bitte nicht verwenden – dann rät ChatGPT.
+
+**Ablauf:** Für jeden Teil einen neuen Chat/Task: zuerst den **gemeinsamen Teil**, direkt darunter **einen** der
+Bereiche 1–4 einfügen. Jede Antwort komplett in die Claude-Sitzung kopieren.
 
 ---
 
+## Gemeinsamer Teil (jedes Mal mitschicken)
+
 ```text
 Du bist ein unabhängiger Senior-Entwickler und Produktdesigner für iOS-Apps (React Native/Expo) mit Erfahrung bei
-Fitness- und Ernährungs-Apps (Hevy, Strong, MacroFactor, Yazio, Cronometer). Mach einen KOMPLETTEN SCAN einer App
-und liefere Befunde, die ein anderer Entwickler (Claude Code) danach Punkt für Punkt prüfen und einbauen wird.
+Fitness- und Ernährungs-Apps (Hevy, Strong, MacroFactor, Yazio, Cronometer). Prüfe EINEN Bereich einer App gründlich.
+Deine Befunde prüft und baut danach ein anderer Entwickler (Claude Code) ein.
 
 ## Die App
-- Repository: GitHub `prettyboiluco/gym-app`, Branch `claude/plan-ergaenzung-module` (immer diesen Branch lesen).
-- App-Code liegt in `mobile/` (Expo SDK 58, React Native 0.88, React 19, expo-router, expo-sqlite, react-native-reanimated 4,
-  react-native-svg, react-native-gesture-handler 3). Name „Myhealth“, Sprache Deutsch, offline, kein Konto, kein Server.
-- Bereiche: Training (Pläne, Satz-Logger mit Satztabelle, Pausen-Timer, Cardio, Dehnen, HIIT, Muskelkarte, Statistik),
-  Ernährung (Tagebuch, Barcode über Open Food Facts, 441 Grundnahrungsmittel offline, Rezepte, Wochenplan, Einkaufsliste,
-  Wochenbudget, Mikronährstoff-Ziele, „Was fehlt mir heute?“, Fasten-Timer, Mahlzeit-Erinnerungen),
-  Fortschritt (Gewicht mit Trend, Maße, Fotos, Bereitschaft/Morgen-Check, Einblicke mit Wochenmustern, Coach, Check-in).
-- Orientierung zuerst lesen: `docs/Code_Struktur.md` (Schichten und Regeln), `docs/App_Audit_Taste.md` (Gestaltungsregeln),
-  `docs/Ausbauplan.md` (was gebaut ist, Abschnitte A1–A11 und B1–B4), `docs/Review_2026-11-03.md` (letztes Review – NICHT
-  wiederholen, was dort schon als behoben steht), `docs/Ernaehrung_Redesign.md`, `getlayers.json`.
-- Feste Grundsätze, die NICHT geändert werden sollen: alles lokal/offline, kein Konto, keine Werbung, keine KI-Kosten,
-  keine Serien/Streaks, keine Lebensmittel-Bewertung „gut/schlecht“, keine Heilversprechen, „sensible Situation“ und
-  „Zahlen ausblenden“ zeigen keine Kalorien-/Gewichtszahlen, Gestaltung true black + Lime #C6F24E nur auf Daten +
-  weiße Pillen-Knöpfe + Manrope, alle Texte in `mobile/src/i18n/de.ts`, Regeln mit Fassungsnummer (Fachprüfung).
+- GitHub `prettyboiluco/gym-app`, Branch `claude/plan-ergaenzung-module` (Standard-Branch). App-Code in `mobile/`:
+  Expo SDK 58, React Native 0.88, React 19, expo-router, expo-sqlite, react-native-reanimated 4, react-native-svg,
+  react-native-gesture-handler 3. Name „Myhealth“, Deutsch, offline, kein Konto, kein Server.
+- Zuerst lesen: `docs/Code_Struktur.md` (Schichten/Regeln), `docs/App_Audit_Taste.md` (Gestaltung).
+- Wenn du Code ausführen kannst: `cd mobile && npm ci && npx tsc --noEmit && npx jest` – Befunde gern mit einem
+  kleinen Jest-Test belegen (Node-SQLite-Helfer: `mobile/src/data/testing/node-db.ts`).
 
-## Was du prüfen sollst
-1. **Fehler** (wichtigster Teil): falsche Rechnungen (Kalorien, Makros, Wochenbudget/Übertrag, Mikronährstoff-Ziele,
-   adaptiver Energiebedarf, Fasten über Mitternacht/Zeitumstellung, Essensfenster, Trainingslast/Bereitschaft,
-   Steigerung, Bestleistungen, kg/lb), Datenverlust (Migrationen in `mobile/src/data/migrations.ts`, Sicherung und
-   Wiederherstellung, Löschen), Hänger (Transaktions-Warteschlange in `mobile/src/data/db.ts`), Mitteilungen
-   (iOS-Limit 64, doppelte Planung), React-Probleme (Animations-Lecks, setState nach Unmount, veraltete Closures,
-   Gesten-Konflikte Wischen vs. Scrollen), Barrierefreiheit (VoiceOver), Hell/Dunkel, Zahlen trotz „Zahlen ausblenden“.
-   Besonders den neuen Code der letzten Commits ansehen (git log des Branches).
-2. **UI-Fehler und UI-Verbesserungen**: Leite aus dem Code ab, wie die Bildschirme aussehen (`mobile/src/app/**`,
-   `mobile/src/components/**`). Inkonsistenzen, zu viel Text, unklare Beschriftungen, fehlende Rückmeldungen,
-   Leerzustände, Kontrast, Tipp-Flächen < 44 pt.
-3. **Upgrades bestehender Funktionen** (keine komplett neuen Features): was es schon gibt, aber besser, schneller
-   oder klarer sein könnte – mit Vergleich zu Hevy/Strong/MacroFactor/Yazio/Cronometer, wo es passt.
+## Bereits bekannt / behoben – NICHT erneut melden
+- alles in `docs/Review_2026-11-03.md` (Abschnitte 1 und 5)
+- Commit „Fehler aus der Zweitmeinung behoben“: Mahlzeit-Erinnerungen bleiben nach Ausschalten, Wisch-Löschen ohne
+  Rückgängig, VoiceOver-Löschen im Tagebuch, Budget-Untergrenze ohne Hinweis, stehende Fasten-Restzeit, kalter
+  `lastDayEnd`, Navigation hinter offenem Nährwerte-Fenster
+- Bekannte UI-Punkte (nur melden, wenn du einen BESSEREN konkreten Fix hast): Pausenleiste + Tab-Leiste nehmen im
+  Training viel Platz; „Training beenden“ sieht destruktiv aus; „Training läuft“ dreifach auf Heute; „1 Sätze“,
+  „1 Portion(en)“, „Kohlenh.“; interner Vermerk „Fachprüfung offen“ im Nährwerte-Fenster; abgeschnittene
+  Kachel-Untertitel; Gewichtseingabe unter Erklärtext
 
-## Regeln für deine Antwort
-- NUR Befunde, die du im Code belegen kannst. Nenne IMMER Datei und Zeilennummer(n) auf dem Branch oben.
-  Wenn du etwas nicht sicher belegen kannst, setze „sicher: nein“ – erfinde keine Dateien, Funktionen oder Zeilen.
-- Keine Stilfragen (Formatierung, Benennung), keine Wiederholung von Punkten aus `docs/Review_2026-11-03.md`.
-- Konkrete Fixes: was genau an welcher Stelle zu ändern ist (gern als kurzer Code-Ausschnitt).
-- Deutsch, sachlich.
+## Feste Grundsätze – nicht ändern
+Offline, kein Konto, keine Werbung, keine KI-Kosten, keine Serien/Streaks, keine Lebensmittel-Bewertung „gut/schlecht“,
+keine Heilversprechen; „sensible Situation“/„Zahlen ausblenden“ zeigen keine Kalorien-/Gewichtszahlen; Gestaltung
+true black + Lime #C6F24E nur auf Daten + weiße Pillen-Knöpfe + Manrope; der grüne Lichtschein im Ernährungs-Kopf ist
+gewollt; alle Texte in `mobile/src/i18n/de.ts`; Regeln mit Fassungsnummer (Fachprüfung).
 
-## Ausgabeformat (genau so, damit es maschinell weiterverarbeitet werden kann)
+## Was du prüfst (nur im angegebenen Bereich, Abhängigkeiten darfst du lesen)
+1. FEHLER: falsche Rechnungen, Datenverlust, Hänger, Zeitzonen/Mitternacht/Zeitumstellung, kg/lb, React-Probleme
+   (Lecks, setState nach Unmount, veraltete Closures, Doppeltipps), Barrierefreiheit, Hell/Dunkel, Zahlen trotz
+   „Zahlen ausblenden“.
+2. UI: Inkonsistenzen, zu viel Text, unklare Beschriftungen, fehlende Rückmeldung, Leerzustände, Tipp-Flächen < 44 pt.
+3. UPGRADES bestehender Funktionen (keine komplett neuen Features): schneller, klarer, besser – mit Vergleich zu
+   Hevy/Strong/MacroFactor/Yazio/Cronometer.
 
-### A. Gesamturteil
-3–6 Sätze.
+## Regeln
+- Nur Befunde, die du im Code belegst. JEDER Befund mit Datei:Zeile UND einem wörtlichen Code-Zitat (1–5 Zeilen).
+  Nicht sicher → „sicher: nein“. Keine erfundenen Dateien, Funktionen, Zeilen.
+- Keine Stilfragen (Formatierung, Benennung). Deutsch, sachlich.
 
-### B. Befunde
-Eine Markdown-Tabelle, eine Zeile pro Befund, sortiert nach Schwere:
+## Ausgabe (genau so)
+### A. Stand
+Commit-SHA, den du gelesen hast. Liste ALLER Dateien, die du tatsächlich vollständig gelesen hast.
+### B. Gesamturteil (3–5 Sätze)
+### C. Befunde – eine Markdown-Tabelle, sortiert nach Schwere
+| ID | Art | Schwere | Datei:Zeile | Code-Zitat | Problem | Szenario (Eingabe → falsches Ergebnis) | Fix (konkret) | Aufwand | sicher |
+ID: F.. Fehler, U.. UI, X.. Upgrade · Schwere: kritisch/mittel/gering (Upgrade: Nutzen hoch/mittel/niedrig) ·
+Aufwand S (<1 h) / M (halber Tag) / L (>1 Tag) · sicher ja/nein
+### D. Details zu kritischen und mittleren Fehlern: Erklärung, Fix-Code, Test-Idee
+### E. Was so bleiben sollte (2–4 Punkte)
+```
 
-| ID | Art | Schwere | Datei:Zeile | Problem (1 Satz) | Szenario (Eingabe → falsches Ergebnis) | Fix (konkret) | Aufwand | sicher |
-|---|---|---|---|---|---|---|---|---|
+## Bereich 1 – Training
 
-- ID: F01, F02 … für Fehler; U01 … für UI; X01 … für Upgrades
-- Art: Fehler | UI | Upgrade
-- Schwere: kritisch | mittel | gering (bei Upgrades: hoch | mittel | niedrig = Nutzen)
-- Aufwand: S (< 1 h) | M (halber Tag) | L (> 1 Tag)
-- sicher: ja (im Code belegt) | nein (Vermutung)
+```text
+BEREICH: Training. Dateien: mobile/src/app/training/** , mobile/src/components/{set-table,set-table-logic,set-check,
+set-details,rest-timer-bar,mini-player,celebration,muscle-map,muscle-figure,exercise-picker,cardio-row,tiles}.* ,
+mobile/src/domain/{training,training-stats,progression,logger,planner,programs,exercises,cardio,timeline,summary}.ts ,
+mobile/src/data/{training,training-stats,training-week,cardio,plan-import,routines}.ts
+```
 
-Mindestens: alle Fehler, die du findest; 10 UI-Punkte; 8 Upgrades.
+## Bereich 2 – Ernährung
 
-### C. Details zu kritischen und mittleren Fehlern
-Je Befund (nach ID): kurze Erklärung, Code-Ausschnitt der fehlerhaften Stelle, Vorschlag für den Fix, und wie man den
-Fix testet (z. B. ein Jest-Test in `mobile/src/**/__tests__/`).
+```text
+BEREICH: Ernährung. Dateien: mobile/src/app/nutrition/** , mobile/src/components/{day-hero,day-summary,sheet,sheet-motion,
+firmament,firmament-glow,meal-head,diary-*,target-*,day-switcher}.* , mobile/src/domain/{nutrition,budget,micro-targets,
+nutrient-gaps,diet-profile,diary,fasting,meal-feeling,caffeine,food-text,recipe-import,meal-plan,basis-foods}.ts ,
+mobile/src/data/{nutrition,meal-plan,fasting,meal-feeling,targets-settings,nutrient-gaps,off,basis-foods}.ts ,
+mobile/src/services/nutrition-format.ts
+```
 
-### D. Was so bleiben sollte
-3–5 Stärken, die bei Änderungen nicht verloren gehen dürfen.
+## Bereich 3 – Heute, Fortschritt, Mehr
+
+```text
+BEREICH: Heute, Fortschritt, Mehr. Dateien: mobile/src/app/index.tsx , mobile/src/app/progress/** , mobile/src/app/more/** ,
+mobile/src/components/{today-widgets,weight-overview,smooth-chart,coach-today,readiness,insight-*,empty-state,onboarding,
+share-card}.* , mobile/src/domain/{readiness,adaptive,checkin,coach,energy,goals,weight,insights,steps,blood-pressure,
+milestones,motivation}.ts , mobile/src/data/{readiness,goals,coach,insights,weights,report}.ts
+```
+
+## Bereich 4 – Daten, Sicherung, Mitteilungen, Grundgerüst
+
+```text
+BEREICH: Daten und Grundgerüst. Dateien: mobile/src/data/{db,migrations,backup,export-csv,import,notifications,reminders,
+online,app-state,profile}.ts , mobile/src/domain/{backup,reminders,modules,time,dates}.ts , mobile/src/services/** ,
+mobile/src/providers/** , mobile/src/hooks/** , mobile/src/app/_layout.tsx , mobile/src/components/{lock-gate,toast,
+screen,card,fields,app-tabs,app-tabs.web,a11y}.* . Schwerpunkt: Datenverlust bei Migration/Sicherung/Wiederherstellung,
+Transaktions-Warteschlange (`serialTransactions` in db.ts), App-Sperre, Mitteilungen (iOS-Limit 64), Start-Ablauf.
 ```
