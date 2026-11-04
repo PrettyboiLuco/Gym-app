@@ -174,10 +174,7 @@ export function WeekStrip({
   const tappable = (d: WeekDay) => !!onDayPress && ((d.plannedSets ?? 0) > 0 || d.planned);
   const grouped = !days.some(tappable);
   return (
-    <View
-      accessible={grouped}
-      accessibilityLabel={grouped ? `${headline}. ${summary}. ${description}` : undefined}
-      style={styles.weekWrap}>
+    <View accessible={grouped} accessibilityLabel={grouped ? `${headline}. ${summary}. ${description}` : undefined} style={styles.weekWrap}>
       <ThemedText type="smallBold" style={styles.weekHeadline}>
         {shownHeadline}
       </ThemedText>

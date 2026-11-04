@@ -6,18 +6,7 @@ import type { FoodDraft } from '@/domain/nutrition';
 
 import type { Db } from '../db';
 import { migrate } from '../migrations';
-import {
-  archiveFood,
-  copyMealEntries,
-  listDay,
-  logFood,
-  logItems,
-  logQuick,
-  logWater,
-  recentEntries,
-  removeEvents,
-  saveFood,
-} from '../nutrition';
+import { archiveFood, copyMealEntries, listDay, logFood, logItems, logQuick, logWater, recentEntries, removeEvents, saveFood } from '../nutrition';
 import { createTestDb } from '../testing/node-db';
 
 let db: Db & { close(): void };
@@ -28,9 +17,30 @@ beforeEach(async () => {
 afterEach(() => db.close());
 
 const when = (day = '2026-11-03', time = '08:15') => ({ diaryDate: day, at: new Date(`${day}T${time}:00Z`), timeZone: 'Europe/Berlin' });
-const oats: FoodDraft = { name: 'Haferflocken', brand: null, barcode: null, basis: 'g', per100: { kcal: 370, protein: 13, carbs: 59, fat: 7, fiber: 10 }, servingAmount: 40 };
-const skyr: FoodDraft = { name: 'Skyr', brand: 'Hof', barcode: null, basis: 'g', per100: { kcal: 63, protein: 11, carbs: 4, fat: 0.2, fiber: 0 }, servingAmount: 150 };
-const juice: FoodDraft = { name: 'Apfelsaft', brand: null, barcode: null, basis: 'ml', per100: { kcal: 40, protein: 0, carbs: 10, fat: 0, fiber: 0 }, servingAmount: null };
+const oats: FoodDraft = {
+  name: 'Haferflocken',
+  brand: null,
+  barcode: null,
+  basis: 'g',
+  per100: { kcal: 370, protein: 13, carbs: 59, fat: 7, fiber: 10 },
+  servingAmount: 40,
+};
+const skyr: FoodDraft = {
+  name: 'Skyr',
+  brand: 'Hof',
+  barcode: null,
+  basis: 'g',
+  per100: { kcal: 63, protein: 11, carbs: 4, fat: 0.2, fiber: 0 },
+  servingAmount: 150,
+};
+const juice: FoodDraft = {
+  name: 'Apfelsaft',
+  brand: null,
+  barcode: null,
+  basis: 'ml',
+  per100: { kcal: 40, protein: 0, carbs: 10, fat: 0, fiber: 0 },
+  servingAmount: null,
+};
 const breakfast = { kind: 'essen', meal: 'fruehstueck' } as const;
 
 describe('Zuletzt gegessen', () => {

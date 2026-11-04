@@ -13,18 +13,18 @@ import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
 import { loadMotivation } from '@/data/motivation';
 import { listDay, loadNutritionSettings } from '@/data/nutrition';
+import { loadSetupHidden, saveSetupHidden } from '@/data/profile';
 import { loadSpared, readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
 import { expireTemporaryPlans, getActiveSession, listActivePlans, type SessionInfo } from '@/data/training';
 import { loadMapPrefs, loadTodayPlan, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
-import { loadSetupHidden, saveSetupHidden } from '@/data/profile';
 import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
 import type { MuscleGroup } from '@/domain/exercises';
 import type { Milestone } from '@/domain/motivation';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
-import { taggedWeekdays } from '@/domain/training';
 import { todayDay } from '@/domain/time';
+import { taggedWeekdays } from '@/domain/training';
 import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
@@ -271,6 +271,16 @@ export default function TodayScreen() {
   }
   return (
     <Screen title={greeting} subtitle={subtitle}>
+      {showSetup ? (
+        <SetupSteps
+          steps={[
+            { key: 'weight', label: t('today.setupWeight'), done: setup.weight, onPress: () => router.push('/progress') },
+            { key: 'goal', label: t('today.setupGoal'), done: setup.goal, onPress: () => router.push('/progress/coach-setup') },
+            { key: 'plan', label: t('today.setupPlan'), done: setup.plan, onPress: () => router.push('/training') },
+          ]}
+          onLater={() => saveSetupHidden(db, true).then(reload)}
+        />
+      ) : null}
       {checkin && modules.coach ? (
         <Card>
           <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
@@ -299,9 +309,16 @@ export default function TodayScreen() {
         muscles={!timed && !active && next && !restDay ? muscles : null}
         spared={spared}
         body={body}
-        live={!!(timed || active)}
         growIn
         countUp
+        onDayPress={
+          weekPlan
+            ? (i) => {
+                const dayId = weekPlan.dayIds[i];
+                router.push(dayId ? { pathname: '/training/plan/[id]', params: { id: weekPlan.planId, day: dayId } } : `/training/plan/${weekPlan.planId}`);
+              }
+            : undefined
+        }
       />
       {!modules.bereitschaft ? null : ready && ready.readiness.kind !== 'status' && !checkComplete ? (
         // T3: auf „Heute“ eine Zeile; der Check klappt beim Antippen hier auf (vier Antippen, kein Bildschirmwechsel).
@@ -327,7 +344,7 @@ export default function TodayScreen() {
                 },
                 {
                   label: t('today.tileDrinks'),
-                  ...volumeFigure(food.drinksMl, units.volume),
+                  ...volumeFigure(food.drinksMl, units.volume, food.drinkGoalMl),
                   progress: food.drinkGoalMl ? food.drinksMl / food.drinkGoalMl : null,
                   sub: food.drinkGoalMl ? t('today.tileDrinksOf', { goal: volume(food.drinkGoalMl) }) : null,
                   accessibilityLabel: `${t('today.tileDrinks')} ${volume(food.drinksMl)}`,
@@ -338,9 +355,11 @@ export default function TodayScreen() {
           {
             label: t('today.tileWeight'),
             value: weightValue,
-            unit: lastWeight ? units.weight : undefined,
+            unit: weightValue ? units.weight : undefined,
             sub: weightSub,
-            accessibilityLabel: `${t('today.tileWeight')} ${lastWeight ? formatWeight(lastWeight.kg, units.weight) : t('today.tileWeightNone')}, ${weightSub}`,
+            accessibilityLabel: weightValue
+              ? `${t('today.tileWeight')} ${formatWeight(lastWeight!.kg, units.weight)}, ${weightSub}`
+              : `${t('today.tileWeight')}: ${weightSub}`,
             onPress: () => router.push('/progress'),
           },
           ...(modules.bereitschaft
@@ -358,7 +377,8 @@ export default function TodayScreen() {
             : []),
         ]}
       />
-      {coach && modules.coach ? <CoachToday data={coach} /> : null}
+      {/* Solange „Einrichten in 3 Schritten“ oben steht, nicht zusätzlich „Coach einrichten“ unten. */}
+      {coach && modules.coach && !(showSetup && !coach.setUp) ? <CoachToday data={coach} /> : null}
     </Screen>
   );
 }

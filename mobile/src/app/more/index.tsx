@@ -5,16 +5,18 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { ListRow, Segmented } from '@/components/fields';
+import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { saveAppearance } from '@/data/appearance';
 import { type AppearanceChoice, APPEARANCES } from '@/domain/appearance';
 import { setAppearance, useAppearance } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 
-type InfoKey = 'privacy' | 'sources' | 'licenses' | 'language';
+type InfoKey = 'privacy' | 'sources' | 'licenses';
 
 /**
  * „Mehr“: Einstellungen als ruhige Liste in Gruppen (Symbol links, Wert rechts, Pfeil), wie die
@@ -23,20 +25,24 @@ type InfoKey = 'privacy' | 'sources' | 'licenses' | 'language';
  */
 export default function MoreScreen() {
   const db = useDb();
+  const theme = useTheme();
   const appearance = useAppearance();
   const [open, setOpen] = useState<InfoKey | null>(null);
   const changeAppearance = (value: AppearanceChoice) => {
     setAppearance(value);
     saveAppearance(db, value);
   };
-  const info = (key: InfoKey, title: string, icon: Parameters<typeof ListRow>[0]['icon'], text: string, value?: string, last = false) => (
+  // Aufklappen mit gezeichnetem Pfeil (zu: nach unten, offen: nach oben) statt „+“ / „−“ als Textzeichen.
+  const info = (key: InfoKey, title: string, icon: Parameters<typeof ListRow>[0]['icon'], text: string) => (
     <View key={key}>
       <ListRow
         title={title}
         icon={icon}
-        value={value}
-        accessory={open === key ? '−' : '+'}
-        last={last && open !== key}
+        trailing={
+          <View style={open === key ? styles.up : styles.down}>
+            <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
+          </View>
+        }
         onPress={() => setOpen(open === key ? null : key)}
       />
       {open === key ? (
@@ -101,7 +107,8 @@ export default function MoreScreen() {
         {info('privacy', t('more.privacyTitle'), 'shield', t('more.privacy'))}
         {info('sources', t('more.sourcesTitle'), 'book', t('more.sources'))}
         {info('licenses', t('more.licensesTitle'), 'book', t('more.licenses'))}
-        {info('language', t('more.languageTitle'), 'globe', t('more.language'), t('more.languageValue'))}
+        {/* Sprache ist (noch) keine Einstellung: nur ein Hinweis, ohne Wert und ohne Pfeil. */}
+        <ListRow icon="globe" title={t('more.languageTitle')} subtitle={t('more.language')} />
         <ListRow icon="tag" title={t('more.versionTitle')} value={version} last />
       </Card>
       <ThemedText type="small" themeColor="textSecondary" style={styles.footer}>
@@ -114,4 +121,6 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   infoText: { paddingLeft: 36, paddingBottom: Spacing.three, paddingTop: Spacing.one },
   footer: { paddingHorizontal: Spacing.two, textAlign: 'center' },
+  down: { transform: [{ rotate: '90deg' }] },
+  up: { transform: [{ rotate: '-90deg' }] },
 });

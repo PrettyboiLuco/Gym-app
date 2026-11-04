@@ -2,9 +2,11 @@
 // als zwei waagrechte Reihen (Wasser, zuletzt genutzte Koffein-Getränke), der Rest hinter „Mehr …“ im Fenster (O5).
 
 import { router } from 'expo-router';
-import { useRef, useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
+import { HIDDEN } from '@/components/a11y';
 import { Button } from '@/components/card';
 import { DiaryWaterGlass } from '@/components/diary-water-glass';
 import { ListRow, Presets } from '@/components/fields';
@@ -111,22 +113,22 @@ export function DiaryDrinks({
         </View>
       </View>
       {rows}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.strip}>
+      <FadeStrip>
         <Presets
           label={t('nutrition.water')}
           options={settings.glassSizes}
           onChange={addWater}
           format={(ml) => t('nutrition.drinks.addGlass', { ml: formatVolume(ml, units.volume) })}
         />
-      </ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.strip}>
+      </FadeStrip>
+      <FadeStrip>
         <Presets
           label={t('caffeine.title')}
           options={[...quick, MORE]}
           onChange={(id) => (id === MORE ? setMore(true) : addCaffeine(CAFFEINE_DRINKS.find((d) => d.id === id)!))}
           format={chip}
         />
-      </ScrollView>
+      </FadeStrip>
       <InsightInfo label={t('diary.drinks.infoLabel')} text={`${t('nutrition.drinks.basis')}\n\n${t('caffeine.reference')}`} />
 
       <Sheet
@@ -164,9 +166,62 @@ export function DiaryDrinks({
   );
 }
 
+/** Breite des weichen Rands, unter dem die Reihe verschwindet. */
+const FADE = 40;
+
+/**
+ * Waagrecht scrollbare Reihe bis an den Kartenrand. Geht rechts (bzw. nach dem Scrollen links) noch etwas weiter,
+ * läuft die Reihe dort weich in den Kartengrund aus – so sieht man, dass man wischen kann.
+ */
+function FadeStrip({ children }: { children: ReactNode }) {
+  const theme = useTheme();
+  const id = `fade${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const [size, setSize] = useState({ view: 0, content: 0, x: 0 });
+  const right = size.content - size.view - size.x > 4;
+  const left = size.x > 4;
+  const edge = (side: 'left' | 'right') => (
+    <View pointerEvents="none" style={[styles.fade, side === 'left' ? styles.fadeLeft : styles.fadeRight]} {...HIDDEN}>
+      <Svg width={FADE} height="100%">
+        <Defs>
+          <LinearGradient id={`${id}${side}`} x1={side === 'left' ? '1' : '0'} y1="0" x2={side === 'left' ? '0' : '1'} y2="0">
+            <Stop offset="0" stopColor={theme.backgroundElement} stopOpacity={0} />
+            <Stop offset="1" stopColor={theme.backgroundElement} stopOpacity={1} />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width={FADE} height="100%" fill={`url(#${id}${side})`} />
+      </Svg>
+    </View>
+  );
+  return (
+    <View style={styles.bleed}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.strip}
+        scrollEventThrottle={32}
+        onLayout={(e) => {
+          const view = e.nativeEvent.layout.width;
+          setSize((v) => (v.view === view ? v : { ...v, view }));
+        }}
+        onContentSizeChange={(content) => setSize((v) => (v.content === content ? v : { ...v, content }))}
+        onScroll={(e) => {
+          const x = e.nativeEvent.contentOffset.x;
+          setSize((v) => (x > 4 === v.x > 4 && v.content - v.view - x > 4 === v.content - v.view - v.x > 4 ? v : { ...v, x }));
+        }}>
+        {children}
+      </ScrollView>
+      {left ? edge('left') : null}
+      {right ? edge('right') : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
   flex: { flex: 1, gap: Spacing.half },
-  bleed: { marginHorizontal: -BLEED, flexGrow: 0 },
+  bleed: { marginHorizontal: -BLEED },
+  fade: { position: 'absolute', top: 0, bottom: 0, width: FADE },
+  fadeLeft: { left: 0 },
+  fadeRight: { right: 0 },
   strip: { paddingHorizontal: BLEED },
 });

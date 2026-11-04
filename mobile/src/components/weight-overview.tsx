@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { EmptyState } from '@/components/empty-state';
 import { Segmented } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { SmoothChart } from '@/components/smooth-chart';
 import { ThemedText } from '@/components/themed-text';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
@@ -63,10 +64,22 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
           <ThemedText type="small" themeColor="textSecondary">
             {trend !== null ? t('progress.trendLabel') : t('progress.lastWeighIn')}
           </ThemedText>
-          <View style={styles.bigRow}>
-            <ThemedText style={styles.big}>{trend !== null ? num(trend) : latest ? num(latest.kg) : '–'}</ThemedText>
-            <ThemedText themeColor="textSecondary">{unit}</ThemedText>
-          </View>
+          {trend !== null || latest ? (
+            <View style={styles.bigRow}>
+              <ThemedText style={styles.big}>{trend !== null ? num(trend) : num(latest!.kg)}</ThemedText>
+              <ThemedText themeColor="textSecondary">{unit}</ThemedText>
+            </View>
+          ) : (
+            // Ohne Messung kein riesiger Strich: normal groß, mit kurzem Satz.
+            <View style={styles.noneRow}>
+              <ThemedText themeColor="textSecondary" style={styles.none}>
+                –
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('progress.noWeighIn')}
+              </ThemedText>
+            </View>
+          )}
           {change !== null ? (
             <View style={[styles.chip, { backgroundColor: theme.backgroundSelected }]}>
               <ThemedText type="smallBold" style={{ color: towardGoal ? data : theme.text }}>
@@ -76,10 +89,6 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
                 {t('progress.vsLastWeek')}
               </ThemedText>
             </View>
-          ) : trend === null ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('progress.trendMissing')}
-            </ThemedText>
           ) : null}
         </View>
         {latest && trend !== null ? (
@@ -95,7 +104,15 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
         ) : null}
       </View>
 
-      <Segmented label={t('progress.rangeLabel')} options={RANGES} value={range} onChange={setRange} format={(r) => t(`progress.range.${r}`)} />
+      {/* Warum der Durchschnitt – und solange er fehlt, was dafür nötig ist – hinter dem „i“. */}
+      <InsightInfo
+        label={t('progress.trendHintLabel')}
+        text={trend === null ? `${t('progress.trendMissing')} ${t('progress.trendHint')}` : t('progress.trendHint')}
+      />
+
+      {weights.length >= 2 ? (
+        <Segmented label={t('progress.rangeLabel')} options={RANGES} value={range} onChange={setRange} format={(r) => t(`progress.range.${r}`)} />
+      ) : null}
 
       {points.length >= 2 || line.length >= 2 ? (
         <SmoothChart
@@ -154,6 +171,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1, gap: Spacing.one },
   bigRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two },
   big: { fontFamily: DisplayFont.bold, fontSize: 44, lineHeight: 50, letterSpacing: -1.4, fontVariant: ['tabular-nums'] },
+  noneRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two },
+  none: { fontFamily: DisplayFont.semiBold, fontSize: 22, lineHeight: 30 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

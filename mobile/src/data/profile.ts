@@ -17,3 +17,7 @@ export async function saveProfile(db: Db, profile: Profile) {
 
 export const loadOnboardingDone = (db: Db) => readState<boolean>(db, 'onboarding_done', false);
 export const saveOnboardingDone = (db: Db) => writeState(db, 'onboarding_done', true);
+
+/** „Einrichten in 3 Schritten“ auf „Heute“ per „Später“ ausgeblendet. */
+export const loadSetupHidden = (db: Db) => readState<boolean>(db, 'setup_card_hidden', false);
+export const saveSetupHidden = (db: Db, hidden: boolean) => writeState(db, 'setup_card_hidden', hidden);

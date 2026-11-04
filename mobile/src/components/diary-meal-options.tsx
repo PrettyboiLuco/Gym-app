@@ -1,4 +1,4 @@
-// Mahlzeiten-Optionen (Ernährung neu, Abschnitt 3): „Wie am Vortag“, „Kopieren auf …“, Vorlage und Befinden im Fenster.
+// Mahlzeiten-Optionen (Ernährung neu, Abschnitt 3): „Kopieren auf …“, Vorlage und Befinden im Fenster; „Wie am Vortag“ mit Rückgängig.
 
 import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -59,14 +59,12 @@ type Props = {
   items: ConsumptionEvent[];
   feeling: MealFeeling;
   onFeeling: (next: MealFeeling) => void;
-  /** Einträge haben sich geändert (z. B. „Wie am Vortag“). */
-  onChanged: () => void;
   onClose: (next: MealOptionsNext) => void;
 };
 
 /**
- * Fenster je Mahlzeit: leere Mahlzeit → „Wie am Vortag“; mit Einträgen → „Kopieren auf …“, „Als Vorlage speichern“
- * (Name im Fenster) und Hunger/Sättigung/Stimmung. Rückmeldungen als Toast, jede Zeile steigt gestaffelt herein.
+ * Fenster je Mahlzeit mit Einträgen: „Kopieren auf …“, „Als Vorlage speichern“ (Name im Fenster; ohne Lebensmittel
+ * ausgegraut mit Begründung) und Hunger/Sättigung/Stimmung. „Wie am Vortag“ steht bei leeren Mahlzeiten als Pille im Kopf. Rückmeldungen als Toast, jede Zeile steigt gestaffelt herein.
  */
 export function MealOptionsSheet(props: Props) {
   const next = useRef<MealOptionsNext>(null);
@@ -84,7 +82,7 @@ export function MealOptionsSheet(props: Props) {
   );
 }
 
-function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, setNext }: Props & { setNext: (next: MealOptionsNext) => void }) {
+function OptionRows({ meal, day, planned, items, feeling, onFeeling, setNext }: Props & { setNext: (next: MealOptionsNext) => void }) {
   const db = useDb();
   const theme = useTheme();
   const close = useSheetClose();
@@ -92,11 +90,6 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
   const [name, setName] = useState('');
   const hasFoods = items.some((e) => e.foodId);
   let i = 0;
-
-  async function copyFromPreviousDay() {
-    await copyPreviousMeal(db, day, meal, onChanged);
-    close();
-  }
 
   async function saveTemplate() {
     if (!name.trim()) return;
@@ -107,53 +100,44 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
 
   return (
     <>
-      {items.length === 0 ? (
-        <SheetRow index={i++}>
+      <SheetRow index={i++}>
+        <ListRow
+          icon="list"
+          title={t('diary.copy.open')}
+          subtitle={t('diary.copy.entryHint')}
+          accessory="›"
+          onPress={() => {
+            setNext('copy');
+            close();
+          }}
+        />
+        {hasFoods ? (
           <ListRow
-            icon="calendar"
-            title={t('nutrition.copyYesterday')}
-            subtitle={t('diary.options.yesterdaySub')}
-            accessory="›"
-            onPress={copyFromPreviousDay}
-            last
+            icon="star"
+            title={t('nutrition.saveTemplate')}
+            accessory={naming ? 'collapse' : '›'}
+            onPress={() => setNaming((v) => !v)}
+            last={planned && !naming}
           />
-        </SheetRow>
-      ) : (
-        <SheetRow index={i++}>
-          <ListRow
-            icon="list"
-            title={t('diary.copy.open')}
-            subtitle={t('diary.copy.entryHint')}
-            accessory="›"
-            onPress={() => {
-              setNext('copy');
-              close();
-            }}
-          />
-          {hasFoods ? (
-            <ListRow
-              icon="star"
-              title={t('nutrition.saveTemplate')}
-              accessory={naming ? 'collapse' : '›'}
-              onPress={() => setNaming((v) => !v)}
-              last={planned && !naming}
-            />
-          ) : (
-            // Ausgegraut mit kurzer Begründung: Vorlagen speichern nur Lebensmittel aus der Liste.
-            <View style={styles.off} accessible accessibilityState={{ disabled: true }} accessibilityLabel={`${t('nutrition.saveTemplate')}. ${t('nutrition.templateNoFoods')}`}>
-              <View style={styles.offIcon}>
-                <Icon name="star" color={theme.textSecondary} size={20} />
-              </View>
-              <View style={styles.offText}>
-                <ThemedText themeColor="textSecondary">{t('nutrition.saveTemplate')}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t('nutrition.templateNoFoods')}
-                </ThemedText>
-              </View>
+        ) : (
+          // Ausgegraut mit kurzer Begründung: Vorlagen speichern nur Lebensmittel aus der Liste.
+          <View
+            style={styles.off}
+            accessible
+            accessibilityState={{ disabled: true }}
+            accessibilityLabel={`${t('nutrition.saveTemplate')}. ${t('nutrition.templateNoFoods')}`}>
+            <View style={styles.offIcon}>
+              <Icon name="star" color={theme.textSecondary} size={20} />
             </View>
-          )}
-        </SheetRow>
-      )}
+            <View style={styles.offText}>
+              <ThemedText themeColor="textSecondary">{t('nutrition.saveTemplate')}</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('nutrition.templateNoFoods')}
+              </ThemedText>
+            </View>
+          </View>
+        )}
+      </SheetRow>
       {naming ? (
         <SheetRow index={i++} style={styles.template}>
           <Field label={t('nutrition.templateName')} placeholder={t('nutrition.templatePlaceholder')} value={name} onChangeText={setName} autoFocus />
@@ -163,7 +147,7 @@ function OptionRows({ meal, day, planned, items, feeling, onFeeling, onChanged, 
           </View>
         </SheetRow>
       ) : null}
-      {items.length > 0 && !planned ? (
+      {!planned ? (
         <SheetRow index={i++} divider style={styles.feeling}>
           <ThemedText style={styles.heading} accessibilityRole="header">
             {t('diary.feeling.add')}

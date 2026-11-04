@@ -36,7 +36,7 @@ import { EQUIPMENT } from '@/domain/exercises';
 import { COMEBACK_DAYS, daysSince } from '@/domain/progression';
 import { todayDay } from '@/domain/time';
 import type { TimedRun } from '@/domain/timeline';
-import { nextDayIndex } from '@/domain/training';
+import { nextDayIndex, taggedWeekdays } from '@/domain/training';
 import { DELOAD_RULES_VERSION, deloadEnd, type EquipmentProfile } from '@/domain/training-stats';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
@@ -58,6 +58,11 @@ async function loadOverview(db: Db) {
   const deload = await deloadOffer(db, todayDay());
   // Training oder Ruhetag laut Plan (Wochentage im Namen bzw. gespeicherte Trainingstage).
   const planToday = await loadTodayPlan(db, todayDay());
+  // Plantag je Wochentag (Mo = 0) zum Antippen in der Satz-Woche – nur bei Wochentagen im Namen eindeutig (wie auf „Heute“).
+  const tags = planToday ? taggedWeekdays(planToday.plan.days.map((d) => d.name)) : null;
+  const weekPlan = planToday
+    ? { planId: planToday.plan.planId, dayIds: [1, 2, 3, 4, 5, 6, 7].map((wd) => (tags ? (planToday.plan.days[tags.indexOf(wd)]?.id ?? null) : null)) }
+    : null;
   const equipment = await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT]);
   // Cardio dieser Woche (A2): Minuten und die letzten Einträge.
   const monday = weekStart(todayDay());
@@ -88,6 +93,7 @@ async function loadOverview(db: Db) {
     deload,
     equipmentProfile: equipment.profile,
     planToday,
+    weekPlan,
   };
 }
 
@@ -110,6 +116,7 @@ export default function TrainingScreen() {
     deload: { due: false, weeks: 0, state: { intervalWeeks: 8, lastEnd: null, snoozedUntil: null } as DeloadState },
     equipmentProfile: { id: 'studio', name: 'Studio', equipment: [] as EquipmentProfile['equipment'] },
     planToday: null as Awaited<ReturnType<typeof loadTodayPlan>>,
+    weekPlan: null as { planId: string; dayIds: (string | null)[] } | null,
   });
   const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
   const dark = useColorScheme() === 'dark';
@@ -204,7 +211,24 @@ export default function TrainingScreen() {
         </Card>
       ) : null}
 
-      <TrainingBlock label={hero.label} title={hero.title} meta={hero.meta} week={days} weekSummary={weekSummary} action={hero.action} onPress={hero.go} />
+      <TrainingBlock
+        label={hero.label}
+        title={hero.title}
+        meta={hero.meta}
+        week={days}
+        weekSummary={weekSummary}
+        action={hero.action}
+        onPress={hero.go}
+        onDayPress={
+          data.weekPlan
+            ? (i) => {
+                const { planId, dayIds } = data.weekPlan!;
+                const dayId = dayIds[i];
+                router.push(dayId ? { pathname: '/training/plan/[id]', params: { id: planId, day: dayId } } : `/training/plan/${planId}`);
+              }
+            : undefined
+        }
+      />
 
       {/* Diese Woche auf einen Blick: drei Kennzahlen, darunter die Sätze je Muskelgruppe (sortiert, eine Farbe). */}
       <Card

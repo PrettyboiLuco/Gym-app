@@ -6,6 +6,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { HIDDEN } from '@/components/a11y';
 import { approxLength, monotonePath, type XY } from '@/components/chart-path';
+import { MeterBar } from '@/components/charts';
 import { PressableScale } from '@/components/pressable-scale';
 import { levelColor } from '@/components/readiness';
 import { ThemedText } from '@/components/themed-text';
@@ -120,6 +121,8 @@ export type InsightTileData = {
   count?: { to: number; format: (value: number) => string };
   spark?: { values: (number | null)[]; bars?: boolean };
   levels?: (Level | null)[];
+  /** Noch kein Wert: wie weit bis zum ersten (z. B. 2 von 3 Tagen) – als kleiner Balken statt eines Verlaufs. */
+  progress?: { have: number; need: number } | null;
   onPress?: () => void;
 };
 
@@ -163,11 +166,18 @@ function InsightTileCard({ tile }: { tile: InsightTileData }) {
         )}
       </View>
       {tile.sub ? (
-        <ThemedText themeColor="textSecondary" style={styles.sub} numberOfLines={2}>
+        <ThemedText themeColor="textSecondary" style={styles.sub} numberOfLines={2} ellipsizeMode="clip">
           {tile.sub}
         </ThemedText>
       ) : null}
-      {tile.levels ? (
+      {tile.value === null ? (
+        // Leere Kachel: kein Verlauf (auch kein einzelner Punkt), höchstens der Fortschritt bis zum ersten Wert.
+        tile.progress ? (
+          <View style={styles.progress}>
+            <MeterBar progress={Math.min(1, tile.progress.have / tile.progress.need)} color={color} trackColor={theme.border} height={4} growIn />
+          </View>
+        ) : null
+      ) : tile.levels ? (
         <InsightLevels levels={tile.levels} />
       ) : tile.spark ? (
         <InsightSparkline values={tile.spark.values} bars={tile.spark.bars} color={color} />
@@ -201,5 +211,6 @@ const styles = StyleSheet.create({
   sub: { fontSize: 12, lineHeight: 16 },
   spark: { height: SPARK_HEIGHT + Spacing.one, marginTop: 'auto', paddingTop: Spacing.one },
   levels: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, paddingBottom: 6 },
+  progress: { marginTop: 'auto', paddingTop: Spacing.two, paddingBottom: Spacing.one },
   level: { flex: 1, height: 8, borderRadius: 4 },
 });

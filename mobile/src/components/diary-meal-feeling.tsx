@@ -47,10 +47,7 @@ export function DiaryMealFeeling({ feeling, onChange }: { feeling: MealFeeling; 
                     haptic.tap();
                     onChange(toggleLevel(feeling, key, level));
                   }}
-                  style={({ pressed }) => [
-                    styles.level,
-                    { backgroundColor: selected ? theme.primary : pressed ? theme.border : theme.backgroundSelected },
-                  ]}>
+                  style={({ pressed }) => [styles.level, { backgroundColor: selected ? theme.primary : pressed ? theme.border : theme.backgroundSelected }]}>
                   <ThemedText
                     type="small"
                     numberOfLines={2}

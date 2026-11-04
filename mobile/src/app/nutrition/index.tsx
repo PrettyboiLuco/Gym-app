@@ -15,7 +15,7 @@ import { DiaryDrinks } from '@/components/diary-drinks';
 import { DiaryEntryRow } from '@/components/diary-entry-row';
 import { useFreshEntries } from '@/components/diary-fresh';
 import { feelingLine } from '@/components/diary-meal-feeling';
-import { MealOptionsSheet, type MealOptionsNext } from '@/components/diary-meal-options';
+import { copyPreviousMeal, MealOptionsSheet, type MealOptionsNext } from '@/components/diary-meal-options';
 import { DiaryTimeline, entrySubtitle, windowLine } from '@/components/diary-timeline';
 import { Segmented } from '@/components/fields';
 import { MealHead } from '@/components/meal-head';
@@ -35,6 +35,7 @@ import {
   deleteEvent,
   listDay,
   loadNutritionSettings,
+  loggedMeals,
   restoreEvent,
   type ConsumptionEvent,
   type DeletedEvent,
@@ -64,6 +65,9 @@ async function loadDiary(db: Db, day: string) {
   const [feelings, fasting, fast] = await Promise.all([loadDayFeelings(db, day), loadFastingSettings(db), currentFast(db)]);
   // Ziele und Nährstoffe (B2): Tagesziel aus dem Wochenbudget, Makros nach Ernährungsform, angeheftete Nährstoffe.
   const targets = await loadDayTargets(db, day);
+  // Mahlzeiten mit Einträgen am Vortag: nur dort gibt es im Kopf einer leeren Mahlzeit die Pille „Wie gestern“.
+  const previous = shiftDay(day, -1);
+  const previousMeals = await loggedMeals(db, previous, previous);
   syncMealReminders(db, diaryToday()).catch(() => undefined);
   return {
     day,
@@ -76,6 +80,7 @@ async function loadDiary(db: Db, day: string) {
     fasting,
     fast,
     targets,
+    previousMeals,
   };
 }
 
@@ -122,6 +127,7 @@ export default function DiaryScreen() {
       fasting: DEFAULT_FASTING,
       fast: null as FastingPeriod | null,
       targets: null as DayTargets | null,
+      previousMeals: new Set<string>(),
     },
     day
   );
@@ -359,8 +365,18 @@ export default function DiaryScreen() {
                   value={!hide && items.length > 0 ? formatKcalSum(sumNutrients(items)) : null}
                   addLabel={`${t('nutrition.add')}: ${name}`}
                   onAdd={() => addFood(meal)}
+                  quick={
+                    items.length === 0 && data.previousMeals.has(`${shiftDay(day, -1)}|${meal}`)
+                      ? {
+                          label: day === today ? t('diary.options.yesterdayShort') : t('diary.options.previousShort'),
+                          accessibilityLabel: t('diary.options.yesterdayFor', { meal: name }),
+                          onPress: () => copyPreviousMeal(db, day, meal, reload),
+                        }
+                      : null
+                  }
                   moreLabel={t('diary.options.label', { meal: name })}
-                  onMore={() => setOptions((o) => ({ meal, open: true, key: (o?.key ?? 0) + 1 }))}
+                  // Leere Mahlzeit: das Fenster hätte nur „Wie am Vortag“ – das steht dann als Pille im Kopf.
+                  onMore={items.length > 0 ? () => setOptions((o) => ({ meal, open: true, key: (o?.key ?? 0) + 1 })) : undefined}
                 />
                 {items.map(entryRow)}
                 {items.length > 0 && !planned && !feelingEmpty(feeling) ? (
@@ -399,7 +415,6 @@ export default function DiaryScreen() {
           items={optionsItems}
           feeling={data.feelings[options.meal] ?? EMPTY_FEELING}
           onFeeling={(next) => changeFeeling(options.meal, next)}
-          onChanged={reload}
           onClose={closeOptions}
         />
       ) : null}

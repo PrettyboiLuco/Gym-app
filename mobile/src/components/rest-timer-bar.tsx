@@ -179,6 +179,7 @@ export function RestTimerBar({
             accessibilityLabel={t('session.restValue', { value })}
             accessibilityHint={t('session.restChange')}
             onPress={() => setChoosing((c) => !c)}
+            wrapStyle={styles.text}
             style={styles.choose}>
             <ThemedText type="small" themeColor="textSecondary">
               {t('session.restTitle')}
@@ -286,6 +287,7 @@ function NudgeButton({ seconds, onPress, wide = false }: { seconds: number; onPr
 /** Mitte und Größe des kleinen Rings in Fensterkoordinaten. */
 type Origin = { x: number; y: number; size: number };
 const FOCUS_RING = 264;
+const FOCUS_RING_MIN = 180;
 
 /**
  * Pause im Vollbild: ein großer Ring, die Zeit, was als Nächstes kommt. Lime nur auf dem Ring (Daten).
@@ -341,6 +343,8 @@ function RestFocus({
   const from = useSharedValue<number>(RestMorph.fallbackScale);
   const ringBox = useRef<ComponentRef<typeof View>>(null);
   const placed = useRef(false);
+  // Kleine Bildschirme (oder Frage + „Als Nächstes“ darunter): der Ring wird kleiner statt über den Rand zu ragen.
+  const [ringSize, setRingSize] = useState<number>(FOCUS_RING);
   // Fertig zugeklappt: Modal schließen und den Ausgangspunkt vergessen (stabil, damit der Effekt nicht bei jedem Tick neu startet).
   const onClosedRef = useRef(onClosed);
   useEffect(() => {
@@ -388,7 +392,7 @@ function RestFocus({
     box.measureInWindow((x, y, width, height) => {
       dx.set(origin.x - (x + width / 2));
       dy.set(origin.y - (y + height / 2));
-      from.set(origin.size / FOCUS_RING);
+      from.set(origin.size / Math.max(width, 1));
       go();
     });
   }
@@ -417,11 +421,15 @@ function RestFocus({
             <ThemedText style={{ color: theme.textSecondary }}>{t('session.restCollapse')}</ThemedText>
           </Pressable>
         </Animated.View>
-        <View style={styles.focusCenter} accessible accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}>
+        <View
+          style={styles.focusCenter}
+          onLayout={(e) => setRingSize(Math.max(FOCUS_RING_MIN, Math.min(FOCUS_RING, Math.floor(e.nativeEvent.layout.height))))}
+          accessible
+          accessibilityLabel={`${t('session.restTitle')} ${formatClock(remaining)}`}>
           <Animated.View ref={ringBox} onLayout={place} style={ringStyle}>
             <ProgressRing
               progress={progress}
-              size={FOCUS_RING}
+              size={ringSize}
               stroke={12}
               color={dark ? theme.accent : theme.tint}
               trackColor={theme.backgroundSelected}
@@ -447,17 +455,14 @@ function RestFocus({
               </ThemedText>
             </View>
           ) : null}
-          {!done ? (
-            <View style={styles.focusActions}>
-              <View style={styles.flex}>
-                <NudgeButton wide seconds={-NUDGE_SECONDS} onPress={() => onAdjust(-NUDGE_SECONDS)} />
-              </View>
-              <View style={styles.flex}>
-                <NudgeButton wide seconds={NUDGE_SECONDS} onPress={() => onAdjust(NUDGE_SECONDS)} />
-              </View>
+          {/* Eine Reihe: −15 s · Überspringen (Hauptaktion) · +15 s. */}
+          <View style={styles.focusActions}>
+            {!done ? <NudgeButton wide seconds={-NUDGE_SECONDS} onPress={() => onAdjust(-NUDGE_SECONDS)} /> : null}
+            <View style={styles.flex}>
+              <Button label={done ? t('session.restGo') : t('session.restSkip')} onPress={onSkip} />
             </View>
-          ) : null}
-          <Button label={done ? t('session.restGo') : t('session.restSkip')} onPress={onSkip} />
+            {!done ? <NudgeButton wide seconds={NUDGE_SECONDS} onPress={() => onAdjust(NUDGE_SECONDS)} /> : null}
+          </View>
         </Animated.View>
       </SafeAreaView>
     </Modal>
@@ -478,21 +483,21 @@ const styles = StyleSheet.create({
   trackFill: { height: 3 },
   clockBox: { alignSelf: 'flex-start' },
   clock: { fontFamily: DisplayFont.bold, fontSize: 30, lineHeight: 36, letterSpacing: -0.5 },
-  choose: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
+  choose: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, minHeight: 44 },
   chevronDown: { transform: [{ rotate: '90deg' }] },
   chevronUp: { transform: [{ rotate: '-90deg' }] },
   chooser: { gap: Spacing.two, paddingTop: Spacing.two },
   presets: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   preset: { minHeight: 40, minWidth: 64, paddingHorizontal: Spacing.three, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
   nudge: { minHeight: 40, minWidth: 48, paddingHorizontal: Spacing.two + 2, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
-  nudgeWide: { minHeight: 48 },
+  nudgeWide: { minHeight: 48, minWidth: 72 },
   focus: { flex: 1, paddingHorizontal: Spacing.four, paddingBottom: Spacing.four, gap: Spacing.four },
   focusTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.three, minHeight: 44 },
-  focusCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  focusCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: FOCUS_RING_MIN },
   focusClock: { fontFamily: DisplayFont.bold, fontSize: 64, lineHeight: 72, letterSpacing: -2 },
   focusBottom: { gap: Spacing.four },
   next: { borderRadius: 20, borderWidth: 1, padding: Spacing.four - 4, gap: Spacing.one },
   nextTitle: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.3 },
-  focusActions: { flexDirection: 'row', gap: Spacing.three, marginBottom: -Spacing.two },
+  focusActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   flex: { flex: 1 },
 });

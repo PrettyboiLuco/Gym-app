@@ -40,24 +40,44 @@ async function loadInsights(db: Db, withReadiness: boolean) {
 
 const num = (v: number, digits = 0) => formatNumber(v, digits);
 
+/** Wohin eine Kachel führt – leere Kacheln direkt zum Eintragen. */
+const TILE_TARGET = {
+  kalorien: '/nutrition',
+  eiweiss: '/nutrition',
+  gewicht: '/progress',
+  training: '/training',
+  schritte: '/progress/steps',
+  schlaf: '/progress/readiness',
+  bereitschaft: '/progress/readiness',
+} as const satisfies Record<InsightTile, string>;
+
 /** Anzeige einer Kachel aus ihrer Zusammenfassung; `hide` blendet kcal- und Gewichtszahlen aus. */
 function tileView(s: TileSummary, hide: boolean, unit: WeightUnit): InsightTileData {
   const label = t(`insights.tile.${s.tile}`);
+  const onPress = () => router.push(TILE_TARGET[s.tile]);
   const a11y = (value: string | null, sub?: string | null) =>
-    value === null ? t('insights.a11y.none', { label }) : [t('insights.a11y.value', { label, value }), sub].filter(Boolean).join(', ');
+    value === null
+      ? [t('insights.a11y.none', { label }), sub].filter(Boolean).join(', ')
+      : [t('insights.a11y.value', { label, value }), sub].filter(Boolean).join(', ');
   const tracked = t('insights.sub.tracked', { count: s.days });
+  // Noch kein Wert: „2 von 3 Tagen erfasst“ mit kleinem Balken statt eines Strichs ohne Erklärung.
+  const missing = (key: 'progress' | 'weighProgress') =>
+    s.need === null ? {} : { sub: t(`insights.sub.${key}`, { count: Math.min(s.days, s.need), need: s.need }), progress: { have: s.days, need: s.need } };
   const meanTile = (format: (v: number) => string, unitText: string | undefined, sub: string): InsightTileData => {
     const value = s.value === null ? null : format(s.value);
-    return {
+    const view: InsightTileData = {
       key: s.tile,
       label,
       value,
       unit: unitText,
-      sub: s.value === null ? t('insights.sub.tooFew') : sub,
+      sub,
       count: s.value === null ? undefined : { to: s.value, format },
       spark: { values: s.spark },
-      accessibilityLabel: a11y(value === null ? null : `${value}${unitText ? ` ${unitText}` : ''}`, sub),
+      accessibilityLabel: '',
+      onPress,
+      ...(s.value === null ? missing('progress') : {}),
     };
+    return { ...view, accessibilityLabel: a11y(value === null ? null : `${value}${unitText ? ` ${unitText}` : ''}`, view.sub) };
   };
   const countTile = (sub: string, extra: Partial<InsightTileData> = {}): InsightTileData => {
     const value = s.value === null ? null : String(s.value);
@@ -71,34 +91,39 @@ function tileView(s: TileSummary, hide: boolean, unit: WeightUnit): InsightTileD
       count: s.value === null ? undefined : { to: s.value, format: (v) => num(Math.round(v)) },
       spark: { values: s.spark, bars: s.bars },
       accessibilityLabel: a11y(value === null ? null : `${value} ${of ?? ''}`.trim(), sub),
+      onPress,
       ...extra,
     };
   };
+  const daysOnly = (sub: string): InsightTileData => ({
+    key: s.tile,
+    label,
+    value: String(s.days),
+    unit: '/ 7',
+    sub,
+    accessibilityLabel: a11y(`${s.days} / 7`, sub),
+    onPress,
+  });
 
   switch (s.tile) {
     case 'kalorien':
-      if (hide) {
-        const sub = t('insights.sub.foodTracked');
-        return { key: s.tile, label, value: String(s.days), unit: '/ 7', sub, accessibilityLabel: a11y(`${s.days} / 7`, sub) };
-      }
-      return meanTile((v) => num(Math.round(v)), 'kcal', tracked);
+      return hide ? daysOnly(t('insights.sub.foodTracked')) : meanTile((v) => num(Math.round(v)), 'kcal', tracked);
     case 'eiweiss':
       return s.kind === 'count' ? countTile(t('insights.sub.proteinGoal')) : meanTile((v) => num(Math.round(v)), 'g', t('insights.sub.proteinMean'));
     case 'gewicht': {
-      if (hide) {
-        const sub = t('insights.sub.weighDays');
-        return { key: s.tile, label, value: String(s.days), unit: '/ 7', sub, accessibilityLabel: a11y(`${s.days} / 7`, sub) };
+      if (hide) return daysOnly(t('insights.sub.weighDays'));
+      if (s.value === null) {
+        const view: InsightTileData = { key: s.tile, label, value: null, unit, accessibilityLabel: '', onPress, ...missing('weighProgress') };
+        return { ...view, accessibilityLabel: a11y(null, view.sub) };
       }
       const change = s.change;
       const sub =
-        s.value === null
-          ? t('insights.sub.weightNoTrend')
-          : change === null
-            ? tracked
-            : t('insights.sub.weightChange', {
-                change: `${change > 0.05 ? '+' : change < -0.05 ? '−' : '±'}${formatWeight(Math.abs(change), unit)}`,
-              });
-      const value = s.value === null ? null : num(kgToUnit(s.value, unit), 1);
+        change === null
+          ? tracked
+          : t('insights.sub.weightChange', {
+              change: `${change > 0.05 ? '+' : change < -0.05 ? '−' : '±'}${formatWeight(Math.abs(change), unit)}`,
+            });
+      const value = num(kgToUnit(s.value, unit), 1);
       return {
         key: s.tile,
         label,
@@ -106,21 +131,21 @@ function tileView(s: TileSummary, hide: boolean, unit: WeightUnit): InsightTileD
         unit,
         sub,
         spark: { values: s.spark.map((v) => (v === null ? null : kgToUnit(v, unit))) },
-        accessibilityLabel: a11y(value === null ? null : `${value} ${unit}`, sub),
+        accessibilityLabel: a11y(`${value} ${unit}`, sub),
+        onPress,
       };
     }
     case 'training':
-      return countTile(t('insights.sub.training'), { onPress: () => router.push('/training') });
+      return countTile(t('insights.sub.training'));
     case 'schritte':
-      return { ...meanTile((v) => num(Math.round(v / 10) * 10), undefined, tracked), onPress: () => router.push('/progress/steps') };
+      return meanTile((v) => num(Math.round(v / 10) * 10), undefined, tracked);
     case 'schlaf':
-      return { ...meanTile((v) => num(v, 1), 'h', tracked), onPress: () => router.push('/progress/readiness') };
+      return meanTile((v) => num(v, 1), 'h', tracked);
     case 'bereitschaft':
       return {
         ...countTile(s.value === null ? t('insights.sub.readinessNone') : t('insights.sub.readiness')),
         spark: undefined,
         levels: s.levels,
-        onPress: () => router.push('/progress/readiness'),
       };
   }
 }

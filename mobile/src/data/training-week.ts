@@ -147,13 +147,17 @@ export async function loadWeekTally(db: Db, today: string): Promise<MuscleTally>
   const rows = await db.getAllAsync<{ startedAt: string; exerciseId: string }>(
     `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
-     WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ?`,
-    `${shiftDay(monday, -1)}T00:00:00.000Z`
+     WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ? AND s.started_at_utc < ?`,
+    `${shiftDay(monday, -1)}T00:00:00.000Z`,
+    `${shiftDay(monday, 8)}T00:00:00.000Z`
   );
   const exercises = new Map((await listExercises(db)).map((e) => [e.id, e]));
   const perExercise = new Map<string, number>();
+  const sunday = shiftDay(monday, 6);
   for (const r of rows) {
-    if (localDay(new Date(r.startedAt), timeZone) < monday) continue;
+    // Nur Trainings dieser Woche (lokaler Starttag Mo–So) – beim Blättern in ältere Wochen zählen spätere nicht mit.
+    const day = localDay(new Date(r.startedAt), timeZone);
+    if (day < monday || day > sunday) continue;
     const e = exercises.get(r.exerciseId);
     if (!e || e.kind !== 'kraft') continue;
     perExercise.set(e.id, (perExercise.get(e.id) ?? 0) + 1);

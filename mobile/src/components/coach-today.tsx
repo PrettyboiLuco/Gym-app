@@ -5,6 +5,9 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { MeterBar } from '@/components/charts';
 import { ListRow } from '@/components/fields';
+import { Icon } from '@/components/icon';
+import { useDataColor } from '@/components/insight-tile';
+import { PressableScale } from '@/components/pressable-scale';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { dailyTips, type DayTarget } from '@/domain/coach';
@@ -106,10 +109,60 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
   );
 }
 
+export type SetupStep = { key: string; label: string; done: boolean; onPress: () => void };
+
+/**
+ * „Einrichten in 3 Schritten“ oben auf „Heute“ (Coach): Fortschritt als Balken in der Datenfarbe, jeder Schritt mit
+ * Haken bzw. leerem Kreis und antippbar. „Später“ blendet die Karte aus (gespeichert).
+ */
+export function SetupSteps({ steps, onLater }: { steps: SetupStep[]; onLater: () => void }) {
+  const theme = useTheme();
+  const dataColor = useDataColor();
+  const done = steps.filter((s) => s.done).length;
+  return (
+    <Card
+      title={t('today.setupTitle', { count: steps.length })}
+      trailing={<Button label={t('today.setupLater')} variant="quiet" size="compact" onPress={onLater} />}>
+      <View style={styles.progress} accessible accessibilityLabel={t('today.setupProgress', { done, count: steps.length })}>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.num}>
+          {t('today.setupProgress', { done, count: steps.length })}
+        </ThemedText>
+        <MeterBar progress={done / steps.length} color={dataColor} trackColor={theme.backgroundSelected} height={4} growIn />
+      </View>
+      <View>
+        {steps.map((step, i) => (
+          <PressableScale
+            key={step.key}
+            accessibilityRole="button"
+            accessibilityLabel={`${step.label}, ${step.done ? t('today.setupStepDone') : t('today.setupStepOpen')}`}
+            onPress={step.onPress}
+            style={({ pressed }) => [
+              styles.step,
+              i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.backgroundSelected },
+              pressed && { backgroundColor: theme.backgroundSelected },
+            ]}>
+            <View style={[styles.mark, step.done ? { backgroundColor: dataColor } : { borderWidth: 1.5, borderColor: theme.border }]}>
+              {step.done ? <Icon name="check" color={theme.background} size={14} strokeWidth={2.6} /> : null}
+            </View>
+            <ThemedText themeColor={step.done ? 'textSecondary' : 'text'} style={styles.stepText}>
+              {step.label}
+            </ThemedText>
+            <Icon name="chevron" color={theme.textSecondary} size={18} strokeWidth={2} />
+          </PressableScale>
+        ))}
+      </View>
+    </Card>
+  );
+}
+
 const styles = StyleSheet.create({
   overview: { paddingVertical: Spacing.one },
   macros: { gap: Spacing.three },
   num: { fontVariant: ['tabular-nums'] },
   macro: { gap: Spacing.one },
   macroHead: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.two },
+  progress: { gap: Spacing.two },
+  step: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 52 },
+  mark: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  stepText: { flex: 1 },
 });

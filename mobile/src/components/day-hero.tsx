@@ -17,6 +17,8 @@ import { formatNumber, t } from '@/i18n';
 
 type MacroKey = 'protein' | 'carbs' | 'fat';
 const MACROS: MacroKey[] = ['protein', 'carbs', 'fat'];
+/** Spaltenbreiten der Makro-Leiste: „Kohlenhydrate“ steht ausgeschrieben wie „Eiweiß“ und „Fett“ und braucht mehr Platz. */
+const MACRO_FLEX: Record<MacroKey, number> = { protein: 1, carbs: 1.45, fat: 0.8 };
 const KCAL_PER_G: Record<MacroKey, number> = { protein: 4, carbs: 4, fat: 9 };
 const RADIUS = 28;
 
@@ -161,12 +163,12 @@ export function DayHero({
           return (
             <View
               key={k}
-              style={styles.macro}
+              style={[styles.macro, { flex: MACRO_FLEX[k] }]}
               accessible
               accessibilityLabel={`${t(`nutrition.${k}`)} ${atLeast(totals, k)}${grams(totals.values[k])} g, ${sub}`}>
               <View style={styles.macroHead}>
                 <View style={[styles.macroDot, { backgroundColor: colors.macro[k] }]} />
-                <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                <ThemedText type="small" themeColor="textSecondary" numberOfLines={1} style={styles.macroName}>
                   {t(`nutrition.${k}`)}
                 </ThemedText>
               </View>
@@ -212,9 +214,10 @@ const styles = StyleSheet.create({
   middle: { alignItems: 'center', gap: Spacing.two + 2, paddingTop: 7 },
   middleText: { fontSize: 13, lineHeight: 18, fontVariant: ['tabular-nums'] },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  macros: { flexDirection: 'row', gap: Spacing.three },
+  macros: { flexDirection: 'row', gap: Spacing.two + 4 },
   macro: { flex: 1, minWidth: 0, gap: Spacing.one + 2 },
-  macroHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 2 },
+  macroHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 1 },
+  macroName: { fontSize: 13, lineHeight: 18, flexShrink: 1 },
   macroDot: { width: 7, height: 7, borderRadius: 3.5 },
   macroValue: { fontFamily: DisplayFont.bold, fontSize: 18, lineHeight: 24, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
   macroSub: { fontSize: 12, lineHeight: 16 },

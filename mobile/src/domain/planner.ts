@@ -669,13 +669,18 @@ export function rebuildPlan(input: RebuildInput): PlanProposal {
 
   // 7. Entwurf und Änderungsliste.
   const oldDays = input.current.days;
+  const cardio = carryCardio(
+    oldDays,
+    plan.map((d) => d.name)
+  );
   const draft: PlanDraft = {
     name: input.current.name,
-    days: plan.map((d) => ({
+    days: plan.map((d, i) => ({
       name: d.name,
       items: d.items.map(toItem),
       warmup: !oldDays.every((day) => day.warmup === false),
       cooldown: !oldDays.every((day) => day.cooldown === false),
+      ...(cardio[i].length ? { cardio: cardio[i] } : {}),
     })),
   };
   const changes: ExerciseChange[] = entries.map((entry) => {
@@ -796,4 +801,32 @@ export function temporaryEnd(duration: 'woche' | 'zwei_wochen', today: string): 
   if (duration === 'zwei_wochen') return shiftDay(today, 13);
   const weekday = isoWeekday(today);
   return shiftDay(today, weekday === 7 ? 7 : 7 - weekday);
+}
+
+/**
+ * Geplantes Cardio beim Umbau mitnehmen (sonst ginge es mit der neuen Fassung verloren): zuerst auf den neuen Tag mit
+ * gleichem Namen, dann auf den Tag an gleicher Stelle; was übrig bleibt (weniger Tage als vorher), auf die Tage ohne
+ * Cardio der Reihe nach, zuletzt auf den letzten Tag. Nichts wird verdoppelt.
+ */
+export function carryCardio(oldDays: PlanDraft['days'], newNames: string[]): NonNullable<PlanDraft['days'][number]['cardio']>[] {
+  const out = newNames.map(() => [] as NonNullable<PlanDraft['days'][number]['cardio']>);
+  if (newNames.length === 0) return out;
+  const taken = new Set<number>();
+  const leftovers: NonNullable<PlanDraft['days'][number]['cardio']>[] = [];
+  oldDays.forEach((day, index) => {
+    const blocks = day.cardio ?? [];
+    if (!blocks.length) return;
+    let target = newNames.findIndex((name, i) => name === day.name && !taken.has(i));
+    if (target < 0 && index < newNames.length && !taken.has(index)) target = index;
+    if (target < 0) return leftovers.push(blocks.map((b) => ({ ...b })));
+    taken.add(target);
+    out[target].push(...blocks.map((b) => ({ ...b })));
+  });
+  for (const blocks of leftovers) {
+    const free = out.findIndex((list, i) => list.length === 0 && !taken.has(i));
+    const target = free >= 0 ? free : out.length - 1;
+    taken.add(target);
+    out[target].push(...blocks);
+  }
+  return out;
 }

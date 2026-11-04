@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { Choice, Field, MultiChoice, Toggle } from '@/components/fields';
 import { CalculatorFields, UnitFields } from '@/components/profile-fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
+import { loadMapPrefs, saveMapPrefs, type MapPrefs } from '@/data/training-week';
 import { EQUIPMENT } from '@/domain/exercises';
 import { GOALS, LEVELS } from '@/domain/planner';
 import { parseProfileForm, profileToForm, type ProfileForm, type ProfileProblem } from '@/domain/profile';
@@ -15,16 +16,25 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatLength, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
+import { useDb } from '@/providers/store-provider';
 
 /** Profil und Einheiten bearbeiten (Register COACH-001, UX-003, COACH-010). */
 export default function ProfileScreen() {
   const theme = useTheme();
+  const db = useDb();
   const { profile, updateProfile } = useProfile();
+  // Figur der Muskelkarte (Statistik, „Heute“): gespeichert bei den Karten-Einstellungen, gewählt hier im Profil.
+  const [mapPrefs, setMapPrefs] = useState<MapPrefs | null>(null);
+  const [body, setBody] = useState<MapPrefs['body'] | null>(null);
+  useEffect(() => {
+    loadMapPrefs(db).then(setMapPrefs);
+  }, [db]);
+  const shownBody = body ?? mapPrefs?.body ?? 'm';
   const [baseline] = useState(() => JSON.stringify(profileToForm(profile)));
   const [form, setForm] = useState<ProfileForm>(() => profileToForm(profile));
   const [problems, setProblems] = useState<ProfileProblem[]>([]);
   const change = (c: Partial<ProfileForm>) => setForm((f) => ({ ...f, ...c }));
-  const allowLeave = useUnsavedGuard(JSON.stringify(form) !== baseline);
+  const allowLeave = useUnsavedGuard(JSON.stringify(form) !== baseline || (body !== null && body !== mapPrefs?.body));
 
   async function save() {
     const { profile: parsed, problems: found } = parseProfileForm(form, profile, todayDay());
@@ -33,6 +43,7 @@ export default function ProfileScreen() {
       return;
     }
     await updateProfile(parsed);
+    if (body !== null && mapPrefs && body !== mapPrefs.body) await saveMapPrefs(db, { ...mapPrefs, body });
     allowLeave();
     router.back();
   }
@@ -59,6 +70,7 @@ export default function ProfileScreen() {
           onChange={(trainingGoal) => change({ trainingGoal })}
           format={(v) => (v === 'keine' ? t('profile.none') : t(`trainingGoal.${v}`))}
         />
+        <Choice label={t('stats.body')} options={['m', 'w'] as const} value={shownBody} onChange={setBody} format={(b) => t(`stats.bodies.${b}`)} />
         <MultiChoice
           label={t('profile.equipment')}
           options={EQUIPMENT.filter((e) => e !== 'koerpergewicht')}

@@ -151,7 +151,11 @@ function NutrientsSheet({
   const missing = MICRO_KEYS.filter((k) => !keys.includes(k));
   // Kein Eintrag hat einen der vier Werte: ein Satz statt vier Zeilen mit „–“.
   const extrasNone = EXTRAS.every((k) => totals.values[k] === 0 && totals.unknown[k] > 0);
-  const info = [withTargets ? null : t('micros.sumOnly'), t('targets.micros.onlyLogged'), withTargets ? t('targets.micros.sources', { version: MICRO_TARGETS_VERSION }) : null]
+  const info = [
+    withTargets ? null : t('micros.sumOnly'),
+    t('targets.micros.onlyLogged'),
+    withTargets ? t('targets.micros.sources', { version: MICRO_TARGETS_VERSION }) : null,
+  ]
     .filter(Boolean)
     .join('\n\n');
   let i = 0;

@@ -14,8 +14,8 @@ import { formatNumber, t } from '@/i18n';
 import { formatAmount, formatClock, formatKcal } from '@/services/nutrition-format';
 
 /**
- * „Erste Mahlzeit 08:10 · letzte 19:40 · Essensfenster 11,5 h“ – nur bei mindestens zwei verschiedenen Uhrzeiten
- * (sonst sagt die Zeile nichts: „07:39 · letzte 07:39 · 0 h“). Null ohne Essen.
+ * „Essensfenster 08:10–19:40 Uhr · 11,5 h“ – nur bei mindestens zwei verschiedenen Uhrzeiten (sonst sagt die Zeile
+ * nichts: „07:39–07:39 · 0 h“). Null ohne Essen oder bei nur einer Uhrzeit.
  */
 export function windowLine(events: readonly ConsumptionEvent[]): string | null {
   const w = eatingWindow(events);

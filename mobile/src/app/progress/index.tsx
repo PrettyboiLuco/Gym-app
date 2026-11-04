@@ -132,11 +132,8 @@ export default function ProgressScreen() {
   }
   return (
     <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined}>
-      {/* Leitfrage „Bewege ich mich Richtung Ziel?“: der Trend groß, darunter der Verlauf, dann das Eintragen. */}
+      {/* Leitfrage „Bewege ich mich Richtung Ziel?“: oben das Eintragen (die häufigste Handlung), darunter Trend und Verlauf. */}
       <Card title={t('progress.weightTitle')}>
-        <WeightOverview weights={weights} unit={units.weight} targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null} today={today} />
-        <InsightInfo label={t('progress.trendHintLabel')} text={t('progress.trendHint')} />
-        <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
         <DaySwitcher day={day} onChange={setDay} />
         <View style={styles.row}>
           <Field
@@ -162,6 +159,8 @@ export default function ProgressScreen() {
             })}
           </ThemedText>
         ) : null}
+        <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
+        <WeightOverview weights={weights} unit={units.weight} targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null} today={today} />
       </Card>
 
       {/* Einblicke (W9): Kacheln und Wochen-Muster auf eigener Seite. */}

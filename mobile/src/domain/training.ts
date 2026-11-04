@@ -189,9 +189,11 @@ export const REST_PRESETS = [30, 60, 90, 120, 180, 240, 300] as const;
 
 /**
  * Pause nach einem Satz: einmal gewählte Länge (gilt für alle Sätze, bis du sie änderst) oder sonst die Pause aus dem
- * Plan für diesen Satz. 0 = keine Pause.
+ * Plan für diesen Satz. 0 = keine Pause. Innerhalb eines Supersatzes (Wechsel zur nächsten Übung der Runde, geplante
+ * Pause 0) bleibt es bei 0 – eine feste Wahl gilt nur für die Pause nach der Runde.
  */
-export function restSecondsFor(choice: number | null, planned: number): number {
+export function restSecondsFor(choice: number | null, planned: number, inSuperset = false): number {
+  if (inSuperset && planned <= 0) return 0;
   return choice !== null && choice > 0 ? choice : Math.max(planned, 0);
 }
 

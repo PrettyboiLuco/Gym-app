@@ -226,9 +226,7 @@ export function exerciseTrends(
     const c = counts.get(s.exerciseId);
     counts.set(s.exerciseId, { sets: (c?.sets ?? 0) + 1, last: c && c.last > s.day ? c.last : s.day });
   }
-  const chosen = [...counts.entries()]
-    .sort((a, b) => b[1].sets - a[1].sets || b[1].last.localeCompare(a[1].last) || a[0].localeCompare(b[0]))
-    .slice(0, top);
+  const chosen = [...counts.entries()].sort((a, b) => b[1].sets - a[1].sets || b[1].last.localeCompare(a[1].last) || a[0].localeCompare(b[0])).slice(0, top);
 
   return chosen.map(([exerciseId, { sets }]) => {
     const mode = modeOf(exerciseId);
@@ -240,11 +238,13 @@ export function exerciseTrends(
     const values = Array.from({ length: weeks }, (_, i) => {
       const from = shiftDay(first, 7 * i);
       const to = shiftDay(from, 6);
-      return bestOf(
-        metric,
-        mine.filter((s) => s.day >= from && s.day <= to),
-        mode
-      )?.value ?? null;
+      return (
+        bestOf(
+          metric,
+          mine.filter((s) => s.day >= from && s.day <= to),
+          mode
+        )?.value ?? null
+      );
     });
     // Bestleistung: Training für Training mit dem Stand davor vergleichen (wie nach dem Training).
     const bySession = new Map<string, StatSet[]>();

@@ -11,7 +11,8 @@ export type Tile = { key: string; icon: IconName; title: string; subtitle?: stri
 
 /**
  * Raster aus antippbaren Kacheln (2 Spalten): Symbol oben, Titel, kurze graue Zeile. Für Ziele, die man selten braucht –
- * statt einer langen Liste gleich aussehender Zeilen. Kacheln federn beim Drücken.
+ * statt einer langen Liste gleich aussehender Zeilen. Kacheln federn beim Drücken. Untertitel: höchstens zwei Zeilen
+ * (Texte kurz halten – was nicht passt, fällt am Zeilenende weg, ohne „…“ mitten im Wort).
  */
 export function TileGrid({ tiles }: { tiles: Tile[] }) {
   const theme = useTheme();
@@ -34,8 +35,9 @@ export function TileGrid({ tiles }: { tiles: Tile[] }) {
             <ThemedText style={styles.title} numberOfLines={2}>
               {tile.title}
             </ThemedText>
+            {/* Untertitel einheitlich: höchstens zwei Zeilen, abgeschnitten wird am Zeilenende – kein „…“ mitten im Wort. */}
             {tile.subtitle ? (
-              <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
+              <ThemedText type="small" themeColor="textSecondary" numberOfLines={2} ellipsizeMode="clip">
                 {tile.subtitle}
               </ThemedText>
             ) : null}

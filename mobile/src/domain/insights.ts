@@ -147,7 +147,13 @@ export function tileSummaries(
 
   // Kalorien: Schnitt über vollständig erfasste Tage.
   const kcal = foodWindow.flatMap((d) => (d?.food ? [d.food.kcal] : []));
-  const kalorien = { ...base('kalorien'), value: meanIfEnough(kcal), days: kcal.length, need: TILE_MIN_DAYS, spark: foodSpark.map((d) => d?.food?.kcal ?? null) };
+  const kalorien = {
+    ...base('kalorien'),
+    value: meanIfEnough(kcal),
+    days: kcal.length,
+    need: TILE_MIN_DAYS,
+    spark: foodSpark.map((d) => d?.food?.kcal ?? null),
+  };
 
   // Eiweiß: mit Ziel „an x von y Tagen erreicht“, ohne Ziel der Schnitt in g.
   const withGoal = foodWindow.filter((d): d is InsightDay => !!d?.food && d.food.protein !== null && d.proteinGoal !== null && d.proteinGoal > 0);
@@ -161,7 +167,13 @@ export function tileSummaries(
         days: withGoal.length,
         spark: foodSpark.map((d) => d?.food?.protein ?? null),
       }
-    : { ...base('eiweiss'), value: meanIfEnough(proteinValues), days: proteinValues.length, need: TILE_MIN_DAYS, spark: foodSpark.map((d) => d?.food?.protein ?? null) };
+    : {
+        ...base('eiweiss'),
+        value: meanIfEnough(proteinValues),
+        days: proteinValues.length,
+        need: TILE_MIN_DAYS,
+        spark: foodSpark.map((d) => d?.food?.protein ?? null),
+      };
 
   // Gewicht: Trend (Ø 7 Tage) und Veränderung zur Vorwoche; Verlauf = Trend je Tag.
   const trend = weightTrend(weights, today, TILE_DAYS, WEIGHT_TREND_DAYS);

@@ -68,16 +68,7 @@ import { replacementOptions } from '@/domain/planner';
 import { adviceValues, progressionAdvice, PROGRESSION_RULES_VERSION, weightStep, type Advice, type PastSession } from '@/domain/progression';
 import { blockDraft, cooldownItems, warmupItems } from '@/domain/routines';
 import { nowMs } from '@/domain/time';
-import {
-  formatClock,
-  isStaleSession,
-  parseSecondsInput,
-  parseSetInput,
-  restSecondsFor,
-  startRest,
-  stopRest,
-  type RestTimer,
-} from '@/domain/training';
+import { formatClock, isStaleSession, parseSecondsInput, parseSetInput, restSecondsFor, startRest, stopRest, type RestTimer } from '@/domain/training';
 import { kgToUnit, parseDecimal, type WeightUnit } from '@/domain/units';
 import { exerciseName } from '@/format/exercise-name';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -222,7 +213,8 @@ export default function SessionScreen() {
 
   /**
    * Vorschlag fürs Eingabefeld: eigene Werte (wieder geöffneter Satz), sonst voriger Satz in diesem
-   * Training, sonst der Steigerungsvorschlag, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg.
+   * Training, sonst der Steigerungsvorschlag, sonst gleicher Satz vom letzten Mal, bei Körpergewichtsübungen 0 kg
+   * (Wiederholungen zuletzt aus dem Plan).
    * Die Vorgabe steht grau im Feld; ✓ in einer leeren Zeile übernimmt sie (ein Tipp pro Satz, wie bei Strong).
    */
   function suggestion(row: SetRow) {
@@ -260,7 +252,17 @@ export default function SessionScreen() {
               : bodyweight
                 ? '0'
                 : '',
-      reps: previous?.reps != null ? String(previous.reps) : advised?.reps != null ? String(advised.reps) : lastTime?.reps != null ? String(lastTime.reps) : '',
+      // Ganz ohne Verlauf: untere Grenze der geplanten Wiederholungen, damit nur das Gewicht fehlt.
+      reps:
+        previous?.reps != null
+          ? String(previous.reps)
+          : advised?.reps != null
+            ? String(advised.reps)
+            : lastTime?.reps != null
+              ? String(lastTime.reps)
+              : row.plannedRepsMin != null
+                ? String(row.plannedRepsMin)
+                : '',
     };
   }
 
@@ -376,7 +378,7 @@ export default function SessionScreen() {
     // In der Pause fragen, wie viele Wiederholungen noch gegangen wären (nicht bei Zeit- und Aufwärmsätzen).
     setAskRirFor(!isTimed(row.exerciseId) && row.setType !== 'aufwaermen' ? row.id : null);
     // Der Satz ist bereits gespeichert; ein Fehler beim Timer darf daran nichts ändern (HEALTH-009).
-    const restSeconds = restSecondsFor(restChoice, row.restSeconds);
+    const restSeconds = restSecondsFor(restChoice, row.restSeconds, row.superset != null);
     if (restAuto && restSeconds > 0 && !beforeDrop) {
       try {
         await updateTimer(startRest(timer, restSeconds, nowMs()));

@@ -553,13 +553,30 @@ export async function addWarmupSets(db: Db, sessionId: string, exerciseId: strin
 
 /** Zusätzlicher Satz für eine Übung, übernimmt Pause und Zielbereich des letzten Satzes. */
 export async function addSet(db: Db, sessionId: string, exerciseId: string) {
-  const last = await db.getFirstAsync<{ restSeconds: number; repsMin: number | null; repsMax: number | null; plannedSeconds: number | null }>(
+  const last = await db.getFirstAsync<{
+    restSeconds: number;
+    repsMin: number | null;
+    repsMax: number | null;
+    plannedSeconds: number | null;
+    superset: number | null;
+  }>(
     `SELECT rest_seconds AS restSeconds, planned_reps_min AS repsMin, planned_reps_max AS repsMax,
-     planned_seconds AS plannedSeconds
+     planned_seconds AS plannedSeconds, superset
      FROM set_log WHERE session_id = ? AND exercise_id = ? AND set_type <> 'aufwaermen' ORDER BY position DESC LIMIT 1`,
     sessionId,
     exerciseId
   );
+  // Der Zusatzsatz läuft allein (ohne Supersatz-Gruppe): statt der Nullpause innerhalb der Runde die Pause nach der
+  // Runde dieser Gruppe übernehmen (größte Pause der Gruppe), sonst 90 s.
+  let rest = last?.restSeconds ?? 90;
+  if (last && last.superset != null && rest <= 0) {
+    const round = await db.getFirstAsync<{ rest: number | null }>(
+      'SELECT MAX(rest_seconds) AS rest FROM set_log WHERE session_id = ? AND superset = ?',
+      sessionId,
+      last.superset
+    );
+    rest = round?.rest && round.rest > 0 ? round.rest : 90;
+  }
   const max = await db.getFirstAsync<{ position: number | null }>('SELECT MAX(position) AS position FROM set_log WHERE session_id = ?', sessionId);
   await db.runAsync(
     `INSERT INTO set_log (id, session_id, exercise_id, position, planned_reps_min, planned_reps_max, rest_seconds,
@@ -570,7 +587,7 @@ export async function addSet(db: Db, sessionId: string, exerciseId: string) {
     (max?.position ?? -1) + 1,
     last?.repsMin ?? null,
     last?.repsMax ?? null,
-    last?.restSeconds ?? 90,
+    rest,
     last?.plannedSeconds ?? null
   );
 }
