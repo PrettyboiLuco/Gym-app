@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "brief": {
+    "dimensionality": ["depth"],
+    "mood": ["calm", "technical"],
+    "tone": ["dark"],
+    "motionEnergy": ["subtle"],
+    "density": ["balanced"]
+  },
+  "styleId": "app-true-black-flat",
+  "tokens": {
+    "gl-bg": "#000000",
+    "gl-surface": "#111111",
+    "gl-surface-raised": "#2A2A2A",
+    "gl-ink": "#FFFFFF",
+    "gl-accent": "#C6F24E",
+    "gl-accent-ink": "#000000",
+    "gl-font-display": "Manrope_700Bold",
+    "gl-font-body": "System"
+  },
+  "activeTemplateId": null,
+  "placed": [
+    {
+      "screen": "mobile/src/app/nutrition/index.tsx",
+      "sectionId": "nutrition-day-hero",
+      "composition": "altitude-stats",
+      "gradientId": "firmament",
+      "gradientVariant": "firmament-004",
+      "gradientParams": {
+        "bgColor": "#020603",
+        "colorA": "#0b2b12",
+        "colorB": "#2f7a28",
+        "colorC": "#7fd93f",
+        "colorD": "#eaffd6",
+        "horizon": 0.16,
+        "curve": 2.2,
+        "glow": 0.55,
+        "vignette": 0.45,
+        "breathe": 0.06,
+        "speed": 0.33
+      }
+    },
+    {
+      "screen": "mobile/src/app/nutrition/index.tsx",
+      "sectionId": "nutrition-meals",
+      "composition": "lumora-services"
+    },
+    {
+      "screen": "mobile/src/components/sheet.tsx",
+      "sectionId": "loader-lumora",
+      "role": "window motion (sheet)",
+      "motion": {
+        "slabSpring": { "tension": 220, "friction": 30, "mass": 1 },
+        "contentSpring": { "tension": 260, "friction": 26 },
+        "contentDriftPx": 12,
+        "rowSpring": { "tension": 170, "friction": 26 },
+        "rowLadderMs": [150, 200, 250, 300, 400, 550, 650, 750, 900]
+      }
+    },
+    {
+      "screen": "vitamin window, drinks window",
+      "sectionId": "vesper-faq",
+      "composition": "vesper-faq"
+    }
+  ],
+  "notes": "React-Native-App, kein Web: Shader laufen nicht in der App, und storage.getlayers.ai ist aus der Entwicklungsumgebung gesperrt. Der Verlauf Firmament 004 wird deshalb mit seinen CONFIG-Farben und seiner Lichtkurve als SVG-Verlauf nachgebaut (wie Meridian/Relay früher). Federn aus loader-lumora 1:1 als Reanimated withSpring (stiffness = tension, damping = friction, mass 1). Wahl Luc 04.11.2026: Kopf „Lichtbühne“, Fenster „Platte federt auf“."
+}
