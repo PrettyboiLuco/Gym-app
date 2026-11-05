@@ -612,7 +612,8 @@ export async function finishSession(
   });
 }
 
-export type LastPerformance = { weightKg: number; reps: number | null; seconds: number | null }[];
+/** RIR mit dabei, damit „Vorher“ im Training zeigt, wie schwer es sich letztes Mal anfühlte (A1). */
+export type LastPerformance = { weightKg: number; reps: number | null; seconds: number | null; rir: number | null }[];
 
 /** Erledigte Sätze dieser Übung aus dem letzten anderen Training. */
 export async function lastPerformance(db: Db, exerciseId: string, excludeSessionId: string): Promise<LastPerformance> {
@@ -624,8 +625,8 @@ export async function lastPerformance(db: Db, exerciseId: string, excludeSession
     excludeSessionId
   );
   if (!last) return [];
-  return db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null }>(
-    `SELECT weight_kg AS weightKg, reps, seconds FROM set_log
+  return db.getAllAsync<{ weightKg: number; reps: number | null; seconds: number | null; rir: number | null }>(
+    `SELECT weight_kg AS weightKg, reps, seconds, rir FROM set_log
      WHERE session_id = ? AND exercise_id = ? AND completed_at_utc IS NOT NULL AND set_type <> 'aufwaermen' ORDER BY position`,
     last.sessionId,
     exerciseId

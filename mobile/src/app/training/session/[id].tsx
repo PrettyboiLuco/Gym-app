@@ -846,7 +846,9 @@ export default function SessionScreen() {
                   // „Vorher“: gleicher Arbeitssatz vom letzten Mal (Aufwärmsätze haben keinen Vergleich).
                   const workIndex = rows.filter((r) => r.setType !== 'aufwaermen').indexOf(row);
                   const prev = row.setType === 'aufwaermen' || workIndex < 0 ? undefined : lastSets[workIndex];
-                  const prevText = prev ? formatSets([prev], units.weight) : '–';
+                  // RIR vom letzten Mal mit anzeigen (A1, Gerätetest X1).
+                  const prevRir = prev?.rir != null ? ` · ${t('logger.rirShort', { rir: prev.rir === 4 ? '4+' : prev.rir })}` : '';
+                  const prevText = prev ? `${formatSets([prev], units.weight)}${prevRir}` : '–';
                   const deleteAction = deletable ? [{ name: 'delete', label: `${t('session.removeSet')} ${label}` }] : undefined;
                   const onAction = (e: { nativeEvent: { actionName: string } }) => {
                     if (e.nativeEvent.actionName === 'delete') removeSet(row);

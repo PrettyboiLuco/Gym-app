@@ -32,6 +32,7 @@ import {
   saveRestTimer,
   startSession,
   updateCustomExercise,
+  updateSetDetails,
 } from '../training';
 import { addWeight, deleteWeight, listWeights } from '../weights';
 
@@ -166,11 +167,13 @@ describe('Training und Sätze', () => {
     const sets = await listSessionSets(db, first);
     await completeSet(db, sets[0].id, 60, 10);
     await completeSet(db, sets[1].id, 60, 8);
+    await updateSetDetails(db, sets[1].id, { rir: 2 });
     await finishSession(db, first, 'abgeschlossen');
     const second = await startSession(db, plan.days[0].id);
+    // RIR kommt mit, damit „Vorher“ es zeigt (Gerätetest X1).
     expect(await lastPerformance(db, 'bankdruecken', second)).toEqual([
-      { weightKg: 60, reps: 10, seconds: null },
-      { weightKg: 60, reps: 8, seconds: null },
+      { weightKg: 60, reps: 10, seconds: null, rir: null },
+      { weightKg: 60, reps: 8, seconds: null, rir: 2 },
     ]);
     expect(await lastPerformance(db, 'latzug', second)).toEqual([]);
   });

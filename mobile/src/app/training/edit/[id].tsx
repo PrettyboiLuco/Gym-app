@@ -180,11 +180,12 @@ export default function WorkoutEditScreen() {
       allowLeave();
       haptic.success();
       showToast(t('workoutEdit.saved'));
+      // Nach dem Speichern „beschäftigt“ lassen, bis der Bildschirm weg ist: sonst schaltet sich die Sperre gegen
+      // ungespeichertes Verlassen wieder ein (falsche Warnung) und ein zweites Speichern legte das Training doppelt an.
       if (isNew) router.replace(`/training/session/${saved}`);
       else router.back();
     } catch {
       showToast(t('common.saveFailed'));
-    } finally {
       setBusy(false);
     }
   }
