@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { Spacing } from '@/constants/theme';
 import { logQuick } from '@/data/nutrition';
-import { MEALS, parseNutrient, type Meal } from '@/domain/nutrition';
+import { MEALS, parseMealKcal, parseNutrient, type Meal } from '@/domain/nutrition';
 import { useTheme } from '@/hooks/use-theme';
 import { t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
@@ -33,9 +33,10 @@ export default function QuickEntryScreen() {
   const [error, setError] = useState(false);
 
   async function save() {
-    const values = [kcal, protein, carbs, fat].map(parseNutrient);
+    // Makros je Mahlzeit bis 1000 g; kcal bis 10 000 (vorher galt auch hier die 1000er-Grenze pro 100 g).
+    const values = [parseMealKcal(kcal), ...[protein, carbs, fat].map((v) => parseNutrient(v))];
     const k = values[0];
-    if (k === null || k === 'invalid' || values.includes('invalid') || k > 10000) {
+    if (k === null || k === 'invalid' || values.includes('invalid')) {
       setError(true);
       return;
     }

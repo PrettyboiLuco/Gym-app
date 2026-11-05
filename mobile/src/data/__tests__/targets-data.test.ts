@@ -96,7 +96,8 @@ describe('Ziele des Tages', () => {
     await logQuick(db, { name: 'Di', kcal: 1000, protein: null, carbs: null, fat: null }, 'mittag', at('2026-11-03'));
     await setDayIncomplete(db, '2026-11-03', true);
     const s = await loadTargetsSettings(db);
-    await saveTargetsSettings(db, { ...s, budget: { ...s.budget, enabled: true, carryover: true } });
+    // Gilt ab Montag dieser Woche (Einstellungen gelten ab dem Tag der Änderung, nicht rückwirkend).
+    await saveTargetsSettings(db, { ...s, budget: { ...s.budget, enabled: true, carryover: true } }, '2026-11-02');
     const t = await loadDayTargets(db, '2026-11-04');
     expect(t.budget?.total).toBe(14000);
     expect(t.kcal).toBe(2100); // nur Montag zählt: 500 / 5 Tage
@@ -118,7 +119,7 @@ describe('Ziele des Tages', () => {
   test('sensible Situation: keine Zahlen, kein Wochenbudget, Keto gilt als ausgewogen', async () => {
     await coachGoal();
     const s = await loadTargetsSettings(db);
-    await saveTargetsSettings(db, { ...s, dietProfile: 'keto', budget: { ...s.budget, enabled: true } });
+    await saveTargetsSettings(db, { ...s, dietProfile: 'keto', budget: { ...s.budget, enabled: true } }, '2026-11-04');
     expect((await loadDayTargets(db, '2026-11-04')).netCarbs).toEqual({ limit: 30 });
     await saveProfile(db, { ...(await loadProfile(db)), sensitive: true });
     const t = await loadDayTargets(db, '2026-11-04');

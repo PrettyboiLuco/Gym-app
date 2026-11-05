@@ -765,9 +765,10 @@ export async function exerciseBests(db: Db, exerciseId: string, loadMode?: LoadM
     const e1rm = mode === 'unterstuetzt' || r.reps == null ? null : estimateOneRepMax(kg, r.reps);
     const bestE1rm = e1rm !== null && (prev?.e1rm == null || e1rm > prev.e1rm) ? e1rm : (prev?.e1rm ?? null);
     // Gegengewicht: weniger ist besser.
-    const heavier = mode === 'unterstuetzt' ? kg < (prev?.weightKg ?? Infinity) : kg > (prev?.weightKg ?? -Infinity);
-    const better =
-      !prev || (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : heavier || (kg === prev.weightKg && (r.reps ?? 0) > (prev.reps ?? 0)));
+    // Gewichte mit Toleranz (sameKg): 60 kg und das aus lb übernommene 60,0012 kg sind gleich schwer.
+    const equal = prev?.weightKg != null && sameKg(kg, prev.weightKg);
+    const heavier = !equal && (mode === 'unterstuetzt' ? kg < (prev?.weightKg ?? Infinity) : kg > (prev?.weightKg ?? -Infinity));
+    const better = !prev || (r.seconds != null ? (r.seconds ?? 0) > (prev.seconds ?? 0) : heavier || (equal && (r.reps ?? 0) > (prev.reps ?? 0)));
     if (better) bySession.set(r.sessionId, { sessionId: r.sessionId, at: r.at, weightKg: kg, reps: r.reps, seconds: r.seconds, e1rm: bestE1rm });
     else if (prev) prev.e1rm = bestE1rm;
   }

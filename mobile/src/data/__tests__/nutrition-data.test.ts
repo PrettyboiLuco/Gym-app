@@ -201,7 +201,8 @@ describe('Tagebuch', () => {
     const b = await saveFood(db, null, { ...juice, per100: { ...juice.per100, kcal: null } });
     await logFood(db, a, 100, { kind: 'essen', meal: 'mittag' }, when());
     await logFood(db, b, 200, { kind: 'getraenk', drinkType: 'saft' }, when());
-    expect(await daySums(db, '2026-10-23', '2026-10-29')).toEqual([expect.objectContaining({ day: '2026-10-29', kcal: 250, entries: 2, unknownKcal: 1 })]);
+    // `entries` zählt nur Essen (ein Tag mit nur Getränken ist kein erfasster Tag, Prüfung 05.11.2026); kcal mit Getränk.
+    expect(await daySums(db, '2026-10-23', '2026-10-29')).toEqual([expect.objectContaining({ day: '2026-10-29', kcal: 250, entries: 1, unknownKcal: 1 })]);
   });
 });
 

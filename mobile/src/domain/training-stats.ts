@@ -104,19 +104,22 @@ export function periodStats(
       if (modeOf(exerciseId) === 'unterstuetzt') continue;
       const mine = work.filter((s) => s.exerciseId === exerciseId);
       const kg = Math.max(0, ...mine.filter((s) => (s.reps ?? 0) > 0).map((s) => s.weightKg ?? 0));
-      const reps = Math.max(0, ...mine.filter((s) => (s.weightKg ?? 0) === kg).map((s) => s.reps ?? 0));
+      // Gewichte mit Toleranz vergleichen: nach kg→lb ist 60 kg als „132,28 lb“ übernommen 60,0012 kg – kein Rekord.
+      const reps = Math.max(0, ...mine.filter((s) => sameKg(s.weightKg ?? 0, kg)).map((s) => s.reps ?? 0));
       const seconds = Math.max(0, ...mine.map((s) => s.seconds ?? 0));
       const prev = best.get(exerciseId);
+      const heavier = kg > (prev?.kg ?? 0) && !sameKg(kg, prev?.kg ?? 0);
+      const equal = sameKg(kg, prev?.kg ?? 0);
       if (prev && inRange) {
         let kind: PeriodRecord['kind'] | null = null;
         if (seconds > 0 && seconds > prev.seconds) kind = 'zeit';
-        else if (kg > 0 && kg > prev.kg) kind = 'gewicht';
-        else if (kg > 0 && kg === prev.kg && reps > prev.reps) kind = 'wiederholungen';
+        else if (kg > 0 && heavier) kind = 'gewicht';
+        else if (kg > 0 && equal && reps > prev.reps) kind = 'wiederholungen';
         if (kind) records.set(exerciseId, { exerciseId, day, kind, weightKg: kg || null, reps: reps || null, seconds: seconds || null });
       }
       best.set(exerciseId, {
-        kg: Math.max(prev?.kg ?? 0, kg),
-        reps: kg > (prev?.kg ?? 0) ? reps : kg === (prev?.kg ?? 0) ? Math.max(prev?.reps ?? 0, reps) : (prev?.reps ?? 0),
+        kg: heavier ? kg : (prev?.kg ?? 0),
+        reps: heavier ? reps : equal ? Math.max(prev?.reps ?? 0, reps) : (prev?.reps ?? 0),
         seconds: Math.max(prev?.seconds ?? 0, seconds),
       });
     }

@@ -20,25 +20,44 @@ export function t(key: string, options?: Record<string, unknown>): string {
   return i18n.t(key, options);
 }
 
+// Formatierer einmal je Sprache und Stellen anlegen: Export, Bericht und Statistik rufen das tausendfach auf.
+const numberFormats = new Map<string, Intl.NumberFormat>();
+const dayFormats = new Map<string, Intl.DateTimeFormat>();
+
 /** Zahl im Format der aktuellen Sprache, z. B. 80,5. */
 export function formatNumber(value: number, maximumFractionDigits = 1): string {
-  // Ohne Tausenderpunkt, damit angezeigte Zahlen wieder eingelesen werden können (z. B. 1000 kg).
-  return new Intl.NumberFormat(i18n.locale, { maximumFractionDigits, useGrouping: false }).format(value);
+  const key = `${i18n.locale}|${maximumFractionDigits}`;
+  let format = numberFormats.get(key);
+  if (!format) {
+    // Ohne Tausenderpunkt, damit angezeigte Zahlen wieder eingelesen werden können (z. B. 1000 kg).
+    format = new Intl.NumberFormat(i18n.locale, { maximumFractionDigits, useGrouping: false });
+    numberFormats.set(key, format);
+  }
+  return format.format(value);
+}
+
+/** Datumsformat (immer UTC, weil `day` ein Kalendertag ist) aus dem Zwischenspeicher. */
+function dayFormat(kind: 'short' | 'full'): Intl.DateTimeFormat {
+  const key = `${i18n.locale}|${kind}`;
+  let format = dayFormats.get(key);
+  if (!format) {
+    format =
+      kind === 'short'
+        ? new Intl.DateTimeFormat(i18n.locale, { day: 'numeric', month: 'short', timeZone: 'UTC' })
+        : new Intl.DateTimeFormat(i18n.locale, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+    dayFormats.set(key, format);
+  }
+  return format;
 }
 
 /** Datum (YYYY-MM-DD) im Format der aktuellen Sprache, z. B. 29.10.2026. */
 /** Kurzes Datum für Diagramm-Achsen, z. B. „8. Okt.“. */
 export function formatDayShort(day: string): string {
-  return new Intl.DateTimeFormat(i18n.locale, { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${day}T00:00:00Z`));
+  return dayFormat('short').format(new Date(`${day}T00:00:00Z`));
 }
 
 export function formatDay(day: string): string {
-  return new Intl.DateTimeFormat(i18n.locale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(`${day}T00:00:00Z`));
+  return dayFormat('full').format(new Date(`${day}T00:00:00Z`));
 }
 
 /** Langes Datum für Überschriften, z. B. Donnerstag, 29. Oktober. */

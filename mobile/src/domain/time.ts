@@ -3,14 +3,17 @@
 /** Zeitzone des Geräts (IANA, z. B. „Europe/Berlin“). */
 export const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+/** Ein Formatierer je Zeitzone: ihn bei jedem Aufruf neu anzulegen kostete bei Tausenden Sätzen (Statistik) Sekunden. */
+const dayFormats = new Map<string, Intl.DateTimeFormat>();
+
 /** Lokales Kalenderdatum (YYYY-MM-DD) eines Zeitpunkts in einer IANA-Zeitzone. */
 export function localDay(at: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(at);
+  let format = dayFormats.get(timeZone);
+  if (!format) {
+    format = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+    dayFormats.set(timeZone, format);
+  }
+  return format.format(at);
 }
 
 /** Heutiges Kalenderdatum in der Zeitzone des Geräts. */

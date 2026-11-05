@@ -3,7 +3,7 @@
 
 import { bpAverage } from '@/domain/blood-pressure';
 import { daysBetween } from '@/domain/dates';
-import { estimateOneRepMax, loadModeOf, setVolume } from '@/domain/logger';
+import { estimateOneRepMax, loadModeOf, sameKg, setVolume } from '@/domain/logger';
 import { mean } from '@/domain/math';
 import { localDay, timeZone } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
@@ -86,8 +86,10 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     const reps = r.reps ?? 0;
     // Gegengewicht: bester Satz ist der mit der wenigsten Unterstützung (mit mindestens einer Wiederholung).
     const assisted = modeOf(r.exerciseId) === 'unterstuetzt';
-    const better = assisted ? reps > 0 && (!e.hasBest || kg < e.bestKg) : kg > e.bestKg;
-    if (better || ((e.hasBest || !assisted) && kg === e.bestKg && reps > e.bestReps)) {
+    // Gewichte mit Toleranz (sameKg), damit aus lb übernommene Werte (60,0012 kg) keine eigene Bestleistung sind.
+    const equal = sameKg(kg, e.bestKg);
+    const better = assisted ? reps > 0 && (!e.hasBest || (kg < e.bestKg && !equal)) : kg > e.bestKg && !equal;
+    if (better || ((e.hasBest || !assisted) && equal && reps > e.bestReps)) {
       e.bestKg = kg;
       e.bestReps = reps;
       e.hasBest = true;
@@ -116,12 +118,18 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
     top,
   };
 
-  // Ernährung: nur vollständig erfasste Tage (alle kcal bekannt, nicht als unvollständig markiert); leere Tage zählen nicht.
+  // Ernährung: nur vollständig erfasste Tage (alle kcal bekannt, nicht als unvollständig markiert); leere Tage und Tage
+  // mit nur Getränken zählen nicht.
+  // Makros je Tag nur, wenn alle Einträge des Tages den Wert haben – fehlende Werte sind nicht 0 (TRACK-002).
   const food = await db.getAllAsync<{ day: string; kcal: number | null; protein: number | null; carbs: number | null; fat: number | null }>(
-    `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal, SUM(e.protein) AS protein, SUM(e.carbs) AS carbs, SUM(e.fat) AS fat
+    `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal,
+       CASE WHEN SUM(CASE WHEN e.protein IS NULL THEN 1 ELSE 0 END) = 0 THEN SUM(e.protein) END AS protein,
+       CASE WHEN SUM(CASE WHEN e.carbs IS NULL THEN 1 ELSE 0 END) = 0 THEN SUM(e.carbs) END AS carbs,
+       CASE WHEN SUM(CASE WHEN e.fat IS NULL THEN 1 ELSE 0 END) = 0 THEN SUM(e.fat) END AS fat
      FROM consumption_event e LEFT JOIN diary_day d ON d.day = e.diary_date
      WHERE e.diary_date BETWEEN ? AND ? GROUP BY e.diary_date
-     HAVING SUM(CASE WHEN e.kcal IS NULL THEN 1 ELSE 0 END) = 0 AND COALESCE(MAX(d.incomplete), 0) = 0`,
+     HAVING SUM(CASE WHEN e.kcal IS NULL THEN 1 ELSE 0 END) = 0 AND COALESCE(MAX(d.incomplete), 0) = 0
+       AND SUM(CASE WHEN e.kind = 'essen' THEN 1 ELSE 0 END) > 0`,
     from,
     to
   );
@@ -133,9 +141,10 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
       ? {
           days: food.length,
           kcal: mean(food.map((f) => f.kcal ?? 0)),
-          protein: mean(food.map((f) => f.protein ?? 0)),
-          carbs: mean(food.map((f) => f.carbs ?? 0)),
-          fat: mean(food.map((f) => f.fat ?? 0)),
+          // Schnitt nur über Tage mit bekanntem Wert; ohne solche Tage „–“ statt 0.
+          protein: mean(food.map((f) => f.protein).filter((v): v is number => v !== null)),
+          carbs: mean(food.map((f) => f.carbs).filter((v): v is number => v !== null)),
+          fat: mean(food.map((f) => f.fat).filter((v): v is number => v !== null)),
           goalKcal: goal?.baseKcal ?? null,
         }
       : null;

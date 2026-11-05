@@ -17,7 +17,7 @@ import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { loadSpared } from '@/data/readiness';
 import { listExercises, type Exercise } from '@/data/training';
-import { loadExerciseTrends, loadPeriodComparison } from '@/data/training-stats';
+import { loadStatsOverview } from '@/data/training-stats';
 import { loadMapPrefs, loadWeekTally, saveMapPrefs, type MapPrefs } from '@/data/training-week';
 import { daysBetween, shiftDay, weekStart } from '@/domain/dates';
 import { EMPTY_TALLY, type MuscleTally } from '@/domain/muscle-map';
@@ -68,15 +68,14 @@ async function load(db: Db, kind: Kind, offset: number, weekOffset: number) {
   const p = period(kind, offset, today);
   const before = previousSpan(kind, offset, today);
   const weekDay = shiftDay(today, -7 * weekOffset);
-  const [stats, exercises, tally, prefs, spared, trends] = await Promise.all([
-    loadPeriodComparison(db, p, before),
+  const [stats, exercises, tally, prefs, spared] = await Promise.all([
+    loadStatsOverview(db, p, before, today),
     listExercises(db),
     loadWeekTally(db, weekDay),
     loadMapPrefs(db),
     loadSpared(db, today),
-    loadExerciseTrends(db, today),
   ]);
-  return { period: p, soFar: before.soFar, stats: stats.current, previous: stats.previous, exercises, tally, prefs, spared, trends };
+  return { period: p, soFar: before.soFar, stats: stats.current, previous: stats.previous, exercises, tally, prefs, spared, trends: stats.trends };
 }
 
 /** Vorzeichen ohne Wertung: „+2“, „−3“, „±0“. */

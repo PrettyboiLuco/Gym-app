@@ -83,6 +83,8 @@ export function totalOf(items: Nutrients[]): Nutrients {
 
 /** Obergrenze einer Menge (g/ml) im Tagebuch und in Rezepten. */
 export const AMOUNT_MAX = 5000;
+/** Obergrenze für Zutaten und Endgewicht eines Rezepts: großes Kochen (6-kg-Topf Chili) muss gehen. */
+export const RECIPE_AMOUNT_MAX = 20_000;
 /** Obergrenze des Packungsinhalts: Großpackungen (10-kg-Sack) sollen speicherbar sein. */
 export const PACKAGE_MAX = 100_000;
 
@@ -97,14 +99,29 @@ export function parseAmount(input: string, max = AMOUNT_MAX): number | null {
   return value > 0 && value <= max ? value : null;
 }
 
-/** Nährwert pro 100 (leer = unbekannt). Ungültige Eingabe ergibt 'invalid'. */
-export function parseNutrient(input: string): number | null | 'invalid' {
+/**
+ * Nährwert pro 100 (leer = unbekannt). Ungültige Eingabe ergibt 'invalid'. `max` ist die Obergrenze – pro 100 g/ml
+ * 1000; der Schnelleintrag (ganze Mahlzeit) erlaubt bis 10 000 kcal.
+ */
+export function parseNutrient(input: string, max = 1000): number | null | 'invalid' {
   const text = input.trim().replace(',', '.');
   if (text === '') return null;
   // Bis 3 Nachkommastellen: Open Food Facts liefert z. B. Salz 0,076 g (Phase 1 Scan, F4).
-  if (!/^\d{1,4}(\.\d{1,3})?$/.test(text)) return 'invalid';
+  if (!/^\d{1,5}(\.\d{1,3})?$/.test(text)) return 'invalid';
   const value = Number(text);
-  return value <= 1000 ? value : 'invalid';
+  return value <= max ? value : 'invalid';
+}
+
+/** Obergrenze im Schnelleintrag: eine ganze Mahlzeit, z. B. Restaurant-Pizza mit 1200 kcal. */
+export const QUICK_KCAL_MAX = 10_000;
+
+/**
+ * kcal einer ganzen Mahlzeit (Schnelleintrag). „1.200“ ist hier der deutsche Tausenderpunkt, nicht 1,2 kcal – bei kcal
+ * gibt es keine drei Nachkommastellen.
+ */
+export function parseMealKcal(input: string): number | null | 'invalid' {
+  const text = input.trim();
+  return parseNutrient(/^\d{1,2}\.\d{3}$/.test(text) ? text.replace('.', '') : text, QUICK_KCAL_MAX);
 }
 
 /**
@@ -396,7 +413,7 @@ export function foodToForm(food: FoodDraft): FoodForm {
 export function parseFoodForm(form: FoodForm): { draft: FoodDraft | null; problems: FoodProblem[] } {
   const problems: FoodProblem[] = [];
   if (!form.name.trim()) problems.push('name');
-  const values = [form.kcal, form.protein, form.carbs, form.fat, form.fiber, form.sugar ?? '', form.satFat ?? '', form.salt ?? ''].map(parseNutrient);
+  const values = [form.kcal, form.protein, form.carbs, form.fat, form.fiber, form.sugar ?? '', form.satFat ?? '', form.salt ?? ''].map((v) => parseNutrient(v));
   if (values.includes('invalid')) problems.push('nutrient');
   const serving = form.serving.trim() === '' ? null : parseAmount(form.serving);
   if (form.serving.trim() !== '' && serving === null) problems.push('serving');
@@ -442,9 +459,9 @@ export function parseRecipeForm(form: RecipeForm) {
   const problems: RecipeProblem[] = [];
   if (!form.name.trim()) problems.push('name');
   if (form.ingredients.length === 0) problems.push('ingredients');
-  const amounts = form.ingredients.map((i) => parseAmount(i.amount));
+  const amounts = form.ingredients.map((i) => parseAmount(i.amount, RECIPE_AMOUNT_MAX));
   if (amounts.includes(null)) problems.push('amount');
-  const endWeight = form.endWeight.trim() === '' ? null : parseAmount(form.endWeight);
+  const endWeight = form.endWeight.trim() === '' ? null : parseAmount(form.endWeight, RECIPE_AMOUNT_MAX);
   if (form.endWeight.trim() !== '' && endWeight === null) problems.push('endWeight');
   const portionsText = form.portions.trim();
   const portions = portionsText === '' ? null : /^\d{1,3}$/.test(portionsText) ? Number(portionsText) : NaN;

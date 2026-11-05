@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { archiveRecipe, getFood, loadRecipeDraft, per100, saveRecipe, searchFoods, type Food } from '@/data/nutrition';
-import { nutrientsForAmount, parseAmount, parseRecipeForm, totalOf, type RecipeForm, type RecipeProblem } from '@/domain/nutrition';
+import { nutrientsForAmount, parseAmount, parseRecipeForm, RECIPE_AMOUNT_MAX, totalOf, type RecipeForm, type RecipeProblem } from '@/domain/nutrition';
 import { foodTitle } from '@/format/food-title';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
@@ -65,7 +65,7 @@ export default function RecipeEditorScreen() {
   // Vorschau der Gesamtwerte; unbekannte Zutatenwerte machen die Summe unbekannt.
   const parts = form.ingredients.flatMap((i) => {
     const food = foods[i.foodId];
-    const amount = parseAmount(i.amount);
+    const amount = parseAmount(i.amount, RECIPE_AMOUNT_MAX);
     return food && amount !== null ? [nutrientsForAmount(per100(food), amount, food.basis, food.basis)] : [];
   });
   const total = totalOf(parts);

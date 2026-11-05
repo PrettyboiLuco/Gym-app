@@ -1620,7 +1620,7 @@ export const de = {
       problems: {
         name: 'Bitte einen Namen eingeben.',
         ingredients: 'Mindestens eine Zutat.',
-        amount: 'Jede Zutat braucht eine Menge zwischen 0 und 5000.',
+        amount: 'Jede Zutat braucht eine Menge zwischen 0 und 20000.',
         endWeight: 'Endgewicht: Zahl größer als 0 oder leer lassen.',
         portions: 'Portionen: ganze Zahl von 1 bis 100 oder leer lassen.',
         needOne: 'Endgewicht oder Portionen angeben.',

@@ -78,8 +78,24 @@ const FILLER = new Set([
   'habe',
 ]);
 
+/**
+ * Deutscher Tausenderpunkt („1.000 ml Milch“, „1.250g“) wie beim Rezept-Import: nur bei g/ml oder ohne Einheit – „1.5 l“
+ * bleibt 1,5 l und „1.250 kg“ 1,25 kg. Danach gilt das Komma als Dezimalzeichen.
+ */
+function ungroup(words: string[]): string[] {
+  return words.map((word, i) => {
+    const glued = /^(\d{1,3}(?:\.\d{3})+)([a-z]+)$/.exec(word);
+    const plain = /^\d{1,3}(?:\.\d{3})+$/.test(word);
+    if (!glued && !plain) return word;
+    const unitWord = glued ? glued[2] : words[i + 1];
+    const unit = unitWord ? UNIT_WORDS.find(([re]) => re.test(unitWord)) : undefined;
+    const grouping = unit ? (unit[1] === 'g' || unit[1] === 'ml') && unit[2] === 1 : !glued;
+    return grouping ? word.replace(/\./g, '') : word;
+  });
+}
+
 function parsePart(raw: string): FoodTextItem | null {
-  const words = normalize(raw).replace(/,/g, '.').split(' ').filter(Boolean);
+  const words = ungroup(normalize(raw).split(' ').filter(Boolean)).map((w) => w.replace(/,/g, '.'));
   let amount: number | null = null;
   let unit: TextUnit | null = null;
   const rest: string[] = [];

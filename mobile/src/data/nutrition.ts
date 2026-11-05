@@ -713,7 +713,11 @@ export async function rememberDrink(db: Db, id: string) {
   await writeState(db, 'recent_drinks', pushRecent(await loadRecentDrinks(db), id));
 }
 
-/** Summen pro Tag für die Wochenansicht. */
+/**
+ * Summen pro Tag für Wochenansicht, Wochenbudget, Verbrauch, Check-in und Einblicke. `entries` zählt nur Essen: Ein Tag
+ * mit nur Wasser oder Kaffee ist kein erfasster Tag (sonst zählte er als vollständiger Tag mit fast 0 kcal und drückte
+ * Schnitt, Verbrauch und Übertrag). Die kcal der Getränke zählen trotzdem zur Tagessumme.
+ */
 export function daySums(db: Db, fromDate: string, toDate: string) {
   return db.getAllAsync<{
     day: string;
@@ -724,7 +728,7 @@ export function daySums(db: Db, fromDate: string, toDate: string) {
     fiber: number | null;
     flagged: number;
   }>(
-    `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal, COUNT(*) AS entries, SUM(e.protein) AS protein, SUM(e.fiber) AS fiber,
+    `SELECT e.diary_date AS day, SUM(e.kcal) AS kcal, SUM(CASE WHEN e.kind = 'essen' THEN 1 ELSE 0 END) AS entries, SUM(e.protein) AS protein, SUM(e.fiber) AS fiber,
        SUM(CASE WHEN e.kcal IS NULL THEN 1 ELSE 0 END) AS unknownKcal, COALESCE(MAX(d.incomplete), 0) AS flagged
      FROM consumption_event e LEFT JOIN diary_day d ON d.day = e.diary_date
      WHERE e.diary_date BETWEEN ? AND ? GROUP BY e.diary_date`,

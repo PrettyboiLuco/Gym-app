@@ -86,6 +86,21 @@ export async function loadPeriodComparison(
   };
 }
 
+/** Statistik-Seite: Zeitraum, Vergleichszeitraum und Verlauf aus einmal gelesenen Sätzen (vorher zweimal alle Sätze). */
+export async function loadStatsOverview(
+  db: Db,
+  current: { from: string; to: string },
+  previous: { from: string; to: string },
+  today: string
+): Promise<{ current: PeriodStats; previous: PeriodStats; trends: ExerciseTrend[] }> {
+  const [sets, cardio, modeOf] = await Promise.all([allSets(db), listCardio(db), modeLookup(db)]);
+  return {
+    current: periodStats(sets, cardio, current.from, current.to, modeOf),
+    previous: periodStats(sets, cardio, previous.from, previous.to, modeOf),
+    trends: exerciseTrends(sets, today, modeOf),
+  };
+}
+
 /** „Bestleistungen & Verlauf“: häufigste Übungen der letzten 8 Wochen mit Wochenwerten und letzter Bestleistung. */
 export async function loadExerciseTrends(db: Db, today: string): Promise<ExerciseTrend[]> {
   const [sets, modeOf] = await Promise.all([allSets(db), modeLookup(db)]);
