@@ -28,3 +28,45 @@ export function remainingMs(endAtMs: number, nowMs: number): number {
 
 /** Jetzt in Millisekunden – nur in Event-Handlern aufrufen, nicht beim Rendern (Timer, Startzeiten). */
 export const nowMs = () => Date.now();
+
+/** Ein Formatierer je Zeitzone für Datum und Uhrzeit (Rückrechnung Ortszeit → UTC). */
+const partFormats = new Map<string, Intl.DateTimeFormat>();
+
+/** Versatz der Zeitzone zu UTC in Minuten zu einem Zeitpunkt (Berlin im Winter: 60). */
+function offsetMinutes(atMs: number, timeZone: string): number {
+  let format = partFormats.get(timeZone);
+  if (!format) {
+    format = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    partFormats.set(timeZone, format);
+  }
+  const p = Object.fromEntries(format.formatToParts(new Date(atMs)).map((x) => [x.type, x.value]));
+  const asUtc = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), Number(p.hour) % 24, Number(p.minute));
+  return Math.round((asUtc - Math.floor(atMs / 60_000) * 60_000) / 60_000);
+}
+
+/**
+ * Ortszeit (Kalendertag + Minuten seit Mitternacht) in einer Zeitzone als UTC-Zeitpunkt, z. B. für ein nachgetragenes
+ * Training. Bei der Zeitumstellung gilt: Eine übersprungene Uhrzeit (2:30 im März) rückt eine Stunde vor, eine doppelte
+ * (2:30 im Oktober) ist die zweite (nach der Umstellung).
+ */
+export function zonedTime(day: string, minutes: number, timeZone: string): Date {
+  const [y, m, d] = day.split('-').map(Number);
+  const naive = Date.UTC(y, m - 1, d, Math.floor(minutes / 60), minutes % 60);
+  const first = naive - offsetMinutes(naive, timeZone) * 60_000;
+  return new Date(naive - offsetMinutes(first, timeZone) * 60_000);
+}
+
+/** Minuten seit Mitternacht eines Zeitpunkts in einer Zeitzone (Gegenstück zu `zonedTime`). */
+export function localMinutes(at: Date, timeZone: string): number {
+  const ms = at.getTime();
+  const local = ms + offsetMinutes(ms, timeZone) * 60_000;
+  return Math.floor((((local / 60_000) % 1440) + 1440) % 1440);
+}

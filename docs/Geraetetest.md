@@ -207,3 +207,12 @@ Ansagen verständlich sind, kann nur der Test am Gerät zeigen.
 | VO8 | Muskelkarte | Karte selbst still, Liste darunter mit Sätzen je Muskel | Expo Go |
 | VO9 | Check-in mit Vorschlag annehmen | Vorschlag vollständig vorgelesen, Knöpfe beschriftet | Expo Go |
 | VO10 | Große Schrift (Einstellungen → Anzeige & Textgröße) auf Maximum, Hauptseiten ansehen | Nichts abgeschnitten oder überlappend | Expo Go |
+
+## Training bearbeiten und nachtragen (05.11.2026)
+
+| # | Ablauf | Erwartet | Wo |
+|---|---|---|---|
+| W1 | Training → Verlauf → „Training nachtragen“ → Plantag wählen, gestern 18:00, 60 min, Sätze ausfüllen, speichern | Training erscheint im Verlauf am richtigen Tag; leere Sätze fehlen; „nächster Plantag“ rückt weiter | Expo Go |
+| W2 | Beendetes Training öffnen → „Training bearbeiten“ → Gewicht ändern, Satz entfernen, Satz hinzufügen, speichern | Werte stimmen, Statistik und Bestleistungen rechnen mit den neuen Werten | Expo Go |
+| W3 | „Training bearbeiten“ → „Training löschen“ → „Wirklich löschen“ | Training samt Cardio darin weg, Verlauf öffnet sich, keine Fehlermeldung | Expo Go |
+| W4 | Während ein Training läuft, ein anderes nachtragen | Laufendes Training läuft unverändert weiter (Mini-Player, Pause) | Expo Go |

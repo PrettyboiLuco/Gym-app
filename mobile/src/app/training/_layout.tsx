@@ -30,6 +30,7 @@ export default function TrainingLayout() {
       <Stack.Screen name="routine/[id]" options={{ title: t('routine.titleEdit') }} />
       <Stack.Screen name="run" options={{ title: t('run.title') }} />
       <Stack.Screen name="timed/[id]" options={{ title: t('history.detailTitle') }} />
+      <Stack.Screen name="edit/[id]" options={{ title: t('workoutEdit.titleEdit') }} />
     </Stack>
   );
 }

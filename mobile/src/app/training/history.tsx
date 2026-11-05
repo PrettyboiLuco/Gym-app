@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 
-import { Card } from '@/components/card';
+import { Button, Card } from '@/components/card';
 import { cardioName, cardioSummary } from '@/components/cardio-row';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -37,6 +37,8 @@ export default function HistoryScreen() {
 
   return (
     <Screen withHeader>
+      {/* Vergessenes Training (Prüfung 05.11.2026): mit Datum und Sätzen nachtragen. */}
+      <Button label={t('history.backfill')} variant="secondary" onPress={() => router.push({ pathname: '/training/edit/[id]', params: { id: 'neu' } })} />
       <Card>
         {rows.length === 0 ? <ThemedText themeColor="textSecondary">{t('history.empty')}</ThemedText> : null}
         {rows.map((row) =>

@@ -693,10 +693,19 @@ export default function SessionScreen() {
         </Card>
       ) : null}
       {!active ? (
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('session.readOnly')}
-          {session.status !== 'abgeschlossen' ? ` (${t(`history.status.${session.status}`)})` : ''}
-        </ThemedText>
+        <>
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('session.readOnly')}
+            {session.status !== 'abgeschlossen' ? ` (${t(`history.status.${session.status}`)})` : ''}
+          </ThemedText>
+          {/* Beendetes Training korrigieren oder löschen (Prüfung 05.11.2026). */}
+          <Button
+            label={t('workoutEdit.edit')}
+            variant="secondary"
+            size="compact"
+            onPress={() => router.push({ pathname: '/training/edit/[id]', params: { id } })}
+          />
+        </>
       ) : null}
       {showWarmup ? (
         <Card title={t('session.warmupTitle')}>
