@@ -18,6 +18,7 @@ import { Spacing } from '@/constants/theme';
 import { listCardio, listOpenCardio, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
 import { loadProfile } from '@/data/profile';
+import { statusToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
 import {
   expireTemporaryPlans,
@@ -77,7 +78,10 @@ async function loadOverview(db: Db) {
   }
   // Wiedereinstieg nach längerer Pause (TRAIN-015); Zeitpunkt beim Laden, nicht beim Rendern.
   const pauseDays = finished ? daysSince(finished, Date.now()) : 0;
+  // Status krank/verletzt/Pause (A6.7): Wochenziel pausiert wie auf „Heute“ (Browser-Prüfung X7).
+  const statusPaused = (await statusToday(db, todayDay())) !== null;
   return {
+    statusPaused,
     active,
     plans,
     suggestions,
@@ -107,6 +111,7 @@ export default function TrainingScreen() {
     timed: null as TimedRun | null,
     expired: [] as string[],
     pauseDays: 0,
+    statusPaused: false,
     week: { done: [], planned: [], goal: null, todayIndex: 0, doneSets: [], plannedSets: [] } as TrainingWeek,
     hasFinished: false,
     muscles: [] as { group: MuscleGroup; sets: number }[],
@@ -134,7 +139,11 @@ export default function TrainingScreen() {
   const restDay = data.planToday?.today.kind === 'rest';
   const days = weekDays(week);
   const doneDays = week.done.filter(Boolean).length;
-  const weekSummary = week.goal ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal }) : t('today.weekSummary', { count: doneDays });
+  const weekSummary = data.statusPaused
+    ? t('today.weekSummaryPaused', { count: doneDays })
+    : week.goal
+      ? t('today.weekSummaryGoal', { count: doneDays, goal: week.goal })
+      : t('today.weekSummary', { count: doneDays });
   const hero = timed
     ? { label: t('today.heroRunning'), title: timed.title, meta: null, action: t('training.timedContinue'), go: () => router.push('/training/run') }
     : active
@@ -235,7 +244,7 @@ export default function TrainingScreen() {
         title={t('training.weekTitle')}
         trailing={<Button label={t('training.statsShort')} variant="quiet" size="compact" onPress={() => router.push('/training/stats')} />}>
         <View style={styles.stats}>
-          <StatTile label={t('training.statDays')} value={week.goal ? `${doneDays}/${week.goal}` : String(doneDays)} />
+          <StatTile label={t('training.statDays')} value={week.goal && !data.statusPaused ? `${doneDays}/${week.goal}` : String(doneDays)} />
           <StatTile label={t('training.statCardio')} value={formatNumber(data.cardioMinutes, 0)} unit="min" />
           <StatTile label={t('training.statMuscles')} value={String(muscles.length)} />
         </View>

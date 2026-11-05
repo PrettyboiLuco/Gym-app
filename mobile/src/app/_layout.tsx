@@ -1,7 +1,7 @@
 import { Manrope_600SemiBold, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AppState, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -49,10 +49,19 @@ function AlertsSync() {
 
 /** Beim ersten Start kommt der Erststart-Ablauf, danach die App (Register UX-010). */
 function Gate() {
+  const db = useDb();
   const { loaded, onboardingDone } = useProfile();
   // Überschrift-Schrift (Manrope) abwarten; schlägt das Laden fehl, geht es mit der Systemschrift weiter.
   const [fontsLoaded, fontError] = useFonts({ Manrope_600SemiBold, Manrope_700Bold });
-  if (!loaded || (!fontsLoaded && !fontError)) return null;
+  // Tagesende einmal laden, bevor ein Bildschirm „heute“ bestimmt: sonst zeigte Ernährung beim Kaltstart (Neuladen,
+  // Öffnen aus einer Erinnerung) um 1 Uhr bei Tagesende 4 Uhr den Kalendertag statt den Vortag (Browser-Prüfung S7).
+  const [dayEndReady, setDayEndReady] = useState(false);
+  useEffect(() => {
+    loadNutritionSettings(db)
+      .catch(() => undefined)
+      .then(() => setDayEndReady(true));
+  }, [db]);
+  if (!loaded || !dayEndReady || (!fontsLoaded && !fontError)) return null;
   return onboardingDone ? (
     <>
       <AlertsSync />

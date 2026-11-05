@@ -66,10 +66,13 @@ export default function WeekScreen() {
       {!data.hide && range === '7' && stats.trackedDays > 0 ? (
         <Card>
           <DayBars
-            label={data.rows.map((r) => `${formatDay(r.day)}: ${r.kcal === null ? t('nutrition.week.emptyDay') : formatKcal(r.kcal)}`).join(', ')}
+            label={data.rows
+              .map((r) => `${formatDay(r.day)}: ${r.kcal === null || r.entries === 0 ? t('nutrition.week.emptyDay') : formatKcal(r.kcal)}`)
+              .join(', ')}
+            // Tag mit nur Getränken gilt als leer (wie in Schnitt und Liste): kein Balken aus den kcal des Kaffees.
             days={[...data.rows].reverse().map((r) => ({
               label: t(`reminders.dayShort.${isoWeekday(r.day)}` as 'reminders.dayShort.1'),
-              value: r.kcal,
+              value: r.entries === 0 ? null : r.kcal,
               today: r.day === endDay,
             }))}
             format={(v) => formatNumber(v, 0)}
