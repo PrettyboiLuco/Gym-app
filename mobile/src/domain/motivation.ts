@@ -53,6 +53,27 @@ export function milestones(input: MotivationInput): Milestone[] {
   return out.sort((a, b) => a.day.localeCompare(b.day) || MILESTONES.indexOf(a.id) - MILESTONES.indexOf(b.id));
 }
 
+export type MilestoneStats = { trainings: number; sets: number; bestKg: number; weekRun: number };
+
+/** Kennzahlen für „Bisher“ und den Fortschritt zum nächsten Meilenstein (gleiche Zählweise wie `milestones`). */
+export function milestoneStats(input: MotivationInput): MilestoneStats {
+  let run = 0;
+  for (const w of input.weeks) {
+    if (w.status === 'pausiert' || w.status === 'laeuft') continue;
+    run = w.status === 'geschafft' ? run + 1 : 0;
+  }
+  const best = input.sets.reduce((max, s) => (s.normal && (s.reps ?? 0) >= 1 ? Math.max(max, s.weightKg ?? 0) : max), 0);
+  return { trainings: input.sessionDays.length, sets: input.sets.length, bestKg: best, weekRun: run };
+}
+
+/** Wie weit bis zu einem Meilenstein? `current` ist nie größer als `target`. */
+export function milestoneProgress(id: MilestoneId, stats: MilestoneStats): { current: number; target: number } {
+  const [kind, raw] = id.split('_');
+  const target = Number(raw);
+  const value = kind === 'training' ? stats.trainings : kind === 'saetze' ? stats.sets : kind === 'kg' ? stats.bestKg : stats.weekRun;
+  return { current: Math.min(value, target), target };
+}
+
 // ---------------------------------------------------------------------------- Wochenbilanz
 
 export type WeekStatus = 'geschafft' | 'offen' | 'pausiert' | 'laeuft';

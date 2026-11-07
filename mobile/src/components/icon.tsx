@@ -50,7 +50,8 @@ export type IconName =
   | 'more'
   | 'week'
   | 'planner'
-  | 'recipe';
+  | 'recipe'
+  | 'share';
 
 export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: IconName; color: string; size?: number; strokeWidth?: number }) {
   const p = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -189,6 +190,7 @@ export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: Icon
         <Path d="M12 11v5.5M12 7.6v.4" {...p} />
       </>
     ),
+    share: <Path d="M12 3v12M8 7l4-4 4 4M7 11H6a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1" {...p} />,
     star: <Path d="m12 4 2.4 5 5.4.6-4 3.7 1.1 5.4L12 16l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z" {...p} />,
     more: (
       <>

@@ -5,7 +5,7 @@ import { describe, expect, test } from '@jest/globals';
 import { formatHeight, formatVolume } from '@/i18n';
 
 import { bpAverage, parseBloodPressure } from '../blood-pressure';
-import { balance, milestones, newMilestones, weekResults } from '../motivation';
+import { balance, milestoneProgress, milestones, milestoneStats, newMilestones, weekResults } from '../motivation';
 import { feetInches, mlToUnit } from '../units';
 
 const day = (i: number) => new Date(Date.parse('2026-09-07T12:00:00Z') + i * 86_400_000).toISOString().slice(0, 10); // Montag
@@ -65,5 +65,28 @@ describe('Einheiten', () => {
     expect(feetInches(180)).toEqual({ feet: 5, inches: 11 });
     expect(formatHeight(180, 'in')).toBe('5′ 11″');
     expect(formatHeight(180, 'cm')).toBe('180 cm');
+  });
+});
+
+describe('Fortschritt zum nächsten Meilenstein', () => {
+  const week = (start: string, status: 'geschafft' | 'offen' | 'pausiert' | 'laeuft') => ({ start, end: start, trained: 0, goal: 3, status });
+  const stats = milestoneStats({
+    sessionDays: Array.from({ length: 12 }, () => '2026-11-01'),
+    sets: [
+      { day: '2026-11-01', exerciseId: 'a', weightKg: 80, reps: 8, normal: true },
+      { day: '2026-11-01', exerciseId: 'b', weightKg: 120, reps: 8, normal: false },
+      { day: '2026-11-01', exerciseId: 'c', weightKg: 95, reps: 0, normal: true },
+    ],
+    weeks: [week('a', 'geschafft'), week('b', 'offen'), week('c', 'geschafft'), week('d', 'pausiert'), week('e', 'geschafft'), week('f', 'laeuft')],
+  });
+  test('Kennzahlen: Gegengewicht und Sätze ohne Wiederholung zählen nicht als Bestwert; Pause und laufende Woche unterbrechen nicht', () => {
+    expect(stats).toEqual({ trainings: 12, sets: 3, bestKg: 80, weekRun: 2 });
+  });
+  test('Fortschritt je Art, nie über dem Ziel', () => {
+    expect(milestoneProgress('training_50', stats)).toEqual({ current: 12, target: 50 });
+    expect(milestoneProgress('training_10', stats)).toEqual({ current: 10, target: 10 });
+    expect(milestoneProgress('kg_100', stats)).toEqual({ current: 80, target: 100 });
+    expect(milestoneProgress('planwochen_4', stats)).toEqual({ current: 2, target: 4 });
+    expect(milestoneProgress('saetze_1000', stats)).toEqual({ current: 3, target: 1000 });
   });
 });

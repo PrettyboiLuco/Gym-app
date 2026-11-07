@@ -2,7 +2,7 @@
 
 import { shiftDay } from '@/domain/dates';
 import { loadModeOf } from '@/domain/logger';
-import { balance, milestones, newMilestones, weekResults, type Balance, type Milestone, type WeekResult } from '@/domain/motivation';
+import { balance, milestones, milestoneStats, newMilestones, weekResults, type Balance, type Milestone, type MilestoneStats, type WeekResult } from '@/domain/motivation';
 import { statusOn } from '@/domain/readiness';
 import { localDay, timeZone } from '@/domain/time';
 
@@ -16,6 +16,7 @@ import { allSets, loadPreferredWeekdays } from './training-stats';
 
 export type Motivation = {
   milestones: Milestone[];
+  stats: MilestoneStats;
   fresh: Milestone[];
   weeks: WeekResult[];
   goal: number | null;
@@ -57,7 +58,7 @@ export async function loadMotivation(db: Db, today: string): Promise<Motivation>
   const sessionDays = sessions.map((s) => localDay(new Date(s.at), timeZone));
   const trainingDays = [...new Set([...sessionDays, ...cardio.map((c) => c.day)])];
   const weeks = goal ? weekResults(trainingDays, goal, today, (d) => statusOn(periods, d) !== null) : [];
-  const all = milestones({
+  const input = {
     sessionDays,
     sets: sets
       .filter((s) => s.setType !== 'aufwaermen')
@@ -66,11 +67,13 @@ export async function loadMotivation(db: Db, today: string): Promise<Motivation>
         return { day: s.day, exerciseId: s.exerciseId, weightKg: s.weightKg, reps: s.reps, normal: e ? loadModeOf(e) === 'normal' : true };
       }),
     weeks,
-  });
+  };
+  const all = milestones(input);
   const monthStart = `${today.slice(0, 7)}-01`;
   const four = shiftDay(today, -27);
   return {
     milestones: all,
+    stats: milestoneStats(input),
     fresh: newMilestones(all, seen),
     weeks,
     goal,
