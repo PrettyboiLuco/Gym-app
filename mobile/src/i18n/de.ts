@@ -1741,6 +1741,7 @@ export const de = {
   progress: {
     title: 'Fortschritt',
     weightTitle: 'Körpergewicht',
+    weightAdd: 'Gewicht',
     weightLabel: 'Gewicht in {{unit}}',
     weightPlaceholder: 'z. B. 80,5',
     weightInvalid: 'Bitte ein Gewicht zwischen {{min}} und {{max}} eingeben.',

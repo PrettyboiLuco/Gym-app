@@ -1,6 +1,5 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
@@ -10,11 +9,11 @@ import { Icon } from '@/components/icon';
 import { InsightInfo } from '@/components/insight-info';
 import { useDataColor } from '@/components/insight-tile';
 import { Screen } from '@/components/screen';
+import { Sheet, SheetRow } from '@/components/sheet';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { WeightOverview } from '@/components/weight-overview';
-import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { calorieGoalOn, listActiveGoals, listMeasurements, type CalorieGoal, type GoalVersion } from '@/data/goals';
 import { listPhotos } from '@/data/photos';
@@ -81,6 +80,7 @@ export default function ProgressScreen() {
   const [day, setDay] = useState(todayDay);
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
+  const [entryOpen, setEntryOpen] = useState(false);
   // Läuft gerade ein Speichern? Verhindert doppelte Einträge, wenn „Fertig“ und „Speichern“ kurz nacheinander kommen.
   const saving = useRef(false);
   const [showAll, setShowAll] = useState(false);
@@ -102,6 +102,7 @@ export default function ProgressScreen() {
     try {
       await addWeight(db, day, kg);
       setInput('');
+      setEntryOpen(false);
       showToast(t('common.saved'));
       await reload();
     } finally {
@@ -132,10 +133,34 @@ export default function ProgressScreen() {
   }
   return (
     <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined}>
-      {/* Leitfrage „Bewege ich mich Richtung Ziel?“: oben das Eintragen (die häufigste Handlung), darunter Trend und Verlauf. */}
-      <Card title={t('progress.weightTitle')}>
-        <DaySwitcher day={day} onChange={setDay} />
-        <View style={styles.row}>
+      {/* Leitfrage „Bewege ich mich Richtung Ziel?“: oben Trend und Verlauf; Eintragen über „+ Gewicht“ als Blatt von unten. */}
+      <Card
+        title={t('progress.weightTitle')}
+        trailing={
+          <Button
+            label={t('progress.weightAdd')}
+            size="compact"
+            variant="secondary"
+            icon={<Icon name="plus" color={theme.text} size={16} strokeWidth={2.2} />}
+            onPress={() => {
+              setDay(todayDay());
+              setInput('');
+              setError(false);
+              setEntryOpen(true);
+            }}
+          />
+        }>
+        <WeightOverview weights={weights} unit={units.weight} targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null} today={today} />
+      </Card>
+      <Sheet
+        visible={entryOpen}
+        title={t('progress.weightTitle')}
+        onClose={() => setEntryOpen(false)}
+        footer={<Button label={t('common.save')} onPress={saveOnce} />}>
+        <SheetRow index={0}>
+          <DaySwitcher day={day} onChange={setDay} />
+        </SheetRow>
+        <SheetRow index={1}>
           <Field
             label={t('progress.weightLabel', { unit: units.weight })}
             value={input}
@@ -147,21 +172,18 @@ export default function ProgressScreen() {
             placeholder={t('progress.weightPlaceholder')}
             keyboardType="decimal-pad"
             returnKeyType="done"
-            style={styles.flex}
+            autoFocus
           />
-          <Button label={t('common.save')} onPress={saveOnce} />
-        </View>
-        {error ? (
-          <ThemedText style={{ color: theme.danger }}>
-            {t('progress.weightInvalid', {
-              min: formatWeight(BODY_WEIGHT_RANGE.min, units.weight, 0),
-              max: formatWeight(BODY_WEIGHT_RANGE.max, units.weight, 0),
-            })}
-          </ThemedText>
-        ) : null}
-        <View style={[styles.divider, { backgroundColor: theme.backgroundSelected }]} />
-        <WeightOverview weights={weights} unit={units.weight} targetKg={cards.find((c) => c.goal.kind === 'gewicht')?.goal.targetKg ?? null} today={today} />
-      </Card>
+          {error ? (
+            <ThemedText style={{ color: theme.danger }}>
+              {t('progress.weightInvalid', {
+                min: formatWeight(BODY_WEIGHT_RANGE.min, units.weight, 0),
+                max: formatWeight(BODY_WEIGHT_RANGE.max, units.weight, 0),
+              })}
+            </ThemedText>
+          ) : null}
+        </SheetRow>
+      </Sheet>
 
       {/* Einblicke (W9): Kacheln und Wochen-Muster auf eigener Seite. */}
       <Card>
@@ -325,12 +347,3 @@ export default function ProgressScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: Spacing.two, alignItems: 'flex-end' },
-  flex: { flex: 1, minWidth: 0 },
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
-  num: { fontVariant: ['tabular-nums'] },
-  big: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' },
-  bigValue: { fontFamily: DisplayFont.bold, fontSize: 36, lineHeight: 42, letterSpacing: -1, fontVariant: ['tabular-nums'] },
-  divider: { height: 1, marginVertical: Spacing.two },
-});
