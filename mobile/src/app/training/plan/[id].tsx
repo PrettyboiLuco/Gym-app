@@ -5,7 +5,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
-import { Choice, ConfirmButton, Field, ItemTools, ListRow, Presets, Toggle } from '@/components/fields';
+import { Choice, ConfirmButton, Field, ItemTools, ListRow, Toggle } from '@/components/fields';
 import {
   EMPTY_FORM,
   NEW_DAY,
@@ -38,7 +38,7 @@ import { loadSecondsPerSet } from '@/data/training-stats';
 import { CARDIO_ACTIVITIES } from '@/domain/cardio';
 import { supersetLetters } from '@/domain/logger';
 import { localDay, timeZone, todayDay } from '@/domain/time';
-import { estimateDayMinutes, formatClock, MAX_DAYS, moveItem, parseWholeNumber, REST_PRESETS, validatePlan } from '@/domain/training';
+import { estimateDayMinutes, MAX_DAYS, moveItem, validatePlan } from '@/domain/training';
 import { exerciseName } from '@/format/exercise-name';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
@@ -293,13 +293,7 @@ export default function PlanEditorScreen() {
                       onChangeText={(note) => updateItem(dayIndex, itemIndex, { note })}
                     />
                   </View>
-                  <Presets
-                    label={t('plan.rest')}
-                    options={REST_PRESETS}
-                    value={parseWholeNumber(item.rest) ?? undefined}
-                    format={(s) => formatClock(s * 1000)}
-                    onChange={(s) => updateItem(dayIndex, itemIndex, { rest: String(s) })}
-                  />
+                  {/* Pausen-Schnellwahl (0:30 … 5:00) nur im Training; hier reicht das Feld „Pause (s)“. */}
                 </View>
                 {itemIndex < day.items.length - 1 ? (
                   <Button
