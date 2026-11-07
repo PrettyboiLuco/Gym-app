@@ -19,6 +19,9 @@ export const de = {
     coach: 'Coach',
     more: 'Mehr',
   },
+  number: {
+    reps: 'Wdh',
+  },
   common: {
     save: 'Speichern',
     saved: 'Gespeichert',
@@ -29,6 +32,7 @@ export const de = {
     delete: 'Löschen',
     confirmDelete: 'Wirklich löschen?',
     cancel: 'Abbrechen',
+    done: 'Übernehmen',
     close: 'Schließen',
     add: 'Hinzufügen',
     remove: 'Entfernen',

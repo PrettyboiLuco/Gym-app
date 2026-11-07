@@ -4,10 +4,11 @@ import { useRef, useState } from 'react';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { EmptyState } from '@/components/empty-state';
-import { ConfirmButton, EntryRow, Field, ListRow } from '@/components/fields';
+import { ConfirmButton, EntryRow, ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { InsightInfo } from '@/components/insight-info';
 import { useDataColor } from '@/components/insight-tile';
+import { NumberInput } from '@/components/number-picker';
 import { Screen } from '@/components/screen';
 import { SettingsButton } from '@/components/settings-button';
 import { Sheet, SheetRow } from '@/components/sheet';
@@ -26,7 +27,7 @@ import { shiftDay } from '@/domain/dates';
 import { effectiveModules } from '@/domain/modules';
 import { stepsForDay } from '@/domain/steps';
 import { todayDay } from '@/domain/time';
-import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
+import { BODY_WEIGHT_RANGE, kgToUnit, parseWeightIn, type Units } from '@/domain/units';
 import { DISPLAY_MIN_DAYS, weeklyChange, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useOnce } from '@/hooks/use-once';
@@ -162,18 +163,16 @@ export default function ProgressScreen() {
           <DaySwitcher day={day} onChange={setDay} />
         </SheetRow>
         <SheetRow index={1}>
-          <Field
+          <NumberInput
             label={t('progress.weightLabel', { unit: units.weight })}
             value={input}
-            onChangeText={(v) => {
+            onChange={(v) => {
               setInput(v);
               setError(false);
             }}
-            onSubmitEditing={saveOnce}
-            placeholder={t('progress.weightPlaceholder')}
-            keyboardType="decimal-pad"
-            returnKeyType="done"
-            autoFocus
+            // Startet beim letzten Wert, damit man nur ein Stück wischen muss.
+            placeholder={weights[0] ? formatNumber(kgToUnit(weights[0].kg, units.weight), 1) : t('progress.weightPlaceholder')}
+            spec={units.weight === 'kg' ? { min: 30, max: 250, step: 0.1, decimals: 1, major: 10, unit: 'kg' } : { min: 66, max: 550, step: 0.2, decimals: 1, major: 5, unit: 'lb' }}
           />
           {error ? (
             <ThemedText style={{ color: theme.danger }}>

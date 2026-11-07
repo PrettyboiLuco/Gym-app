@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
+import { Platform, Pressable, StyleSheet, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
 import Animated, { LayoutAnimationConfig, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 
 import { Button, Card } from '@/components/card';
@@ -13,6 +13,7 @@ import { haptic } from '@/components/haptics';
 import { Icon } from '@/components/icon';
 import { KeepAwake } from '@/components/keep-awake';
 import { NoteField, type NoteFieldHandle } from '@/components/note-field';
+import { NumberInput, repsSpec, SECONDS_SPEC, weightSpec } from '@/components/number-picker';
 import { PressableScale } from '@/components/pressable-scale';
 import { RestTimerBar, type NextUp } from '@/components/rest-timer-bar';
 import { Screen } from '@/components/screen';
@@ -22,7 +23,7 @@ import { SetCols, SetRowShell, SetTableHead } from '@/components/set-table';
 import { heldSeconds, mergeSetInput, nextOpenRow, nudgeRest, type SetInput } from '@/components/set-table-logic';
 import { ThemedText } from '@/components/themed-text';
 import { Press, SetRowMotion } from '@/constants/motion';
-import { Radius, Spacing, TabularNums } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { listCardioForSession, type CardioEntry } from '@/data/cardio';
 import { NOTIFICATIONS_SUPPORTED } from '@/data/notifications';
 import { loadProfile } from '@/data/profile';
@@ -924,29 +925,24 @@ export default function SessionScreen() {
                         ) : active ? (
                           <>
                             {timed ? null : (
-                              <TextInput
+                              <NumberInput
                                 value={typed.weight}
-                                onChangeText={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...typed, weight } }))}
-                                placeholder={hint.weight || t('session.empty')}
-                                placeholderTextColor={theme.textSecondary}
-                                keyboardType="decimal-pad"
-                                selectTextOnFocus
+                                onChange={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...typed, weight } }))}
+                                placeholder={hint.weight || undefined}
+                                spec={weightSpec(units.weight)}
+                                title={`${nameOf(exerciseId)} · ${label}`}
                                 accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
-                                style={[styles.input, { width: SetCols.weight, color: theme.text, backgroundColor: theme.backgroundSelected }]}
+                                style={{ width: SetCols.weight }}
                               />
                             )}
-                            <TextInput
+                            <NumberInput
                               value={typed.reps}
-                              onChangeText={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...typed, reps } }))}
-                              placeholder={hint.reps || t('session.empty')}
-                              placeholderTextColor={theme.textSecondary}
-                              keyboardType="number-pad"
-                              selectTextOnFocus
+                              onChange={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...typed, reps } }))}
+                              placeholder={hint.reps || undefined}
+                              spec={timed ? SECONDS_SPEC : repsSpec()}
+                              title={`${nameOf(exerciseId)} · ${label}`}
                               accessibilityLabel={`${timed ? t('session.secondsLabel') : t('session.reps')} ${label}`}
-                              style={[
-                                styles.input,
-                                { width: timed ? SetCols.timedReps : SetCols.reps, color: theme.text, backgroundColor: theme.backgroundSelected },
-                              ]}
+                              style={{ width: timed ? SetCols.timedReps : SetCols.reps }}
                             />
                             {timed ? (
                               hold?.rowId === row.id ? (
@@ -1256,15 +1252,6 @@ const styles = StyleSheet.create({
   doneCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, borderRadius: 20, borderWidth: 1, padding: Spacing.three, minHeight: 64 },
   doneMark: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   doneTitle: { fontSize: 16, lineHeight: 22, fontWeight: 600 },
-  input: {
-    minHeight: 40,
-    borderRadius: 10,
-    paddingHorizontal: Spacing.one,
-    fontSize: 16,
-    fontWeight: 600,
-    textAlign: 'center',
-    ...TabularNums,
-  },
   flex: { flex: 1 },
   busy: { gap: Spacing.two },
   warmup: { gap: Spacing.half },

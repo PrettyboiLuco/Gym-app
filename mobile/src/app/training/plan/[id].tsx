@@ -6,6 +6,7 @@ import { useReducedMotion } from 'react-native-reanimated';
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ItemTools, ListRow, Toggle } from '@/components/fields';
+import { NumberInput, type NumberSpec } from '@/components/number-picker';
 import {
   EMPTY_FORM,
   NEW_DAY,
@@ -45,6 +46,15 @@ import { useUnsavedGuard } from '@/hooks/use-unsaved-guard';
 import { formatDay, t } from '@/i18n';
 import { useDb } from '@/providers/store-provider';
 import { blockSeconds as blockSecondsOf } from '@/services/planner-helpers';
+
+/** Zahlen im Plan: Sätze, Wiederholungen, Sekunden und Pause über das Zahlenfenster. */
+const PLAN_SPECS: Record<'sets' | 'repsMin' | 'repsMax' | 'seconds' | 'rest', NumberSpec> = {
+  sets: { min: 1, max: 20, step: 1, major: 5 },
+  repsMin: { min: 1, max: 100, step: 1, major: 5 },
+  repsMax: { min: 1, max: 100, step: 1, major: 5 },
+  seconds: { min: 5, max: 600, step: 5, major: 6, unit: 's' },
+  rest: { min: 0, max: 600, step: 15, major: 4, unit: 's' },
+};
 
 async function fetchEditor(db: Db, id: string, isNew: boolean) {
   const exercises = await listExercises(db);
@@ -256,13 +266,13 @@ export default function PlanEditorScreen() {
                   </View>
                   <View style={styles.numbers}>
                     {(isTimed(item.exerciseId) ? (['sets', 'seconds', 'rest'] as const) : (['sets', 'repsMin', 'repsMax', 'rest'] as const)).map((key) => (
-                      <Field
+                      <NumberInput
                         key={key}
                         label={t(`plan.${key}`)}
                         value={item[key]}
-                        keyboardType="number-pad"
+                        spec={PLAN_SPECS[key]}
                         style={styles.numberField}
-                        onChangeText={(value) => updateItem(dayIndex, itemIndex, { [key]: value })}
+                        onChange={(value) => updateItem(dayIndex, itemIndex, { [key]: value })}
                       />
                     ))}
                   </View>
@@ -316,12 +326,12 @@ export default function PlanEditorScreen() {
               <View key={`cardio-${cardioIndex}`} style={[styles.item, { borderColor: theme.backgroundSelected }]}>
                 <ThemedText type="smallBold">{t(`cardio.activities.${c.activity}`)}</ThemedText>
                 <View style={styles.numbers}>
-                  <Field
+                  <NumberInput
                     label={t('cardio.minutes')}
                     value={c.minutes}
-                    keyboardType="number-pad"
+                    spec={{ min: 0, max: 300, step: 1, major: 5, unit: 'min' }}
                     style={styles.numberField}
-                    onChangeText={(minutes) => updateCardio(dayIndex, cardioIndex, { minutes })}
+                    onChange={(minutes) => updateCardio(dayIndex, cardioIndex, { minutes })}
                   />
                   <Field
                     label={t('plan.note')}

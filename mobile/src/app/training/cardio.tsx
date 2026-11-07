@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { Choice, ConfirmButton, Field } from '@/components/fields';
+import { NumberInput } from '@/components/number-picker';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -147,7 +148,7 @@ export default function CardioScreen() {
           </View>
         ) : null}
         <Button label={running ? t('cardio.timerStop') : t('cardio.timerStart')} variant={running ? 'primary' : 'secondary'} onPress={toggleTimer} />
-        <Field label={t('cardio.minutes')} value={current.minutes} onChangeText={set('minutes')} keyboardType="decimal-pad" placeholder="20" />
+        <NumberInput label={t('cardio.minutes')} value={current.minutes} onChange={set('minutes')} placeholder="20" spec={{ min: 0, max: 600, step: 1, decimals: 1, major: 5, unit: 'min' }} />
         {entry?.plannedMinutes ? (
           <ThemedText type="small" themeColor="textSecondary">
             {t('cardio.planned', { minutes: entry.plannedMinutes })}
@@ -158,7 +159,13 @@ export default function CardioScreen() {
 
       <Card title={t('cardio.details')}>
         {info.distance ? (
-          <Field label={t('cardio.distance')} value={current.distance} onChangeText={set('distance')} keyboardType="decimal-pad" placeholder="3,5" />
+          <NumberInput
+            label={t('cardio.distance')}
+            value={current.distance}
+            onChange={set('distance')}
+            placeholder="3,5"
+            spec={{ min: 0, max: 100, step: 0.1, decimals: 2, major: 10, unit: 'km' }}
+          />
         ) : null}
         {problems.includes('distance') ? <ThemedText style={{ color: theme.danger }}>{t('cardio.problem.distance')}</ThemedText> : null}
         {speed ? (
@@ -174,7 +181,7 @@ export default function CardioScreen() {
             placeholder={info.level === 'steigung' ? '5 %' : '8'}
           />
         ) : null}
-        <Field label={t('cardio.avgHr')} value={current.avgHr} onChangeText={set('avgHr')} keyboardType="number-pad" placeholder="135" />
+        <NumberInput label={t('cardio.avgHr')} value={current.avgHr} onChange={set('avgHr')} placeholder="135" spec={{ min: 40, max: 220, step: 1, major: 10, unit: 'bpm' }} />
         {problems.includes('hr') ? <ThemedText style={{ color: theme.danger }}>{t('cardio.problem.hr')}</ThemedText> : null}
         <Choice
           chips
