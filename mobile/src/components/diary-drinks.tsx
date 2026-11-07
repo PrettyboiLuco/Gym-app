@@ -15,7 +15,7 @@ import { MealHead } from '@/components/meal-head';
 import { Sheet, SheetRow } from '@/components/sheet';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
-import { Spacing } from '@/constants/theme';
+import { DisplayFont, Spacing } from '@/constants/theme';
 import { loadRecentDrinks, logCaffeineDrink, logWater, rememberDrink, type NutritionSettings } from '@/data/nutrition';
 import { CAFFEINE_DRINKS, type CaffeineDrink } from '@/domain/caffeine';
 import { quickDrinks } from '@/domain/diary';
@@ -100,6 +100,15 @@ export function DiaryDrinks({
       <View style={styles.top}>
         <DiaryWaterGlass progress={goal ? allMl / goal : 0} color={dark ? theme.accent : theme.tint} outline={theme.border} />
         <View style={styles.flex}>
+          {/* Große Zahl neben dem Glas: wie weit zum Trinkziel (ohne Ziel: die getrunkene Menge). */}
+          <View style={styles.bigRow}>
+            <ThemedText style={styles.big}>{goal ? formatNumber(Math.round((allMl / goal) * 100), 0) : formatVolume(allMl, units.volume)}</ThemedText>
+            {goal ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('nutrition.drinks.percentOfGoal')}
+              </ThemedText>
+            ) : null}
+          </View>
           <ThemedText type="small" themeColor="textSecondary">
             {t('nutrition.drinks.water', { water: formatVolume(waterMl, units.volume) })}
           </ThemedText>
@@ -219,6 +228,8 @@ function FadeStrip({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
   flex: { flex: 1, gap: Spacing.half },
+  bigRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.one + 2 },
+  big: { fontFamily: DisplayFont.bold, fontSize: 30, lineHeight: 36, letterSpacing: -0.8, fontVariant: ['tabular-nums'] },
   bleed: { marginHorizontal: -BLEED },
   fade: { position: 'absolute', top: 0, bottom: 0, width: FADE },
   fadeLeft: { left: 0 },

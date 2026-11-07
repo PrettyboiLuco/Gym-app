@@ -1508,6 +1508,7 @@ export const de = {
       progressNoGoal: '{{all}} getrunken',
       sum: '{{all}} von {{goal}}',
       water: 'davon Wasser: {{water}}',
+      percentOfGoal: '% vom Trinkziel',
       reached: 'Trinkziel erreicht.',
       basis:
         'Gezählt werden nur Getränke, nicht das Wasser im Essen. Rund 1,5 Liter am Tag sind eine allgemeine Orientierung der DGE, kein Mindestwert – bei Hitze, Sport, Krankheit, in Schwangerschaft und Stillzeit kann der Bedarf anders sein.',
