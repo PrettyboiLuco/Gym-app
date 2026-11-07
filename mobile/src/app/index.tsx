@@ -26,7 +26,7 @@ import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
 import { taggedWeekdays } from '@/domain/training';
 import { mlToUnit, type VolumeUnit } from '@/domain/units';
-import { weightTrend, type WeightEntry } from '@/domain/weight';
+import { DISPLAY_MIN_DAYS, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatLongDate, formatNumber, formatVolume, formatWeight, t } from '@/i18n';
 import { useModules, useProfile, useUnits } from '@/providers/profile-provider';
@@ -99,7 +99,7 @@ async function loadToday(db: Db) {
   const openSetup = pending && setup === null;
   return {
     lastWeight: weights[0] ?? null,
-    trend: weightTrend(weights, today),
+    trend: weightTrend(weights, today, 7, DISPLAY_MIN_DAYS),
     active,
     next,
     food,

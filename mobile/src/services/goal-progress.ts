@@ -13,7 +13,7 @@ import { loadModeOf } from '@/domain/logger';
 import { stepGoalDays } from '@/domain/steps';
 import { timeZone } from '@/domain/time';
 import type { Units } from '@/domain/units';
-import { weightTrend } from '@/domain/weight';
+import { DISPLAY_MIN_DAYS, weightTrend } from '@/domain/weight';
 import { exerciseName } from '@/format/exercise-name';
 import { formatDay, formatLength, formatWeight, t } from '@/i18n';
 
@@ -56,7 +56,7 @@ export async function goalProgressLines(
 ): Promise<{ lines: string[]; reached: boolean }> {
   if (goal.kind === 'gewicht') {
     const weights = await listWeights(db);
-    const trend = weightTrend(weights, today);
+    const trend = weightTrend(weights, today, 7, DISPLAY_MIN_DAYS);
     // Ziel vor der ersten Messung gesetzt: erste Messung ab Gültigkeitsbeginn gilt als Start.
     const startKg = goal.startKg ?? weights.filter((w) => w.day >= goal.validFrom).at(-1)?.kg ?? null;
     const p = weightProgress({ direction: goal.direction!, targetKg: goal.targetKg, startKg }, trend);

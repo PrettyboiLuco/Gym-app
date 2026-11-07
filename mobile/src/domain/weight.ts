@@ -7,6 +7,13 @@ import { mean } from './math';
 export type WeightEntry = { id: string; day: string; kg: number };
 
 /**
+ * Für die Anzeige (Fortschritt, Heute, Ziele) reicht eine Messung in 7 Tagen: Wer sich nur ein- oder zweimal pro Woche
+ * wiegt, sieht trotzdem seinen Wochenschnitt. Strenger (4 Wiegetage) bleiben nur Rechnungen, die daraus Kalorien
+ * ableiten (Coach, Wochen-Check, Einblicke) – dort würde eine einzelne Wasser-Schwankung sonst das Ziel verstellen.
+ */
+export const DISPLAY_MIN_DAYS = 1;
+
+/**
  * Mittelwert der letzten `days` Tage bis einschließlich `endDay`, gebildet über Tagesmittel: Mehrere Messungen an
  * einem Tag zählen als ein Tag, sonst würde ein Tag mit vier Messungen den Schnitt bestimmen und allein „genug
  * Messungen“ ergeben. Ohne Messungen an mindestens `minDays` Tagen gibt es keinen Trend.
@@ -21,9 +28,9 @@ export function weightTrend(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: 
  * Veränderung des 7-Tage-Durchschnitts gegenüber der Woche davor. Ohne zwei gültige
  * Durchschnitte gibt es keine Aussage (null) statt einer erfundenen.
  */
-export function weeklyChange(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string): number | null {
-  const now = weightTrend(entries, endDay);
-  const before = weightTrend(entries, shiftDay(endDay, -7));
+export function weeklyChange(entries: Pick<WeightEntry, 'day' | 'kg'>[], endDay: string, minDays = 4): number | null {
+  const now = weightTrend(entries, endDay, 7, minDays);
+  const before = weightTrend(entries, shiftDay(endDay, -7), 7, minDays);
   return now === null || before === null ? null : now - before;
 }
 

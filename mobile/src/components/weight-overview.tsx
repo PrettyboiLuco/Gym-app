@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { DisplayFont, Radius, Spacing } from '@/constants/theme';
 import { shiftDay } from '@/domain/dates';
 import { kgToUnit, type WeightUnit } from '@/domain/units';
-import { dailyMeans, projectWeight, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
+import { dailyMeans, DISPLAY_MIN_DAYS, projectWeight, weeklyChange, weightTrend, type WeightEntry } from '@/domain/weight';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, formatDayShort, formatNumber, formatWeight, t } from '@/i18n';
@@ -35,13 +35,15 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
   const u = (kg: number) => kgToUnit(kg, unit);
   const num = (kg: number) => formatNumber(u(kg), 1);
 
-  const trend = weightTrend(weights, today);
-  const change = weeklyChange(weights, today);
+  const trend = weightTrend(weights, today, 7, DISPLAY_MIN_DAYS);
+  const change = weeklyChange(weights, today, DISPLAY_MIN_DAYS);
+  // Wie viele Wiegetage im Schnitt stecken – unter 4 sagt die Überschrift das offen.
+  const trendDays = dailyMeans(weights, today, 7).length;
   const latest = [...weights].sort((a, b) => (a.day < b.day ? 1 : -1))[0] ?? null;
   const points = dailyMeans(weights, today, days);
   const start = shiftDay(today, -(days - 1));
   const trendLine = Array.from({ length: days }, (_, i) => shiftDay(start, i))
-    .map((d) => ({ day: d, kg: weightTrend(weights, d) }))
+    .map((d) => ({ day: d, kg: weightTrend(weights, d, 7, DISPLAY_MIN_DAYS) }))
     .filter((p): p is { day: string; kg: number } => p.kg !== null);
   // Zu wenig Messungen für einen Durchschnitt: dann verbindet die Kurve die Tageswerte.
   const line = trendLine.length >= 2 ? trendLine : points;
@@ -62,7 +64,7 @@ export function WeightOverview({ weights, unit, targetKg, today }: { weights: We
       <View style={styles.head}>
         <View style={styles.flex}>
           <ThemedText type="small" themeColor="textSecondary">
-            {trend !== null ? t('progress.trendLabel') : t('progress.lastWeighIn')}
+            {trend === null ? t('progress.lastWeighIn') : trendDays >= 4 ? t('progress.trendLabel') : t('progress.trendLabelFew', { count: trendDays })}
           </ThemedText>
           {trend !== null || latest ? (
             <View style={styles.bigRow}>

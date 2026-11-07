@@ -9,7 +9,7 @@ import { EMPTY_GOAL_FORM, habitWeeks, parseGoalForm, strengthProgress, weightPro
 import { ageOn, EMPTY_PROFILE, parseBirthMonth, parseProfileForm, profileToForm } from '../profile';
 import { parseSetInput } from '../training';
 import { BODY_WEIGHT_RANGE, kgToUnit, parseLengthIn, parseWeightIn, unitToKg, weightInputText } from '../units';
-import { dailyMeans, weeklyChange } from '../weight';
+import { dailyMeans, DISPLAY_MIN_DAYS, weeklyChange, weightTrend } from '../weight';
 
 describe('Einheiten (UX-003)', () => {
   test('1 lb = 0,45359237 kg', () => expect(unitToKg(1, 'lb')).toBeCloseTo(0.45359237, 8));
@@ -206,6 +206,16 @@ describe('Gewichtsverlauf (GOAL-003)', () => {
   }));
   test('Veränderung zur Vorwoche', () => expect(weeklyChange(entries, '2026-10-29')).toBeCloseTo(-1));
   test('ohne zwei Durchschnitte keine Veränderung', () => expect(weeklyChange(entries.slice(0, 7), '2026-10-29')).toBeNull());
+  test('Anzeige: einmal pro Woche wiegen reicht für Schnitt und Veränderung', () => {
+    const weekly = [
+      { day: '2026-10-29', kg: 83 },
+      { day: '2026-10-22', kg: 84 },
+    ];
+    expect(weightTrend(weekly, '2026-10-29')).toBeNull();
+    expect(weightTrend(weekly, '2026-10-29', 7, DISPLAY_MIN_DAYS)).toBe(83);
+    expect(weeklyChange(weekly, '2026-10-29')).toBeNull();
+    expect(weeklyChange(weekly, '2026-10-29', DISPLAY_MIN_DAYS)).toBeCloseTo(-1);
+  });
   test('ein Wert pro Tag (Mittel)', () =>
     expect(
       dailyMeans(

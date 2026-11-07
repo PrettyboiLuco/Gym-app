@@ -26,7 +26,7 @@ import { effectiveModules } from '@/domain/modules';
 import { stepsForDay } from '@/domain/steps';
 import { todayDay } from '@/domain/time';
 import { BODY_WEIGHT_RANGE, parseWeightIn, type Units } from '@/domain/units';
-import { weeklyChange, type WeightEntry } from '@/domain/weight';
+import { DISPLAY_MIN_DAYS, weeklyChange, type WeightEntry } from '@/domain/weight';
 import { useLoad } from '@/hooks/use-load';
 import { useOnce } from '@/hooks/use-once';
 import { useTheme } from '@/hooks/use-theme';
@@ -86,7 +86,7 @@ export default function ProgressScreen() {
   const [showAll, setShowAll] = useState(false);
 
   const today = todayDay();
-  const change = weeklyChange(weights, today);
+  const change = weeklyChange(weights, today, DISPLAY_MIN_DAYS);
   const latest = latestBySite(measurements);
 
   async function save() {
