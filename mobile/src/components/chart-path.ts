@@ -60,20 +60,27 @@ export function nearestIndex(xs: number[], x: number): number {
   return best;
 }
 
-/** Drei runde Werte für die y-Achse, die den Bereich [lo, hi] einschließen (z. B. 91, 91.5, 92). */
+/**
+ * Runde Werte für die y-Achse (3–5 Linien), die den Bereich [lo, hi] möglichst eng einschließen – die Kurve soll die
+ * Höhe des Diagramms nutzen statt in einem Drittel davon zu liegen (z. B. 83,9–86,1 kg → 83 … 87 statt 82 … 88).
+ */
 export function axisTicks(lo: number, hi: number): number[] {
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [];
   if (hi - lo < 0.2) {
     lo -= 0.5;
     hi += 0.5;
   }
-  const raw = (hi - lo) / 2;
-  const mag = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) ?? 10 * mag;
-  const start = Math.floor(lo / step) * step;
-  const ticks = [start, start + step, start + 2 * step];
-  while (ticks[ticks.length - 1] < hi - 1e-9) ticks.push(ticks[ticks.length - 1] + step);
-  return ticks.map((v) => Math.round(v * 1000) / 1000);
+  const mag = 10 ** Math.floor(Math.log10((hi - lo) / 4));
+  for (const m of [1, 2, 5, 10, 20, 50]) {
+    const step = m * mag;
+    const first = Math.floor(lo / step + 1e-9);
+    const last = Math.ceil(hi / step - 1e-9);
+    if (last - first + 1 > 5) continue;
+    const ticks: number[] = [];
+    for (let k = first; k <= Math.max(last, first + 2); k++) ticks.push(Math.round(k * step * 1000) / 1000);
+    return ticks;
+  }
+  return [lo, (lo + hi) / 2, hi];
 }
 
 const f = (v: number) => (Math.round(v * 10) / 10).toString();

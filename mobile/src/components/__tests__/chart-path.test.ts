@@ -46,7 +46,18 @@ describe('Achse und Finger', () => {
     expect(t[0]).toBeLessThanOrEqual(91.3);
     expect(t[t.length - 1]).toBeGreaterThanOrEqual(92);
     expect(t.length).toBeGreaterThanOrEqual(3);
-    expect(t.length).toBeLessThanOrEqual(4);
+    expect(t.length).toBeLessThanOrEqual(5);
+  });
+  test('Achse liegt eng um die Werte (Kurve nutzt die Höhe)', () => {
+    expect(axisTicks(83.9, 86.1)).toEqual([83, 84, 85, 86, 87]);
+    expect(axisTicks(84.1, 84.4)).toEqual([84.1, 84.2, 84.3, 84.4]);
+    for (const [lo, hi] of [[0.3, 7.9], [60, 61], [100.2, 140.7], [5, 5]]) {
+      const t = axisTicks(lo, hi);
+      expect(t[0]).toBeLessThanOrEqual(lo);
+      expect(t[t.length - 1]).toBeGreaterThanOrEqual(hi);
+      expect(t.length).toBeGreaterThanOrEqual(3);
+      expect(t.length).toBeLessThanOrEqual(5);
+    }
   });
   test('gleiche Werte bekommen trotzdem einen sichtbaren Bereich', () => {
     const t = axisTicks(80, 80);
