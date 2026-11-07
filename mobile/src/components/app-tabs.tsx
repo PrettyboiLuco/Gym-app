@@ -53,6 +53,11 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>{t('tabs.training')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="dumbbell.fill" md="fitness_center" />
       </NativeTabs.Trigger>
+      {/* Coach genau in der Mitte der fünf Tabs. */}
+      <NativeTabs.Trigger name="coach" hidden={!modules.coach}>
+        <NativeTabs.Trigger.Label>{t('tabs.coach')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="sparkles" md="auto_awesome" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="nutrition" hidden={!modules.ernaehrung}>
         <NativeTabs.Trigger.Label>{t('tabs.nutrition')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="fork.knife" md="restaurant" />
@@ -61,7 +66,8 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="chart.line.uptrend.xyaxis" md="monitoring" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="more">
+      {/* Einstellungen (früher Tab „Mehr“): kein Platz in der Leiste mehr, geöffnet über das Zahnrad oben rechts. */}
+      <NativeTabs.Trigger name="more" hidden>
         <NativeTabs.Trigger.Label>{t('tabs.more')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="ellipsis.circle" md="more_horiz" />
       </NativeTabs.Trigger>

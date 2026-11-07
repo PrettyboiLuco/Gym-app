@@ -15,10 +15,11 @@ import { t } from '@/i18n';
 import { useLiveTraining } from '@/providers/live-training';
 import { useModules } from '@/providers/profile-provider';
 
-// Web-Vorschau: gleiche fünf Bereiche wie auf dem Handy, unten als Leiste.
+// Web-Vorschau: gleiche Bereiche wie auf dem Handy, unten als Leiste; „Mehr“ (Einstellungen) ohne Knopf – Zahnrad oben.
 const TABS = [
   { name: 'index', href: '/', label: 'tabs.today' },
   { name: 'training', href: '/training', label: 'tabs.training' },
+  { name: 'coach', href: '/coach', label: 'tabs.coach' },
   { name: 'nutrition', href: '/nutrition', label: 'tabs.nutrition' },
   { name: 'progress', href: '/progress', label: 'tabs.progress' },
   { name: 'more', href: '/more', label: 'tabs.more' },
@@ -35,7 +36,9 @@ export default function AppTabs() {
           {TABS.map((tab) => (
             <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
               {/* Ausgeschaltetes Modul (A11.1): Trigger bleibt (Route muss bekannt sein), Knopf ist unsichtbar. */}
-              <TabButton icon={tab.name} hidden={tab.name === 'nutrition' && !modules.ernaehrung}>
+              <TabButton
+                icon={tab.name}
+                hidden={(tab.name === 'nutrition' && !modules.ernaehrung) || (tab.name === 'coach' && !modules.coach) || tab.name === 'more'}>
                 {t(tab.label)}
               </TabButton>
             </TabTrigger>

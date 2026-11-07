@@ -20,6 +20,7 @@ import { DiaryTimeline, entrySubtitle, windowLine } from '@/components/diary-tim
 import { Segmented } from '@/components/fields';
 import { MealHead } from '@/components/meal-head';
 import { Screen } from '@/components/screen';
+import { SettingsButton } from '@/components/settings-button';
 import { Rise } from '@/components/sheet';
 import { ThemedText } from '@/components/themed-text';
 import { TileGrid, type Tile } from '@/components/tiles';
@@ -297,7 +298,7 @@ export default function DiaryScreen() {
   const optionsItems = options ? mealItems(options.meal) : [];
 
   return (
-    <Screen title={t('nutrition.title')}>
+    <Screen title={t('nutrition.title')} trailing={<SettingsButton />}>
       <DaySwitcher day={day} onChange={setDay} today={today} maxDay={shiftDay(today, PLAN_AHEAD_DAYS)} />
       {planned ? (
         <ThemedText type="small" themeColor="textSecondary" accessibilityRole="text">

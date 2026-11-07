@@ -9,6 +9,7 @@ import { Icon } from '@/components/icon';
 import { InsightInfo } from '@/components/insight-info';
 import { useDataColor } from '@/components/insight-tile';
 import { Screen } from '@/components/screen';
+import { SettingsButton } from '@/components/settings-button';
 import { Sheet, SheetRow } from '@/components/sheet';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
@@ -126,13 +127,13 @@ export default function ProgressScreen() {
   const measuredSites = MEASURE_SITES.filter((s) => latest[s]).length;
   if (!loaded) {
     return (
-      <Screen title={t('progress.title')}>
+      <Screen title={t('progress.title')} trailing={<SettingsButton />}>
         <SkeletonBlocks blocks={[420, 140, 300]} />
       </Screen>
     );
   }
   return (
-    <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined}>
+    <Screen title={t('progress.title')} subtitle={change !== null ? t('progress.change', { change: signed(change) }) : undefined} trailing={<SettingsButton />}>
       {/* Leitfrage „Bewege ich mich Richtung Ziel?“: oben Trend und Verlauf; Eintragen über „+ Gewicht“ als Blatt von unten. */}
       <Card
         title={t('progress.weightTitle')}
@@ -257,7 +258,7 @@ export default function ProgressScreen() {
             title={t('checkin.open')}
             subtitle={t('checkin.dueSubtitle')}
             accessory="›"
-            onPress={() => router.push('/progress/checkin')}
+            onPress={() => router.push('/coach/checkin')}
           />
         ) : null}
         {modules.ernaehrung ? (

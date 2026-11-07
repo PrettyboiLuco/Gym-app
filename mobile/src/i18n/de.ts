@@ -16,6 +16,7 @@ export const de = {
     training: 'Training',
     nutrition: 'Ernährung',
     progress: 'Fortschritt',
+    coach: 'Coach',
     more: 'Mehr',
   },
   common: {
@@ -2783,6 +2784,17 @@ export const de = {
       'Aus: Barcode-Scan und Online-Suche (Open Food Facts) sowie „Rezept per Link“ gehen nicht mehr ins Internet. ' +
       'Grundnahrungsmittel, eigene Lebensmittel und alles andere funktionieren weiter ohne Netz.',
   },
+  coachTab: {
+    subtitle: 'Ziel, Kalorien und Wochen-Check an einem Ort',
+    goalEyebrow: 'Dein Ziel',
+    kcalToday: 'kcal heute',
+    gymDays: 'Trainingstage/Woche',
+    steps: 'Schritte/Tag',
+    toolsTitle: 'Anpassen',
+    checkinSubtitle: 'Einmal pro Woche: Gewichtstrend ansehen, Kalorien anpassen',
+    changeSubtitle: 'Ziel, Trainingstage, Schritte, Makros',
+    calculatorSubtitle: 'Bedarf selbst nachrechnen',
+  },
   milestones: {
     screenTitle: 'Meilensteine & Bilanz',
     listSubtitle: 'Erreichtes und Plan-Wochen – ohne Serien',
@@ -3997,8 +4009,9 @@ export const de = {
     },
   },
   more: {
-    title: 'Mehr',
-    settingsTitle: 'Einstellungen',
+    title: 'Einstellungen',
+    back: 'Zurück',
+    settingsTitle: 'Allgemein',
     appearanceTitle: 'Darstellung',
     appearance: 'Hell oder dunkel',
     appearanceOption: { system: 'Wie iPhone', hell: 'Hell', dunkel: 'Dunkel' },

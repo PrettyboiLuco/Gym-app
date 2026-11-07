@@ -2,10 +2,11 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { Card } from '@/components/card';
-import { CoachToday, SetupSteps, type CoachTodayData } from '@/components/coach-today';
+import { SetupSteps, type CoachTodayData } from '@/components/coach-today';
 import { ListRow } from '@/components/fields';
 import { MorningCheck, ReadinessCard } from '@/components/readiness';
 import { Screen } from '@/components/screen';
+import { SettingsButton } from '@/components/settings-button';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { FigureStrip, TrainingBlock, weekDays } from '@/components/today-widgets';
 import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
@@ -178,7 +179,7 @@ export default function TodayScreen() {
   const setupDue = openSetup && modules.coach;
   useEffect(() => {
     if (!setupDue) return;
-    saveCoachPending(db, false).then(() => router.push('/progress/coach-setup'));
+    saveCoachPending(db, false).then(() => router.push('/coach/coach-setup'));
   }, [setupDue, db]);
   const [checkOpen, setCheckOpen] = useState(false);
   const hour = new Date().getHours();
@@ -264,18 +265,18 @@ export default function TodayScreen() {
 
   if (!loaded) {
     return (
-      <Screen title={greeting} subtitle={formatLongDate(new Date())}>
+      <Screen title={greeting} subtitle={formatLongDate(new Date())} trailing={<SettingsButton />}>
         <SkeletonBlocks blocks={[300, 104, 160]} />
       </Screen>
     );
   }
   return (
-    <Screen title={greeting} subtitle={subtitle}>
+    <Screen title={greeting} subtitle={subtitle} trailing={<SettingsButton />}>
       {showSetup ? (
         <SetupSteps
           steps={[
             { key: 'weight', label: t('today.setupWeight'), done: setup.weight, onPress: () => router.push('/progress') },
-            { key: 'goal', label: t('today.setupGoal'), done: setup.goal, onPress: () => router.push('/progress/coach-setup') },
+            { key: 'goal', label: t('today.setupGoal'), done: setup.goal, onPress: () => router.push('/coach/coach-setup') },
             { key: 'plan', label: t('today.setupPlan'), done: setup.plan, onPress: () => router.push('/training') },
           ]}
           onLater={() => saveSetupHidden(db, true).then(reload)}
@@ -283,7 +284,7 @@ export default function TodayScreen() {
       ) : null}
       {checkin && modules.coach ? (
         <Card>
-          <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/progress/checkin')} />
+          <ListRow title={t('checkin.due')} subtitle={t('checkin.dueSubtitle')} accessory="›" onPress={() => router.push('/coach/checkin')} />
         </Card>
       ) : null}
       {milestone ? (
@@ -377,8 +378,7 @@ export default function TodayScreen() {
             : []),
         ]}
       />
-      {/* Solange „Einrichten in 3 Schritten“ oben steht, nicht zusätzlich „Coach einrichten“ unten. */}
-      {coach && modules.coach && !(showSetup && !coach.setUp) ? <CoachToday data={coach} /> : null}
+      {/* Kalorien, Makros und Tipps des Coachs stehen im Tab „Coach“ (Mitte der Leiste). */}
     </Screen>
   );
 }

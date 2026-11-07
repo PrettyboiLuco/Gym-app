@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { ListRow, Segmented } from '@/components/fields';
@@ -26,6 +26,7 @@ type InfoKey = 'privacy' | 'sources' | 'licenses';
 export default function MoreScreen() {
   const db = useDb();
   const theme = useTheme();
+  const { from } = useLocalSearchParams<{ from?: string }>();
   const appearance = useAppearance();
   const [open, setOpen] = useState<InfoKey | null>(null);
   const changeAppearance = (value: AppearanceChoice) => {
@@ -55,7 +56,22 @@ export default function MoreScreen() {
   const version = Constants.expoConfig?.version ?? '–';
 
   return (
-    <Screen title={t('more.title')}>
+    <Screen
+      title={t('more.title')}
+      leading={
+        // Kein eigener Tab mehr (der Platz gehört dem Coach): zurück dorthin, woher das Zahnrad kam.
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('more.back')}
+          hitSlop={8}
+          onPress={() => router.navigate((from && from.startsWith('/') ? from : '/') as Href)}
+          style={styles.back}>
+          <View style={styles.flip}>
+            <Icon name="chevron" color={theme.text} size={18} strokeWidth={2.2} />
+          </View>
+          <ThemedText type="smallBold">{t('more.back')}</ThemedText>
+        </Pressable>
+      }>
       <Card title={t('more.appearanceTitle')}>
         <Segmented
           label={t('more.appearance')}
@@ -119,6 +135,8 @@ export default function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
+  back: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, alignSelf: 'flex-start', paddingVertical: Spacing.one },
+  flip: { transform: [{ scaleX: -1 }] },
   infoText: { paddingLeft: 36, paddingBottom: Spacing.three, paddingTop: Spacing.one },
   footer: { paddingHorizontal: Spacing.two, textAlign: 'center' },
   down: { transform: [{ rotate: '90deg' }] },

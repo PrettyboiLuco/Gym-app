@@ -36,7 +36,7 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
   if (!data.setUp) {
     return (
       <Card>
-        <ListRow title={t('coach.open')} subtitle={t('coach.openSubtitle')} accessory="›" onPress={() => router.push('/progress/coach-setup')} />
+        <ListRow title={t('coach.open')} subtitle={t('coach.openSubtitle')} accessory="›" last onPress={() => router.push('/coach/coach-setup')} />
       </Card>
     );
   }
@@ -104,7 +104,7 @@ export function CoachToday({ data }: { data: CoachTodayData }) {
             </ThemedText>
           ))
         : null}
-      <ListRow title={t('coach.change')} accessory="›" onPress={() => router.push('/progress/coach-setup')} />
+      <ListRow title={t('coach.change')} accessory="›" onPress={() => router.push('/coach/coach-setup')} />
     </Card>
   );
 }

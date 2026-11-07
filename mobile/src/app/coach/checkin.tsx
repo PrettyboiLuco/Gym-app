@@ -189,7 +189,7 @@ export default function CheckinScreen() {
         {data.recalc ? (
           <>
             <ThemedText type="small">{t('coach.recalc')}</ThemedText>
-            <Button label={t('coach.recalcOpen')} variant="secondary" onPress={() => router.push('/progress/coach-setup')} />
+            <Button label={t('coach.recalcOpen')} variant="secondary" onPress={() => router.push('/coach/coach-setup')} />
           </>
         ) : null}
         {result.hints.includes('trainingWeniger') ? (

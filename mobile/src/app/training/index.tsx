@@ -8,6 +8,7 @@ import { ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { PressableScale } from '@/components/pressable-scale';
 import { Screen } from '@/components/screen';
+import { SettingsButton } from '@/components/settings-button';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
 import { CardRow, StatTile, TileGrid } from '@/components/tiles';
@@ -177,13 +178,13 @@ export default function TrainingScreen() {
 
   if (!loaded) {
     return (
-      <Screen title={t('training.title')}>
+      <Screen title={t('training.title')} trailing={<SettingsButton />}>
         <SkeletonBlocks blocks={[320, 140, 220]} />
       </Screen>
     );
   }
   return (
-    <Screen title={t('training.title')} subtitle={subtitle}>
+    <Screen title={t('training.title')} subtitle={subtitle} trailing={<SettingsButton />}>
       {expired.length > 0 ? (
         <Card>
           <ThemedText>{t('training.expired', { names: expired.join(', ') })}</ThemedText>

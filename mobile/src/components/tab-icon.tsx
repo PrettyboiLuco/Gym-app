@@ -6,7 +6,7 @@ import { HIDDEN } from '@/components/a11y';
  * Tab-Symbole für die Web-Vorschau, im Stil der iPhone-Symbole (SF Symbols), die auf dem Handy erscheinen:
  * Linie 2 px, runde Enden; ausgewählt gefüllt bzw. kräftiger.
  */
-export type TabIconName = 'index' | 'training' | 'nutrition' | 'progress' | 'more';
+export type TabIconName = 'index' | 'training' | 'coach' | 'nutrition' | 'progress' | 'more';
 
 export function TabIcon({
   name,
@@ -37,6 +37,12 @@ export function TabIcon({
         <>
           <Path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3" {...stroke} />
           <Path d="M17 21V3c-2.2 1.2-3.5 3.6-3.5 7v3H17" {...stroke} fill={selected ? color : 'none'} />
+        </>
+      ) : null}
+      {name === 'coach' ? (
+        <>
+          <Path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" {...stroke} fill={selected ? color : 'none'} />
+          <Path d="M18.5 15.5v4M16.5 17.5h4" {...stroke} />
         </>
       ) : null}
       {name === 'progress' ? (

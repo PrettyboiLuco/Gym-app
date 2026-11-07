@@ -21,6 +21,8 @@ export function Screen({
   withHeader = false,
   footer,
   scrollRef,
+  leading,
+  trailing,
   children,
 }: {
   title?: string;
@@ -29,6 +31,10 @@ export function Screen({
   footer?: ReactNode;
   /** Für Bildschirme, die selbst nach oben scrollen müssen (z. B. Formular oben, Liste darunter). */
   scrollRef?: Ref<ScrollViewInstance>;
+  /** Links vor dem Titel (z. B. „Zurück“ in den Einstellungen). */
+  leading?: ReactNode;
+  /** Rechts neben dem Titel (z. B. das Zahnrad zu den Einstellungen). */
+  trailing?: ReactNode;
   children: ReactNode;
 }) {
   const enter = useScreenEnter(withHeader);
@@ -39,9 +45,13 @@ export function Screen({
           <ScrollView ref={scrollRef} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
             {title && !withHeader ? (
               <View style={styles.head}>
-                <ThemedText type="subtitle" accessibilityRole="header">
-                  {title}
-                </ThemedText>
+                {leading}
+                <View style={styles.titleRow}>
+                  <ThemedText type="subtitle" accessibilityRole="header" style={styles.flex}>
+                    {title}
+                  </ThemedText>
+                  {trailing}
+                </View>
                 {subtitle ? <ThemedText themeColor="textSecondary">{subtitle}</ThemedText> : null}
               </View>
             ) : subtitle ? (
@@ -130,6 +140,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   flex: { flex: 1 },
   head: { gap: Spacing.one, paddingTop: Spacing.two, paddingBottom: Spacing.one },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   safeArea: { flex: 1 },
   content: {
     padding: Spacing.three,

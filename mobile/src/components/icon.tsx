@@ -51,7 +51,8 @@ export type IconName =
   | 'week'
   | 'planner'
   | 'recipe'
-  | 'share';
+  | 'share'
+  | 'settings';
 
 export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: IconName; color: string; size?: number; strokeWidth?: number }) {
   const p = { stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -188,6 +189,15 @@ export function Icon({ name, color, size = 20, strokeWidth = 1.8 }: { name: Icon
       <>
         <Circle cx={12} cy={12} r={8.5} {...p} />
         <Path d="M12 11v5.5M12 7.6v.4" {...p} />
+      </>
+    ),
+    settings: (
+      <>
+        <Path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" {...p} />
+        <Path
+          d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+          {...p}
+        />
       </>
     ),
     share: <Path d="M12 3v12M8 7l4-4 4 4M7 11H6a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1" {...p} />,
