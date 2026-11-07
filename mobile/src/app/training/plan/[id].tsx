@@ -458,6 +458,7 @@ const styles = StyleSheet.create({
   numbers: { flexDirection: 'row', gap: Spacing.two },
   flex: { flex: 1 },
   numberField: { flex: 1, minWidth: 0 },
-  noteField: { flex: 3, minWidth: 160 },
+  // Kein Mindestmaß: sonst drückt der Hinweis das RIR-Feld so schmal, dass „0–1“ nicht mehr hineinpasst.
+  noteField: { flex: 3, minWidth: 0 },
   dayMoves: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
 });
