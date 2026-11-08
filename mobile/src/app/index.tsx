@@ -28,6 +28,7 @@ import { todayDay } from '@/domain/time';
 import { taggedWeekdays } from '@/domain/training';
 import { mlToUnit, type VolumeUnit } from '@/domain/units';
 import { DISPLAY_MIN_DAYS, weightTrend, type WeightEntry } from '@/domain/weight';
+import { useForegroundReload } from '@/hooks/use-foreground-reload';
 import { useLoad } from '@/hooks/use-load';
 import { formatDay, formatLongDate, formatNumber, formatVolume, formatWeight, t } from '@/i18n';
 import { useModules, useProfile, useUnits } from '@/providers/profile-provider';
@@ -165,6 +166,7 @@ export default function TodayScreen() {
     weekPlan: null as { planId: string; dayIds: (string | null)[] } | null,
     setup: { weight: true, goal: true, plan: true, hidden: true },
   });
+  useForegroundReload(reload);
   const { lastWeight, trend, active, next, food, timed, checkin, coach, openSetup, week, ready, today, milestone, muscles, spared, body, weekPlan, setup } =
     data;
   const units = useUnits();

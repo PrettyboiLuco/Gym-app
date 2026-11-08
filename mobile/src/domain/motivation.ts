@@ -23,9 +23,36 @@ export type MotivationInput = {
   /** Tag je abgeschlossenem Training, älteste zuerst. */
   sessionDays: string[];
   /** Arbeitssätze (ohne Aufwärmen), älteste zuerst; `normal` = Gewicht zählt als Last (nicht Gegengewicht). */
-  sets: { day: string; exerciseId: string; weightKg: number | null; reps: number | null; normal: boolean }[];
+  sets?: { day: string; exerciseId: string; weightKg: number | null; reps: number | null; normal: boolean }[];
+  /** Statt aller Sätze nur die Kennzahlen daraus (schnell, per SQL ermittelt – „Heute“ braucht nicht die ganze Historie). */
+  summary?: SetSummary;
   weeks: WeekResult[];
 };
+
+/** Was Meilensteine und „Bisher“ aus den Sätzen brauchen. */
+export type SetSummary = {
+  count: number;
+  /** Tag des 1000. bzw. 5000. Satzes (falls erreicht). */
+  day1000: string | null;
+  day5000: string | null;
+  /** Erster Satz mit mindestens 100 kg (echte Last, ≥ 1 Wiederholung). */
+  heavy: { day: string; exerciseId: string } | null;
+  bestKg: number;
+};
+
+/** Kennzahlen aus einer vollständigen Satzliste (älteste zuerst). */
+export function summarizeSets(sets: NonNullable<MotivationInput['sets']>): SetSummary {
+  const heavy = sets.find((s) => s.normal && (s.weightKg ?? 0) >= 100 && (s.reps ?? 0) >= 1);
+  return {
+    count: sets.length,
+    day1000: sets[999]?.day ?? null,
+    day5000: sets[4999]?.day ?? null,
+    heavy: heavy ? { day: heavy.day, exerciseId: heavy.exerciseId } : null,
+    bestKg: sets.reduce((max, x) => (x.normal && (x.reps ?? 0) >= 1 ? Math.max(max, x.weightKg ?? 0) : max), 0),
+  };
+}
+
+const summaryOf = (input: MotivationInput): SetSummary => input.summary ?? summarizeSets(input.sets ?? []);
 
 /** Erreichte Meilensteine mit Tag (älteste zuerst). */
 export function milestones(input: MotivationInput): Milestone[] {
@@ -39,9 +66,10 @@ export function milestones(input: MotivationInput): Milestone[] {
   nth(100, 'training_100');
   nth(250, 'training_250');
   nth(500, 'training_500');
-  if (input.sets.length >= 1000) out.push({ id: 'saetze_1000', day: input.sets[999].day, detail: null });
-  if (input.sets.length >= 5000) out.push({ id: 'saetze_5000', day: input.sets[4999].day, detail: null });
-  const heavy = input.sets.find((s) => s.normal && (s.weightKg ?? 0) >= 100 && (s.reps ?? 0) >= 1);
+  const sum = summaryOf(input);
+  if (sum.day1000) out.push({ id: 'saetze_1000', day: sum.day1000, detail: null });
+  if (sum.day5000) out.push({ id: 'saetze_5000', day: sum.day5000, detail: null });
+  const heavy = sum.heavy;
   if (heavy) out.push({ id: 'kg_100', day: heavy.day, detail: heavy.exerciseId });
   let run = 0;
   for (const w of input.weeks) {
@@ -62,8 +90,8 @@ export function milestoneStats(input: MotivationInput): MilestoneStats {
     if (w.status === 'pausiert' || w.status === 'laeuft') continue;
     run = w.status === 'geschafft' ? run + 1 : 0;
   }
-  const best = input.sets.reduce((max, s) => (s.normal && (s.reps ?? 0) >= 1 ? Math.max(max, s.weightKg ?? 0) : max), 0);
-  return { trainings: input.sessionDays.length, sets: input.sets.length, bestKg: best, weekRun: run };
+  const sum = summaryOf(input);
+  return { trainings: input.sessionDays.length, sets: sum.count, bestKg: sum.bestKg, weekRun: run };
 }
 
 /** Wie weit bis zu einem Meilenstein? `current` ist nie größer als `target`. */

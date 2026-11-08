@@ -349,13 +349,15 @@ export type SessionInfo = {
   /** Aufwärmen/Cool-down vorschlagen (vom Plantag; freies Training: ja). */
   warmup: number | null;
   cooldown: number | null;
+  /** Zeitzone beim Start (ältere Trainings: null). */
+  timeZone: string | null;
   /** Notiz zum ganzen Training (A1). */
   note: string | null;
 };
 
 const SESSION_SELECT = `SELECT s.id, s.status, s.abort_reason AS abortReason, s.started_at_utc AS startedAt, s.note,
   s.finished_at_utc AS finishedAt, v.name AS planName, d.name AS dayName, d.position AS dayPosition, v.plan_id AS planId,
-  d.warmup AS warmup, d.cooldown AS cooldown
+  d.warmup AS warmup, d.cooldown AS cooldown, s.time_zone AS timeZone
   FROM workout_session s
   LEFT JOIN plan_day d ON d.id = s.plan_day_id
   LEFT JOIN plan_version v ON v.id = d.plan_version_id`;
@@ -410,7 +412,13 @@ export async function startSession(db: Db, planDayId: string | null): Promise<st
       id = recent.id;
       return;
     }
-    await db.runAsync("INSERT INTO workout_session (id, plan_day_id, status, started_at_utc) VALUES (?, ?, 'aktiv', ?)", id, planDayId, nowUtc());
+    await db.runAsync(
+      "INSERT INTO workout_session (id, plan_day_id, status, started_at_utc, time_zone) VALUES (?, ?, 'aktiv', ?, ?)",
+      id,
+      planDayId,
+      nowUtc(),
+      timeZone
+    );
     if (!planDayId) return;
     const items = await db.getAllAsync<{
       exerciseId: string;

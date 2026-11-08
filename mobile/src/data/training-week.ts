@@ -4,7 +4,7 @@ import { daysBetween, isoWeekday, shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
 import { tallyMuscles, type MuscleTally } from '@/domain/muscle-map';
 import { plannedSetsByWeekday, trainedDays } from '@/domain/summary';
-import { localDay, timeZone } from '@/domain/time';
+import { localDay, timeZone, zoneDay } from '@/domain/time';
 import { nextDayIndex, taggedWeekdays, todayPlan, type TodayPlan } from '@/domain/training';
 
 import { readState, writeState } from './app-state';
@@ -51,7 +51,7 @@ export async function loadTrainingWeek(db: Db, today: string): Promise<TrainingW
   const monday = weekStart(today);
   const cardio = await cardioMinutesByDay(db, monday);
   const days = [
-    ...sessions.filter((s) => s.status === 'abgeschlossen').map((s) => localDay(new Date(s.startedAt), timeZone)),
+    ...sessions.filter((s) => s.status === 'abgeschlossen').map((s) => zoneDay(s.startedAt, s.timeZone)),
     // Cardio für sich zählt als Trainingstag (A2).
     ...cardio.map((c) => c.day),
   ];
@@ -79,14 +79,14 @@ export function loadTrainingWeekOf(db: Db, startedAtUtc: string): Promise<Traini
 
 /** Erledigte Arbeitssätze (ohne Aufwärmen) je Tag dieser Woche, nach Ortszeit. */
 async function doneSetsByDay(db: Db, monday: string): Promise<number[]> {
-  const rows = await db.getAllAsync<{ startedAt: string }>(
-    `SELECT s.started_at_utc AS startedAt FROM set_log l JOIN workout_session s ON s.id = l.session_id
+  const rows = await db.getAllAsync<{ startedAt: string; tz: string | null }>(
+    `SELECT s.started_at_utc AS startedAt, s.time_zone AS tz FROM set_log l JOIN workout_session s ON s.id = l.session_id
      WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ?`,
     `${shiftDay(monday, -1)}T00:00:00.000Z`
   );
   const out = Array.from({ length: 7 }, () => 0);
   for (const r of rows) {
-    const i = daysBetween(monday, localDay(new Date(r.startedAt), timeZone));
+    const i = daysBetween(monday, zoneDay(r.startedAt, r.tz));
     if (i >= 0 && i < 7) out[i]++;
   }
   return out;
@@ -116,8 +116,8 @@ async function plannedSets(db: Db, planned: boolean[], todayIndex: number): Prom
  * (die Sätze wurden gemacht); Dehn- und Mobilitätsübungen nicht. */
 export async function loadWeekSetsByMuscle(db: Db, today: string): Promise<{ group: MuscleGroup; sets: number }[]> {
   const monday = weekStart(today);
-  const rows = await db.getAllAsync<{ startedAt: string; exerciseId: string }>(
-    `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
+  const rows = await db.getAllAsync<{ startedAt: string; tz: string | null; exerciseId: string }>(
+    `SELECT s.started_at_utc AS startedAt, s.time_zone AS tz, l.exercise_id AS exerciseId FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
      WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ?`,
     `${shiftDay(monday, -1)}T00:00:00.000Z`
@@ -125,7 +125,7 @@ export async function loadWeekSetsByMuscle(db: Db, today: string): Promise<{ gro
   const exercises = new Map((await listExercises(db)).map((e) => [e.id, e]));
   const counts = new Map<MuscleGroup, number>();
   for (const r of rows) {
-    if (localDay(new Date(r.startedAt), timeZone) < monday) continue;
+    if (zoneDay(r.startedAt, r.tz) < monday) continue;
     const e = exercises.get(r.exerciseId);
     if (!e || e.kind !== 'kraft') continue;
     counts.set(e.muscleGroup, (counts.get(e.muscleGroup) ?? 0) + 1);
@@ -149,8 +149,8 @@ export async function plannedMuscles(db: Db, planDayId: string): Promise<Partial
  */
 export async function loadWeekTally(db: Db, today: string): Promise<MuscleTally> {
   const monday = weekStart(today);
-  const rows = await db.getAllAsync<{ startedAt: string; exerciseId: string }>(
-    `SELECT s.started_at_utc AS startedAt, l.exercise_id AS exerciseId FROM set_log l
+  const rows = await db.getAllAsync<{ startedAt: string; tz: string | null; exerciseId: string }>(
+    `SELECT s.started_at_utc AS startedAt, s.time_zone AS tz, l.exercise_id AS exerciseId FROM set_log l
      JOIN workout_session s ON s.id = l.session_id
      WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND s.started_at_utc >= ? AND s.started_at_utc < ?`,
     `${shiftDay(monday, -1)}T00:00:00.000Z`,
@@ -161,7 +161,7 @@ export async function loadWeekTally(db: Db, today: string): Promise<MuscleTally>
   const sunday = shiftDay(monday, 6);
   for (const r of rows) {
     // Nur Trainings dieser Woche (lokaler Starttag Mo–So) – beim Blättern in ältere Wochen zählen spätere nicht mit.
-    const day = localDay(new Date(r.startedAt), timeZone);
+    const day = zoneDay(r.startedAt, r.tz);
     if (day < monday || day > sunday) continue;
     const e = exercises.get(r.exerciseId);
     if (!e || e.kind !== 'kraft') continue;

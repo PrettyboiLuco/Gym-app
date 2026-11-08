@@ -5,7 +5,7 @@ import { bpAverage } from '@/domain/blood-pressure';
 import { daysBetween } from '@/domain/dates';
 import { estimateOneRepMax, loadModeOf, sameKg, setVolume } from '@/domain/logger';
 import { mean } from '@/domain/math';
-import { localDay, timeZone } from '@/domain/time';
+import { zoneDay } from '@/domain/time';
 import { exerciseName } from '@/format/exercise-name';
 import { formatDay, formatNumber, t } from '@/i18n';
 
@@ -62,13 +62,13 @@ export async function buildReport(db: Db, from: string, to: string): Promise<Rep
   const measurements = [...sites.entries()].map(([site, v]) => ({ site, ...v }));
 
   // Training: abgeschlossene Einheiten, deren Start (Ortszeit) im Zeitraum liegt
-  const sets = await db.getAllAsync<{ sessionId: string; at: string; exerciseId: string; setType: string; kg: number | null; reps: number | null }>(
-    `SELECT s.id AS sessionId, s.started_at_utc AS at, l.exercise_id AS exerciseId, l.set_type AS setType, l.weight_kg AS kg, l.reps
+  const sets = await db.getAllAsync<{ sessionId: string; at: string; tz: string | null; exerciseId: string; setType: string; kg: number | null; reps: number | null }>(
+    `SELECT s.id AS sessionId, s.started_at_utc AS at, s.time_zone AS tz, l.exercise_id AS exerciseId, l.set_type AS setType, l.weight_kg AS kg, l.reps
      FROM workout_session s LEFT JOIN set_log l ON l.session_id = s.id AND l.completed_at_utc IS NOT NULL
      WHERE s.status = 'abgeschlossen'`
   );
   const inRange = sets.filter((r) => {
-    const day = localDay(new Date(r.at), timeZone);
+    const day = zoneDay(r.at, r.tz);
     return day >= from && day <= to;
   });
   const sessions = new Set(inRange.map((r) => r.sessionId));

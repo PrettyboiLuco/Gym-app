@@ -297,11 +297,11 @@ export async function liftSets(db: Db, exerciseId: string, timeZone: string): Pr
  * ein Training von 23:40 bis 0:14 ist ein Trainingstag, nicht zwei (und liegt nicht in zwei Wochen).
  */
 export async function trainingDays(db: Db, fromUtc: string, timeZone: string): Promise<string[]> {
-  const rows = await db.getAllAsync<{ at: string }>(
-    `SELECT DISTINCT s.started_at_utc AS at FROM workout_session s
+  const rows = await db.getAllAsync<{ at: string; tz: string | null }>(
+    `SELECT DISTINCT s.started_at_utc AS at, s.time_zone AS tz FROM workout_session s
      WHERE s.started_at_utc >= ? AND EXISTS (SELECT 1 FROM set_log l WHERE l.session_id = s.id AND l.completed_at_utc IS NOT NULL)
      UNION ALL
-     SELECT started_at_utc AS at FROM timed_session WHERE kind = 'hiit' AND status = 'abgeschlossen' AND started_at_utc >= ?`,
+     SELECT started_at_utc AS at, NULL AS tz FROM timed_session WHERE kind = 'hiit' AND status = 'abgeschlossen' AND started_at_utc >= ?`,
     fromUtc,
     fromUtc
   );
@@ -310,7 +310,7 @@ export async function trainingDays(db: Db, fromUtc: string, timeZone: string): P
     'SELECT DISTINCT day FROM cardio_log WHERE completed_at_utc IS NOT NULL AND day >= ?',
     localDay(new Date(fromUtc), timeZone)
   );
-  return [...new Set([...rows.map((r) => localDay(new Date(r.at), timeZone)), ...cardio.map((c) => c.day)])];
+  return [...new Set([...rows.map((r) => localDay(new Date(r.at), r.tz ?? timeZone)), ...cardio.map((c) => c.day)])];
 }
 
 /** Tage mit abgeschlossener Dehnroutine oder Cool-down (Gewohnheit „dehnen“). */

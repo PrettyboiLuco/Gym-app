@@ -18,6 +18,7 @@ import { listWeights } from '@/data/weights';
 import { checkinDue } from '@/domain/checkin';
 import { drinkTotals, sumNutrients } from '@/domain/nutrition';
 import { todayDay } from '@/domain/time';
+import { useForegroundReload } from '@/hooks/use-foreground-reload';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber, t } from '@/i18n';
@@ -59,13 +60,14 @@ async function load(db: Db) {
 export default function CoachScreen() {
   const theme = useTheme();
   const modules = useModules();
-  const { data, loaded } = useLoad(load, {
+  const { data, loaded, reload } = useLoad(load, {
     setup: null as CoachSetup | null,
     coach: null as CoachTodayData | null,
     kcal: null as number | null,
     checkin: false,
     hide: false,
-  });
+  });  useForegroundReload(reload);
+
 
   if (!loaded || !data.coach) {
     return (

@@ -78,11 +78,12 @@ export async function importTraining(db: Db, imp: TrainingImport, choices: Recor
       const title = /^(hevy|strong)$/i.test(w.title) ? null : w.title;
       const note = [title, w.note].filter(Boolean).join(' – ') || null;
       await db.runAsync(
-        `INSERT INTO workout_session (id, plan_day_id, status, started_at_utc, finished_at_utc, note) VALUES (?, NULL, 'abgeschlossen', ?, ?, ?)`,
+        `INSERT INTO workout_session (id, plan_day_id, status, started_at_utc, finished_at_utc, note, time_zone) VALUES (?, NULL, 'abgeschlossen', ?, ?, ?, ?)`,
         sessionId,
         w.startedAt,
         new Date(end).toISOString(),
-        note
+        note,
+        timeZone
       );
       // Zeitpunkte gleichmäßig über die Einheit verteilen, damit Reihenfolge und Verlauf stimmen
       const step = strength.length > 1 ? (end - start) / strength.length : 0;

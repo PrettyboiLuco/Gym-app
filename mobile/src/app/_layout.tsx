@@ -14,6 +14,7 @@ import { ToastHost } from '@/components/toast';
 import { Colors } from '@/constants/theme';
 import { configureNotifications } from '@/data/notifications';
 import { loadNutritionSettings } from '@/data/nutrition';
+import { refreshTimeZone } from '@/domain/time';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ProfileProvider, useProfile } from '@/providers/profile-provider';
 import { StoreProvider, useDb } from '@/providers/store-provider';
@@ -40,6 +41,8 @@ function AlertsSync() {
     };
     sync();
     const sub = AppState.addEventListener('change', (state) => {
+      // Nach einer Reise: neue Zeitzone übernehmen, bevor „heute“ und die Erinnerungen neu berechnet werden.
+      if (state === 'active') refreshTimeZone();
       if (state === 'active') sync();
     });
     return () => sub.remove();

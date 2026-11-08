@@ -22,7 +22,7 @@ import {
   type Readiness,
   type Status,
 } from '@/domain/readiness';
-import { localDay, timeZone } from '@/domain/time';
+import { localDay, timeZone, zoneDay } from '@/domain/time';
 
 import { readState, writeState } from './app-state';
 import { newId, nowUtc, type Db } from './db';
@@ -174,8 +174,8 @@ export const saveWakeTime = (db: Db, time: string | null) => writeState(db, 'wak
 
 /** Last je Tag: Trainings (Dauer × Anstrengung) und Cardio außerhalb eines Trainings (Minuten × Anstrengung). */
 export async function loadDays(db: Db, fromDay: string): Promise<LoadDay[]> {
-  const sessions = await db.getAllAsync<{ start: string; end: string | null; effort: number | null }>(
-    `SELECT started_at_utc AS start, finished_at_utc AS end, effort FROM workout_session
+  const sessions = await db.getAllAsync<{ start: string; end: string | null; effort: number | null; tz: string | null }>(
+    `SELECT started_at_utc AS start, finished_at_utc AS end, effort, time_zone AS tz FROM workout_session
      WHERE status = 'abgeschlossen' AND started_at_utc >= ?`,
     `${shiftDay(fromDay, -1)}T00:00:00.000Z`
   );
@@ -187,7 +187,7 @@ export async function loadDays(db: Db, fromDay: string): Promise<LoadDay[]> {
   for (const s of sessions) {
     const minutes = s.end ? (Date.parse(s.end) - Date.parse(s.start)) / 60_000 : null;
     const load = sessionLoad(minutes, s.effort);
-    const day = localDay(new Date(s.start), timeZone);
+    const day = zoneDay(s.start, s.tz);
     if (load !== null && day >= fromDay) byDay.set(day, (byDay.get(day) ?? 0) + load);
   }
   for (const c of cardio) {
@@ -280,8 +280,8 @@ export async function journalDays(db: Db, fromDay: string, toDay: string) {
 
 /** „Leistung“ je Trainingstag (A6.10): bestes geschätztes 1RM je Übung im Vergleich zu den eigenen Bestwerten davor. */
 async function performanceByDay(db: Db, fromDay: string, toDay: string): Promise<Map<string, number>> {
-  const rows = await db.getAllAsync<{ at: string; exerciseId: string; kg: number | null; reps: number | null; setType: SetType | null }>(
-    `SELECT s.started_at_utc AS at, l.exercise_id AS exerciseId, l.weight_kg AS kg, l.reps, l.set_type AS setType
+  const rows = await db.getAllAsync<{ at: string; tz: string | null; exerciseId: string; kg: number | null; reps: number | null; setType: SetType | null }>(
+    `SELECT s.started_at_utc AS at, s.time_zone AS tz, l.exercise_id AS exerciseId, l.weight_kg AS kg, l.reps, l.set_type AS setType
      FROM set_log l JOIN workout_session s ON s.id = l.session_id
      WHERE l.completed_at_utc IS NOT NULL AND s.started_at_utc >= ?`,
     `${shiftDay(fromDay, -PERFORMANCE_LOOKBACK_DAYS - 1)}T00:00:00.000Z`
@@ -292,7 +292,7 @@ async function performanceByDay(db: Db, fromDay: string, toDay: string): Promise
   for (const r of rows) {
     const e1rm = bestOneRepMax([{ weightKg: r.kg, reps: r.reps, setType: r.setType }], modes.get(r.exerciseId) ?? 'normal');
     if (e1rm === null) continue;
-    const day = localDay(new Date(r.at), timeZone);
+    const day = zoneDay(r.at, r.tz);
     const m = byDay.get(day) ?? new Map<string, number>();
     m.set(r.exerciseId, Math.max(m.get(r.exerciseId) ?? 0, e1rm));
     byDay.set(day, m);

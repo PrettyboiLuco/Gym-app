@@ -3,7 +3,7 @@
 
 import type { Equipment } from '@/domain/exercises';
 import { loadModeOf } from '@/domain/logger';
-import { localDay, timeZone } from '@/domain/time';
+import { zoneDay } from '@/domain/time';
 import {
   DEFAULT_PROFILES,
   DELOAD_WEEKS_DEFAULT,
@@ -47,13 +47,13 @@ export async function loadSecondsPerSet(db: Db): Promise<number | null> {
 // ------------------------------------------------------------------------------ Statistik
 
 export async function allSets(db: Db): Promise<StatSet[]> {
-  const rows = await db.getAllAsync<Omit<StatSet, 'day'> & { at: string }>(
-    `SELECT l.session_id AS sessionId, s.started_at_utc AS at, l.exercise_id AS exerciseId, l.set_type AS setType,
+  const rows = await db.getAllAsync<Omit<StatSet, 'day'> & { at: string; tz: string | null }>(
+    `SELECT l.session_id AS sessionId, s.started_at_utc AS at, s.time_zone AS tz, l.exercise_id AS exerciseId, l.set_type AS setType,
        l.weight_kg AS weightKg, l.reps, l.seconds
      FROM set_log l JOIN workout_session s ON s.id = l.session_id
      WHERE s.status = 'abgeschlossen' AND l.completed_at_utc IS NOT NULL ORDER BY s.started_at_utc, l.position`
   );
-  return rows.map(({ at, ...r }) => ({ ...r, day: localDay(new Date(at), timeZone) }));
+  return rows.map(({ at, tz, ...r }) => ({ ...r, day: zoneDay(at, tz) }));
 }
 
 /** Belastungsart je Übung (Gegengewicht, einseitig …) für Volumen und Bestleistungen. */
@@ -123,11 +123,11 @@ export const saveDeloadState = (db: Db, s: DeloadState) => writeState(db, 'deloa
 export async function deloadOffer(db: Db, today: string): Promise<{ due: boolean; weeks: number; state: DeloadState }> {
   const [state, sessions, plans] = await Promise.all([
     loadDeloadState(db),
-    db.getAllAsync<{ at: string }>("SELECT started_at_utc AS at FROM workout_session WHERE status = 'abgeschlossen'"),
+    db.getAllAsync<{ at: string; tz: string | null }>("SELECT started_at_utc AS at, time_zone AS tz FROM workout_session WHERE status = 'abgeschlossen'"),
     listActivePlans(db),
   ]);
   const weeks = trainingWeeksInBlock(
-    sessions.map((s) => localDay(new Date(s.at), timeZone)),
+    sessions.map((s) => zoneDay(s.at, s.tz)),
     today,
     state.lastEnd
   );

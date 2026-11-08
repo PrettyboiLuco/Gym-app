@@ -754,6 +754,15 @@ export const MIGRATIONS: string[] = [
      created_at_utc TEXT NOT NULL
    );
    CREATE INDEX fasting_period_start ON fasting_period (started_at_utc);`,
+
+  // Version 28: Geschwindigkeit und Reisen (Prüfung 08.11.2026). Indizes für „Sätze eines Trainings“ (bisher wurde
+  // set_log bei jeder Abfrage ganz durchsucht), Trainings nach Datum und Einträge je Lebensmittel. Dazu die Zeitzone,
+  // in der ein Training begann: Der Trainingstag bleibt so derselbe, auch wenn man später in einer anderen Zone ist.
+  // Ältere Trainings bleiben ohne Zone (NULL) und werden wie bisher in der Zone des Geräts gerechnet.
+  `CREATE INDEX set_log_session ON set_log (session_id, position);
+   CREATE INDEX workout_session_started ON workout_session (started_at_utc);
+   CREATE INDEX consumption_food ON consumption_event (food_id, recorded_at_utc);
+   ALTER TABLE workout_session ADD COLUMN time_zone TEXT;`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */
@@ -761,6 +770,8 @@ export async function migrate(db: Db) {
   await db.execAsync('PRAGMA foreign_keys = ON;');
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
   const current = row?.user_version ?? 0;
+  // Datenbank einer neueren App-Version (z. B. ältere Testversion installiert): nicht still weiterarbeiten.
+  if (current > MIGRATIONS.length) throw new Error(`Datenbank-Version ${current} ist neuer als diese App (${MIGRATIONS.length}).`);
   for (let version = current; version < MIGRATIONS.length; version++) {
     await db.withTransactionAsync(async () => {
       await db.execAsync(MIGRATIONS[version]);

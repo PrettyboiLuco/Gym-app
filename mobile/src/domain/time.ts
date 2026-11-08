@@ -1,7 +1,18 @@
 // Tagebuchdatum und Timer (Register TIME-001, TIME-003, HEALTH-011; Referenztests T-018 bis T-023).
 
-/** Zeitzone des Geräts (IANA, z. B. „Europe/Berlin“). */
-export const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+/**
+ * Zeitzone des Geräts (IANA, z. B. „Europe/Berlin“). Wird beim Zurückkehren in die App neu gelesen (refreshTimeZone),
+ * damit nach einer Reise „heute“ und Erinnerungen in der neuen Zone gelten.
+ */
+export let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+/** Zeitzone neu lesen (App wieder im Vordergrund). Gibt true zurück, wenn sie sich geändert hat. */
+export function refreshTimeZone(): boolean {
+  const next = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (next === timeZone) return false;
+  timeZone = next;
+  return true;
+}
 
 /** Ein Formatierer je Zeitzone: ihn bei jedem Aufruf neu anzulegen kostete bei Tausenden Sätzen (Statistik) Sekunden. */
 const dayFormats = new Map<string, Intl.DateTimeFormat>();
@@ -14,6 +25,14 @@ export function localDay(at: Date, timeZone: string): string {
     dayFormats.set(timeZone, format);
   }
   return format.format(at);
+}
+
+/**
+ * Lokaler Tag eines Trainings: in der Zone, in der es begann (seit Version 28 gespeichert), sonst in der des Geräts.
+ * So rutscht ein Training nach einer Reise nicht auf einen anderen Tag.
+ */
+export function zoneDay(atUtc: string, tz: string | null | undefined): string {
+  return localDay(new Date(atUtc), tz ?? timeZone);
 }
 
 /** Heutiges Kalenderdatum in der Zeitzone des Geräts. */

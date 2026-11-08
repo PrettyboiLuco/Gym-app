@@ -2,6 +2,7 @@
 // Laufende Trainings bleiben hier außen vor: die gehören dem Trainings-Bildschirm mit Pausen und Mitteilungen.
 
 import { setOrder } from '@/domain/logger';
+import { timeZone } from '@/domain/time';
 import { setTimes, type EditedSet, type PlannedFields } from '@/domain/workout-edit';
 
 import { newId, type Db } from './db';
@@ -85,11 +86,12 @@ export async function saveWorkout(db: Db, input: WorkoutSave): Promise<string> {
       await db.runAsync('UPDATE workout_session SET started_at_utc = ?, finished_at_utc = ? WHERE id = ?', input.startedAtUtc, input.finishedAtUtc, id);
     } else {
       await db.runAsync(
-        "INSERT INTO workout_session (id, plan_day_id, status, started_at_utc, finished_at_utc) VALUES (?, ?, 'abgeschlossen', ?, ?)",
+        "INSERT INTO workout_session (id, plan_day_id, status, started_at_utc, finished_at_utc, time_zone) VALUES (?, ?, 'abgeschlossen', ?, ?, ?)",
         id,
         input.planDayId ?? null,
         input.startedAtUtc,
-        input.finishedAtUtc
+        input.finishedAtUtc,
+        timeZone
       );
     }
     const times = setTimes(input.sets, previous, { oldStartUtc: oldStart, startedAtUtc: input.startedAtUtc, finishedAtUtc: input.finishedAtUtc });
