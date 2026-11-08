@@ -7,6 +7,7 @@ import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { EmptyState } from '@/components/empty-state';
 import { Choice, ConfirmButton, Toggle } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { Slider } from '@/components/slider';
 import { ThemedText } from '@/components/themed-text';
@@ -83,9 +84,11 @@ export default function PhotosScreen() {
     await reload();
   }
 
+  // Erst die Aussage in einem Satz, die Einzelheiten hinter „ⓘ“ (Prüfung 08.11.: sechs Punkte Text vor dem Inhalt).
   const intro = (
     <Card title={t('photos.introTitle')}>
-      <ThemedText type="small">{t('photos.intro')}</ThemedText>
+      <ThemedText>{t('photos.introShort')}</ThemedText>
+      <InsightInfo label={t('photos.introMore')} text={t('photos.intro')} />
     </Card>
   );
 

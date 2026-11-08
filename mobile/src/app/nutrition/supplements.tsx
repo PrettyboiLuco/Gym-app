@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { Choice, ConfirmButton, Field, Presets } from '@/components/fields';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -118,15 +120,8 @@ export default function SupplementsScreen() {
 
   return (
     <Screen withHeader>
-      <Card>
-        <ThemedText themeColor="textSecondary">{t('supplements.notice')}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('supplements.proteinHint')}
-        </ThemedText>
-      </Card>
-
       <Card title={t('supplements.todayTitle')}>
-        {list.length === 0 ? <ThemedText themeColor="textSecondary">{t('supplements.empty')}</ThemedText> : null}
+        {list.length === 0 ? <EmptyState icon="pill" title={t('supplements.empty')} /> : null}
         {list.map((s) => {
           const logged = days.get(s.id) ?? [];
           const taken = logged.includes(today);
@@ -146,6 +141,9 @@ export default function SupplementsScreen() {
           );
         })}
       </Card>
+
+      {/* Hinweise nach dem Inhalt und eingeklappt (Prüfung 08.11.: vorher ein Textblock vor allem anderen). */}
+      <InsightInfo label={t('supplements.noticeLabel')} text={`${t('supplements.notice')}\n\n${t('supplements.proteinHint')}`} />
 
       <Card title={t('supplements.listTitle')}>
         {list.map((s) => (

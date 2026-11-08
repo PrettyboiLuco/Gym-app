@@ -172,7 +172,8 @@ function InsightTileCard({ tile }: { tile: InsightTileData }) {
       ) : null}
       {tile.value === null ? (
         // Leere Kachel: kein Verlauf (auch kein einzelner Punkt), höchstens der Fortschritt bis zum ersten Wert.
-        tile.progress ? (
+        // Bei 0 kein leerer grauer Balken – der sah aus wie „lädt noch“ (Prüfung 08.11.); der Satz darüber reicht.
+        tile.progress && tile.progress.have > 0 ? (
           <View style={styles.progress}>
             <MeterBar progress={Math.min(1, tile.progress.have / tile.progress.need)} color={color} trackColor={theme.border} height={4} growIn />
           </View>

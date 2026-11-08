@@ -3,9 +3,9 @@ import { useState } from 'react';
 
 import { Button, Card } from '@/components/card';
 import { cardioName, cardioSummary } from '@/components/cardio-row';
+import { EmptyState } from '@/components/empty-state';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
-import { ThemedText } from '@/components/themed-text';
 import { listCardio, type CardioEntry } from '@/data/cardio';
 import type { Db } from '@/data/db';
 import { listTimedSessions, type TimedSession } from '@/data/routines';
@@ -57,7 +57,7 @@ export default function HistoryScreen() {
       {/* Vergessenes Training (Prüfung 05.11.2026): mit Datum und Sätzen nachtragen. */}
       <Button label={t('history.backfill')} variant="secondary" onPress={() => router.push({ pathname: '/training/edit/[id]', params: { id: 'neu' } })} />
       <Card>
-        {rows.length === 0 ? <ThemedText themeColor="textSecondary">{t('history.empty')}</ThemedText> : null}
+        {rows.length === 0 ? <EmptyState icon="clock" title={t('history.empty')} /> : null}
         {rows.map((row) =>
           row.type === 'cardio' ? (
             <ListRow

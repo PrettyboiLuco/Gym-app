@@ -81,20 +81,20 @@ export default function CoachScreen() {
     <Screen title={t('tabs.coach')} subtitle={t('coachTab.subtitle')} trailing={<SettingsButton />}>
       {/* Ziel als Panel (getlayers „lumora-stats“ wie bei den Meilensteinen): Aussage oben, große Zahl darunter. */}
       {setup ? (
-        <View style={[styles.hero, { backgroundColor: theme.text }]} accessible accessibilityRole="summary">
+        <View style={[styles.hero, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]} accessible accessibilityRole="summary">
           <View style={styles.eyebrowRow}>
             <View style={[styles.dot, { backgroundColor: theme.accent }]} />
-            <ThemedText type="small" style={{ color: theme.background, opacity: 0.7 }}>
+            <ThemedText type="small" style={{ color: theme.textSecondary }}>
               {t('coachTab.goalEyebrow')}
             </ThemedText>
           </View>
-          <ThemedText style={[styles.heroTitle, { color: theme.background }]}>{t(`coach.goal.${setup.goal}`)}</ThemedText>
+          <ThemedText style={[styles.heroTitle, { color: theme.text }]}>{t(`coach.goal.${setup.goal}`)}</ThemedText>
           <View style={styles.heroStats}>
             {data.kcal !== null && !data.hide ? (
-              <HeroStat value={formatNumber(data.kcal, 0)} label={t('coachTab.kcalToday')} color={theme.background} />
+              <HeroStat value={formatNumber(data.kcal, 0)} label={t('coachTab.kcalToday')} color={theme.text} />
             ) : null}
-            <HeroStat value={String(setup.gymDays)} label={t('coachTab.gymDays')} color={theme.background} />
-            <HeroStat value={formatNumber(setup.steps, 0)} label={t('coachTab.steps')} color={theme.background} />
+            <HeroStat value={String(setup.gymDays)} label={t('coachTab.gymDays')} color={theme.text} />
+            <HeroStat value={formatNumber(setup.steps, 0)} label={t('coachTab.steps')} color={theme.text} />
           </View>
         </View>
       ) : null}
@@ -152,7 +152,7 @@ function HeroStat({ value, label, color }: { value: string; label: string; color
       <ThemedText style={[styles.heroValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </ThemedText>
-      <ThemedText type="small" style={{ color, opacity: 0.7 }} numberOfLines={1}>
+      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
         {label}
       </ThemedText>
     </View>
@@ -160,7 +160,7 @@ function HeroStat({ value, label, color }: { value: string; label: string; color
 }
 
 const styles = StyleSheet.create({
-  hero: { borderRadius: Radius.card + 8, padding: Spacing.four, gap: Spacing.three },
+  hero: { borderRadius: Radius.card, borderWidth: 1, padding: Spacing.four, gap: Spacing.three },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   dot: { width: 8, height: 8, borderRadius: 4 },
   heroTitle: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4 },

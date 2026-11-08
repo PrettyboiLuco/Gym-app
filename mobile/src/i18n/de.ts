@@ -2545,6 +2545,8 @@ export const de = {
   photos: {
     title: 'Fortschrittsfotos',
     introTitle: 'So funktionieren die Fotos',
+    introShort: 'Freiwillig, nur auf diesem iPhone – kein Upload, nicht in deiner Fotos-Mediathek.',
+    introMore: 'Mehr zu Datenschutz und Sicherung',
     intro:
       '• Freiwillig und standardmäßig aus.\n' +
       '• Die Fotos bleiben nur in dieser App auf deinem Gerät. Kein Upload, keine Weitergabe, keine Werbung, keine KI.\n' +
@@ -3672,6 +3674,7 @@ export const de = {
     sensitive: 'Der Fasten-Timer ist ausgeblendet, weil im Profil eine sensible Situation angegeben ist.',
     enable: 'Fasten-Timer verwenden',
     enableHint: 'Standardmäßig aus. Deine Einträge im Tagebuch bleiben davon unberührt.',
+    aboutLabel: 'Was der Fasten-Timer macht – und was nicht',
     about:
       'Der Timer misst nur die Zeit zwischen Start und Stopp. Er gibt keine Empfehlung, ob oder wie lange du fastest, und bewertet nichts. ' +
       'Wenn du unsicher bist, ob Fasten zu dir passt, sprich vorher mit deiner Ärztin oder deinem Arzt.',
@@ -3706,6 +3709,7 @@ export const de = {
     title: 'Supplements',
     link: 'Supplements',
     linkSub: 'Was du nimmst',
+    noticeLabel: 'Hinweise zu Supplements',
     notice:
       'Hier hältst du fest, was du nimmst – mit Menge und Einheit so, wie du sie einträgst. Die App gibt keine ' +
       'Empfehlungen und schlägt keine Mengen vor. Fragen zu Einnahme, Menge oder Wechselwirkungen mit Medikamenten ' +

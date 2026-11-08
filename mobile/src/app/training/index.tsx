@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Card } from '@/components/card';
 import { CardioRow } from '@/components/cardio-row';
 import { MeterBar } from '@/components/charts';
+import { EmptyState } from '@/components/empty-state';
 import { ListRow } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { PressableScale } from '@/components/pressable-scale';
@@ -305,7 +306,7 @@ export default function TrainingScreen() {
       ) : null}
 
       <Card title={t('training.plansTitle')}>
-        {plans.length === 0 ? <ThemedText themeColor="textSecondary">{t('training.noPlans')}</ThemedText> : null}
+        {plans.length === 0 ? <EmptyState icon="list" title={t('training.noPlans')} /> : null}
         {plans.map((p, i) => (
           <ListRow
             key={p.planId}

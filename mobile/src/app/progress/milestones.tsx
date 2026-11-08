@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { Toggle } from '@/components/fields';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
@@ -69,20 +70,20 @@ export default function MilestonesScreen() {
   return (
     <Screen withHeader>
       {/* 1 · Panel „Bisher“: invertiert, Aussage oben links, drei große Zahlen darunter. */}
-      <View style={[styles.hero, { backgroundColor: theme.text }]} accessible accessibilityRole="summary">
+      <View style={[styles.hero, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]} accessible accessibilityRole="summary">
         <View style={styles.eyebrowRow}>
           <View style={[styles.eyebrowDot, { backgroundColor: theme.accent }]} />
-          <ThemedText type="small" style={{ color: theme.background, opacity: 0.7 }}>
+          <ThemedText type="small" style={{ color: theme.textSecondary }}>
             {t('milestones.heroEyebrow')}
           </ThemedText>
         </View>
-        <ThemedText style={[styles.heroTitle, { color: theme.background }]}>
+        <ThemedText style={[styles.heroTitle, { color: theme.text }]}>
           {t('milestones.heroTitle', { count: m.milestones.length, total: MILESTONES.length })}
         </ThemedText>
         <View style={styles.heroStats}>
-          <HeroStat value={formatNumber(m.stats.trainings, 0)} label={t('milestones.statTrainings')} color={theme.background} />
-          <HeroStat value={formatNumber(m.stats.sets, 0)} label={t('milestones.statSets')} color={theme.background} />
-          <HeroStat value={m.stats.bestKg > 0 ? formatNumber(m.stats.bestKg, 0) : '–'} label={t('milestones.statBest')} color={theme.background} />
+          <HeroStat value={formatNumber(m.stats.trainings, 0)} label={t('milestones.statTrainings')} color={theme.text} />
+          <HeroStat value={formatNumber(m.stats.sets, 0)} label={t('milestones.statSets')} color={theme.text} />
+          <HeroStat value={m.stats.bestKg > 0 ? formatNumber(m.stats.bestKg, 0) : '–'} label={t('milestones.statBest')} color={theme.text} />
         </View>
       </View>
 
@@ -99,7 +100,7 @@ export default function MilestonesScreen() {
       {/* 3 · Erreicht: Zeitleiste, neueste oben, Wert als Plakette, „Neu“-Marke, Teilen-Knopf. */}
       <Card title={t('milestones.reachedTitle')}>
         {m.milestones.length === 0 ? (
-          <ThemedText themeColor="textSecondary">{t('milestones.none')}</ThemedText>
+          <EmptyState icon="target" title={t('milestones.none')} />
         ) : (
           [...m.milestones].reverse().map((ms, i, all) => (
             <View key={ms.id} style={styles.timelineRow}>
@@ -230,7 +231,7 @@ function HeroStat({ value, label, color }: { value: string; label: string; color
       <ThemedText style={[styles.heroValue, { color }]} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </ThemedText>
-      <ThemedText type="small" style={{ color, opacity: 0.7 }} numberOfLines={1}>
+      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
         {label}
       </ThemedText>
     </View>
@@ -316,7 +317,7 @@ function LegendItem({ fill, border, dashed = false, label }: { fill: string; bor
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  hero: { borderRadius: Radius.card + 8, padding: Spacing.four, gap: Spacing.three },
+  hero: { borderRadius: Radius.card, borderWidth: 1, padding: Spacing.four, gap: Spacing.three },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   eyebrowDot: { width: 8, height: 8, borderRadius: 4 },
   heroTitle: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4, maxWidth: 260 },

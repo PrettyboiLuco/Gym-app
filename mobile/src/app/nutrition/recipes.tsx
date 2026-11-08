@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 
 import { Button, Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -18,7 +19,7 @@ export default function RecipesScreen() {
       <Button label={t('nutrition.recipe.new')} onPress={() => router.push({ pathname: '/nutrition/recipe/[id]', params: { id: 'neu' } })} />
       <Button label={t('book.open', { count: ALL_BOOK_RECIPES.length })} variant="secondary" onPress={() => router.push('/nutrition/book')} />
       <Card>
-        {loaded && recipes.length === 0 ? <ThemedText themeColor="textSecondary">{t('nutrition.recipe.empty')}</ThemedText> : null}
+        {loaded && recipes.length === 0 ? <EmptyState icon="recipe" title={t('nutrition.recipe.empty')} /> : null}
         {recipes.map((r) => (
           <ListRow
             key={r.recipeId}

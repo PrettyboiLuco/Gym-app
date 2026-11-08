@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { Choice } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -68,7 +69,7 @@ export default function ExerciseProgressScreen() {
       <Stack.Screen options={{ title: exercise ? exerciseName(exercise) : t('exerciseProgress.title') }} />
       {loaded && bests.length === 0 ? (
         <Card>
-          <ThemedText themeColor="textSecondary">{t('exerciseProgress.empty')}</ThemedText>
+          <EmptyState icon="chart" title={t('exerciseProgress.empty')} />
         </Card>
       ) : null}
       {best ? (

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
+import { EmptyState } from '@/components/empty-state';
 import { Choice, Field, ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -102,7 +103,7 @@ export default function RecipeBookScreen() {
       ) : null}
 
       <Card title={t('book.count', { count: list.length })}>
-        {list.length === 0 ? <ThemedText themeColor="textSecondary">{t('book.empty')}</ThemedText> : null}
+        {list.length === 0 ? <EmptyState icon="book" title={t('book.empty')} /> : null}
         {list.map((r, i) => (
           <ListRow
             key={r.id}

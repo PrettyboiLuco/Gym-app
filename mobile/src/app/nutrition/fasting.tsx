@@ -5,6 +5,7 @@ import { Button, Card } from '@/components/card';
 import { ProgressRing } from '@/components/charts';
 import { ConfirmButton, EntryRow, Field, Segmented, Toggle } from '@/components/fields';
 import { haptic } from '@/components/haptics';
+import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
@@ -134,9 +135,7 @@ export default function FastingScreen() {
     <Screen withHeader>
       <Card>
         <Toggle label={t('fasting.enable')} hint={t('fasting.enableHint')} value={settings.enabled} onChange={toggleEnabled} />
-        <ThemedText type="small" themeColor="textSecondary">
-          {t('fasting.about')}
-        </ThemedText>
+        <InsightInfo label={t('fasting.aboutLabel')} text={t('fasting.about')} />
       </Card>
 
       {loaded && settings.enabled ? (
