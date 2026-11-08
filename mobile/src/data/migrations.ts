@@ -762,6 +762,7 @@ export const MIGRATIONS: string[] = [
   `CREATE INDEX set_log_session ON set_log (session_id, position);
    CREATE INDEX workout_session_started ON workout_session (started_at_utc);
    CREATE INDEX consumption_food ON consumption_event (food_id, recorded_at_utc);
+   CREATE INDEX consumption_kind_recorded ON consumption_event (kind, recorded_at_utc);
    ALTER TABLE workout_session ADD COLUMN time_zone TEXT;`,
 ];
 

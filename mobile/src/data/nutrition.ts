@@ -634,15 +634,18 @@ export function recentEntries(db: Db, kind: EventKind = 'essen', limit = 10) {
     `SELECT id AS eventId, food_id AS foodId, recipe_version_id AS recipeVersionId, name, brand, amount, unit, kcal,
        (SELECT prep FROM food WHERE food.id = e.food_id) AS prep
      FROM (
-       SELECT *, rowid AS rid, ROW_NUMBER() OVER (
+       SELECT id, food_id, recipe_version_id, name, brand, amount, unit, kcal, recorded_at_utc, rowid AS rid, ROW_NUMBER() OVER (
          PARTITION BY COALESCE('f:' || food_id, 'r:' || recipe_version_id, 'q:' || lower(trim(name)))
          ORDER BY recorded_at_utc DESC, rowid DESC
        ) AS n
-       FROM consumption_event WHERE kind = ? AND (kind = 'essen' OR food_id IS NOT NULL)
+       -- Nur das letzte Jahr: „zuletzt gegessen“ braucht keine Jahre an Einträgen (Prüfung 08.11.: lief bei jedem
+       -- Öffnen über das ganze Tagebuch samt Mikronährstoffen).
+       FROM consumption_event WHERE kind = ? AND (kind = 'essen' OR food_id IS NOT NULL) AND recorded_at_utc >= ?
      ) e
      WHERE n = 1 AND (food_id IS NULL OR EXISTS (SELECT 1 FROM food f WHERE f.id = e.food_id AND f.archived = 0))
      ORDER BY recorded_at_utc DESC, rid DESC LIMIT ?`,
     kind,
+    new Date(Date.now() - 365 * 86_400_000).toISOString(),
     limit
   );
 }

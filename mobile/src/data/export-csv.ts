@@ -18,7 +18,17 @@ export type ExportArea = (typeof EXPORT_AREAS)[number];
 const cardioName = (e: Pick<CardioEntry, 'activity' | 'customName'>) =>
   e.activity === 'sonstiges' && e.customName ? e.customName : t(`cardio.activities.${e.activity}`);
 
-const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '');
+/**
+ * Ein Formatierer für alle Zeilen (Prüfung 08.11.: toLocaleTimeString legte je Zeile einen neuen an – bei 50 000
+ * Sätzen mehrere Sekunden). Zeitzone wie beim Tag: die des Geräts.
+ */
+let timeFormat: { zone: string; format: Intl.DateTimeFormat } | null = null;
+const time = (iso: string | null) => {
+  if (!iso) return '';
+  if (!timeFormat || timeFormat.zone !== timeZone)
+    timeFormat = { zone: timeZone, format: new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone }) };
+  return timeFormat.format.format(new Date(iso));
+};
 const day = (iso: string | null) => (iso ? localDay(new Date(iso), timeZone) : '');
 
 async function trainingCsv(db: Db) {
