@@ -11,7 +11,7 @@ import { Screen } from '@/components/screen';
 import { SettingsButton } from '@/components/settings-button';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { ThemedText } from '@/components/themed-text';
-import { CardRow, StatTile, TileGrid } from '@/components/tiles';
+import { CardRow, StatTile, type Tile } from '@/components/tiles';
 import { showToast } from '@/components/toast';
 import { TrainingBlock, weekDays } from '@/components/today-widgets';
 import { Press } from '@/constants/motion';
@@ -222,6 +222,7 @@ export default function TrainingScreen() {
       ) : null}
 
       <TrainingBlock
+        showWeek={false}
         label={hero.label}
         title={hero.title}
         meta={hero.meta}
@@ -317,8 +318,9 @@ export default function TrainingScreen() {
           />
         ))}
       </Card>
-      <TileGrid
-        tiles={[
+      {/* Gruppierte Liste statt gleich großer Kacheln (Prüfung 08.11.): ein Hauptknopf je Bildschirm, der Rest ruhig. */}
+      <Card title={t('training.planToolsTitle')}>
+        {asTiles([
           {
             key: 'neu',
             icon: 'plus',
@@ -341,8 +343,18 @@ export default function TrainingScreen() {
             subtitle: t('training.assistantShort'),
             onPress: () => router.push('/training/assistant'),
           },
-        ]}
-      />
+        ]).map((tile, i, all) => (
+          <ListRow
+            key={tile.key}
+            icon={tile.icon}
+            title={tile.title}
+            subtitle={tile.subtitle}
+            accessory="›"
+            last={i === all.length - 1}
+            onPress={tile.onPress}
+          />
+        ))}
+      </Card>
 
       <Card
         title={t('cardio.weekTitle')}
@@ -357,8 +369,9 @@ export default function TrainingScreen() {
         <ListRow icon="plus" title={t('cardio.add')} accessory="›" onPress={() => router.push('/training/cardio')} last />
       </Card>
 
-      <TileGrid
-        tiles={[
+      {/* Gruppierte Liste statt gleich großer Kacheln (Prüfung 08.11.): ein Hauptknopf je Bildschirm, der Rest ruhig. */}
+      <Card title={t('training.moreTitle')}>
+        {asTiles([
           {
             key: 'verlauf',
             icon: 'clock',
@@ -405,11 +418,24 @@ export default function TrainingScreen() {
             subtitle: t('training.exercisesShort'),
             onPress: () => router.push('/training/exercises'),
           },
-        ]}
-      />
+        ]).map((tile, i, all) => (
+          <ListRow
+            key={tile.key}
+            icon={tile.icon}
+            title={tile.title}
+            subtitle={tile.subtitle}
+            accessory="›"
+            last={i === all.length - 1}
+            onPress={tile.onPress}
+          />
+        ))}
+      </Card>
     </Screen>
   );
 }
+
+/** Typisiert die Einträge der Listen „Pläne“ und „Mehr zum Training“. */
+const asTiles = (tiles: Tile[]) => tiles;
 
 /** Wochenziel je Muskel für den Maßstab der Balken (übliche Empfehlung: etwa 10 Arbeitssätze pro Woche). */
 const MUSCLE_WEEK_SETS = 10;

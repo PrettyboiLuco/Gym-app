@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-import { Card } from '@/components/card';
+import { Button, Card } from '@/components/card';
 import { CoachToday, type CoachTodayData } from '@/components/coach-today';
 import { ListRow } from '@/components/fields';
 import { Screen } from '@/components/screen';
@@ -107,7 +107,24 @@ export default function CoachScreen() {
       ) : null}
 
       {/* Der Tag: Kalorien, Makros, Tipps (bzw. „Coach einrichten“, solange es keine Einrichtung gibt). */}
-      {modules.coach ? <CoachToday data={coach} /> : null}
+      {/* Vor der Einrichtung: eine richtige Einladung statt einer einzelnen Zeile auf leerem Grund (Prüfung 08.11.). */}
+      {!setup ? (
+        <Card>
+          <ThemedText style={styles.introTitle}>{t('coachTab.introTitle')}</ThemedText>
+          {(['introPoint1', 'introPoint2', 'introPoint3'] as const).map((k) => (
+            <View key={k} style={styles.point}>
+              <View style={[styles.pointDot, { backgroundColor: theme.textSecondary }]} />
+              <ThemedText style={styles.flex}>{t(`coachTab.${k}`)}</ThemedText>
+            </View>
+          ))}
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('coachTab.introTime')}
+          </ThemedText>
+          <Button label={t('coach.open')} onPress={() => router.push('/coach/coach-setup')} />
+        </Card>
+      ) : modules.coach ? (
+        <CoachToday data={coach} />
+      ) : null}
 
       {setup ? (
         <Card title={t('coachTab.toolsTitle')}>
@@ -149,5 +166,9 @@ const styles = StyleSheet.create({
   heroTitle: { fontFamily: DisplayFont.bold, fontSize: 22, lineHeight: 28, letterSpacing: -0.4 },
   heroStats: { flexDirection: 'row', gap: Spacing.three, marginTop: Spacing.one },
   heroStat: { flex: 1, minWidth: 0, gap: Spacing.half },
+  introTitle: { fontFamily: DisplayFont.bold, fontSize: 24, lineHeight: 30, letterSpacing: -0.5 },
+  point: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
+  pointDot: { width: 6, height: 6, borderRadius: 3, marginTop: 9 },
+  flex: { flex: 1 },
   heroValue: { fontFamily: DisplayFont.bold, fontSize: 30, lineHeight: 36, letterSpacing: -0.8, fontVariant: ['tabular-nums'] },
 });

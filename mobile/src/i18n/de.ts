@@ -116,6 +116,8 @@ export const de = {
     continue: 'Weiter trainieren',
     startTitle: 'Training starten',
     suggested: 'Vorschlag',
+    planToolsTitle: 'Pläne',
+    moreTitle: 'Mehr zum Training',
     otherDay: 'Anderen Tag wählen',
     muscleSets: {
       one: '1 Satz',
@@ -2797,6 +2799,11 @@ export const de = {
       'Grundnahrungsmittel, eigene Lebensmittel und alles andere funktionieren weiter ohne Netz.',
   },
   coachTab: {
+    introTitle: 'Dein Coach rechnet mit, damit du es nicht musst',
+    introPoint1: 'Kalorien und Makros passend zu deinem Ziel – an Trainingstagen etwas mehr',
+    introPoint2: 'Einmal pro Woche ein kurzer Check: Gewichtstrend ansehen, bei Bedarf anpassen',
+    introPoint3: 'Tipps nur, wenn du sie aufrufst – keine Serien, kein Druck',
+    introTime: 'Einrichten dauert etwa 2 Minuten. Alles bleibt auf deinem iPhone.',
     subtitle: 'Ziel, Kalorien und Wochen-Check an einem Ort',
     goalEyebrow: 'Dein Ziel',
     kcalToday: 'kcal heute',

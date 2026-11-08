@@ -77,8 +77,9 @@ export function MealHead({
         accessibilityLabel={addLabel}
         hitSlop={4}
         onPress={onAdd}
-        style={({ pressed }) => [styles.round, { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 }]}>
-        <Icon name="plus" color={theme.onPrimary} size={18} strokeWidth={2.4} />
+        // Dezent statt weiß gefüllt: vier Mahlzeiten = vier Knöpfe, die sonst alle wie der Hauptknopf wirken (Prüfung 08.11.).
+        style={({ pressed }) => [styles.round, { backgroundColor: pressed ? theme.border : theme.backgroundSelected }]}>
+        <Icon name="plus" color={theme.text} size={18} strokeWidth={2.4} />
       </PressableScale>
       {onMore ? (
         <PressableScale

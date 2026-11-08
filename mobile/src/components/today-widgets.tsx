@@ -43,7 +43,10 @@ export function TrainingBlock({
   growIn = false,
   countUp = false,
   onDayPress,
+  showWeek = true,
 }: {
+  /** Satz-Woche zeigen (auf „Heute“ ja; im Training-Tab nicht – dieselbe Grafik nicht zweimal, Prüfung 08.11.). */
+  showWeek?: boolean;
   /** Kleine Zeile über dem Titel; ohne = keine (z. B. wenn das Training läuft – Titel und Knopf sagen genug). */
   label?: string | null;
   title: string;
@@ -105,7 +108,7 @@ export function TrainingBlock({
           {t('today.sparedHint', { list: overlap.map((g) => t(`muscle.${g}`)).join(', ') })}
         </ThemedText>
       ) : null}
-      <WeekStrip days={week} summary={weekSummary} growIn={growIn} countUp={countUp} onDayPress={onDayPress} />
+      {showWeek ? <WeekStrip days={week} summary={weekSummary} growIn={growIn} countUp={countUp} onDayPress={onDayPress} /> : null}
       <View style={styles.action}>
         <Button label={action} onPress={onPress} />
       </View>
@@ -193,7 +196,8 @@ export function WeekStrip({
               </ThemedText>
               <View style={styles.barArea}>
                 {planHeight > 0 ? (
-                  <GrowBar height={planHeight} color={theme.backgroundSelected} growIn={growIn} start={start} delay={i * CardStagger.staggerMs} />
+                  // Geplant = Umriss, erledigt = gefüllt (Prüfung 08.11.: graue Flächen wirkten wie schon gemachte Sätze).
+                  <GrowBar outline height={planHeight} color={theme.border} growIn={growIn} start={start} delay={i * CardStagger.staggerMs} />
                 ) : doneHeight === 0 ? (
                   <View style={[styles.rest, { backgroundColor: theme.backgroundSelected }]} />
                 ) : null}
@@ -213,7 +217,7 @@ export function WeekStrip({
               <ThemedText type="small" themeColor={did > 0 ? 'text' : 'textSecondary'} style={styles.dayFigure}>
                 {figure}
               </ThemedText>
-              <View style={[styles.todayMark, { backgroundColor: d.today ? doneColor : 'transparent' }]} />
+              {/* Heute: fetter Tagesname (oben) – keine Lime-Linie mehr, Lime bleibt bei den Daten. */}
             </>
           );
           return tappable(d) ? (
@@ -251,6 +255,7 @@ function GrowBar({
   height,
   color,
   done = false,
+  outline = false,
   celebrate = false,
   growIn = false,
   start = true,
@@ -259,6 +264,7 @@ function GrowBar({
   height: number;
   color: string;
   done?: boolean;
+  outline?: boolean;
   celebrate?: boolean;
   growIn?: boolean;
   start?: boolean;
@@ -277,7 +283,9 @@ function GrowBar({
     }
   }, [animate, celebrate, delay, h, height, start]);
   const animated = useAnimatedStyle(() => ({ height: h.value }));
-  return <Animated.View style={[styles.bar, done && styles.doneBar, { backgroundColor: color }, animated]} />;
+  return (
+    <Animated.View style={[styles.bar, done && styles.doneBar, outline ? { borderWidth: 1.5, borderColor: color } : { backgroundColor: color }, animated]} />
+  );
 }
 
 export type Figure = {
@@ -396,7 +404,6 @@ const styles = StyleSheet.create({
   doneBar: { position: 'absolute', bottom: 0 },
   rest: { width: 14, height: 3, borderRadius: 2 },
   dayFigure: { fontSize: 11, lineHeight: 14, fontVariant: ['tabular-nums'], minHeight: 14 },
-  todayMark: { width: 22, height: 2, borderRadius: 1 },
   action: { alignItems: 'flex-start' },
   stripBox: { borderRadius: Radius.card, borderWidth: 1 },
   strip: { flexDirection: 'row', paddingVertical: Spacing.three },
