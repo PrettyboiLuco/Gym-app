@@ -210,8 +210,10 @@ export async function finishTimedSession(
   await saveTimedRun(db, null);
 }
 
-export function listTimedSessions(db: Db, limit = 50) {
-  return db.getAllAsync<TimedSession>(`SELECT ${SESSION_COLUMNS} FROM timed_session ORDER BY started_at_utc DESC LIMIT ?`, limit);
+export function listTimedSessions(db: Db, limit = 50, sinceUtc?: string) {
+  return sinceUtc
+    ? db.getAllAsync<TimedSession>(`SELECT ${SESSION_COLUMNS} FROM timed_session WHERE started_at_utc >= ? ORDER BY started_at_utc DESC`, sinceUtc)
+    : db.getAllAsync<TimedSession>(`SELECT ${SESSION_COLUMNS} FROM timed_session ORDER BY started_at_utc DESC LIMIT ?`, limit);
 }
 
 export function getTimedSession(db: Db, id: string) {

@@ -9,7 +9,7 @@ import type { Db } from '../db';
 import { migrate } from '../migrations';
 import { loadMotivation } from '../motivation';
 import { createTestDb } from '../testing/node-db';
-import { listExercises } from '../training';
+import { listExercises, listSessions, oldestActivityDay } from '../training';
 import { allSets } from '../training-stats';
 
 let db: Db & { close(): void };
@@ -50,4 +50,15 @@ test('Kennzahlen per SQL = Kennzahlen aus allen Sätzen (1000. Satz, erste 100 k
   expect(m.stats.sets).toBe(full.length);
   expect(m.stats.bestKg).toBe(summarizeSets(full).bestKg);
   expect(m.milestones.find((x) => x.id === 'saetze_1000')?.day).toBe(full[999].day);
+});
+
+test('Verlauf: ab einem Datum alle Trainings (keine 50er-Grenze), ältester Tag bekannt', async () => {
+  for (let s = 0; s < 70; s++) {
+    const at = new Date(Date.parse('2026-01-01T17:00:00Z') + s * 86_400_000).toISOString();
+    await db.runAsync("INSERT INTO workout_session (id, status, started_at_utc, finished_at_utc) VALUES (?, 'abgeschlossen', ?, ?)", `h${s}`, at, at);
+  }
+  expect(await listSessions(db)).toHaveLength(50);
+  expect(await listSessions(db, 0, '2026-01-01T00:00:00.000Z')).toHaveLength(70);
+  expect(await listSessions(db, 0, '2026-03-01T00:00:00.000Z')).toHaveLength(11);
+  expect(await oldestActivityDay(db)).toBe('2026-01-01');
 });

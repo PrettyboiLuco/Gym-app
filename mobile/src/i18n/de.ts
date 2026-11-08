@@ -1182,6 +1182,7 @@ export const de = {
     exercises: 'Übungen',
     deleteHint: 'Löscht nur diesen Eintrag aus dem Protokoll.',
     backfill: 'Training nachtragen',
+    loadOlder: 'Ältere laden',
   },
   // Beendetes Training bearbeiten oder nachtragen (Prüfung 05.11.2026)
   workoutEdit: {

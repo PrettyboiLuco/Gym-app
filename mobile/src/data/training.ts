@@ -370,14 +370,29 @@ export function getSession(db: Db, id: string) {
   return db.getFirstAsync<SessionInfo>(`${SESSION_SELECT} WHERE s.id = ?`, id);
 }
 
-export function listSessions(db: Db, limit = 50) {
+/**
+ * Trainings, neueste zuerst: die letzten `limit` – oder mit `sinceUtc` alle ab diesem Zeitpunkt (Verlauf, seitenweise).
+ * Erledigte Sätze je Training über den Index set_log_session statt einer Zählung über alle Sätze.
+ */
+export function listSessions(db: Db, limit = 50, sinceUtc?: string) {
   return db.getAllAsync<SessionInfo & { doneSets: number }>(
-    `SELECT * FROM (${SESSION_SELECT}) AS x
-     LEFT JOIN (SELECT session_id, COUNT(*) AS doneSets FROM set_log WHERE completed_at_utc IS NOT NULL GROUP BY session_id) c
-       ON c.session_id = x.id
-     ORDER BY x.startedAt DESC LIMIT ?`,
-    limit
+    `SELECT x.*, (SELECT COUNT(*) FROM set_log l WHERE l.session_id = x.id AND l.completed_at_utc IS NOT NULL) AS doneSets
+     FROM (${SESSION_SELECT}) AS x
+     ${sinceUtc ? 'WHERE x.startedAt >= ?' : ''}
+     ORDER BY x.startedAt DESC ${sinceUtc ? '' : 'LIMIT ?'}`,
+    sinceUtc ?? limit
   );
+}
+
+/** Ältester Start überhaupt (Training, Zeit-Einheit oder Cardio) – zeigt, ob es im Verlauf noch Älteres gibt. */
+export async function oldestActivityDay(db: Db): Promise<string | null> {
+  const row = await db.getFirstAsync<{ d: string | null }>(
+    `SELECT MIN(d) AS d FROM (
+       SELECT substr(MIN(started_at_utc), 1, 10) AS d FROM workout_session
+       UNION ALL SELECT substr(MIN(started_at_utc), 1, 10) FROM timed_session
+       UNION ALL SELECT MIN(day) FROM cardio_log WHERE completed_at_utc IS NOT NULL)`
+  );
+  return row?.d ?? null;
 }
 
 /** Zuletzt absolvierter Tag eines Plans (über alle Versionen), für den Vorschlag „nächster Tag“. */
