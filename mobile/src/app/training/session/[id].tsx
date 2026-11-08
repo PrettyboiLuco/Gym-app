@@ -142,6 +142,7 @@ export default function SessionScreen() {
   // Schnell hintereinander (✓, dann gleich der nächste ✓): nur die letzte Anfrage darf den Zustand setzen,
   // sonst überschreibt eine ältere, langsamere Antwort den neueren Stand (wie in hooks/use-load.ts).
   const latestLoad = useRef(0);
+  const pastByExercise = useRef(new Map<string, { last: LastPerformance; history: PastSession[] }>());
   const load = useCallback(async () => {
     const request = ++latestLoad.current;
     const [info, rows, all, savedTimer, auto, timed, progression] = await Promise.all([
@@ -153,17 +154,32 @@ export default function SessionScreen() {
       timedSessionsForWorkout(db, id),
       loadProgressionOn(db),
     ]);
-    const restChoice = await loadRestChoice(db);
-    const plates = await loadPlateSetup(db);
-    const equipment = (await activeEquipment(db, (await loadProfile(db)).equipment ?? [...EQUIPMENT])).equipment;
-    const cardioRows = await listCardioForSession(db, id);
-    const planHints = await planHintsForSession(db, id);
-    const reminders = await loadReminders(db);
+    const [restChoice, plates, profile, cardioRows, planHints, reminders] = await Promise.all([
+      loadRestChoice(db),
+      loadPlateSetup(db),
+      loadProfile(db),
+      listCardioForSession(db, id),
+      planHintsForSession(db, id),
+      loadReminders(db),
+    ]);
+    const equipment = (await activeEquipment(db, profile.equipment ?? [...EQUIPMENT])).equipment;
+    // „Letztes Mal“ und Verlauf je Übung hängen nur an früheren Trainings und ändern sich während dieses Trainings
+    // nicht: einmal laden und merken (Prüfung 08.11.: vorher ~60 Abfragen nach jedem ✓). Beim erneuten Öffnen leer.
+    const cache = pastByExercise.current;
+    const missing = [...new Set(rows.map((r) => r.exerciseId))].filter((e) => !cache.has(e));
+    const fetched = await Promise.all(
+      missing.map(async (exerciseId) => ({
+        exerciseId,
+        last: await lastPerformance(db, exerciseId, id),
+        history: await exerciseHistory(db, exerciseId, id, nowMs()),
+      }))
+    );
+    for (const f of fetched) cache.set(f.exerciseId, { last: f.last, history: f.history });
     const lastByExercise: Record<string, LastPerformance> = {};
     const historyByExercise: Record<string, PastSession[]> = {};
-    for (const exerciseId of new Set(rows.map((r) => r.exerciseId))) {
-      lastByExercise[exerciseId] = await lastPerformance(db, exerciseId, id);
-      historyByExercise[exerciseId] = await exerciseHistory(db, exerciseId, id, nowMs());
+    for (const [exerciseId, v] of cache) {
+      lastByExercise[exerciseId] = v.last;
+      historyByExercise[exerciseId] = v.history;
     }
     if (request !== latestLoad.current) return;
     setRestChoice(restChoice);
@@ -186,6 +202,8 @@ export default function SessionScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Zurück aus einer Unterseite (z. B. Training nachbearbeitet): frisch laden.
+      pastByExercise.current.clear();
       load();
     }, [load])
   );
