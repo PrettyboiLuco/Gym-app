@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { SettingsButton } from '@/components/settings-button';
 import { SkeletonBlocks } from '@/components/skeleton';
 import { FigureStrip, TrainingBlock, weekDays } from '@/components/today-widgets';
+import { loadLastBackup } from '@/data/backup';
 import { lastCheckinWeekEnd, listSleep, loadCoachPending, loadCoachSetup, saveCoachPending } from '@/data/coach';
 import type { Db } from '@/data/db';
 import { calorieGoalOn } from '@/data/goals';
@@ -17,9 +18,10 @@ import { listDay, loadNutritionSettings } from '@/data/nutrition';
 import { loadSetupHidden, saveSetupHidden } from '@/data/profile';
 import { loadSpared, readinessToday, type ReadinessToday } from '@/data/readiness';
 import { loadTimedRun } from '@/data/routines';
-import { expireTemporaryPlans, getActiveSession, listActivePlans, type SessionInfo } from '@/data/training';
+import { expireTemporaryPlans, getActiveSession, listActivePlans, oldestActivityDay, type SessionInfo } from '@/data/training';
 import { loadMapPrefs, loadTodayPlan, loadTrainingWeek, plannedMuscles } from '@/data/training-week';
 import { listWeights } from '@/data/weights';
+import { backupDueDays } from '@/domain/backup';
 import { checkinDue } from '@/domain/checkin';
 import type { MuscleGroup } from '@/domain/exercises';
 import type { Milestone } from '@/domain/motivation';
@@ -56,7 +58,12 @@ async function loadToday(db: Db) {
     loadTrainingWeek(db, today),
     readinessToday(db, today),
   ]);
-  const [motivation, setupHidden] = await Promise.all([loadMotivation(db, today), loadSetupHidden(db)]);
+  const [motivation, setupHidden, lastBackup, firstActivity] = await Promise.all([
+    loadMotivation(db, today),
+    loadSetupHidden(db),
+    loadLastBackup(db),
+    oldestActivityDay(db),
+  ]);
   // Geschonte Bereiche beim Status „verletzt“ (Muskelkarte Punkt 6.4)
   const spared = (await loadSpared(db, today))?.areas ?? [];
   const { body } = await loadMapPrefs(db);
@@ -119,6 +126,7 @@ async function loadToday(db: Db) {
     today,
     // Nur der neueste noch nicht angesehene Meilenstein (A10.5); ältere stehen in der Liste.
     milestone: motivation.fresh.at(-1) ?? null,
+    backupDays: backupDueDays(lastBackup, firstActivity, today),
     muscles,
     weekPlan,
     // Einrichten in 3 Schritten (Coach): Gewicht, Ziel, erster Plan.
@@ -162,6 +170,7 @@ export default function TodayScreen() {
     body: 'm' as 'm' | 'w',
     today: '',
     milestone: null as Milestone | null,
+    backupDays: null as number | null,
     muscles: null as Partial<Record<MuscleGroup, number>> | null,
     weekPlan: null as { planId: string; dayIds: (string | null)[] } | null,
     setup: { weight: true, goal: true, plan: true, hidden: true },
@@ -283,6 +292,19 @@ export default function TodayScreen() {
           ]}
           onLater={() => saveSetupHidden(db, true).then(reload)}
         />
+      ) : null}
+      {/* Sanfte Erinnerung an eine Sicherung (keine App-Daten in der Cloud: gelöschte App = alles weg). */}
+      {data.backupDays !== null ? (
+        <Card>
+          <ListRow
+            icon="database"
+            title={t('backupReminder.title')}
+            subtitle={t('backupReminder.subtitle', { days: data.backupDays })}
+            accessory="›"
+            last
+            onPress={() => router.push('/more/data')}
+          />
+        </Card>
       ) : null}
       {checkin && modules.coach ? (
         <Card>

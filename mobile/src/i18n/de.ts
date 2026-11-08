@@ -2733,9 +2733,15 @@ export const de = {
     bedtimeAt: 'Bettzeit {{bed}} Uhr – Erinnerung um {{at}} Uhr.',
     bedtimeHint: 'Das Schlafziel ist dein eigener Wert (für die meisten Erwachsenen werden 7–9 Stunden genannt). Es dient für Schlafschuld und Bettzeit.',
   },
+  backupReminder: {
+    title: 'Zeit für eine Sicherung',
+    subtitle: 'Seit {{days}} Tagen nicht gesichert – deine Daten liegen nur auf diesem iPhone.',
+  },
   dataScreen: {
     title: 'Deine Daten',
     exportTitle: 'Sicherung erstellen',
+    lastBackup: 'Zuletzt gesichert: {{date}}',
+    noBackupYet: 'Noch keine Sicherung erstellt.',
     exportText:
       'Speichert alle deine Einträge als Datei, z. B. in „Dateien“ oder iCloud Drive. Die Datei enthält Gesundheitsdaten – ' +
       'bewahre sie sicher auf. Die App selbst hat keinen Server und speichert nichts woanders.',

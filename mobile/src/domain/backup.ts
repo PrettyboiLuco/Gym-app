@@ -120,3 +120,17 @@ export function backupSummary(m: BackupManifest) {
 export function backupFileName(day: string): string {
   return `gym-app-sicherung-${day}.json`;
 }
+
+/** Ab so vielen Tagen ohne Sicherung erinnert „Heute“ einmal sanft daran (Prüfung 08.11.: App gelöscht = alles weg). */
+export const BACKUP_REMIND_DAYS = 30;
+
+/**
+ * Sicherung fällig? Gemessen ab der letzten Sicherung, ohne Sicherung ab dem ersten Eintrag. Ohne Daten: nie.
+ * Gibt die Tage seitdem zurück (null = nicht fällig).
+ */
+export function backupDueDays(lastBackup: string | null, firstActivity: string | null, today: string): number | null {
+  const from = lastBackup ?? firstActivity;
+  if (!from) return null;
+  const days = Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
+  return days >= BACKUP_REMIND_DAYS ? days : null;
+}

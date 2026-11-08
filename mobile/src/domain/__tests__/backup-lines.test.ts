@@ -2,7 +2,7 @@
 
 import { describe, expect, test } from '@jest/globals';
 
-import { asciiJson, backupSummary, checkBackup, parsePhotoLine, type BackupManifest } from '../backup';
+import { asciiJson, backupDueDays, backupSummary, checkBackup, parsePhotoLine, type BackupManifest } from '../backup';
 
 const manifest: BackupManifest = {
   app: 'gym-app',
@@ -28,5 +28,15 @@ describe('Sicherung als Zeilen', () => {
     expect(parsePhotoLine('../x.jpg\tQUJD')).toBeNull();
     expect(parsePhotoLine('a.jpg\t<script>')).toBeNull();
     expect(parsePhotoLine('kein Tab')).toBeNull();
+  });
+});
+
+describe('Erinnerung an die Sicherung', () => {
+  test('ab 30 Tagen seit letzter Sicherung bzw. erstem Eintrag, ohne Daten nie', () => {
+    expect(backupDueDays(null, null, '2026-11-08')).toBeNull();
+    expect(backupDueDays(null, '2026-10-20', '2026-11-08')).toBeNull();
+    expect(backupDueDays(null, '2026-10-01', '2026-11-08')).toBe(38);
+    expect(backupDueDays('2026-11-01', '2026-01-01', '2026-11-08')).toBeNull();
+    expect(backupDueDays('2026-10-09', '2026-01-01', '2026-11-08')).toBe(30);
   });
 });

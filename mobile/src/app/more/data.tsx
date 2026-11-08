@@ -6,7 +6,7 @@ import { Choice, ConfirmButton, Toggle } from '@/components/fields';
 import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup , saveLastBackup } from '@/data/backup';
+import { currentSchemaVersion, deleteAllData, exportBackup, loadLastBackup, restoreBackup, saveLastBackup } from '@/data/backup';
 import { pickBackupFile, restoreBackupPhotos, writeAndShareBackup, writePhotoBase64 } from '@/data/backup-files';
 import { shareCsv } from '@/data/export';
 import { EXPORT_AREAS, type ExportArea } from '@/data/export-csv';
@@ -16,6 +16,7 @@ import { deletePhoto, listPhotos } from '@/data/photos';
 import { loadReminders } from '@/data/reminders';
 import { asciiJson, backupFileName, backupSummary, checkBackup, type BackupManifest } from '@/domain/backup';
 import { todayDay } from '@/domain/time';
+import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
 import { useProfile } from '@/providers/profile-provider';
@@ -37,6 +38,7 @@ export default function DataScreen() {
   // Datei der gewählten Sicherung: Fotos werden erst beim Wiederherstellen Zeile für Zeile daraus gelesen.
   const [pendingUri, setPendingUri] = useState('');
   const [area, setArea] = useState<ExportArea>('training');
+  const { data: lastBackup, reload: reloadLast } = useLoad(loadLastBackup, null as string | null);
 
   async function exportCsv() {
     setBusy(true);
@@ -59,6 +61,7 @@ export default function DataScreen() {
       const manifest = { ...(await exportBackup(db, null)), photoFiles: photoNames };
       await writeAndShareBackup(asciiJson(manifest), photoNames, backupFileName(todayDay()), t('dataScreen.exportTitle'));
       await saveLastBackup(db, todayDay());
+      await reloadLast();
       setMessage({ text: t('dataScreen.exported') });
     } catch {
       setMessage({ text: t('dataScreen.exportFailed'), error: true });
@@ -138,6 +141,9 @@ export default function DataScreen() {
     <Screen withHeader>
       <Card title={t('dataScreen.exportTitle')}>
         <ThemedText type="small">{t('dataScreen.exportText')}</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          {lastBackup ? t('dataScreen.lastBackup', { date: formatDay(lastBackup) }) : t('dataScreen.noBackupYet')}
+        </ThemedText>
         {PHOTOS_SUPPORTED ? (
           <>
             <Toggle label={t('dataScreen.withPhotos')} hint={t('dataScreen.withPhotosHint')} value={withPhotos} onChange={(on) => setWithPhotos(on)} />
