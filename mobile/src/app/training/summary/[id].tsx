@@ -185,15 +185,18 @@ export default function SummaryScreen() {
       ? ` · ${t('summary.e1rm', { value: formatWeight(e1rm[r.exerciseId]!, units.weight, 1) })}`
       : '';
 
+  const nothingDone = summary.sets === 0 && cardio.length === 0;
+
   return (
     <Screen withHeader>
       {/* U5: Erfolgsmoment als Rückmeldung – Überschrift mit getlayers „Pop Scale“, das Herz vom Start schwingt zweimal. */}
       <View style={styles.headRow}>
         <View style={[styles.head, styles.headText]}>
           <ThemedText themeColor="textSecondary">{session.dayName ? `${session.planName} – ${session.dayName}` : t('session.free')}</ThemedText>
-          <PopText text={records.length > 0 ? t('summary.titleRecord') : t('summary.title')} />
+          {/* Ohne Sätze und ohne Cardio nichts feiern (Prüfung 08.11.): neutrale Überschrift, kein Herz. */}
+          <PopText text={nothingDone ? t('summary.titleEmpty') : records.length > 0 ? t('summary.titleRecord') : t('summary.title')} />
         </View>
-        <HeartLoop size={72} loops={2} />
+        {nothingDone ? null : <HeartLoop size={72} loops={2} />}
       </View>
 
       <Rise delay={CardStagger.staggerMs}>

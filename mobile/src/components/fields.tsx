@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { StyleSheet, Switch, TextInput, View, type PressableProps, type TextInputProps } from 'react-native';
+import { ScrollView, StyleSheet, Switch, TextInput, View, type PressableProps, type TextInputProps } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Button } from '@/components/card';
@@ -95,7 +95,10 @@ export function Choice<T extends string>({
   format,
   chips = false,
   hideLabel = false,
+  scroll = false,
 }: {
+  /** Chips in einer waagrechten, wischbaren Reihe statt umbrechend (lange Listen wie Geräte, Prüfung 08.11.). */
+  scroll?: boolean;
   label: string;
   options: readonly T[];
   /** null = noch nichts gewählt. */
@@ -117,6 +120,18 @@ export function Choice<T extends string>({
       )}
       {segmented ? (
         <Segmented label={label} options={options} value={value} onChange={onChange} format={format} />
+      ) : scroll ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipRow}
+          style={styles.chipScroll}
+          accessibilityRole="radiogroup"
+          accessibilityLabel={label}>
+          {options.map((option) => (
+            <Chip key={option} role="radio" selected={option === value} label={format(option)} onPress={() => onChange(option)} />
+          ))}
+        </ScrollView>
       ) : (
         <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel={label}>
           {options.map((option) => (
@@ -617,6 +632,9 @@ export function ListRow({
 }
 
 const styles = StyleSheet.create({
+  chipRow: { flexDirection: 'row', gap: Spacing.two, paddingRight: Spacing.three },
+  /** Reihe ragt bis an den Kartenrand, damit klar ist, dass sie weitergeht. */
+  chipScroll: { marginRight: -Spacing.four },
   field: { gap: Spacing.one + 2 },
   input: {
     minHeight: 48,

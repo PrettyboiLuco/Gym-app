@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, type ScrollViewInstance } from 'react-native';
+import { Pressable, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
 import { Button, Card } from '@/components/card';
@@ -75,6 +75,17 @@ export default function PlanEditorScreen() {
   const db = useDb();
   const theme = useTheme();
   const [form, setForm] = useState<PlanForm>(EMPTY_FORM);
+  // Auf-/zugeklappte Übungen: bestehende Pläne starten zugeklappt, ein neuer Plan aufgeklappt.
+  const [toggled, setToggled] = useState<Set<string>>(() => new Set());
+  const isOpen = (day: number, item: number) => isNew !== toggled.has(`${day}:${item}`);
+  const toggleOpen = (day: number, item: number) =>
+    setToggled((prev) => {
+      const next = new Set(prev);
+      const key = `${day}:${item}`;
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   // Stand beim Öffnen bzw. letzten Laden; Abweichung heißt „ungespeichert“.
   const [baseline, setBaseline] = useState(() => JSON.stringify(EMPTY_FORM));
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -247,14 +258,26 @@ export default function PlanEditorScreen() {
                     </ThemedText>
                   ) : null}
                   <View style={styles.itemHeader}>
-                    <View style={styles.flex}>
+                    {/* Eingeklappt: Name und „3 × 10–15 · 240 s“; Antippen klappt die Felder auf (Prüfung 08.11.: Formular-Wand). */}
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: isOpen(dayIndex, itemIndex) }}
+                      onPress={() => toggleOpen(dayIndex, itemIndex)}
+                      style={styles.flex}>
                       <ThemedText type="smallBold">{item.label?.trim() || exerciseName(byId.get(item.exerciseId))}</ThemedText>
                       {item.label?.trim() && item.label.trim() !== exerciseName(byId.get(item.exerciseId)) ? (
                         <ThemedText type="small" themeColor="textSecondary">
                           {exerciseName(byId.get(item.exerciseId))}
                         </ThemedText>
                       ) : null}
-                    </View>
+                      <ThemedText type="small" themeColor="textSecondary">
+                        {isTimed(item.exerciseId)
+                          ? t('plan.itemSummaryTimed', { sets: item.sets || '–', seconds: item.seconds || '–', rest: item.rest || '–' })
+                          : t('plan.itemSummary', { sets: item.sets || '–', min: item.repsMin || '–', max: item.repsMax || '–', rest: item.rest || '–' })}
+                        {item.rir ? ` · RIR ${item.rir}` : ''}
+                        {isOpen(dayIndex, itemIndex) ? '' : `  ${t('plan.itemEdit')}`}
+                      </ThemedText>
+                    </Pressable>
                     <ItemTools
                       name={exerciseName(byId.get(item.exerciseId))}
                       onUp={itemIndex > 0 ? () => updateDay(dayIndex, { items: moveItem(day.items, itemIndex, itemIndex - 1) }) : undefined}
@@ -264,6 +287,8 @@ export default function PlanEditorScreen() {
                       onRemove={() => updateDay(dayIndex, { items: day.items.filter((_, i) => i !== itemIndex) })}
                     />
                   </View>
+                  {isOpen(dayIndex, itemIndex) ? (
+                    <>
                   <View style={styles.numbers}>
                     {(isTimed(item.exerciseId) ? (['sets', 'seconds', 'rest'] as const) : (['sets', 'repsMin', 'repsMax', 'rest'] as const)).map((key) => (
                       <NumberInput
@@ -303,6 +328,8 @@ export default function PlanEditorScreen() {
                       onChangeText={(note) => updateItem(dayIndex, itemIndex, { note })}
                     />
                   </View>
+                    </>
+                  ) : null}
                   {/* Pausen-Schnellwahl (0:30 … 5:00) nur im Training; hier reicht das Feld „Pause (s)“. */}
                 </View>
                 {itemIndex < day.items.length - 1 ? (

@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
 import { ConfirmButton, EntryRow, Field } from '@/components/fields';
 import { InsightInfo } from '@/components/insight-info';
+import { NumberInput } from '@/components/number-picker';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
+import { Spacing } from '@/constants/theme';
 import { addMeasurements, deleteMeasurement, listMeasurements, loadMeasureGoals, saveMeasureGoals } from '@/data/goals';
 import { latestBySite, MEASURE_SITES, type Measurement, type MeasureSite } from '@/domain/body';
 import { todayDay } from '@/domain/time';
@@ -73,16 +75,11 @@ export default function MeasurementsScreen() {
         {MEASURE_SITES.map((site) => {
           const last = latest[site];
           return (
-            <View key={site}>
-              <Field
-                label={t('measure.input', { site: t(`measure.sites.${site}`), unit: units.length })}
-                value={form[site]}
-                onChangeText={(v) => {
-                  setForm((f) => ({ ...f, [site]: v }));
-                  setSaved(false);
-                }}
-                keyboardType="decimal-pad"
-              />
+            // Eine Zeile je Maß: Name und letzter Wert links, kleines Zahlenfeld rechts (Prüfung 08.11.: vorher acht leere,
+            // volle Eingabefelder untereinander).
+            <View key={site} style={styles.siteRow}>
+              <View style={styles.siteText}>
+                <ThemedText type="smallBold">{t(`measure.sites.${site}`)}</ThemedText>
               {goals[site] ? (
                 <ThemedText type="small" themeColor="textSecondary">
                   {!last
@@ -106,6 +103,20 @@ export default function MeasurementsScreen() {
                     : ''}
                 </ThemedText>
               ) : null}
+              </View>
+              <NumberInput
+                value={form[site]}
+                onChange={(v) => {
+                  setForm((f) => ({ ...f, [site]: v }));
+                  setSaved(false);
+                }}
+                title={t('measure.input', { site: t(`measure.sites.${site}`), unit: units.length })}
+                accessibilityLabel={t('measure.input', { site: t(`measure.sites.${site}`), unit: units.length })}
+                emptyLabel={units.length}
+                placeholder={last ? lengthInputText(last.latest.cm, units.length) : undefined}
+                spec={units.length === 'cm' ? { min: 10, max: 250, step: 0.5, decimals: 1, major: 10, unit: 'cm' } : { min: 4, max: 100, step: 0.25, decimals: 2, major: 4, unit: 'in' }}
+                style={styles.siteInput}
+              />
             </View>
           );
         })}
@@ -203,3 +214,9 @@ export default function MeasurementsScreen() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  siteRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: Spacing.one },
+  siteText: { flex: 1, minWidth: 0, gap: Spacing.half },
+  siteInput: { width: 92 },
+});

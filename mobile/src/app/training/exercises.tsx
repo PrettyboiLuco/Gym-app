@@ -241,6 +241,7 @@ export default function ExercisesScreen() {
       <Card title={t('exercises.browseTitle')}>
         <Field label={t('exercises.search')} placeholder={t('exercises.searchPlaceholder')} value={query} onChangeText={setQuery} autoCorrect={false} />
         <Choice
+          scroll
           label={t('exercises.equipmentFilter')}
           options={['alle', ...EQUIPMENT] as const}
           value={equipmentFilter}

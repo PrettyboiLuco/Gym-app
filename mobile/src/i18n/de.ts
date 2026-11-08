@@ -188,6 +188,9 @@ export const de = {
     sets: 'Sätze',
     repsMin: 'Wdh. von',
     repsMax: 'bis',
+    itemSummary: '{{sets}} × {{min}}–{{max}} · Pause {{rest}} s',
+    itemSummaryTimed: '{{sets}} × {{seconds}} s · Pause {{rest}} s',
+    itemEdit: '› Bearbeiten',
     rest: 'Pause (s)',
     seconds: 'Sekunden',
     rir: 'RIR',
@@ -1128,6 +1131,7 @@ export const de = {
   summary: {
     navTitle: 'Geschafft',
     title: 'Training geschafft',
+    titleEmpty: 'Training beendet – keine Sätze eingetragen',
     titleRecord: 'Neue Bestleistung',
     duration: 'Dauer',
     sets: 'Sätze',
