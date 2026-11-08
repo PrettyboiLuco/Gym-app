@@ -694,6 +694,26 @@ Android + Google Play (12 Tester/14 Tage, BUS-013) · weitere Sprachen (UX-004) 
 Kontolöschung (TECH-015, -016, UX-008) · freier KI-Chat (COACH-012) · Community (LAW-016) · Support,
 Störungsplan, Updates (TECH-020, LAW-018).
 
+**Nachtrag 07./08.11.2026 – Wünsche Luc und Prüfung (Mechanik, Optik, andere Apps):** Gewichtsverlauf (y-Achse eng),
+Gewicht als Trend oben mit „+ Gewicht“ im Blatt, Wochenschnitt schon ab einer Messung (Coach/Check-in bleiben bei 4 Wiegetagen),
+Plan-Editor ohne Pausen-Schnellwahl, RIR-Feld breiter, Meilensteine & Bilanz neu, eigener Tab „Coach“ in der Mitte
+(„Mehr“ → Einstellungen hinter dem Zahnrad), neues Wasserglas, Zahlenfenster (immer dunkel, Lineal + Ziffernblock) für
+Gewicht/Wdh./Sekunden/Cardio/Plan/Körpergewicht/Maße. Prüfung mit drei Teilen (Mechanik mit Messung bei 3 und 8 Jahren
+synthetischer Daten, Optik ~140 Screenshots, Recherche Hevy/Strong/MacroFactor/Fitbod u. a.), danach umgesetzt:
+**Mechanik** – Migration 28 (Indizes set_log(session_id), workout_session(started_at_utc), consumption_event(food_id,…),
+(kind, recorded_at_utc); Zeitzone je Training), Trainingstage in der Startzone, Zeitzone beim Zurückkehren neu,
+Heute/Coach laden beim Zurückkehren neu, Meilensteine per SQL statt aller Sätze, Verlauf ohne 50er-Grenze (nach Monaten),
+Sicherung mit Fotos zeilenweise (kein Riesen-JSON; alte Sicherungen lesbar), Fotos auf 1600 px, Wiederherstellen exklusiv
+und in Blöcken, Erinnerung nach 30 Tagen ohne Sicherung, Training lädt nach ✓ nicht mehr alles, CSV/„Zuletzt gegessen“
+schneller, neuere Datenbank wird nicht still akzeptiert. **Optik** – Lime nur auf Daten (Schalter, Vorschlag-Marke),
+Ernährung oben eine Zahl statt Ring, ruhigere Übungskarte, Training-Kacheln als Listen, Coach-Einladung, Satz-Woche
+geplant als Umriss, Text-Wände eingeklappt (Fotos, Fasten, Supplements), eine Leer-Ansicht, keine invertierten Panels,
+Plan-Editor eingeklappt, Maße als Zeilen, Gerätefilter wischbar, neutrale Zusammenfassung ohne Sätze. 1002 Tests grün.
+**Offen:** Expo-Vorschau-Updates gesperrt bis 01.12. (CI-Kontingent) – `eas update` vom Rechner; auf dem iPhone ansehen:
+Zahlenfenster-Wischgefühl, Zahlenfenster aus dem Gewichts-Blatt, Einstellungen als ausgeblendeter Tab, Fotos verkleinern,
+Sicherung/Wiederherstellen mit Fotos. Ideen aus der Recherche (Live Activity mit Knöpfen, Kontrollzentrum, KI auf dem
+Gerät, Progressionsarten, Maschinen-Stufen, feste Übungsnotiz, Wochenrückblick ohne Coach) noch nicht entschieden.
+
 ---
 
 **Zeitangaben** setzen wir bewusst nicht fest. Nach jeder Phase notieren wir, wie lange sie wirklich
