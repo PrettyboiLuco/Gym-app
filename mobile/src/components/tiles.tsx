@@ -66,8 +66,9 @@ export function CardRow({ cards, accent }: { cards: DayCard[]; accent: string })
           <View style={styles.cardTop}>
             <Icon name={c.icon ?? 'play'} color={theme.text} size={18} />
             {c.badge ? (
-              <View style={[styles.badge, { backgroundColor: accent }]}>
-                <ThemedText style={[styles.badgeText, { color: theme.onAccent }]}>{c.badge}</ThemedText>
+              // Neutrale Marke mit Rand (Lime nur auf Daten, Prüfung 08.11.).
+              <View style={[styles.badge, { borderColor: theme.textSecondary }]}>
+                <ThemedText style={[styles.badgeText, { color: theme.text }]}>{c.badge}</ThemedText>
               </View>
             ) : null}
           </View>
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
   row: { gap: Spacing.two, paddingHorizontal: Spacing.three + Spacing.one },
   card: { width: 150, minHeight: 116, borderRadius: Radius.field + 4, padding: Spacing.three, gap: Spacing.one, justifyContent: 'space-between' },
   cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  badge: { borderRadius: Radius.pill, paddingHorizontal: Spacing.two, paddingVertical: 2 },
+  badge: { borderRadius: Radius.pill, paddingHorizontal: Spacing.two, paddingVertical: 1, borderWidth: 1 },
   badgeText: { fontSize: 11, lineHeight: 14, fontWeight: 700 },
   cardTitle: { fontFamily: DisplayFont.semiBold, fontSize: 16, lineHeight: 21 },
   stat: { flex: 1, minWidth: 0, borderRadius: Radius.field + 4, paddingVertical: Spacing.three - 2, paddingHorizontal: Spacing.three - 2, gap: Spacing.half },

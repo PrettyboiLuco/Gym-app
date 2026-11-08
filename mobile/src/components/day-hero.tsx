@@ -1,11 +1,9 @@
-// Kopf der Ernährung „Lichtbühne“ (getlayers altitude-stats + Verlauf firmament-004): Ring auf dem Lichtschein, Zahlen, Makros.
+// Kopf der Ernährung: eine große Zahl (übrig), dünner Balken, Makros – flach, ohne Ring und Lichtschein (Prüfung 08.11.).
 
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { MeterBar, ProgressRing } from '@/components/charts';
-import { FIRMAMENT_DARK } from '@/components/firmament';
-import { FirmamentGlow } from '@/components/firmament-glow';
+import { MeterBar } from '@/components/charts';
 import { ThemedText } from '@/components/themed-text';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import type { Macros } from '@/domain/coach';
@@ -41,32 +39,24 @@ function useStageColors() {
 }
 
 /**
- * Karte der Lichtbühne (Radius 28): oben die Bühne mit dem Lichtschein (Grund `bgColor` des Rolls, hell die Kartenfarbe
- * mit feiner Kante), darunter der übrige Inhalt mit eigenem Rand. Der Schein endet an der Haarlinie – dem Horizont.
+ * Karte des Tagesüberblicks: oben die Bühne, darunter der übrige Inhalt mit eigenem Rand. Flach wie alle Karten
+ * (Prüfung 08.11.: kein Lichtschein mehr – „true-black flat“).
  */
 export function HeroCard({ stage, children }: { stage: ReactNode; children?: ReactNode }) {
   const theme = useTheme();
-  const { dark, line } = useStageColors();
+  const { line } = useStageColors();
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: dark ? FIRMAMENT_DARK.bgColor : theme.backgroundElement, borderColor: dark ? 'rgba(255,255,255,0.06)' : theme.hairline },
-      ]}>
-      <View style={styles.stage}>
-        <FirmamentGlow id="day-hero" />
-        {stage}
-      </View>
+    <View style={[styles.card, { backgroundColor: theme.backgroundElement, borderColor: theme.hairline }]}>
+      <View style={styles.stage}>{stage}</View>
       {children ? <View style={[styles.below, { borderColor: line }]}>{children}</View> : null}
     </View>
   );
 }
 
 /**
- * Tagesübersicht nach altitude-stats (schmale Fassung): oben mittig der Ring mit Prozent vom Ziel (ohne Ziel die
- * gegessenen kcal), unter der Haarlinie links „Gegessen“ (zählt hoch), rechts „Übrig“ bzw. „Drüber“ (Rot), in der Mitte
- * Punkt und Ziel. Darunter die Makro-Leiste (Wert, dünner Balken, Ziel bzw. Anteil) – ohne graue Kacheln.
- * Leerer Tag (`empty`): Ring bei 0 %, darunter der mitgegebene Hinweis statt der Zahlen.
+ * Tagesübersicht (Prüfung 08.11.: vorher Ring + Gegessen + Übrig + Ziel – viermal dieselbe Aussage): eine große Zahl
+ * „übrig“ (bzw. „drüber“ in Rot, ohne Ziel „gegessen“), ein dünner Balken und eine kleine Zeile mit Gegessen/Ziel/Prozent.
+ * Darunter die Makro-Leiste. Leerer Tag (`empty`): Balken bei 0, darunter der mitgegebene Hinweis.
  */
 export function DayHero({
   totals,
@@ -85,30 +75,37 @@ export function DayHero({
   const theme = useTheme();
   const colors = useStageColors();
   const eaten = totals.values.kcal;
-  const counted = useCountUp(eaten, !empty, true);
   const left = goal === null ? null : goal - eaten;
   const over = left !== null && left < 0;
   const unknownKcal = totals.unknown.kcal > 0;
   const percent = goal ? Math.round((eaten / goal) * 100) : null;
+  const shown = useCountUp(left === null ? eaten : Math.abs(left), !empty, true);
   const macroKcal = MACROS.reduce((s, k) => s + totals.values[k] * KCAL_PER_G[k], 0);
-  const ringLabel = `${t('nutrition.summary.eaten')} ${unknownKcal ? '≥ ' : ''}${formatNumber(eaten, 0)} kcal${
-    goal !== null
-      ? `, ${t('nutrition.summary.goalLine', { value: formatNumber(goal, 0) })}, ${t('nutrition.summary.percent', { value: percent ?? 0 })} ${t('nutrition.summary.ofGoal')}`
-      : ''
-  }`;
+  const label = goal === null ? t('nutrition.summary.eaten') : over ? t('nutrition.summary.over') : t('nutrition.summary.left');
+  const prefix = goal === null ? (unknownKcal ? '≥ ' : '') : unknownKcal && !over ? '≤ ' : '';
+  const line =
+    goal === null
+      ? t('nutrition.summary.noGoalShort')
+      : t('nutrition.summary.eatenOf', { eaten: `${unknownKcal ? '≥ ' : ''}${formatNumber(eaten, 0)}`, goal: formatNumber(goal, 0), percent: percent ?? 0 });
 
   const stage = (
-    <View style={styles.stageInner}>
-      <ProgressRing growIn progress={goal ? eaten / goal : 0} size={168} stroke={12} color={over ? theme.danger : colors.data} trackColor={colors.track}>
-        <View style={styles.ringCenter} accessible accessibilityLabel={ringLabel}>
-          <ThemedText style={styles.ringValue} numberOfLines={1} adjustsFontSizeToFit>
-            {goal ? t('nutrition.summary.percent', { value: formatNumber(percent ?? 0, 0) }) : formatNumber(eaten, 0)}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {goal ? t('nutrition.summary.ofGoal') : unknownKcal ? '≥ kcal' : 'kcal'}
-          </ThemedText>
-        </View>
-      </ProgressRing>
+    <View style={styles.stageInner} accessible accessibilityLabel={`${label} ${prefix}${formatNumber(left === null ? eaten : Math.abs(left), 0)} kcal. ${line}`}>
+      <ThemedText type="small" style={{ color: over ? theme.danger : theme.textSecondary }}>
+        {label}
+      </ThemedText>
+      <View style={styles.bigRow}>
+        <ThemedText style={[styles.big, over && { color: theme.danger }]} numberOfLines={1} adjustsFontSizeToFit>
+          {prefix}
+          {formatNumber(Math.round(shown), 0)}
+        </ThemedText>
+        <ThemedText themeColor="textSecondary" style={styles.bigUnit}>
+          kcal
+        </ThemedText>
+      </View>
+      <MeterBar growIn progress={goal ? Math.min(eaten / goal, 1) : 0} color={over ? theme.danger : colors.data} trackColor={colors.track} height={6} />
+      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+        {line}
+      </ThemedText>
       {empty ? <View style={styles.empty}>{empty}</View> : null}
     </View>
   );
@@ -117,44 +114,6 @@ export function DayHero({
 
   return (
     <HeroCard stage={stage}>
-      <View style={styles.stats}>
-        <View style={styles.stat} accessible accessibilityLabel={`${t('nutrition.summary.eaten')} ${unknownKcal ? '≥ ' : ''}${formatNumber(eaten, 0)} kcal`}>
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('nutrition.summary.eaten')}
-          </ThemedText>
-          <ThemedText style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
-            {unknownKcal ? '≥ ' : ''}
-            {formatNumber(Math.round(counted), 0)}
-            <ThemedText themeColor="textSecondary" style={styles.unit}>
-              {' kcal'}
-            </ThemedText>
-          </ThemedText>
-        </View>
-        <View
-          style={styles.middle}
-          accessible
-          accessibilityLabel={goal === null ? t('nutrition.summary.noGoalShort') : t('nutrition.summary.goalLine', { value: formatNumber(goal, 0) })}>
-          <View style={[styles.dot, { backgroundColor: over ? theme.danger : colors.data }]} />
-          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1} style={styles.middleText}>
-            {goal === null ? t('nutrition.summary.noGoalShort') : t('nutrition.summary.goalLine', { value: formatNumber(goal, 0) })}
-          </ThemedText>
-        </View>
-        <View
-          style={[styles.stat, styles.statRight]}
-          accessible
-          accessibilityLabel={`${over ? t('nutrition.summary.over') : t('nutrition.summary.left')} ${left === null ? '–' : `${formatNumber(Math.abs(left), 0)} kcal`}`}>
-          <ThemedText type="small" style={{ color: over ? theme.danger : theme.textSecondary }}>
-            {over ? t('nutrition.summary.over') : t('nutrition.summary.left')}
-          </ThemedText>
-          <ThemedText style={[styles.statValue, over && { color: theme.danger }]} numberOfLines={1} adjustsFontSizeToFit>
-            {left === null ? '–' : `${unknownKcal && !over ? '≤ ' : ''}${formatNumber(Math.abs(left), 0)}`}
-            <ThemedText themeColor="textSecondary" style={styles.unit}>
-              {left === null ? '' : ' kcal'}
-            </ThemedText>
-          </ThemedText>
-        </View>
-      </View>
-
       <View style={styles.macros}>
         {MACROS.map((k) => {
           const target = macroGoals ? macroGoals[k] : null;
@@ -195,7 +154,10 @@ export function DayHero({
 const styles = StyleSheet.create({
   card: { borderRadius: RADIUS, borderWidth: 1, overflow: 'hidden' },
   stage: { paddingTop: Spacing.four, paddingBottom: Spacing.four, paddingHorizontal: Spacing.four - 4 },
-  stageInner: { alignItems: 'center', gap: Spacing.three },
+  stageInner: { gap: Spacing.two },
+  bigRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two },
+  big: { fontFamily: DisplayFont.bold, fontSize: 48, lineHeight: 54, letterSpacing: -1.6, fontVariant: ['tabular-nums'] },
+  bigUnit: { fontSize: 17, fontWeight: 600 },
   below: {
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: Spacing.four - 4,
@@ -203,17 +165,8 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.four - 4,
     gap: Spacing.four - 4,
   },
-  ringCenter: { alignItems: 'center', paddingHorizontal: Spacing.three },
-  ringValue: { fontFamily: DisplayFont.bold, fontSize: 34, lineHeight: 40, letterSpacing: -1, fontVariant: ['tabular-nums'] },
   empty: { alignItems: 'center', gap: Spacing.three, alignSelf: 'stretch' },
-  stats: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
-  stat: { flex: 1, minWidth: 0, gap: Spacing.half },
-  statRight: { alignItems: 'flex-end' },
-  statValue: { fontFamily: DisplayFont.bold, fontSize: 28, lineHeight: 34, letterSpacing: -0.6, fontVariant: ['tabular-nums'] },
   unit: { fontFamily: undefined, fontSize: 14, letterSpacing: 0, fontWeight: 500 },
-  middle: { alignItems: 'center', gap: Spacing.two + 2, paddingTop: 7 },
-  middleText: { fontSize: 13, lineHeight: 18, fontVariant: ['tabular-nums'] },
-  dot: { width: 6, height: 6, borderRadius: 3 },
   macros: { flexDirection: 'row', gap: Spacing.two + 4 },
   macro: { flex: 1, minWidth: 0, gap: Spacing.one + 2 },
   macroHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 1 },

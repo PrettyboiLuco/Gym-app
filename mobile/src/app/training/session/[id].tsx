@@ -796,38 +796,33 @@ export default function SessionScreen() {
                 fertige Übung zusammen, laufen keine Ausblendungen der einzelnen Zeilen. */}
             <LayoutAnimationConfig skipEntering skipExiting>
               <Card title={nameOf(exerciseId)}>
-                {hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {exerciseName(exercise)}
-                  </ThemedText>
-                ) : null}
-                {active && exerciseId === currentId ? (
-                  <View style={styles.nowRow}>
-                    <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} />
-                    <ThemedText type="small">{t('session.now')}</ThemedText>
-                  </View>
-                ) : null}
+                {/* Eine ruhige Kopfzeile statt vier Absätzen (Prüfung 08.11.): „Jetzt dran“-Punkt, Originalname (falls im
+                    Plan umbenannt), Ziel und RIR. „Noch kein früheres Training“ zeigt schon die Vorher-Spalte („–“). */}
+                {(() => {
+                  const meta = [
+                    hints[exerciseId]?.label && hints[exerciseId]?.label !== exerciseName(exercise) ? exerciseName(exercise) : null,
+                    target.plannedSeconds != null
+                      ? t('session.targetSeconds', { seconds: target.plannedSeconds })
+                      : target.plannedRepsMin != null
+                        ? t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })
+                        : null,
+                    hints[exerciseId]?.rir ? t('session.rir', { rir: hints[exerciseId]?.rir }) : null,
+                  ].filter(Boolean);
+                  const now = active && exerciseId === currentId;
+                  return now || meta.length ? (
+                    <View style={styles.nowRow}>
+                      {now ? <View style={[styles.nowDot, { backgroundColor: dark ? theme.accent : theme.tint }]} accessibilityLabel={t('session.now')} /> : null}
+                      <ThemedText type="small" themeColor="textSecondary" style={styles.flex}>
+                        {[now ? t('session.now') : null, ...meta].filter(Boolean).join(' · ')}
+                      </ThemedText>
+                    </View>
+                  ) : null;
+                })()}
                 <ExerciseMedia exerciseId={exerciseId} label={nameOf(exerciseId)} />
-                {lastSets.length === 0 ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {t('session.lastNone')}
-                  </ThemedText>
-                ) : null}
                 {advice ? <ThemedText type="small">{adviceText(advice)}</ThemedText> : null}
-                {target.plannedSeconds != null ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {t('session.targetSeconds', { seconds: target.plannedSeconds })}
-                  </ThemedText>
-                ) : null}
                 {isTimed(exerciseId) && active ? (
                   <ThemedText type="small" themeColor="textSecondary">
                     {t('session.holdHint')}
-                  </ThemedText>
-                ) : null}
-                {target.plannedSeconds == null && target.plannedRepsMin != null ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {t('session.target', { min: target.plannedRepsMin, max: target.plannedRepsMax })}
-                    {hints[exerciseId]?.rir ? ` · ${t('session.rir', { rir: hints[exerciseId]?.rir })}` : ''}
                   </ThemedText>
                 ) : null}
                 {hints[exerciseId]?.note ? <ThemedText type="small">{hints[exerciseId]?.note}</ThemedText> : null}
@@ -948,6 +943,7 @@ export default function SessionScreen() {
                                 onChange={(weight) => setInputs((i) => ({ ...i, [row.id]: { ...typed, weight } }))}
                                 placeholder={hint.weight || undefined}
                                 spec={weightSpec(units.weight)}
+                                emptyLabel={units.weight}
                                 title={`${nameOf(exerciseId)} · ${label}`}
                                 accessibilityLabel={`${t('session.weightIn', { unit: units.weight })} ${label}`}
                                 style={{ width: SetCols.weight }}
@@ -958,6 +954,7 @@ export default function SessionScreen() {
                               onChange={(reps) => setInputs((i) => ({ ...i, [row.id]: { ...typed, reps } }))}
                               placeholder={hint.reps || undefined}
                               spec={timed ? SECONDS_SPEC : repsSpec()}
+                              emptyLabel={timed ? 's' : t('number.reps')}
                               title={`${nameOf(exerciseId)} · ${label}`}
                               accessibilityLabel={`${timed ? t('session.secondsLabel') : t('session.reps')} ${label}`}
                               style={{ width: timed ? SetCols.timedReps : SetCols.reps }}
@@ -1039,7 +1036,9 @@ export default function SessionScreen() {
                   );
                 })}
                 {invalid && rows.some((r) => r.id === invalid) ? (
-                  <ThemedText style={{ color: theme.danger }}>{isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}</ThemedText>
+                  <ThemedText type="small" style={{ color: theme.danger }}>
+                    {isTimed(exerciseId) ? t('session.invalidSeconds') : t('session.invalidSet')}
+                  </ThemedText>
                 ) : null}
                 {active && warmupPlan(exerciseId).length > 0 ? (
                   <View style={styles.warmup}>

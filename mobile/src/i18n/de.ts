@@ -576,7 +576,6 @@ export const de = {
     title: 'Training',
     free: 'Freies Training',
     last: 'Letztes Mal ({{unit}}): {{sets}}',
-    lastNone: 'Noch kein früheres Training mit dieser Übung.',
     colSet: 'Satz',
     colPrevious: 'Vorher',
     colReps: 'Wdh',
@@ -1472,6 +1471,7 @@ export const de = {
     summary: {
       eaten: 'Gegessen',
       goalLine: 'Ziel {{value}} kcal',
+      eatenOf: '{{eaten}} von {{goal}} kcal gegessen · {{percent}} %',
       left: 'Übrig',
       ofGoal: 'vom Ziel',
       percent: '{{value}} %',

@@ -76,7 +76,10 @@ export function NumberInput({
   accessibilityLabel,
   style,
   textStyle,
+  emptyLabel,
 }: {
+  /** Grau im leeren Feld statt „–“ (wirkte wie ein Minus-Knopf), z. B. „kg“. */
+  emptyLabel?: string;
   value: string;
   onChange: (text: string) => void;
   spec: NumberSpec;
@@ -107,7 +110,7 @@ export function NumberInput({
         style,
       ]}>
       <ThemedText numeric numberOfLines={1} style={[styles.boxText, { color: value.trim() !== '' ? theme.text : theme.textSecondary }, textStyle]}>
-        {shown || t('session.empty')}
+        {shown || emptyLabel || t('session.empty')}
       </ThemedText>
     </Pressable>
   );

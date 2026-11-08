@@ -130,7 +130,7 @@ export function Choice<T extends string>({
 
 /**
  * Ein/Aus als Schalter-Zeile: Titel links (darunter optional eine graue Erklärung), Schalter rechts. Die ganze
- * Zeile ist antippbar. An-Farbe: dunkel Lime (Signalgrün), hell fast Schwarz – nie ein Segment „An | Aus“.
+ * Zeile ist antippbar. An-Farbe: die Textfarbe (dunkel weiß, hell schwarz) – nie ein Segment „An | Aus“.
  */
 export function Toggle({
   label,
@@ -173,10 +173,11 @@ export function Toggle({
         onValueChange={flip}
         disabled={disabled}
         accessible={false}
-        trackColor={{ false: theme.backgroundSelected, true: dark ? theme.accent : theme.primary }}
-        thumbColor={dark ? (value ? theme.onAccent : theme.textSecondary) : theme.backgroundElement}
+        // Bedienelement, keine Daten: an = Textfarbe (dunkel weiß, hell schwarz), nie Lime (Prüfung 08.11.).
+        trackColor={{ false: theme.backgroundSelected, true: theme.primary }}
+        thumbColor={dark ? (value ? theme.onPrimary : theme.textSecondary) : theme.backgroundElement}
         ios_backgroundColor={theme.backgroundSelected}
-        {...({ activeThumbColor: dark ? theme.onAccent : theme.backgroundElement } as object)}
+        {...({ activeThumbColor: dark ? theme.onPrimary : theme.backgroundElement } as object)}
       />
     </PressableScale>
   );
