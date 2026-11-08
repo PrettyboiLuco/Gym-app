@@ -6,15 +6,15 @@ import { Choice, ConfirmButton, Toggle } from '@/components/fields';
 import { InsightInfo } from '@/components/insight-info';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup } from '@/data/backup';
-import { pickBackup, readPhotoBase64, shareBackup, writePhotoBase64 } from '@/data/backup-files';
+import { currentSchemaVersion, deleteAllData, exportBackup, restoreBackup , saveLastBackup } from '@/data/backup';
+import { pickBackupFile, restoreBackupPhotos, writeAndShareBackup, writePhotoBase64 } from '@/data/backup-files';
 import { shareCsv } from '@/data/export';
 import { EXPORT_AREAS, type ExportArea } from '@/data/export-csv';
 import { notificationPermission } from '@/data/notifications';
 import { photoExists, PHOTOS_SUPPORTED, removeAllPhotoFiles } from '@/data/photo-files';
 import { deletePhoto, listPhotos } from '@/data/photos';
 import { loadReminders } from '@/data/reminders';
-import { backupFileName, backupSummary, checkBackup, type BackupManifest } from '@/domain/backup';
+import { asciiJson, backupFileName, backupSummary, checkBackup, type BackupManifest } from '@/domain/backup';
 import { todayDay } from '@/domain/time';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDay, t } from '@/i18n';
@@ -34,6 +34,8 @@ export default function DataScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [pending, setPending] = useState<BackupManifest | null>(null);
+  // Datei der gewählten Sicherung: Fotos werden erst beim Wiederherstellen Zeile für Zeile daraus gelesen.
+  const [pendingUri, setPendingUri] = useState('');
   const [area, setArea] = useState<ExportArea>('training');
 
   async function exportCsv() {
@@ -52,16 +54,11 @@ export default function DataScreen() {
     setBusy(true);
     setMessage(null);
     try {
-      let photos: Record<string, string> | null = null;
-      if (withPhotos) {
-        photos = {};
-        for (const p of await listPhotos(db)) {
-          const b64 = await readPhotoBase64(p.fileName);
-          if (b64) photos[p.fileName] = b64;
-        }
-      }
-      const manifest = await exportBackup(db, photos);
-      await shareBackup(JSON.stringify(manifest), backupFileName(todayDay()), t('dataScreen.exportTitle'));
+      // Fotos nicht mehr im JSON, sondern einzeln als Zeilen hinter den Daten (Speicher: immer nur ein Foto).
+      const photoNames = withPhotos && PHOTOS_SUPPORTED ? (await listPhotos(db)).map((p) => p.fileName) : [];
+      const manifest = { ...(await exportBackup(db, null)), photoFiles: photoNames };
+      await writeAndShareBackup(asciiJson(manifest), photoNames, backupFileName(todayDay()), t('dataScreen.exportTitle'));
+      await saveLastBackup(db, todayDay());
       setMessage({ text: t('dataScreen.exported') });
     } catch {
       setMessage({ text: t('dataScreen.exportFailed'), error: true });
@@ -73,20 +70,21 @@ export default function DataScreen() {
   async function chooseFile() {
     setMessage(null);
     setPending(null);
-    let raw: string | null;
+    let picked: { head: string; uri: string } | null;
     try {
-      raw = await pickBackup();
+      picked = await pickBackupFile();
     } catch {
       setMessage({ text: t('dataScreen.problems.notJson'), error: true });
       return;
     }
-    if (raw === null) return;
-    const { manifest, problem } = checkBackup(raw, await currentSchemaVersion(db));
+    if (picked === null) return;
+    const { manifest, problem } = checkBackup(picked.head, await currentSchemaVersion(db));
     if (!manifest) {
       setMessage({ text: t(`dataScreen.problems.${problem}`), error: true });
       return;
     }
     setPending(manifest);
+    setPendingUri(picked.uri);
   }
 
   async function restoreNow() {
@@ -99,6 +97,8 @@ export default function DataScreen() {
         // Nur einfache Dateinamen wie „<id>.jpg“: eine manipulierte Sicherung darf nicht außerhalb des Foto-Ordners schreiben.
         for (const [name, b64] of Object.entries(pending.photos)) if (/^[A-Za-z0-9_-]+\.jpe?g$/.test(name)) await writePhotoBase64(name, b64);
       }
+      // Neues Format: Fotos stehen als einzelne Zeilen hinter den Daten.
+      if (pending.photoFiles?.length && PHOTOS_SUPPORTED && pendingUri) await restoreBackupPhotos(pendingUri);
       // Foto-Einträge ohne Datei (z. B. Sicherung ohne Fotos auf einem neuen Handy) nicht als leere Bilder behalten.
       for (const photo of await listPhotos(db)) {
         if (!photoExists(photo.fileName)) await deletePhoto(db, photo.id);

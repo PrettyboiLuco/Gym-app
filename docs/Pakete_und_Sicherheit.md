@@ -29,6 +29,7 @@ Versionen sind in `mobile/package-lock.json` festgeschrieben.
 | react-native-view-shot | 6.1.1 | MIT | Teilen-Karten als Bild erzeugen (`src/components/share-card.tsx`, A10) |
 | i18n-js | 4.5.4 | MIT | Übersetzungen |
 | react-native-svg | 15.16.0 | MIT | Diagramme, Ringe, Tab-Symbole (in Expo Go enthalten) |
+| expo-image-manipulator | 58.0.16 | MIT | Fortschrittsfotos beim Speichern auf 1600 px verkleinern (`src/data/photo-files.ts`, Prüfung 08.11.; in Expo Go enthalten) |
 | @expo-google-fonts/manrope | 0.4.3 | MIT (Paket), Schrift: SIL Open Font License 1.1 | Überschriften-Schrift Manrope, liegt in der App (kein Laden aus dem Netz) |
 | react / react-native | 19.3.0 / 0.88.1 | MIT | UI |
 | weitere expo-* und react-native-* aus der Vorlage | 58.x | MIT | Vorlage |

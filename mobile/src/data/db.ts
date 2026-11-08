@@ -10,6 +10,16 @@ export interface Db {
   getAllAsync<T>(sql: string, ...params: SqlValue[]): Promise<T[]>;
   getFirstAsync<T>(sql: string, ...params: SqlValue[]): Promise<T | null>;
   withTransactionAsync(task: () => Promise<void>): Promise<void>;
+  /**
+   * Exklusive Transaktion: Alle Befehle laufen über `tx`, andere Bildschirme können nicht dazwischenfunken
+   * (expo-sqlite auf dem Handy; im Web und in den Tests gibt es sie nicht – dann normale Transaktion).
+   */
+  withExclusiveTransactionAsync?(task: (tx: Db) => Promise<void>): Promise<void>;
+}
+
+/** Exklusiv, wo möglich; sonst die normale (in der Warteschlange laufende) Transaktion mit derselben Datenbank. */
+export function exclusiveTransaction(db: Db, task: (tx: Db) => Promise<void>): Promise<void> {
+  return db.withExclusiveTransactionAsync ? db.withExclusiveTransactionAsync(task) : db.withTransactionAsync(() => task(db));
 }
 
 const serialized = new WeakMap<object, Db>();
@@ -22,7 +32,7 @@ const serialized = new WeakMap<object, Db>();
  * Speicherfunktionen in einer Transaktion bündeln, nutzen deren Kern ohne Transaktion (z. B. insertPlanVersion).
  * Für dieselbe Datenbank gibt es immer dieselbe Hülle (wichtig für React-Abhängigkeiten und die gemeinsame Warteschlange).
  */
-export function serialTransactions(db: Db): Db {
+export function serialTransactions(db: Db, allowExclusive = false): Db {
   const known = serialized.get(db);
   if (known) return known;
   let tail: Promise<unknown> = Promise.resolve();
@@ -37,6 +47,15 @@ export function serialTransactions(db: Db): Db {
       return run;
     },
   };
+  // Nur wo expo-sqlite sie wirklich kann (Handy, nicht Web).
+  const exclusive = allowExclusive ? db.withExclusiveTransactionAsync?.bind(db) : undefined;
+  if (exclusive) {
+    wrapped.withExclusiveTransactionAsync = (task) => {
+      const run = tail.then(() => exclusive(task));
+      tail = run.catch(() => undefined);
+      return run;
+    };
+  }
   serialized.set(db, wrapped);
   serialized.set(wrapped, wrapped);
   return wrapped;

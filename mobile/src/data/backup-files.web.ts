@@ -30,3 +30,19 @@ export async function readPhotoBase64(_fileName: string): Promise<string | null>
 }
 
 export async function writePhotoBase64(_fileName: string, _base64: string) {}
+
+/** Browser: keine Fotos – nur die Daten als Download. */
+export async function writeAndShareBackup(headJson: string, _photoNames: string[], fileName: string, dialogTitle: string) {
+  await shareBackup(`${headJson}\n`, fileName, dialogTitle);
+}
+
+export async function pickBackupFile(): Promise<{ head: string; uri: string } | null> {
+  const text = await pickBackup();
+  if (text === null) return null;
+  const nl = text.indexOf('\n');
+  return { head: nl >= 0 ? text.slice(0, nl) : text, uri: '' };
+}
+
+export async function restoreBackupPhotos(_uri: string): Promise<number> {
+  return 0;
+}

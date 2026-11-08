@@ -58,9 +58,31 @@ export type BackupManifest = {
   exportedAt: string;
   tables: Record<string, Record<string, unknown>[]>;
   appState: Record<string, unknown>;
-  /** Fortschrittsfotos nur, wenn ausdrücklich gewählt (Dateiname → Base64). */
+  /** Fortschrittsfotos nur, wenn ausdrücklich gewählt (Dateiname → Base64). Ältere Sicherungen: alle in dieser Zeile. */
   photos: Record<string, string> | null;
+  /**
+   * Seit 08.11.2026: Fotos stehen nicht mehr im JSON, sondern je eine Zeile „Dateiname<Tab>Base64“ nach der ersten
+   * Zeile. So liegt beim Sichern und Wiederherstellen immer nur ein Foto im Speicher (vorher: alle in einem Text).
+   */
+  photoFiles?: string[];
 };
+
+/**
+ * JSON nur aus ASCII-Zeichen (Umlaute als \u00fc): Die Sicherungsdatei lässt sich dann Byte für Byte in Zeilen
+ * zerlegen, ohne die ganze Datei als Text einzulesen.
+ */
+export function asciiJson(value: unknown): string {
+  return JSON.stringify(value).replace(/[\u007f-\uffff]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+}
+
+/** Eine Fotozeile der Sicherung → Dateiname und Base64 (null, wenn die Zeile nicht passt). */
+export function parsePhotoLine(line: string): { name: string; base64: string } | null {
+  const tab = line.indexOf('\t');
+  if (tab <= 0) return null;
+  const name = line.slice(0, tab);
+  const base64 = line.slice(tab + 1).trim();
+  return /^[A-Za-z0-9_-]+\.jpe?g$/.test(name) && /^[A-Za-z0-9+/=]+$/.test(base64) ? { name, base64 } : null;
+}
 
 export type BackupProblem = 'notJson' | 'notOurs' | 'format' | 'newer' | 'broken';
 
@@ -91,7 +113,7 @@ export function backupSummary(m: BackupManifest) {
     workouts: count('workout_session'),
     entries: count('consumption_event'),
     weights: count('weight_entry'),
-    photos: m.photos ? Object.keys(m.photos).length : 0,
+    photos: m.photos ? Object.keys(m.photos).length : (m.photoFiles?.length ?? 0),
   };
 }
 
