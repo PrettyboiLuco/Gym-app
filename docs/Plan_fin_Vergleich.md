@@ -54,7 +54,7 @@ HIIT, Cardio; seit Migration 28 in der Startzone). Plan-Wochen-Kästchen (12 Woc
 
 ---
 
-## 3. Muskel-Hinweis „Schultern seit 9 Tagen nicht“ — S
+## 3. Muskel-Hinweis „Schultern seit 9 Tagen nicht“ — S ✅ umgesetzt 10.11.
 
 **fin:** Muskelverteilung in Balken, darunter in Gelb „Schultern seit 9 Tagen nicht“.
 

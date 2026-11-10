@@ -3,6 +3,7 @@
 import { daysBetween, isoWeekday, shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
 import { tallyMuscles, type MuscleTally } from '@/domain/muscle-map';
+import { neglectedMuscle } from '@/domain/muscle-neglect';
 import { plannedSetsByWeekday, trainedDays } from '@/domain/summary';
 import { localDay, timeZone, zoneDay } from '@/domain/time';
 import { nextDayIndex, taggedWeekdays, todayPlan, type TodayPlan } from '@/domain/training';
@@ -11,6 +12,7 @@ import { readState, writeState } from './app-state';
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
+import { loadSpared, statusToday } from './readiness';
 import { lastCompletedDayPosition, listActivePlans, listExercises, listSessions, type PlanSummary } from './training';
 
 export type TrainingWeek = {
@@ -179,3 +181,35 @@ export async function loadMapPrefs(db: Db): Promise<MapPrefs> {
 }
 
 export const saveMapPrefs = (db: Db, prefs: MapPrefs) => writeState(db, 'muscle_map', prefs);
+
+/**
+ * Daten für den Muskel-Hinweis „zuletzt vor N Tagen“: Muskelgruppen des aktiven Plans, letzter Trainingstag je Gruppe
+ * (Hauptmuskel der Kraftübung, erledigte Arbeitssätze), laufender Status und geschonte Bereiche.
+ */
+export async function loadMuscleNeglect(db: Db, today: string): Promise<{ group: MuscleGroup; days: number; lastDay: string } | null> {
+  const plan = (await listActivePlans(db)).find((p) => p.days.length > 0);
+  if (!plan) return null;
+  const dayIds = plan.days.map((d) => d.id);
+  const [planned, last, status, spared] = await Promise.all([
+    db.getAllAsync<{ group: MuscleGroup }>(
+      `SELECT DISTINCT e.muscle_group AS "group" FROM plan_item i JOIN exercise e ON e.id = i.exercise_id
+       WHERE e.kind = 'kraft' AND i.plan_day_id IN (${dayIds.map(() => '?').join(', ')})`,
+      ...dayIds
+    ),
+    db.getAllAsync<{ group: MuscleGroup; at: string; tz: string | null }>(
+      `SELECT e.muscle_group AS "group", MAX(s.started_at_utc) AS at, s.time_zone AS tz
+       FROM set_log l JOIN workout_session s ON s.id = l.session_id JOIN exercise e ON e.id = l.exercise_id
+       WHERE l.completed_at_utc IS NOT NULL AND l.set_type <> 'aufwaermen' AND e.kind = 'kraft'
+       GROUP BY e.muscle_group`
+    ),
+    statusToday(db, today),
+    loadSpared(db, today),
+  ]);
+  return neglectedMuscle({
+    planned: planned.map((p) => p.group),
+    lastTrained: Object.fromEntries(last.map((r) => [r.group, zoneDay(r.at, r.tz)])),
+    today,
+    status: status?.status ?? null,
+    spared: spared?.areas ?? [],
+  });
+}

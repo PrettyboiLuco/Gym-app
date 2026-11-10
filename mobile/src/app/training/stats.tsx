@@ -18,7 +18,7 @@ import type { Db } from '@/data/db';
 import { loadSpared } from '@/data/readiness';
 import { listExercises, type Exercise } from '@/data/training';
 import { loadStatsOverview } from '@/data/training-stats';
-import { loadMapPrefs, loadWeekTally, saveMapPrefs, type MapPrefs } from '@/data/training-week';
+import { loadMapPrefs, loadWeekTally, saveMapPrefs, type MapPrefs, loadMuscleNeglect } from '@/data/training-week';
 import { daysBetween, shiftDay, weekStart } from '@/domain/dates';
 import { EMPTY_TALLY, type MuscleTally } from '@/domain/muscle-map';
 import { todayDay } from '@/domain/time';
@@ -68,14 +68,15 @@ async function load(db: Db, kind: Kind, offset: number, weekOffset: number) {
   const p = period(kind, offset, today);
   const before = previousSpan(kind, offset, today);
   const weekDay = shiftDay(today, -7 * weekOffset);
-  const [stats, exercises, tally, prefs, spared] = await Promise.all([
+  const [stats, exercises, tally, prefs, spared, neglect] = await Promise.all([
     loadStatsOverview(db, p, before, today),
     listExercises(db),
     loadWeekTally(db, weekDay),
     loadMapPrefs(db),
     loadSpared(db, today),
+    loadMuscleNeglect(db, today),
   ]);
-  return { period: p, soFar: before.soFar, stats: stats.current, previous: stats.previous, exercises, tally, prefs, spared, trends: stats.trends };
+  return { neglect, period: p, soFar: before.soFar, stats: stats.current, previous: stats.previous, exercises, tally, prefs, spared, trends: stats.trends };
 }
 
 /** Vorzeichen ohne Wertung: „+2“, „−3“, „±0“. */
@@ -100,6 +101,7 @@ export default function StatsScreen() {
       prefs: null as MapPrefs | null,
       spared: null as Awaited<ReturnType<typeof loadSpared>>,
       trends: [] as ExerciseTrend[],
+      neglect: null as Awaited<ReturnType<typeof loadMuscleNeglect>>,
     },
     `${kind}-${offset}-${weekOffset}`
   );
@@ -146,6 +148,11 @@ export default function StatsScreen() {
           spared={data.spared?.areas ?? []}
           sparedSince={data.spared?.since ?? null}
         />
+        {data.neglect ? (
+          <ThemedText type="small">
+            {t('neglect.title', { muscle: t(`muscle.${data.neglect.group}`), days: data.neglect.days })}
+          </ThemedText>
+        ) : null}
         <InsightInfo text={t('stats.muscleHint')} />
       </Card>
 

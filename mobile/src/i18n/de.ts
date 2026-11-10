@@ -564,6 +564,10 @@ export const de = {
     beinbeuger: 'Beinbeuger',
     waden: 'Waden',
   },
+  neglect: {
+    title: '{{muscle}} zuletzt vor {{days}} Tagen',
+    subtitle: 'Am {{date}} – steht in deinem Plan',
+  },
   muscle: {
     brust: 'Brust',
     ruecken: 'Rücken',

@@ -32,7 +32,7 @@ import {
   type PlanSummary,
 } from '@/data/training';
 import { activeEquipment, deloadOffer, saveDeloadState, startDeload, type DeloadState } from '@/data/training-stats';
-import { loadTodayPlan, loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
+import { loadMuscleNeglect, loadTodayPlan, loadTrainingWeek, loadWeekSetsByMuscle, type TrainingWeek } from '@/data/training-week';
 import { shiftDay, weekStart } from '@/domain/dates';
 import type { MuscleGroup } from '@/domain/exercises';
 import { EQUIPMENT } from '@/domain/exercises';
@@ -44,7 +44,7 @@ import { DELOAD_RULES_VERSION, deloadEnd, type EquipmentProfile } from '@/domain
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLoad } from '@/hooks/use-load';
 import { useTheme } from '@/hooks/use-theme';
-import { formatNumber, t, tOptional } from '@/i18n';
+import { formatDay, formatNumber, t, tOptional } from '@/i18n';
 import { useModules } from '@/providers/profile-provider';
 
 async function loadOverview(db: Db) {
@@ -58,6 +58,7 @@ async function loadOverview(db: Db) {
     loadTrainingWeek(db, todayDay()),
   ]);
   const muscles = await loadWeekSetsByMuscle(db, todayDay());
+  const neglect = await loadMuscleNeglect(db, todayDay());
   const deload = await deloadOffer(db, todayDay());
   // Training oder Ruhetag laut Plan (Wochentage im Namen bzw. gespeicherte Trainingstage).
   const planToday = await loadTodayPlan(db, todayDay());
@@ -83,6 +84,7 @@ async function loadOverview(db: Db) {
   // Status krank/verletzt/Pause (A6.7): Wochenziel pausiert wie auf „Heute“ (Browser-Prüfung X7).
   const statusPaused = (await statusToday(db, todayDay())) !== null;
   return {
+    neglect,
     statusPaused,
     active,
     plans,
@@ -124,6 +126,7 @@ export default function TrainingScreen() {
     equipmentProfile: { id: 'studio', name: 'Studio', equipment: [] as EquipmentProfile['equipment'] },
     planToday: null as Awaited<ReturnType<typeof loadTodayPlan>>,
     weekPlan: null as { planId: string; dayIds: (string | null)[] } | null,
+    neglect: null as { group: MuscleGroup; days: number; lastDay: string } | null,
   });
   const { active, plans, suggestions, timed, expired, pauseDays, week, hasFinished, muscles } = data;
   const dark = useColorScheme() === 'dark';
@@ -241,6 +244,19 @@ export default function TrainingScreen() {
             : undefined
         }
       />
+      {/* Ruhiger Hinweis aus dem fin-Vergleich: Muskelgruppe aus dem Plan, die am längsten nicht dran war (ab 8 Tagen). */}
+      {data.neglect ? (
+        <Card>
+          <ListRow
+            icon="target"
+            title={t('neglect.title', { muscle: t(`muscle.${data.neglect.group}`), days: data.neglect.days })}
+            subtitle={t('neglect.subtitle', { date: formatDay(data.neglect.lastDay) })}
+            accessory="›"
+            last
+            onPress={() => router.push('/training/stats')}
+          />
+        </Card>
+      ) : null}
 
       {/* Diese Woche auf einen Blick: drei Kennzahlen, darunter die Sätze je Muskelgruppe (sortiert, eine Farbe). */}
       <Card

@@ -7,7 +7,9 @@ import type { Db } from '@/data/db';
 import { migrate } from '@/data/migrations';
 import { saveReminders } from '@/data/reminders';
 import { createTestDb } from '@/data/testing/node-db';
+import { shiftDay } from '@/domain/dates';
 import { DEFAULT_REMINDERS, type ReminderSettings } from '@/domain/reminders';
+import { todayDay } from '@/domain/time';
 import { applyReminders, cancelAllAlerts, syncMealReminders } from '@/services/alerts';
 
 // Mitteilungen im Speicher statt auf dem Gerät (jest.mock wird vor die Importe gehoben).
@@ -35,14 +37,19 @@ beforeEach(async () => {
 });
 afterEach(() => db.close());
 
+// Morgen relativ zur echten Uhr: Mitteilungen in der Vergangenheit werden nie geplant (replaceAlerts prüft Date.now()),
+// ein festes Datum ließ den Test mit der Zeit rot werden.
+const DAY = shiftDay(todayDay(), 1);
+const EARLY = new Date(`${DAY}T00:00:00`).getTime() + 6 * 3_600_000; // 06:00 Ortszeit
+
 const mealIds = () => [...mockScheduled.keys()].filter((k) => k.startsWith('mahlzeit-')).sort();
 
 describe('Mahlzeit-Erinnerungen', () => {
   test('nach dem Ausschalten werden die schon geplanten Mitteilungen gelöscht', async () => {
     const on: ReminderSettings = { ...DEFAULT_REMINDERS, meals: { ...DEFAULT_REMINDERS.meals, fruehstueck: { enabled: true, time: '09:00' } } };
     await saveReminders(db, on);
-    const today = '2026-11-04';
-    const early = new Date('2026-11-04T00:00:00').getTime() + 6 * 3_600_000; // 06:00 Ortszeit
+    const today = DAY;
+    const early = EARLY;
     await syncMealReminders(db, today, early);
     expect(mealIds().length).toBeGreaterThan(0);
 
@@ -56,8 +63,8 @@ describe('Mahlzeit-Erinnerungen', () => {
   test('Ernährungsbereich ausgeschaltet: geplante Mahlzeit-Erinnerungen verschwinden', async () => {
     const on: ReminderSettings = { ...DEFAULT_REMINDERS, meals: { ...DEFAULT_REMINDERS.meals, mittag: { enabled: true, time: '13:00' } } };
     await saveReminders(db, on);
-    const early = new Date('2026-11-04T00:00:00').getTime() + 6 * 3_600_000;
-    await syncMealReminders(db, '2026-11-04', early);
+    const early = EARLY;
+    await syncMealReminders(db, DAY, early);
     expect(mealIds().length).toBeGreaterThan(0);
     await db.runAsync('INSERT INTO app_state (key, value) VALUES (\'profile\', \'{"modules":{"ernaehrung":false}}\')');
     await applyReminders(db, on);
@@ -67,13 +74,13 @@ describe('Mahlzeit-Erinnerungen', () => {
   test('nach dem Löschen aller Mitteilungen plant derselbe Plan wieder neu', async () => {
     const on: ReminderSettings = { ...DEFAULT_REMINDERS, meals: { ...DEFAULT_REMINDERS.meals, abend: { enabled: true, time: '19:00' } } };
     await saveReminders(db, on);
-    const early = new Date('2026-11-04T00:00:00').getTime() + 6 * 3_600_000;
-    await syncMealReminders(db, '2026-11-04', early);
+    const early = EARLY;
+    await syncMealReminders(db, DAY, early);
     const planned = mealIds();
     expect(planned.length).toBeGreaterThan(0);
     await cancelAllAlerts();
     expect(mealIds()).toEqual([]);
-    await syncMealReminders(db, '2026-11-04', early);
+    await syncMealReminders(db, DAY, early);
     expect(mealIds()).toEqual(planned);
   });
 });
