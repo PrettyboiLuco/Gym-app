@@ -564,6 +564,15 @@ export const de = {
     beinbeuger: 'Beinbeuger',
     waden: 'Waden',
   },
+  strength: {
+    title: 'Kraft pro Übung',
+    empty: 'Ab zwei Trainingswochen mit Gewicht steht hier die Kurve deiner häufigsten Übung.',
+    choose: 'Übung wählen',
+    estimated: '{{value}} geschätztes Maximum (1RM)',
+    weekOf: 'Woche ab {{date}}',
+    chartLabel: 'Verlauf des geschätzten Maximums: {{name}}',
+    open: 'Alle Werte dieser Übung ›',
+  },
   neglect: {
     title: '{{muscle}} zuletzt vor {{days}} Tagen',
     subtitle: 'Am {{date}} – steht in deinem Plan',

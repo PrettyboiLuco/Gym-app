@@ -332,3 +332,14 @@ export const DEFAULT_PROFILES = (studio: Equipment[]): EquipmentProfile[] => [
 export function usableEquipment(profile: EquipmentProfile): Equipment[] {
   return [...new Set<Equipment>(['koerpergewicht', ...profile.equipment])];
 }
+
+/**
+ * Veränderung in % vom ersten zum letzten Wochenwert im Fenster (Karte „Kraft pro Übung“). null bei weniger als zwei
+ * Werten oder Startwert 0. Gegengewicht: weniger ist besser, deshalb umgedreht.
+ */
+export function trendChange(trend: Pick<ExerciseTrend, 'weeks' | 'metric'>): number | null {
+  const values = trend.weeks.filter((v): v is number => v !== null);
+  if (values.length < 2 || values[0] === 0) return null;
+  const pct = ((values[values.length - 1] - values[0]) / values[0]) * 100;
+  return trend.metric === 'gegengewicht' ? -pct : pct;
+}

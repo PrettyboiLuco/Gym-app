@@ -13,6 +13,7 @@ import { Screen } from '@/components/screen';
 import { SettingsButton } from '@/components/settings-button';
 import { Sheet, SheetRow } from '@/components/sheet';
 import { SkeletonBlocks } from '@/components/skeleton';
+import { StrengthCard } from '@/components/strength-card';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
 import { WeightOverview } from '@/components/weight-overview';
@@ -184,6 +185,8 @@ export default function ProgressScreen() {
           ) : null}
         </SheetRow>
       </Sheet>
+
+      <StrengthCard unit={units.weight} />
 
       {/* Einblicke (W9): Kacheln und Wochen-Muster auf eigener Seite. */}
       <Card>
