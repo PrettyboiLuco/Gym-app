@@ -124,6 +124,32 @@ export async function startStatus(db: Db, status: Status, today: string, note: s
   });
 }
 
+/**
+ * Status für genau einen Tag (Verlauf: „Krank“ an einem vergangenen Tag). Ein Zeitraum, der den Tag schon abdeckt,
+ * bleibt; sonst kommt ein Ein-Tages-Zeitraum dazu. Laufende Zeiträume werden nicht verändert.
+ */
+export async function setStatusDay(db: Db, status: Status, day: string) {
+  const covering = await db.getFirstAsync<{ id: string }>(
+    'SELECT id FROM status_period WHERE from_day <= ? AND (to_day IS NULL OR to_day >= ?)',
+    day,
+    day
+  );
+  if (covering) return;
+  await db.runAsync(
+    'INSERT INTO status_period (id, status, from_day, to_day, note, created_at_utc) VALUES (?, ?, ?, ?, NULL, ?)',
+    newId(),
+    status,
+    day,
+    day,
+    nowUtc()
+  );
+}
+
+/** Ein-Tages-Status wieder entfernen (nur Zeiträume, die genau diesen einen Tag umfassen). */
+export async function clearStatusDay(db: Db, day: string) {
+  await db.runAsync('DELETE FROM status_period WHERE from_day = ? AND to_day = ?', day, day);
+}
+
 /** „Wieder fit“: laufender Status endet gestern; begann er heute, wird er gelöscht. */
 export async function endStatus(db: Db, today: string) {
   await db.withTransactionAsync(async () => {

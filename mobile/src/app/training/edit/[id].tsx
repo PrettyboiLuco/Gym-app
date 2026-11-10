@@ -76,7 +76,10 @@ async function load(db: Db, id: string, unit: WeightUnit): Promise<Loaded> {
 }
 
 /** Vorschlag beim Nachtragen: heute, vor einer Stunde (auf 5 Minuten), 60 Minuten. */
-function newForm(planDayId: string | null, rows: EditRow[]): Form {
+function newForm(planDayId: string | null, rows: EditRow[], day?: string): Form {
+  // Aus dem Verlauf für einen bestimmten Tag geöffnet: dieser Tag, 18:00 (Uhrzeit lässt sich ändern).
+  if (day && /^\d{4}-\d{2}-\d{2}$/.test(day) && day !== localDay(new Date(), timeZone))
+    return { day, time: formatTime(18 * 60), minutes: '60', planDayId, rows };
   const started = Date.now() - 60 * 60_000;
   const minutes = Math.floor(localMinutes(new Date(started), timeZone) / 5) * 5;
   return { day: localDay(new Date(started), timeZone), time: formatTime(minutes), minutes: '60', planDayId, rows };
@@ -87,7 +90,7 @@ function newForm(planDayId: string | null, rows: EditRow[]): Form {
  * keine Pausen, Mitteilungen oder Live-Anzeige, nur Zeitpunkt und Sätze.
  */
 export default function WorkoutEditScreen() {
-  const params = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string; day?: string }>();
   const id = params.id ?? NEW;
   const isNew = id === NEW;
   const theme = useTheme();
@@ -123,7 +126,7 @@ export default function WorkoutEditScreen() {
       reps: '',
       seconds: '',
     }));
-    setTemplate(newForm(planDayId, rows));
+    setTemplate(newForm(planDayId, rows, params.day));
     setEdited(null);
   }
 

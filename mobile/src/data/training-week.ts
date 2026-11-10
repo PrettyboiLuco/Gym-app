@@ -12,6 +12,7 @@ import { readState, writeState } from './app-state';
 import { cardioMinutesByDay } from './cardio';
 import { loadCoachSetup } from './coach';
 import type { Db } from './db';
+import { trainingDays } from './goals';
 import { loadSpared, statusToday } from './readiness';
 import { lastCompletedDayPosition, listActivePlans, listExercises, listSessions, type PlanSummary } from './training';
 
@@ -212,4 +213,24 @@ export async function loadMuscleNeglect(db: Db, today: string): Promise<{ group:
     status: status?.status ?? null,
     spared: spared?.areas ?? [],
   });
+}
+
+/**
+ * Daten für „Dein Jahr“ im Verlauf: Trainingstage der letzten 52 Wochen (Kraft, HIIT, Cardio) und die Stunden aus
+ * Trainingsdauer, Cardio-Minuten und Dehn-/HIIT-Einheiten.
+ */
+export async function loadYear(db: Db, today: string): Promise<{ days: string[]; minutes: number }> {
+  const from = shiftDay(weekStart(today), -7 * 51);
+  const fromUtc = `${shiftDay(from, -1)}T00:00:00.000Z`;
+  const [days, sessions, cardio, timed] = await Promise.all([
+    trainingDays(db, fromUtc, timeZone),
+    db.getFirstAsync<{ m: number | null }>(
+      `SELECT SUM((julianday(finished_at_utc) - julianday(started_at_utc)) * 1440) AS m FROM workout_session
+       WHERE status = 'abgeschlossen' AND finished_at_utc > started_at_utc AND started_at_utc >= ?`,
+      fromUtc
+    ),
+    db.getFirstAsync<{ m: number | null }>('SELECT SUM(minutes) AS m FROM cardio_log WHERE session_id IS NULL AND completed_at_utc IS NOT NULL AND day >= ?', from),
+    db.getFirstAsync<{ m: number | null }>("SELECT SUM(done_seconds) / 60.0 AS m FROM timed_session WHERE status <> 'aktiv' AND started_at_utc >= ?", fromUtc),
+  ]);
+  return { days: days.filter((d) => d >= from && d <= today), minutes: Math.round((sessions?.m ?? 0) + (cardio?.m ?? 0) + (timed?.m ?? 0)) };
 }

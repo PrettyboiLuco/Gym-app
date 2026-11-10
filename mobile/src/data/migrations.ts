@@ -764,6 +764,14 @@ export const MIGRATIONS: string[] = [
    CREATE INDEX consumption_food ON consumption_event (food_id, recorded_at_utc);
    CREATE INDEX consumption_kind_recorded ON consumption_event (kind, recorded_at_utc);
    ALTER TABLE workout_session ADD COLUMN time_zone TEXT;`,
+
+  // Version 29: Tages-Marken im Verlauf (Idee aus fin, 10.11.2026). Ein bewusst gesetzter Ruhetag ist nur eine Anzeige –
+  // er zählt nicht als Training und nimmt nichts weg. (Krank für einen einzelnen Tag läuft über status_period.)
+  `CREATE TABLE day_mark (
+     day TEXT PRIMARY KEY NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('ruhetag')),
+     created_at_utc TEXT NOT NULL
+   );`,
 ];
 
 /** Bringt die Datenbank auf den neuesten Stand. Jede Version läuft in einer eigenen Transaktion. */

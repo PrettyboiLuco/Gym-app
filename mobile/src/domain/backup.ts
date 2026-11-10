@@ -46,6 +46,7 @@ export const BACKUP_TABLES = [
   'supplement_log',
   'meal_feeling',
   'fasting_period',
+  'day_mark',
 ] as const;
 
 /** Laufende Zustände gehören nicht in eine Sicherung. */
