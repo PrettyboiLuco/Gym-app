@@ -1,6 +1,8 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { elapsedMinutes, pace, parseCardioForm } from '../cardio';
+import { t } from '@/i18n';
+
+import { CARDIO_ACTIVITIES, CARDIO_CATEGORIES, CARDIO_INFO, elapsedMinutes, matchesActivity, pace, parseCardioForm } from '../cardio';
 import { validatePlan } from '../training';
 
 const form = { minutes: '20', distance: '', avgHr: '', effort: null, level: '', note: '' };
@@ -33,5 +35,23 @@ describe('Cardio (A2)', () => {
     expect(validatePlan(day([]))).toContain('dayEmpty');
     expect(validatePlan(day([{ activity: 'laufband', minutes: 0 }]))).toContain('invalidCardio');
     expect(validatePlan(day([{ activity: 'laufband', minutes: 181 }]))).toContain('invalidCardio');
+  });
+});
+
+describe('Sportarten (fin-Vergleich, 10.11.2026)', () => {
+  test('jede Sportart hat Text, Gruppe und Angabe zur Strecke', () => {
+    for (const a of CARDIO_ACTIVITIES) {
+      expect(t(`cardio.activities.${a}`)).not.toMatch(/missing/);
+      expect(CARDIO_CATEGORIES).toContain(CARDIO_INFO[a].category);
+      expect(t(`cardio.categories.${CARDIO_INFO[a].category}`)).not.toMatch(/missing/);
+    }
+    expect(CARDIO_ACTIVITIES.length).toBeGreaterThanOrEqual(40);
+  });
+  test('Suche ohne Groß-/Kleinschreibung und Umlaute', () => {
+    expect(matchesActivity('Fußball', 'fussball')).toBe(true);
+    expect(matchesActivity('Fußball', 'FUSS')).toBe(true);
+    expect(matchesActivity('Tischtennis', 'tennis')).toBe(true);
+    expect(matchesActivity('Boxen', 'yoga')).toBe(false);
+    expect(matchesActivity('Boxen', '  ')).toBe(true);
   });
 });

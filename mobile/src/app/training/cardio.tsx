@@ -2,9 +2,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { ActivityPicker } from '@/components/activity-picker';
 import { Button, Card } from '@/components/card';
 import { DaySwitcher } from '@/components/day-switcher';
-import { Choice, ConfirmButton, Field } from '@/components/fields';
+import { Choice, ConfirmButton, Field, ListRow } from '@/components/fields';
 import { NumberInput } from '@/components/number-picker';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -12,7 +13,6 @@ import { showToast } from '@/components/toast';
 import { DisplayFont, Spacing } from '@/constants/theme';
 import { addCardio, completeCardio, deleteCardio, getCardio, setCardioTimer, type CardioEntry } from '@/data/cardio';
 import {
-  CARDIO_ACTIVITIES,
   CARDIO_INFO,
   defaultCardioMinutes,
   elapsedMinutes,
@@ -41,6 +41,7 @@ export default function CardioScreen() {
   const [entryId, setEntryId] = useState<string | null>(params.id ?? null);
   const { data: loaded, db, reload } = useLoad(async (d) => (entryId ? await getCardio(d, entryId) : null), null as CardioEntry | null, entryId ?? '');
   const [activityChoice, setActivity] = useState<CardioActivity | null>(null);
+  const [picking, setPicking] = useState(false);
   const [customName, setCustomName] = useState<string | null>(null);
   const [dayChoice, setDay] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<CardioForm>>({});
@@ -123,14 +124,25 @@ export default function CardioScreen() {
     <Screen withHeader>
       {!inSession ? <DaySwitcher day={day} onChange={setDay} /> : null}
       <Card>
-        <Choice
-          chips
-          label={t('cardio.activity')}
-          options={CARDIO_ACTIVITIES}
-          value={activity}
-          onChange={setActivity}
-          format={(a) => t(`cardio.activities.${a}`)}
-        />
+        {/* Gewählt: eine Zeile mit „Ändern“; sonst die Auswahl mit Suche und Gruppen. */}
+        {picking ? (
+          <ActivityPicker
+            value={activity}
+            onPick={(a) => {
+              setActivity(a);
+              setPicking(false);
+            }}
+          />
+        ) : (
+          <ListRow
+            title={t(`cardio.activities.${activity}`)}
+            subtitle={t('cardio.activity')}
+            value={t('cardio.change')}
+            accessory="›"
+            last
+            onPress={() => setPicking(true)}
+          />
+        )}
         {activity === 'sonstiges' ? (
           <Field
             label={t('cardio.customName')}

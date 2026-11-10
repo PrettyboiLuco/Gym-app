@@ -2,6 +2,7 @@
 // Kalorien-Gutschrift (HEALTH-007): Der Kalorienbedarf rechnet Aktivität schon über den Aktivitätsfaktor ein.
 
 export const CARDIO_ACTIVITIES = [
+  // Geräte
   'laufband',
   'ergometer',
   'spinning',
@@ -9,33 +10,112 @@ export const CARDIO_ACTIVITIES = [
   'rudergeraet',
   'treppensteiger',
   'stepper',
+  'skiergometer',
   'seilspringen',
+  // Ausdauer draußen
   'gehen',
   'laufen',
   'radfahren',
+  'mountainbike',
   'schwimmen',
   'wandern',
+  'inlineskaten',
+  'rudern',
+  'sup',
+  'skilanglauf',
+  'skifahren',
+  // Ballsport und Schläger
+  'fussball',
+  'basketball',
+  'volleyball',
+  'handball',
+  'tennis',
+  'badminton',
+  'tischtennis',
+  'squash',
+  'padel',
+  'golf',
+  // Kampfsport
+  'boxen',
+  'kickboxen',
+  'kampfsport',
+  // Kurse und Körper
+  'yoga',
+  'pilates',
+  'tanzen',
+  'zirkeltraining',
+  'functional',
+  'aerobic',
+  // Draußen und Alltag
+  'klettern',
+  'bouldern',
+  'gartenarbeit',
   'sonstiges',
 ] as const;
 export type CardioActivity = (typeof CARDIO_ACTIVITIES)[number];
 
-/** Strecke sinnvoll (Laufband, Rad, Rudern …)? Stufe/Steigung als Zusatzangabe? */
-export const CARDIO_INFO: Record<CardioActivity, { distance: boolean; level: 'steigung' | 'stufe' | null }> = {
-  laufband: { distance: true, level: 'steigung' },
-  ergometer: { distance: true, level: 'stufe' },
-  spinning: { distance: false, level: 'stufe' },
-  crosstrainer: { distance: true, level: 'stufe' },
-  rudergeraet: { distance: true, level: 'stufe' },
-  treppensteiger: { distance: false, level: 'stufe' },
-  stepper: { distance: false, level: 'stufe' },
-  seilspringen: { distance: false, level: null },
-  gehen: { distance: true, level: null },
-  laufen: { distance: true, level: null },
-  radfahren: { distance: true, level: null },
-  schwimmen: { distance: true, level: null },
-  wandern: { distance: true, level: null },
-  sonstiges: { distance: true, level: null },
+/** Gruppen für die Auswahl (Idee aus fin, 10.11.2026): Suche + Kategorie statt einer langen Chip-Wolke. */
+export const CARDIO_CATEGORIES = ['geraete', 'ausdauer', 'ball', 'kampf', 'kurse', 'mehr'] as const;
+export type CardioCategory = (typeof CARDIO_CATEGORIES)[number];
+
+/** Strecke sinnvoll (Laufband, Rad, Rudern …)? Stufe/Steigung als Zusatzangabe? Gruppe für die Auswahl. */
+export const CARDIO_INFO: Record<CardioActivity, { distance: boolean; level: 'steigung' | 'stufe' | null; category: CardioCategory }> = {
+  laufband: { distance: true, level: 'steigung', category: 'geraete' },
+  ergometer: { distance: true, level: 'stufe', category: 'geraete' },
+  spinning: { distance: false, level: 'stufe', category: 'geraete' },
+  crosstrainer: { distance: true, level: 'stufe', category: 'geraete' },
+  rudergeraet: { distance: true, level: 'stufe', category: 'geraete' },
+  treppensteiger: { distance: false, level: 'stufe', category: 'geraete' },
+  stepper: { distance: false, level: 'stufe', category: 'geraete' },
+  skiergometer: { distance: true, level: 'stufe', category: 'geraete' },
+  seilspringen: { distance: false, level: null, category: 'geraete' },
+  gehen: { distance: true, level: null, category: 'ausdauer' },
+  laufen: { distance: true, level: null, category: 'ausdauer' },
+  radfahren: { distance: true, level: null, category: 'ausdauer' },
+  mountainbike: { distance: true, level: null, category: 'ausdauer' },
+  schwimmen: { distance: true, level: null, category: 'ausdauer' },
+  wandern: { distance: true, level: null, category: 'ausdauer' },
+  inlineskaten: { distance: true, level: null, category: 'ausdauer' },
+  rudern: { distance: true, level: null, category: 'ausdauer' },
+  sup: { distance: true, level: null, category: 'ausdauer' },
+  skilanglauf: { distance: true, level: null, category: 'ausdauer' },
+  skifahren: { distance: false, level: null, category: 'ausdauer' },
+  fussball: { distance: false, level: null, category: 'ball' },
+  basketball: { distance: false, level: null, category: 'ball' },
+  volleyball: { distance: false, level: null, category: 'ball' },
+  handball: { distance: false, level: null, category: 'ball' },
+  tennis: { distance: false, level: null, category: 'ball' },
+  badminton: { distance: false, level: null, category: 'ball' },
+  tischtennis: { distance: false, level: null, category: 'ball' },
+  squash: { distance: false, level: null, category: 'ball' },
+  padel: { distance: false, level: null, category: 'ball' },
+  golf: { distance: true, level: null, category: 'ball' },
+  boxen: { distance: false, level: null, category: 'kampf' },
+  kickboxen: { distance: false, level: null, category: 'kampf' },
+  kampfsport: { distance: false, level: null, category: 'kampf' },
+  yoga: { distance: false, level: null, category: 'kurse' },
+  pilates: { distance: false, level: null, category: 'kurse' },
+  tanzen: { distance: false, level: null, category: 'kurse' },
+  zirkeltraining: { distance: false, level: null, category: 'kurse' },
+  functional: { distance: false, level: null, category: 'kurse' },
+  aerobic: { distance: false, level: null, category: 'kurse' },
+  klettern: { distance: false, level: null, category: 'mehr' },
+  bouldern: { distance: false, level: null, category: 'mehr' },
+  gartenarbeit: { distance: false, level: null, category: 'mehr' },
+  sonstiges: { distance: true, level: null, category: 'mehr' },
 };
+
+/** Suche ohne Groß-/Kleinschreibung und Umlaute („fussball“ findet „Fußball“). */
+export function matchesActivity(name: string, query: string): boolean {
+  const norm = (v: string) =>
+    v
+      .toLowerCase()
+      .replace(/ß/g, 'ss')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  const q = norm(query.trim());
+  return q === '' || norm(name).includes(q);
+}
 
 export const isCardioActivity = (v: unknown): v is CardioActivity => typeof v === 'string' && (CARDIO_ACTIVITIES as readonly string[]).includes(v);
 

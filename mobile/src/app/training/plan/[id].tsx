@@ -3,6 +3,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
+import { ActivityPicker } from '@/components/activity-picker';
 import { Button, Card } from '@/components/card';
 import { ExercisePicker } from '@/components/exercise-picker';
 import { Choice, ConfirmButton, Field, ItemTools, ListRow, Toggle } from '@/components/fields';
@@ -36,7 +37,6 @@ import {
   type PlanVersionInfo,
 } from '@/data/training';
 import { loadSecondsPerSet } from '@/data/training-stats';
-import { CARDIO_ACTIVITIES } from '@/domain/cardio';
 import { supersetLetters } from '@/domain/logger';
 import { localDay, timeZone, todayDay } from '@/domain/time';
 import { estimateDayMinutes, MAX_DAYS, moveItem, validatePlan } from '@/domain/training';
@@ -385,16 +385,12 @@ export default function PlanEditorScreen() {
             ))}
             {cardioPickFor === dayIndex ? (
               <View style={styles.item}>
-                <Choice
-                  chips
-                  label={t('cardio.pick')}
-                  options={CARDIO_ACTIVITIES}
-                  value={null}
-                  onChange={(activity) => {
+                <ThemedText type="smallBold">{t('cardio.pick')}</ThemedText>
+                <ActivityPicker
+                  onPick={(activity) => {
                     updateDay(dayIndex, { cardio: [...(day.cardio ?? []), { activity, minutes: '15', atEnd: true }] });
                     setCardioPickFor(null);
                   }}
-                  format={(a) => t(`cardio.activities.${a}`)}
                 />
                 <Button label={t('common.cancel')} variant="secondary" size="compact" onPress={() => setCardioPickFor(null)} />
               </View>
