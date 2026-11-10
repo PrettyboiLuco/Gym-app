@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button, Card } from '@/components/card';
 import { Choice, ListRow } from '@/components/fields';
 import { InsightInfo } from '@/components/insight-info';
+import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ThemedText } from '@/components/themed-text';
 import { showToast } from '@/components/toast';
-import { Spacing } from '@/constants/theme';
 import type { Db } from '@/data/db';
 import { lighterPlanToday, saveCheck } from '@/data/readiness';
 import { offersFor, type DailyCheck, type Level, type Readiness, type Reason } from '@/domain/readiness';
@@ -113,7 +113,6 @@ export function ReadinessCard({
   today: string;
   onChanged: () => void;
 }) {
-  const theme = useTheme();
   const [busy, setBusy] = useState(false);
   const modules = useModules();
   if (readiness.kind === 'offen') return null;
@@ -143,11 +142,9 @@ export function ReadinessCard({
   const offers = offersFor(readiness).filter((o) => o !== 'dehnen' || modules.routinen);
   return (
     <Card title={t('readiness.cardTitle')}>
-      <View style={styles.head}>
-        {readiness.kind === 'ampel' ? <View style={[styles.dot, { backgroundColor: levelColor(readiness.level, theme) }]} /> : null}
-        <ThemedText type="subtitle" style={styles.flex}>
-          {title}
-        </ThemedText>
+      {/* Halbkreis mit drei Bereichen statt Punkt + Titel (fin-Vergleich); in der Lernphase gedämpft ohne Markierung. */}
+      <View accessible accessibilityLabel={title}>
+        <ReadinessGauge level={readiness.kind === 'ampel' ? readiness.level : null} title={title} />
       </View>
       {readiness.kind === 'lernen' ? (
         <ThemedText type="small" themeColor="textSecondary">
@@ -174,9 +171,3 @@ export function ReadinessCard({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  head: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  dot: { width: 14, height: 14, borderRadius: 7 },
-  flex: { flex: 1 },
-});
