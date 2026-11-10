@@ -8,7 +8,7 @@ Aufwand: S = bis ½ Tag, M = 1 Tag, L = mehrere Tage. „Build“ = braucht eine
 
 ---
 
-## 1. Verlauf mit Wochenleiste und Tages-Aktionen — M
+## 1. Verlauf mit Wochenleiste und Tages-Aktionen — M ✅ umgesetzt 10.11.
 
 **fin:** Oben Monat + Wochenleiste (Mo–So, Tag antippen), darunter Karte des Tages: „10. November · Nichts eingetragen“
 mit **Einheit nachtragen · Ruhetag · Krank**.
@@ -35,7 +35,7 @@ mit **Einheit nachtragen · Ruhetag · Krank**.
 
 ---
 
-## 2. „Dein Jahr“ als Kästchen-Raster — S
+## 2. „Dein Jahr“ als Kästchen-Raster — S ✅ umgesetzt 10.11.
 
 **fin:** 53 × 7 Kästchen (ein Jahr), Trainingstage farbig, darunter Einheiten · Stunden.
 
@@ -73,7 +73,7 @@ Muskelkarte auf Statistik und Heute. **Fehlt:** letzter Trainingstag je Muskelgr
 
 ---
 
-## 4. Mehr Sportarten „nach Zeit“ — M
+## 4. Mehr Sportarten „nach Zeit“ — M ✅ umgesetzt 10.11.
 
 **fin:** Auswahl „Was für ein Training?“ mit Suche und Kategorien (Ausdauer, Kraft und Fitness, Ballsport …), viele
 Sportarten mit „Nur nach Zeit“ oder „Strecke und Zeit“.
@@ -97,7 +97,7 @@ mit eigenem Namen); `CARDIO_INFO` steuert Strecke/Stufe. Auswahl als Chips in `t
 
 ---
 
-## 5. Kraft pro Übung als Kurve in der Übersicht — S
+## 5. Kraft pro Übung als Kurve in der Übersicht — S ✅ umgesetzt 10.11.
 
 **fin:** Karte „Kraft pro Übung“: Kniebeugen (LH), Kurve, „138 kg geschätztes Maximum“, „+12 %“.
 
@@ -115,7 +115,7 @@ e1RM/Volumen), angezeigt in `training/stats.tsx` („Bestleistungen & Verlauf“
 
 ---
 
-## 6. Essen: sechs Kacheln unter der großen Zahl — S
+## 6. Essen: sechs Kacheln unter der großen Zahl — S ✅ umgesetzt 10.11.
 
 **fin:** „0/3060 Kalorien“ + Ring „übrig“, darunter 2 × 3 Kacheln mit Ring: Eiweiß, Kohlenhydrate, Fett,
 Ballaststoffe, Zucker (höchstens), Wasser.
@@ -135,7 +135,7 @@ Ballaststoffe/Zucker im Fenster „Nährwerte“ (`day-summary.tsx`, `EXTRAS`); 
 
 ---
 
-## 7. Bereitschaft als Wert 0–100 aus Apple Health — L + Build
+## 7. Bereitschaft als Wert 0–100 aus Apple Health — L + Build (7a ✅ umgesetzt 10.11., 7b offen)
 
 **fin:** Halbkreis „82 · GUT · Etwas besser als sonst“, Schlaf und Ruhepuls darunter; aus Schlaf, Ruhepuls, HRV, je
 Morgen neu, gegen den eigenen 14-Tage-Schnitt.
