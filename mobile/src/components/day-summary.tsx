@@ -46,6 +46,7 @@ export function DaySummary({
   day,
   estimated = false,
   empty,
+  water,
 }: {
   totals: NutrientTotals;
   goal: number | null;
@@ -58,6 +59,8 @@ export function DaySummary({
   /** Ziel aus dem Kalorienrechner (Schätzung). */
   estimated?: boolean;
   empty?: ReactNode;
+  /** Getrunkene Menge und Trinkziel (Kachel „Wasser“). */
+  water?: { ml: number; goalMl: number | null };
 }) {
   const theme = useTheme();
   const dark = useColorScheme() === 'dark';
@@ -84,7 +87,7 @@ export function DaySummary({
 
   if (empty) {
     return (
-      <DayHero totals={totals} goal={goal} macroGoals={macroGoals} empty={empty}>
+      <DayHero totals={totals} goal={goal} macroGoals={macroGoals} empty={empty} water={water}>
         {hints}
       </DayHero>
     );
@@ -92,7 +95,7 @@ export function DaySummary({
 
   const subtitle = t('nutrition.nutrients.sub');
   return (
-    <DayHero totals={totals} goal={goal} macroGoals={macroGoals}>
+    <DayHero totals={totals} goal={goal} macroGoals={macroGoals} water={water}>
       {targets && day ? <TargetDayExtras targets={targets} totals={totals} micros={micros.values} day={day} /> : null}
       <PressableScale
         accessibilityRole="button"

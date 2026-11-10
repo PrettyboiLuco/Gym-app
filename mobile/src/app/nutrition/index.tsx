@@ -327,6 +327,7 @@ export default function DiaryScreen() {
           day={day}
           estimated={data.estimated}
           empty={emptyDay}
+          water={{ ml: allMl, goalMl: settings.drinkGoalMl }}
         />
       )}
 

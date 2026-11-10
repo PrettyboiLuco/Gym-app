@@ -15,8 +15,6 @@ import { formatNumber, t } from '@/i18n';
 
 type MacroKey = 'protein' | 'carbs' | 'fat';
 const MACROS: MacroKey[] = ['protein', 'carbs', 'fat'];
-/** Spaltenbreiten der Makro-Leiste: „Kohlenhydrate“ steht ausgeschrieben wie „Eiweiß“ und „Fett“ und braucht mehr Platz. */
-const MACRO_FLEX: Record<MacroKey, number> = { protein: 1, carbs: 1.45, fat: 0.8 };
 const KCAL_PER_G: Record<MacroKey, number> = { protein: 4, carbs: 4, fat: 9 };
 const RADIUS = 28;
 
@@ -34,6 +32,7 @@ function useStageColors() {
     track: dark ? 'rgba(255,255,255,0.10)' : theme.backgroundSelected,
     line: dark ? 'rgba(255,255,255,0.12)' : theme.backgroundSelected,
     // Drei Datenreihen: Eiweiß in der Datenfarbe, Kohlenhydrate hell, Fett grau (taste: höchstens drei Reihen).
+    tileBg: theme.backgroundSelected,
     macro: { protein: dark ? theme.accent : theme.tint, carbs: dark ? '#E6E6E6' : '#3C3C3C', fat: dark ? '#6B6B6B' : '#A0A0A0' } as Record<MacroKey, string>,
   };
 }
@@ -63,12 +62,15 @@ export function DayHero({
   goal,
   macroGoals,
   empty,
+  water,
   children,
 }: {
   totals: NutrientTotals;
   goal: number | null;
   macroGoals: Macros | null;
   empty?: ReactNode;
+  /** Getrunkene Menge und Trinkziel für die Kachel „Wasser“. */
+  water?: { ml: number; goalMl: number | null };
   /** Unter der Makro-Leiste: Wochenbudget, Nährwerte, Hinweise. */
   children?: ReactNode;
 }) {
@@ -81,6 +83,52 @@ export function DayHero({
   const percent = goal ? Math.round((eaten / goal) * 100) : null;
   const shown = useCountUp(left === null ? eaten : Math.abs(left), !empty, true);
   const macroKcal = MACROS.reduce((s, k) => s + totals.values[k] * KCAL_PER_G[k], 0);
+  // Zucker höchstens 10 % der Kalorien (WHO), also kcal × 0,1 ÷ 4 g – nur mit Kalorienziel.
+  const sugarMax = goal ? Math.round((goal * 0.1) / 4) : null;
+  const gramTile = (key: 'protein' | 'carbs' | 'fat' | 'fiber', target: number | null, color: string) => ({
+    key,
+    label: t(`nutrition.${key}`),
+    value: totals.values[key],
+    valueText: grams(totals.values[key]),
+    prefix: atLeast(totals, key),
+    unit: 'g',
+    target,
+    color,
+    over: false,
+    sub: target
+      ? t('nutrition.summary.ofGrams', { value: formatNumber(target, 0) })
+      : key !== 'fiber' && macroKcal > 0
+        ? t('nutrition.summary.share', { value: Math.round(((totals.values[key] * KCAL_PER_G[key]) / macroKcal) * 100) })
+        : null,
+  });
+  const tiles = [
+    ...MACROS.map((k) => gramTile(k, macroGoals ? macroGoals[k] : null, colors.macro[k])),
+    gramTile('fiber', macroGoals?.fiber ?? null, colors.data),
+    {
+      key: 'sugar',
+      label: t('nutrition.summary.sugar'),
+      value: totals.values.sugar,
+      valueText: grams(totals.values.sugar),
+      prefix: atLeast(totals, 'sugar'),
+      unit: 'g',
+      target: sugarMax,
+      color: colors.macro.fat,
+      over: sugarMax !== null && totals.values.sugar > sugarMax,
+      sub: sugarMax ? t('nutrition.summary.atMost', { value: formatNumber(sugarMax, 0) }) : null,
+    },
+    {
+      key: 'water',
+      label: t('nutrition.summary.water'),
+      value: water?.ml ?? 0,
+      valueText: formatNumber((water?.ml ?? 0) / 1000, 1),
+      prefix: '',
+      unit: 'l',
+      target: water?.goalMl ?? null,
+      color: colors.data,
+      over: false,
+      sub: water?.goalMl ? t('nutrition.summary.ofLiters', { value: formatNumber(water.goalMl / 1000, 1) }) : null,
+    },
+  ];
   const label = goal === null ? t('nutrition.summary.eaten') : over ? t('nutrition.summary.over') : t('nutrition.summary.left');
   const prefix = goal === null ? (unknownKcal ? '≥ ' : '') : unknownKcal && !over ? '≤ ' : '';
   const line =
@@ -114,37 +162,35 @@ export function DayHero({
 
   return (
     <HeroCard stage={stage}>
-      <View style={styles.macros}>
-        {MACROS.map((k) => {
-          const target = macroGoals ? macroGoals[k] : null;
-          const share = macroKcal > 0 ? Math.round(((totals.values[k] * KCAL_PER_G[k]) / macroKcal) * 100) : 0;
-          const sub = target ? t('nutrition.summary.ofGrams', { value: formatNumber(target, 0) }) : t('nutrition.summary.share', { value: share });
-          return (
-            <View
-              key={k}
-              style={[styles.macro, { flex: MACRO_FLEX[k] }]}
-              accessible
-              accessibilityLabel={`${t(`nutrition.${k}`)} ${atLeast(totals, k)}${grams(totals.values[k])} g, ${sub}`}>
-              <View style={styles.macroHead}>
-                <View style={[styles.macroDot, { backgroundColor: colors.macro[k] }]} />
-                <ThemedText type="small" themeColor="textSecondary" numberOfLines={1} style={styles.macroName}>
-                  {t(`nutrition.${k}`)}
-                </ThemedText>
-              </View>
-              <ThemedText style={styles.macroValue} numberOfLines={1} adjustsFontSizeToFit>
-                {atLeast(totals, k)}
-                {grams(totals.values[k])}
-                <ThemedText themeColor="textSecondary" style={styles.unit}>
-                  {' g'}
-                </ThemedText>
+      {/* Sechs Kacheln wie bei fin (Vergleich 10.11.): Makros, Ballaststoffe, Zucker (höchstens) und Wasser – je Wert groß,
+          „von …“ klein, dünner Balken in der Datenfarbe. Ohne Ziel nur der Wert. Zucker: Balken erst über der Grenze rot. */}
+      <View style={styles.tiles}>
+        {tiles.map((tile) => (
+          <View
+            key={tile.key}
+            style={[styles.tile, { backgroundColor: colors.tileBg }]}
+            accessible
+            accessibilityLabel={`${tile.label} ${tile.prefix}${tile.valueText}${tile.unit ? ` ${tile.unit}` : ''}${tile.sub ? `, ${tile.sub}` : ''}`}>
+            <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+              {tile.label}
+            </ThemedText>
+            <ThemedText style={[styles.tileValue, tile.over && { color: theme.danger }]} numberOfLines={1} adjustsFontSizeToFit>
+              {tile.prefix}
+              {tile.valueText}
+              <ThemedText themeColor="textSecondary" style={styles.unit}>
+                {tile.unit ? ` ${tile.unit}` : ''}
               </ThemedText>
-              <MeterBar growIn progress={target ? totals.values[k] / target : share / 100} color={colors.macro[k]} trackColor={colors.track} height={4} />
-              <ThemedText type="small" themeColor="textSecondary" style={styles.macroSub} numberOfLines={1}>
-                {sub}
-              </ThemedText>
-            </View>
-          );
-        })}
+            </ThemedText>
+            {tile.target !== null ? (
+              <MeterBar growIn progress={Math.min(tile.value / tile.target, 1)} color={tile.over ? theme.danger : tile.color} trackColor={colors.track} height={4} />
+            ) : (
+              <View style={styles.noBar} />
+            )}
+            <ThemedText type="small" themeColor="textSecondary" style={styles.macroSub} numberOfLines={1}>
+              {tile.sub ?? ' '}
+            </ThemedText>
+          </View>
+        ))}
       </View>
       {children}
     </HeroCard>
@@ -167,11 +213,9 @@ const styles = StyleSheet.create({
   },
   empty: { alignItems: 'center', gap: Spacing.three, alignSelf: 'stretch' },
   unit: { fontFamily: undefined, fontSize: 14, letterSpacing: 0, fontWeight: 500 },
-  macros: { flexDirection: 'row', gap: Spacing.two + 4 },
-  macro: { flex: 1, minWidth: 0, gap: Spacing.one + 2 },
-  macroHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one + 1 },
-  macroName: { fontSize: 13, lineHeight: 18, flexShrink: 1 },
-  macroDot: { width: 7, height: 7, borderRadius: 3.5 },
-  macroValue: { fontFamily: DisplayFont.bold, fontSize: 18, lineHeight: 24, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  tile: { width: '31.5%', flexGrow: 1, borderRadius: 14, padding: Spacing.two + 2, gap: Spacing.one },
+  tileValue: { fontFamily: DisplayFont.bold, fontSize: 18, lineHeight: 24, letterSpacing: -0.3, fontVariant: ['tabular-nums'] },
+  noBar: { height: 4 },
   macroSub: { fontSize: 12, lineHeight: 16 },
 });
