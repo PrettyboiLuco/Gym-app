@@ -1,6 +1,6 @@
 # Athletikplan S1–S9 – „Der Coach für dein Training neben dem Sport“
 
-Stand 11.11.2026, zweite Fassung · Entwurf, noch nicht freigegeben · Grundlage: Gespräch zu Alleinstellungsmerkmalen
+Stand 12.11.2026, zweite Fassung mit ausgearbeiteten Sportprofilen · Entwurf, noch nicht freigegeben · Grundlage: Gespräch zu Alleinstellungsmerkmalen
 und Lucs Wunsch vom 11.11.2026: Trainingstipps und angepasste Gym-Pläne für viele Sportarten, 1–2 kostenlose Pläne,
 die individuellen Pläne über den Coach als bezahlte Funktion.
 
@@ -69,6 +69,8 @@ Gewichtung 0–3 je Baustein (Vorschlag, wird fachlich geprüft):
 | Laufen / Joggen | 1 | 1 | 1 | 1 | 2 | 3 | Waden/Achillessehne, Knie, Hüfte |
 | Sprint / Leichtathletik | 3 | 3 | 2 | 0 | 2 | 2 | Oberschenkelrückseite, Hüftbeuger |
 | Klettern / Bouldern | 1 | 0 | 2 | 2 | 2 | 0 | Finger/Griff, Schulter |
+
+**Ausgearbeitet (12.11.2026):** Alle elf Profile liegen ausführlich in `docs/sportprofile/` (Übersicht dort in `README.md`), mit Beispielplänen, Tipps, Tests und Quellen. Dabei wurden einige Gewichte angepasst (Kampfsport Schlagen Maximalkraft 2, Greifen Laufkraft 1, Varianten für Football, Laufen, Sprint, Volleyball); maßgeblich sind die Profildateien.
 
 Weitere Sportarten später nach Bedarf aus dem Pilot (Radfahren, Schwimmen, Ski, Rugby, Eishockey, Tanzen …).
 
@@ -140,6 +142,7 @@ sondern der **Inhalt**: 11 Sportprofile, Tipps und Regeln, die fachlich stimmen 
 | Sprung | Hürdensprünge · seitliche Hürdensprünge · Sprunglauf (Bounds) · seitliche einbeinige Sprünge · Landen und halten · einbeiniger Box Jump · Sprung mit Trap-Bar |
 | Wurf | Seitwurf an die Wand · Rückwärts-Überkopfwurf · Stoß einarmig · Wurf von unten nach vorn |
 | Griff, Balance, Hyrox | Scheiben-Kneifgriff · Handtuch-Hängen · Einbeinstand mit Augen zu · Sternreichen einbeinig · SkiErg (Strecke) · Burpee-Weitsprung über Strecke |
+| Aus den Sportprofilen | Liegestütz-Plus · Griffbrett-Hängen (nur mit Voraussetzungen) · Fingerstrecken mit Gummiband · Seilspringen als Übung · Sandsack über die Schulter |
 
 **Fertig, wenn:** Luc eine Einheit mit Box Jumps, 20-m-Sprint und Schlittenschieben loggt, Sprints eine Bestzeit
 zeigen, auf Sprünge keine Steigerung vorgeschlagen wird und die Sprungkontakte stimmen.
@@ -187,7 +190,7 @@ Konflikte funktionieren wie heute.
 
 | # | Schritt |
 |---|---|
-| S5.1 | **Eingaben:** Sportart (eine Haupt-, optional eine Nebensportart) · Saisonphase · Sport-Termine aus S2 · Gym-Tage (1–4) und Minuten · Erfahrung im Gym · Geräteprofil · frühere Beschwerden (Liste: Knie, Sprunggelenk, Oberschenkelrückseite, Leiste, Schulter, unterer Rücken, Nacken) · optional Schwerpunkt-Baustein („mehr Sprint“, „mehr Rumpf“). |
+| S5.1 | **Eingaben:** Sportart (eine Haupt-, optional eine Nebensportart) · Saisonphase · Sport-Termine aus S2 · Gym-Tage (1–4) und Minuten · Erfahrung im Gym · Geräteprofil · frühere Beschwerden (Liste: Knie, Sprunggelenk, Oberschenkelrückseite, Leiste, Schulter, unterer Rücken, Nacken, Hand/Handgelenk, Finger) · Variante je Sportart (Football: Position, Laufen: Stufe, Sprint: Disziplin) · optional Schwerpunkt-Baustein („mehr Sprint“, „mehr Rumpf“). |
 | S5.2 | **Sportprofile als Daten** (`domain/sport-profiles.ts`, versioniert), Gewichte je Baustein wie in Abschnitt 2. |
 | S5.3 | **Tagesaufbau** (N10): Explosiv/Sprint → Hauptübung Kraft → einseitig → Vorbeugung nach Profil und Beschwerden → Rumpf nach Profil. Welche Blöcke wie groß werden, entscheidet die Gewichtung; was nicht in die Minuten passt, wird mit Begründung gekürzt (wie heute). |
 | S5.4 | **Volumen** (N11) nach Saisonphase, Erfahrung und Sportlast der Woche: viel Sport → weniger Gym-Sätze. |
